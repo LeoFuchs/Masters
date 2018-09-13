@@ -10,13 +10,13 @@
 
 5 - Obtenha status dos arquivos com o comando: git status
 
-6 - Parametrize os repositórios com o comando: git remote add NOME_SERVIDOR LINK_HTTPS
+6 - Parametrize os repositórios com o comando: git remote add NOME_SERVIDOR (servidor) LINK_HTTPS (https://github.com/LeoFuchs/Masters.git)
 
 7 - Mostre detalhes dos servidores com o comando: git remote -v
 
 8 - Gere um commit das alterações com o comando: git commit -m “Comentário”
 
-9 - Envie para o repositório online (BitBucket) com o comando: git push NOME_SERVIDOR master
+9 - Envie para o repositório online (BitBucket) com o comando: git push NOME_SERVIDOR (servidor) master
 
 10 - Se pedir autenticação, a mesma é a autenticação do BitBucket.
 
@@ -39,4 +39,4 @@ Receber arquivos para o BitBucket
 
 6 - Se pedir autenticação, a mesma é a autenticação do BitBucket.
 
-7 - Fim! (Caso este passo não funcione, vá até a aba Downloads e efetue o Download do Projeto)
+7 - Fim! (Caso este passo não funcione, vá até a aba Downloads e efetue o Download do Projeto).
