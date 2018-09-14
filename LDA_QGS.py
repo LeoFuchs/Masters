@@ -2,7 +2,7 @@
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.datasets import load_files
-
+import scipy
 
 #n_features = 10
 n_topics = 2
@@ -20,7 +20,7 @@ def print_top_words(model, feature_names, n_top_words):
     print()
 
 # Training dataset
-files = load_files(container_path='/home/bruno/ownCloud/UFMS/Alunos/Leonardo/Masters/Files-QGS/QGS-txt', encoding="iso-8859-1")
+files = load_files(container_path='/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/QGS-txt', encoding="iso-8859-1")
 
 
 # extract fetures and vectorize dataset
@@ -36,7 +36,7 @@ dic = tf_vectorizer.get_feature_names()
 
 #print dic
 
-lda = LatentDirichletAllocation(n_topics=n_topics,
+lda = LatentDirichletAllocation(n_components=n_topics,
                                 max_iter=500,
                                 learning_method='online',
                                 learning_offset=50.,
