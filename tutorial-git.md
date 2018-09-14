@@ -39,4 +39,4 @@ Receber arquivos para o BitBucket
 
 6 - Se pedir autenticação, a mesma é a autenticação do BitBucket.
 
-7 - Fim! (Caso este passo não funcione, vá até a aba Downloads e efetue o Download do Projeto).
+7 - Fim! (Caso este passo não funcione, vá até a aba Downloads e efetue o Download do Projeto)
