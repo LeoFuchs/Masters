@@ -1,14 +1,10 @@
-
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.datasets import load_files
-import scipy
 
 #n_features = 10
 n_topics = 2
 n_top_words = 10
-
-
 
 # Print the n_top_words in order
 def print_top_words(model, feature_names, n_top_words):
@@ -45,7 +41,5 @@ lda = LatentDirichletAllocation(n_components=n_topics,
 # train LDA
 p1 = lda.fit(tf)
 
-# Save all data necessary for later prediction
-# model = (dic,lda.components_,lda.exp_dirichlet_component_,lda.doc_topic_prior_)
 
 print_top_words(lda, dic, n_top_words)
