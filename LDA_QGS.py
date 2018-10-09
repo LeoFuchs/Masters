@@ -1,3 +1,4 @@
+# encoding: utf-8
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.datasets import load_files
@@ -14,11 +15,11 @@ max_features = None
 
 alpha = None
 beta = None
-learning = 'batch'  # Bacth or Online
-iterations = 500
+learning = 'batch'  # Bacth ou Online
+iterations = 5000
 
 
-# Print the topics with the words in order
+# Imprime os tópicos com as palavras em ordem
 def print_top_words(model, feature_names, number_words):
     for topic_index, topic in enumerate(model.components_):
         message = "Topic %d: " % (topic_index + 1)
@@ -29,51 +30,55 @@ def print_top_words(model, feature_names, number_words):
         print(message)
 
 
-# Load training dataset
-files = load_files(container_path='/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/QGS-txt', encoding="iso-8859-1")
+# Carrega o dataset de treinamento
+files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/QGS-txt', encoding="iso-8859-1")
 
-# Extract words and vectorize dataset
-tf_vectorizer = CountVectorizer(max_df=max_document_frequency,
-                                min_df=min_document_frequency,
-                                ngram_range=ngram,
-                                max_features=max_features,
-                                stop_words='english')
+# Extrai as palavras e vetoriza o dataset
+tf_vectorizer = CountVectorizer(max_df = max_document_frequency,
+                                min_df = min_document_frequency,
+                                ngram_range = ngram,
+                                max_features = max_features,
+                                stop_words = 'english')
 
 tf = tf_vectorizer.fit_transform(files.data)
 
-# Save word names in a dicionary
+# Salva os nomes das palavras em um dicionário
 dic = tf_vectorizer.get_feature_names()
-print(dic)
 
-
-# Execute lda and training
-lda = LatentDirichletAllocation(n_components=number_topics,
-                                doc_topic_prior=alpha,
-                                topic_word_prior=beta,
-                                learning_method=learning,
-                                learning_decay=0.7,
-                                learning_offset=10.0,
-                                max_iter=iterations,
-                                batch_size=128,
-                                evaluate_every=-1,
-                                total_samples=1000000.0,
-                                perp_tol=0.1,
-                                mean_change_tol=0.001,
-                                max_doc_update_iter=100,
-                                random_state=None)
+# Executa o LDA e treina-o
+lda = LatentDirichletAllocation(n_components = number_topics,
+                                doc_topic_prior = alpha,
+                                topic_word_prior = beta,
+                                learning_method = learning,
+                                learning_decay = 0.7,
+                                learning_offset = 10.0,
+                                max_iter = iterations,
+                                batch_size = 128,
+                                evaluate_every = -1,
+                                total_samples = 1000000.0,
+                                perp_tol = 0.1,
+                                mean_change_tol = 0.001,
+                                max_doc_update_iter = 100,
+                                random_state = None)
 lda.fit(tf)
 
-# Print the topics (number_topics) with the words (number_words)
+# Imprime os (number_topics) tópicos com as (number_words) palavras
+print("Os %d tópicos com suas %d palavras em formato textual: \n" % (number_topics, number_words))
 print_top_words(lda, dic, number_words)
 
-# Print the wordcloud
+print("\n\n")
 
-for i in range(0, number_topics - 1):
+# Imprime a WordCloud
+print("Os %d tópicos com suas %d palavras em formato de WordCloud: \n" % (number_topics, number_words))
+
+for i in range(0, number_topics):
     termsInTopic = lda.components_[i].argsort()[:-number_words - 1:-1]
     termsAndCounts = []
     for term in termsInTopic:
-        termsAndCounts.append((str(dic[term].encode('utf-8').strip()), math.ceil(lda.components_[i][term] * 1000)))
-    cloud = wordcloud.WordCloud(background_color="white")
+        termsAndCounts.append((str(dic[term].encode('utf-8').strip()), math.ceil(lda.components_[i][term])))
+    #print(termsAndCounts) (Imprimir as palavras de cada tópico com seus respectivos valores)
+    cloud = wordcloud.WordCloud(width = 400, height = 200, max_font_size = 50, min_font_size = 10, background_color = "white")
+    wordcloud.WordCloud()
     cloud.generate_from_frequencies(dict(termsAndCounts))
     plt.imshow(cloud)
     plt.axis("off")
