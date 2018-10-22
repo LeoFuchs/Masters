@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import math
 import wordcloud
 
-number_topics = 2
-number_words = 10
+number_topics = 8
+number_words = 2
 max_document_frequency = 1.0
 min_document_frequency = 0.4
 ngram = (1, 3)
@@ -66,22 +66,4 @@ lda.fit(tf)
 print("Os %d tópicos com suas %d palavras em formato textual: \n" % (number_topics, number_words))
 print_top_words(lda, dic, number_words)
 
-print("\n\n")
-
-# Imprime a WordCloud
-print("Os %d tópicos com suas %d palavras em formato de WordCloud: \n" % (number_topics, number_words))
-
-for i in range(0, number_topics):
-    termsInTopic = lda.components_[i].argsort()[:-number_words - 1:-1]
-    termsAndCounts = []
-    for term in termsInTopic:
-        termsAndCounts.append((str(dic[term].encode('utf-8').strip()), math.ceil(lda.components_[i][term])))
-    #print(termsAndCounts) (Imprimir as palavras de cada tópico com seus respectivos valores)
-    cloud = wordcloud.WordCloud(width = 400, height = 200, max_font_size = 50, min_font_size = 10, background_color = "white")
-    wordcloud.WordCloud()
-    cloud.generate_from_frequencies(dict(termsAndCounts))
-    plt.imshow(cloud)
-    plt.axis("off")
-    plt.savefig(str(i))
-    plt.show()
 
