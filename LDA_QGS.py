@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import math
 import wordcloud
 
-number_topics = 8
-number_words = 2
+number_topics = 2
+number_words = 10
 max_document_frequency = 1.0
 min_document_frequency = 0.4
 ngram = (1, 3)
@@ -17,7 +17,6 @@ alpha = None
 beta = None
 learning = 'batch'  # Bacth ou Online
 iterations = 5000
-
 
 # Imprime os tópicos com as palavras em ordem
 def print_top_words(model, feature_names, number_words):
@@ -31,7 +30,7 @@ def print_top_words(model, feature_names, number_words):
 
 
 # Carrega o dataset de treinamento
-files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/QGS-txt', encoding="iso-8859-1")
+files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/QGS-ia-txt/', encoding="iso-8859-1")
 
 # Extrai as palavras e vetoriza o dataset
 tf_vectorizer = CountVectorizer(max_df = max_document_frequency,
@@ -63,7 +62,5 @@ lda = LatentDirichletAllocation(n_components = number_topics,
 lda.fit(tf)
 
 # Imprime os (number_topics) tópicos com as (number_words) palavras
-print("Os %d tópicos com suas %d palavras em formato textual: \n" % (number_topics, number_words))
+print("The %d topics with your %d words in textual format: \n" % (number_topics, number_words))
 print_top_words(lda, dic, number_words)
-
-
