@@ -1,0 +1,3141 @@
+206
+
+COHEN ET AL., Reducing Systematic Review Workload Using Citation Classiﬁcation
+
+Research Paper j
+Reducing Workload in Systematic Review Preparation Using
+Automated Citation Classiﬁcation
+
+A. M. COHEN, MD, MS, W. R. HERSH, MD, K. PETERSON, MS, PO-YIN YEN, MS
+
+A b s t r a c t Objective: To determine whether automated classiﬁcation of document citations can be useful in
+reducing the time spent by experts reviewing journal articles for inclusion in updating systematic reviews of drug class
+efﬁcacy for treatment of disease.
+
+Design: A test collection was built using the annotated reference ﬁles from 15 systematic drug class reviews. A voting
+perceptron-based automated citation classiﬁcation system was constructed to classify each article as containing high-
+quality, drug class–speciﬁc evidence or not. Cross-validation experiments were performed to evaluate performance.
+
+Measurements: Precision, recall, and F-measure were evaluated at a range of sample weightings. Work saved over
+sampling at 95% recall was used as the measure of value to the review process.
+
+Results: A reduction in the number of articles needing manual review was found for 11 of the 15 drug review topics
+studied. For three of the topics, the reduction was 50% or greater.
+
+Conclusion: Automated document citation classiﬁcation could be a useful tool in maintaining systematic reviews of the
+efﬁcacy of drug therapy. Further work is needed to reﬁne the classiﬁcation system and determine the best manner to
+integrate the system into the production of systematic reviews.
+
+j J Am Med Inform Assoc. 2006;13:206–219. DOI 10.1197/jamia.M1929.
+
+The practice of evidence-based medicine (EBM) involves
+applying the best and most up-to-date evidence, in the form
+of published literature, to patient care decision making.1,2
+While the original vision of EBM appeared to require physi-
+cians directly searching the primary literature for evidence ap-
+plicable to their patients, the modern conception of EBM relies
+heavily on distillations of the primarily literature in the form of
+systematic reviews (also called evidence reports),3,4 such as
+those produced by the Cochrane Collaboration and the
+Evidence-based Practice Centers (EPCs) of the Agency for
+Healthcare Research and Quality (AHRQ).5 AHRQ reports
+are available to the public (http://www.ahrq.gov/clinic/
+epcindex.htm/) and abstracts of Cochrane reviews are also
+available (http://www.cochrane.org/reviews/).
+
+The Department of Medical
+Informatics and Clinical
+Epidemiology at the Oregon Health and Science University
+
+Afﬁliation of the authors: Department of Medical Informatics and
+Clinical Epidemiology, School of Medicine, Oregon Health & Science
+University, Portland, OR.
+
+This work was funded in part by National Science Foundation grant
+ITR-0325160 and by NIH 2 T15 LM07088-11 from the National
+Library of Medicine.
+
+The authors thank Mark Helfand, MD, MPH, and Marian McDo-
+nagh, PharmD, of the Oregon EPC, for their review and helpful sug-
+gestions during the writing of this article. They also acknowledge the
+Oregon EPC for providing the EndNote ﬁles.
+
+Correspondence and reprints: Aaron M. Cohen, MD, Department
+of Medical Informatics and Clinical Epidemiology, School of Medi-
+cine, Oregon Health & Science University, 3181 S.W. Sam Jackson
+Park Road, Mail Code BICC, Portland, OR 97239-3098; e-mail:
+<cohenaa@ohsu.edu>.
+
+Received for review: 08/05/05; accepted for publication: 11/30/05.
+
+is home to one of the AHRQ EPCs (http://www.ohsu.edu/
+epc/). The EPC has focused on providing comprehensive lit-
+erature reviews comparing classes of drugs used for treating
+speciﬁc conditions. To date,
+the Oregon EPC, Southern
+California EPC, and Research Triangle Institute/University
+of North Carolina (RTI/UNC) EPC have completed and pub-
+lished 15 evidence reports, evaluating the efﬁcacy of medica-
+tions in drug classes such as oral opioids, skeletal muscle
+relaxants, and estrogen replacement.6–8
+Making these evidence reports comprehensive and keeping
+them up to date is a labor-intensive process.9,10 Like any
+systematic review, those of drug classes identify thousands
+of articles that must be located, triaged, reviewed, and
+summarized. Potentially relevant articles are located using
+an iteratively reﬁned query-based search of biomedical elec-
+tronic databases, such as MEDLINE and EMBASE. These
+queries are developed by starting with the optimized clinical
+queries proposed and studied by Haynes et al.11–13 and reﬁned
+based on the experience and knowledge of the EPC staff. For
+the 15 systematic drug reviews mentioned above, the staff cre-
+ated queries for randomized controlled trials by combining
+terms for health conditions and interventions with the
+Haynes et al. research methodology ﬁlters for therapy.
+
+Articles are then triaged in a two-step process. First the ab-
+stract is reviewed, and, if the abstract meets the inclusion cri-
+teria, the entire article is read. If the full text article proves to
+meet the inclusion criteria, the evidence presented in the arti-
+cle is summarized and included in the EPC report. Advances
+in clinical evaluation and pharmacology require that EPC
+drug reviews be updated on a periodic basis. This inevitably
+leads to the workload of the center increasing over time as re-
+viewers must both produce new reviews as well as monitor
+and update the old ones.
+
+Journal of the American Medical Informatics Association Volume 13 Number 2 Mar / Apr 2006
+
+207
+
+The process of creating these drug reviews is very methodi-
+cal. Reviewers keep detailed records of their search methods,
+the articles for which they have reviewed the abstracts and
+read full text, and, ﬁnally, which articles include sufﬁcient
+high-quality evidence to warrant inclusion in the systematic
+review. This process motivated our interest in using these
+data to train an automated classiﬁcation system that would
+have the ability to predict which new articles were most
+likely to include evidence warranting inclusion in a review
+update. An automated classiﬁcation system would function
+to triage (or ﬁlter) new articles that match the search criteria
+of the original study. This would be useful to the reviewers
+in several ways. First, by monitoring the number of new ar-
+ticles on a given topic containing high-quality evidence (as
+determined by the classiﬁcation system),
+the reviewers
+would have a simple and clear indication when substantial
+new information exists on a topic and the report needs to
+be revised. Second, the classiﬁcation system could decrease
+the number of articles that require manual review and there-
+fore reduce one of the most time-consuming steps in prepar-
+ing or updating a systematic review. Third, classifying the
+most
+likely documents to contain high-quality evidence
+can help reviewers prioritize which articles are read ﬁrst
+and which are read only if there is sufﬁcient time. This pa-
+per presents the investigators’ application of a machine
+learning–based classiﬁcation system to reduce the labor re-
+quired and improve the efﬁciency of keeping drug reviews
+up to date.
+
+We are unaware of any prior work that applies automated
+classiﬁcation of literature for topic-speciﬁc evidence-based
+drug or therapy reviews similar to the work we present
+here. The closest research is the work of Aphinyanaphongs
+et al.,14 who have published work investigating the use of ma-
+chine-learning algorithms to improve information retrieval of
+high-quality articles useful for evidence-based medicine in
+the nontopic-speciﬁc high-level categories of etiology, prog-
+nosis, diagnosis, and treatment. Their research focuses on
+improving performance over the clinical query ﬁlters ﬁrst
+proposed by Haynes et al.,11–13 using all the articles published
+in ten journals from 1986 through 1991, and whether those
+articles were included in the ACP Journal Club as a gold
+standard.
+
+There has been much more work in the related area of auto-
+mated document classiﬁcation to assist curator annotation of
+biomedical databases. Like the work of Aphinyanaphongs
+et al.,14 the goals of these tasks are to place articles into one
+of a few high-level, nontopic-speciﬁc categories. The results
+of these high-level automated tasks vary because the recall
+requirements are different and are difﬁcult to compare to
+the topic-speciﬁc classiﬁcation presented here. Dobrokhotov
+et al.15 used a combination of NLP and statistical classiﬁcation
+techniques to achieve a recall of 0.4477 at a precision of 0.6716
+for identifying articles containing information about human
+genetic diseases and polymorphisms, using a test set where
+15% of the original articles were relevant. The TREC 2004
+Genomics track included a task to identify articles containing
+information on mouse gene function for Gene Ontology (GO)
+annotation. With a utility function giving recall 20 times the
+importance of precision, the best results achieved were a nor-
+malized utility of 0.6512, and precision of 0.1579 at a recall of
+0.8881, resulting in an F-measure of 0.2681.16
+
+Methods
+In order to build and test an automated classiﬁcation system
+for these evidence reports, we proceeded in three phases. In
+the ﬁrst phase, we built test collections for each of 15 review
+topics. In the second phase, we trained a machine learning–
+based classiﬁer on the test collections. In the ﬁnal phase,
+we evaluated the approach on each of the review topics.
+Figure 1 shows a diagram of the overall process.
+
+Building the Text Collections
+The initial data set consisted of 15 EndNote (http://www.
+endnote.com/) reference ﬁles with annotations (in the user-
+deﬁned ﬁelds) made available to the investigators by the
+EPC. Each ﬁeld in the reference ﬁle contained information
+on the article’s title, authors, journal, and year of publication,
+as well as several user-deﬁned ﬁelds. The user-deﬁned ﬁelds
+included information entered by the EPC reviewers about
+whether each article passed the triage evaluation done by
+an expert reviewer at the abstract and article level. In addi-
+tion, sometimes a free-text reason was coded as to why a
+paper was excluded. Therefore, these ﬁelds were ‘‘semicoded’’
+in that the EPC used a consistent set of strings to encode triage
+decisions and may also have appended additional free text
+describing a reason for the assigning of a speciﬁc code.
+Occasional data entry typographical errors were also present.
+
+In order to transform these data into a consistent set of infor-
+mation that could be used by a classiﬁcation system, we pro-
+cessed the data in several steps. In the ﬁrst step, we exported
+the data from EndNote using a tab-delimited, one record per
+line text format. In the second step, we extracted author, jour-
+nal, title, year, and user-deﬁned information and used the
+NCBI Batch Citation Matcher (http://www.ncbi.nlm.nih.
+
+F i g u r e 1 . High-level diagram of the overall process.
+
+208
+
+COHEN ET AL., Reducing Systematic Review Workload Using Citation Classiﬁcation
+
+gov/entrez/citmatch.cgi)
+to look up the corresponding
+PubMed identiﬁers (PMID). Then we produced a joined ﬁle
+that included the author,
+journal, title, year, user-deﬁned
+information, and PMID for each article.
+
+In order to make our work reproducible and comparable with
+work by others who apply different approaches to this task,
+we needed to have a ﬁxed, static collection of MEDLINE
+records. We decided to use the TREC 2004 Genomics Track
+document corpus, a general MEDLINE subset that has been
+widely used in other experimental systems. The corpus con-
+sists of all MEDLINE records (not just genomics records, as
+might be inferred from the name) for the years 1994 through
+the end of 2003. Using this document corpus allows straight-
+forward replicability of our results and allows other research
+groups to directly compare their results with our own.16
+We needed to limit the test collection to articles for which the
+TREC 2004 Genomics Track document corpus had available
+MEDLINE records. Not all the articles included in the refer-
+ence ﬁles were indexed in MEDLINE. For example, some
+were in non-English journals not indexed in MEDLINE. We
+ﬁltered the test collection by the PMIDs present in the
+TREC corpus to ensure that we had a MEDLINE record for
+each article in the test collection.
+
+In the next step, we normalized the EndNote user-deﬁned
+ﬁelds that contained the EPC-coded information for the ab-
+stract and article triage decisions for each article. We used a
+set of simple regular expressions, customized for each drug re-
+view and determined by inspection of the data, to normalize
+the reason ﬁelds into a set of ten consistently coded values.
+The codes and meanings are shown in Table 1. The investi-
+gators had extended discussions with the EPC reviewers
+to determine the correct regular expressions to map the user-
+deﬁned ﬁelds into the coded values shown in Table 1 and to
+detect and resolve any typographical errors. No articles were
+excluded from the test collection due to an inability to process
+the user-coded ﬁelds. In this study, we sought to distinguish
+articles included at the abstract and full text levels from all ex-
+cluded ones; however, we chose to preserve the information
+provided in the exclusion reason codes for use in future work.
+
+As a ﬁnal step, we combined the information from all the
+studies into a single text ﬁle. Each line corresponds to an
+individual article triaged by the EPC staff for a speciﬁc
+drug review, and each ﬁeld corresponds to the drug review
+
+Table 1 j Standardized Coded Values for Abstract and
+Article Triage Decisions
+
+Abstract or Article
+
+Code
+
+I
+E
+1
+2
+3
+4
+5
+6
+7
+8
+9
+
+Meaning
+
+Included at abstract or article level
+Nonspeciﬁcally excluded
+Excluded due to foreign language
+Excluded due to wrong outcome
+Excluded due to wrong drug
+Excluded due to wrong population
+Excluded due to wrong publication type
+Excluded due to wrong study design
+Excluded due to wrong study duration
+Excluded due to background article
+Excluded due to only abstract being
+
+available
+
+Table 2 j Example Drug Review Journal Citation
+Records
+
+Drug Class Review
+
+ID
+
+PMID
+
+EndNote
+
+Abstract
+Triage
+
+Article
+Triage Year
+
+ADHD
+Antihistamines
+BetaBlockers
+CalciumChannelBlockers 3139
+
+11483145
+1010
+615
+1342896
+211 10826501
+11718496
+
+5
+I
+I
+2
+
+E
+E
+I
+E
+
+2001
+1992
+2000
+2001
+
+PMID 5 PubMed identiﬁer; ADHD 5 attention-deﬁcit/hyperactiv-
+ity disorder.
+
+name, a reference ﬁle identiﬁer, the PMID, and the abstract
+and full text article triage ﬁelds encoded as shown in Table 1.
+Example data records are shown in Table 2. Note that even
+though the data set will only include citations and not full
+text articles, the expert EPC reviewers had access to the full
+text articles and made their triage decisions in two stages,
+the ﬁrst based on the abstract and the second based on the
+full text article. It is this ﬁnal triage decision that we would
+like to predict using a machine-learning algorithm using
+only the information contained within the article citation.
+
+Note that in the process just described, there are two steps
+where we exclude articles originally contained in the
+EndNote ﬁles. We lose articles when the Batch Citation
+Matcher cannot ﬁnd a matching article (i.e., the reference is
+not indexed in MEDLINE) and when the article is not present
+in the ten-year MEDLINE subset. After processing, we were
+able to convert between 30% and 50% of the references into
+the test collection.
+
+Descriptive statistics about the number of original articles re-
+viewed for each study, the number of articles included in the
+text collection, and the percentage of positive articles in each
+text collection are shown in Table 3. The ﬁrst column lists the
+drug review name, the second the number of citations
+
+Table 3 j Descriptive Statistics on the Number of
+Citations for Each Study
+
+No. of
+
+Citations
+
+No. of
+
+and
+
+Articles
+Reviewed
+by EPC
+
+Citations
+Included
+in Test
+
+%
+
+Retained
+in Test
+
+Collection
+
+Collection
+
+%
+
+Retained
+Included
+in EPC
+Review
+
+6,866
+2,191
+1,037
+2,947
+5,437
+3,717
+718
+766
+4,996
+1,460
+2,698
+5,460
+7,922
+1,343
+809
+
+2,544
+851
+310
+1,120
+2,072
+1,218
+368
+393
+1,915
+503
+1,333
+1,643
+3,465
+671
+327
+
+37.05
+38.84
+29.89
+38.00
+38.11
+32.77
+51.25
+51.31
+38.33
+34.45
+49.41
+30.09
+43.74
+49.96
+40.42
+
+1.60
+2.40
+5.20
+13.0
+2.00
+8.20
+21.7
+10.4
+0.80
+27.0
+3.80
+0.50
+2.50
+3.60
+12.2
+
+Drug Review
+
+Name
+
+ACEInhibitors
+ADHD
+Antihistamines
+AtypicalAntipsychotics
+BetaBlockers
+CalciumChannelBlockers
+Estrogens
+NSAIDs
+Opioids
+OralHypoglycemics
+ProtonPumpInhibitors
+SkeletalMuscleRelaxants
+Statins
+Triptans
+UrinaryIncontinence
+
+EPC 5 Evidence-based Practice Center; ACE 5 angiotensin-
+converting enzyme; ADHD 5 attention-deﬁcit/hyperactivity disor-
+der; NSAIDs 5 nonsteroidal anti-inﬂammatory drug.
+
+Journal of the American Medical Informatics Association Volume 13 Number 2 Mar / Apr 2006
+
+209
+
+Table 4 j Arrangement of 2 3 2 Table for Computing
+Feature Signiﬁcance
+
+Table 5 j Number of Signiﬁcant Features for Each
+Study
+
+Training document
+is triage positive?
+
+Feature is the one under test?
+
+Yes
+
+No
+
+Yes
+
+Number of times
+
+Number of times other
+
+feature seen
+in positive
+documents
+
+features seen
+in positive
+documents
+
+No
+
+Number of times
+
+Number of times other
+
+feature seen
+in negative
+documents
+
+features seen
+in negative
+documents
+
+reviewed by the EPC and therefore the number of entries in
+the corresponding EndNote ﬁle, the third column gives the
+number of citations included in the test collection for each re-
+view, the fourth shows the percentage of the original citations
+in the EndNote ﬁle retained in the text collection, and the ﬁnal
+column gives the percentage of articles retained in the test col-
+lection that were included in the ﬁnal EPC systematic review.
+
+The percentage of articles in the test collection that were se-
+lected for inclusion in each of the drug reviews varied widely,
+from a low of 0.5% (for SkeletalMuscleRelaxants) to a high of
+27% (for OralHypoglycemics). A low percentage of true pos-
+itives is often typical for biomedical document classiﬁcation
+tasks and requires a special approach to classiﬁcation and
+evaluation to provide useful results.16–18 Unlike many typical
+automated document classiﬁcation tasks where accuracy
+(percentage of correct predictions) or F-measure (deﬁned
+later) may provide a useful metric for evaluating systems,
+in biomedical scenarios such as we have here, the goal is often
+to improve precision, but only if a very high level of recall can
+be sustained. For systematic reviews, the reviewers try to in-
+clude every article relevant to the topic that provides high-
+quality evidence. While it is reasonable to assume that a small
+percentage of articles are missed, any automated classiﬁca-
+tion system must maintain a high recall, or the work saved
+by improving the precision of the set of documents that re-
+quire manual review is made irrelevant by the large number
+of relevant articles missed.
+
+Classiﬁer System
+We used the MEDLINE records for each of the articles to gen-
+erate the feature set as input to the machine learning system.
+Features included all the words from the title and abstract in a
+‘‘bag-of-words’’ approach as well as the article’s Medical
+Subject Headings (MeSH) and MEDLINE publication type.
+For MeSH-based features, we included the main headings,
+the headings with subheadings, the primary heading, and
+the subheadings by themselves. The MeSH and MEDLINE
+publication type features were pre-pended with ‘‘MESH_’’
+and ‘‘PUBTYPE_’’ respectively to ensure that these features
+were treated distinct from words in the title or abstract. We
+counted the frequency of each feature appearing in positive
+and negative documents and applied the x2 test with an a
+of 0.05 to use the statistically signiﬁcant features as relevant
+features for input to the classiﬁer system, using the 2 3 2 table
+shown in Table 4. Our previous work on document classiﬁca-
+tion has shown this value of a to produce good results.17 Each
+feature was treated as a binary quantity, either present in each
+document or absent, resulting in a feature vector for each doc-
+ument consisting of entirely ones and zeros.
+
+Drug Review Name
+
+ACEInhibitors
+ADHD
+Antihistamines
+AtypicalAntipsychotics
+BetaBlockers
+CalciumChannelBlockers
+Estrogens
+NSAIDs
+Opioids
+OralHypoglycemics
+ProtonPumpInhibitors
+SkeletalMuscleRelaxants
+Statins
+Triptans
+UrinaryIncontinence
+
+Total No. of
+Signiﬁcant
+Features
+
+Word
+
+Features
+
+MeSH
+Features
+
+PubType
+Features
+
+210
+80
+29
+381
+194
+329
+233
+242
+55
+234
+206
+11
+467
+121
+215
+
+165
+56
+19
+302
+147
+247
+184
+186
+41
+175
+146
+7
+374
+96
+165
+
+40
+24
+9
+71
+42
+77
+44
+51
+14
+55
+54
+2
+87
+22
+45
+
+5
+0
+1
+8
+5
+5
+5
+5
+0
+4
+6
+2
+6
+3
+5
+
+MeSH 5 medical subject headings; ACE 5 angiotensin-converting en-
+zyme; ADHD 5 attention-deﬁcit/hyperactivity disorder; NSAIDs 5
+nonsteroidal anti-inﬂammatory drugs.
+
+We did not weight
+the features by term frequencies.
+Preliminary testing found that weighting features by intra-
+document frequency and/or inverse document frequency
+(TF, IDF, TFIDF) decreased the performance of the classiﬁer
+system. We also tried applying the Porter stemming algo-
+rithm19 as well as a stop list of the 300 most common
+English words20 to the word features. Table 5 shows the num-
+ber and type of signiﬁcant features for each drug class review.
+The ﬁrst column gives the drug review name, and the second
+column gives the number of statistically signiﬁcant features
+found in the training data for that review. The last three
+columns break the total number of features down into three
+distinct categories: number of word-based features, number
+of MeSH tag-based features, and number of MEDLINE
+publication type tag-based features.
+
+Successfully training a classiﬁer to identify low-probability
+classes such as the articles included in these drug reviews
+can be challenging when using machine-learning algorithms
+without sufﬁcient conﬁguration options. We have previously
+had success in classifying document collections with highly
+asymmetric positive and negative sample frequency (e.g., a
+small number of positives in a collection with a large number
+of negatives) using a variation of the voting perceptron clas-
+siﬁer ﬁrst proposed by Freund and Schapire.17,21 The voting
+perceptron algorithm has very good performance, is quite
+fast, and is easy to implement. While the algorithm as pub-
+lished does not include a means of compensating for asym-
+metric false positive and negative penalties we have created
+a modiﬁcation to the algorithm that does provide this ﬂexibil-
+ity. This allows the system to work well in situations where
+the cost of a recall error (false negative) differs signiﬁcantly
+from the cost of a precision error (false positive).
+
+A perceptron is essentially an equation for a linear combina-
+tion of the values of the feature set, represented as a vector.
+There is one term in the perceptron vector for each feature
+in the feature set plus an optional bias term. A document is
+classiﬁed by taking the dot product of a document’s feature
+vector with the perceptron vector and adding in the bias
+
+210
+
+COHEN ET AL., Reducing Systematic Review Workload Using Citation Classiﬁcation
+
+term. If the result is greater than zero, then the document is
+classiﬁed as positive; if it less than or equal to zero, then the
+document is classiﬁed as negative.
+Rosenblatt’s22 original algorithm trained the perceptron by
+applying it to each sample in the training data. If the sample
+was incorrectly classiﬁed, the perceptron was modiﬁed by
+adding or subtracting the sample back into the perceptron,
+adding when the sample was a true positive and subtracting
+when the sample was a true negative. Over a large number of
+training samples, the perceptron converges on the solution
+that best approximates the separation between positive and
+negative documents in the training set.
+
+Freund and Schapire improved the performance of the per-
+ceptron by modifying the algorithm to produce a series of
+perceptrons, each of which makes a prediction on the class
+of each document and gets a number of ‘‘votes’’ depending
+on how many documents that perceptron classiﬁed correctly
+in the training set. The class with the most votes is the pre-
+dicted class assigned to the document. They also extended
+the perceptron algorithm to enable the use of kernels using
+more complex mathematical operations rather than the
+straightforward linear kernel that simply adds and subtracts
+samples as described above.
+
+In our modiﬁed voting perceptron, we use a linear kernel and
+differentially adjust the learning rate of the perceptron for
+false negatives and false positives. While in the original im-
+plementation of Freund and Schapire, incorrectly classiﬁed
+samples are directly added or subtracted back into the per-
+ceptron, we ﬁrst multiply the sample by a factor known as
+the learning rate. Furthermore, we use different learning rates
+for false positives and false negatives.
+
+We ﬁxed the false-positive learning rate at 1.0 and adjusted the
+false-negative learning rate (FNLR) to optimize performance.
+The frequency of positives differs widely across the 15 studies.
+In general, we have found that the FNLR should be propor-
+tional to the ratio of negative to positive samples in the data
+set. In order to process and analyze all the studies in a consis-
+tent manner, we created a normalized FNLR parameter, w. The
+parameter w is input to the learning algorithm and the actual
+FNLR used in training the classiﬁer for each study is given by:
+
+FNLR 5 w*
+Number of Positive Documents in the Study Training Set
+Number of Negative Documents in the Study Training Set
+ð1Þ
+
+In our experiments, we vary w in a consistent manner across
+all reviews and compute FNLR for each topic. In general, the
+optimal value of w will be different for each classiﬁcation
+task. As we will show, w can be determined by applying
+cross-validation to the training data and interpolating to
+solve for the value of w that results in the best value for the
+chosen scoring measure for each task.
+We also tried a rule-based classiﬁer, Slipper,23 with the same
+feature sets and document weights but found that it consis-
+tently underperformed the voting perceptron classiﬁer. We
+did not explore the use of the currently very popular support
+vector machine (SVM)-based classiﬁers such as SVM-Light.24
+The voting perceptron classiﬁer divides the parameter space
+in a similar way to SVM and has been shown to perform
+
+similarly to SVM-based classiﬁers.21 Also, our prior experi-
+ence with SVM-Light has found that the program settings
+are insufﬁcient to handle classiﬁcation tasks with very low
+rates of positive samples when high recall is required.17
+Evaluating the Classiﬁer
+We wanted to evaluate how our classiﬁer approach performs
+on identifying new articles for inclusion in future updates of
+the drug evidence reviews. In order to do that, we needed to
+decide on an appropriate metric as well as optimize the nor-
+malized FNLR weight w for each drug review. To make the
+most efﬁcient use of the data sets and to get the best estimate
+of system performance on future data, we chose to use 5 3 2
+cross-validation.
+In 5 3 2 cross-validation, the data set is randomly split in half,
+and then one half is used to train the classiﬁer, and the classi-
+ﬁer is scored using the other half as a test set. Then the roles of
+the two half data sets are exchanged, with the second half used
+for training and the ﬁrst half used for testing, with the results
+accumulated from both halves of the split. What makes 5 3 2
+different from the ten-way cross-validation more commonly
+used is that the half-and-half split and score process is re-
+peated ﬁve times. This approach uses each data sample ﬁve
+times for training and ﬁve times for testing among random
+splits and averages the results together for all runs. The
+5 3 2 cross-validation approach is thought to give better esti-
+mates of actual performance than the ten-way cross-valida-
+tion method, which frequently overestimates performance.25
+It was challenging to determine an appropriate metric with
+which to evaluate our approach. The most commonly used
+measures, precision and recall, separately measure two things
+of importance to a classiﬁer system, namely, how accurately
+the classiﬁer performs when predicting items in the class of
+interest (precision) and how completely the classiﬁer iden-
+tiﬁes the items of interest (recall). For classiﬁcation tasks, pre-
+cision (P) and recall (R) are deﬁned as:
+
+P 5
+
+Number Positive Documents Correctly Classified
+Total Number of Documents Classified as Positive
+
+R 5
+
+Number Positive Documents Correctly Classified
+
+Total Number of Positive Documents in Test Collection
+
+ð2Þ
+
+ð3Þ
+
+Since precision and recall are two separate numbers, compar-
+ing one system or the result of one set of parameters to another
+is difﬁcult. Precision and recall are commonly combined into a
+weighted harmonic mean called F-measure, usually weighting
+both components equally and deﬁned as 2*P*R/(P 1 R).
+However, neither precision, recall, nor F-measure captures
+what we were interested in measuring for this task. For a doc-
+ument classiﬁcation system to provide value for systematic
+reviews, the system has to save the reviewers the work of
+reading every paper. At the same time, the number of missed
+papers containing quality evidence has to be very low. For
+this study, we assumed that a recall of 0.95 or greater was
+required for the system to identify an adequate fraction of
+the positive papers. Precision should be as high as possible,
+as long as recall is at least 0.95.
+
+Furthermore, the most important feature of the system to mea-
+sure is how much future work the reviewers could save for
+each drug review. Rather than simply reporting the highest
+
+Journal of the American Medical Informatics Association Volume 13 Number 2 Mar / Apr 2006
+
+Table 6 j Results of 5 3 2 Cross-validation on Data Set for Each Drug Review
+
+Drug Review
+
+ACEInhibitors
+
+WSS@95%
+
+56.61%
+
+ADHD
+
+67.95%
+
+Antihistamines
+
+0.00%
+
+AtypicalAntipsychotics
+
+14.11%
+
+BetaBlockers
+
+28.44%
+
+CalciumChannelBlockers
+
+12.21%
+
+Estrogens
+
+18.34%
+
+NSAIDs
+
+49.67%
+
+Opioids
+
+13.32%
+
+OralHypoglycemics
+
+8.96%
+
+w
+
+0.25
+0.5
+0.75
+1
+*2
+4
+8
+0.25
+0.5
+*0.75
+1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+*4
+8
+0.25
+0.5
+0.75
+1
+*2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+*4
+8
+0.25
+0.5
+0.75
+1
+2
+*4
+8
+0.25
+0.5
+0.75
+*1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+*2
+4
+8
+0.25
+0.5
+
+FNLR
+
+15.2620
+30.5240
+45.7870
+61.0490
+122.0980
+244.1950
+488.3900
+10.3870
+20.7750
+31.1630
+41.5500
+83.1000
+166.2000
+332.4000
+4.5940
+9.1880
+13.7810
+18.3750
+36.7500
+73.5000
+147.0000
+1.6680
+3.3360
+5.0030
+6.6710
+13.3420
+26.6850
+53.3700
+12.0830
+24.1670
+36.2500
+48.3330
+96.6670
+193.3330
+386.6670
+2.7950
+5.5900
+8.3850
+11.1800
+22.3600
+44.7200
+89.4400
+0.9000
+1.8000
+2.7000
+3.6000
+7.2000
+14.4000
+28.8000
+2.1460
+4.2930
+6.4390
+8.5850
+17.1710
+34.3410
+68.6830
+31.6670
+63.3330
+95.0000
+126.6670
+253.3330
+506.6670
+1013.3338
+0.6750
+1.3490
+
+P
+
+0.1211
+0.0949
+0.0761
+0.0642
+0.0387
+0.0238
+0.0183
+0.1379
+0.0998
+0.0945
+0.0738
+0.0436
+0.0292
+0.0249
+0.0894
+0.0798
+0.0737
+0.0714
+0.0600
+0.0502
+0.0488
+0.3890
+0.3239
+0.2701
+0.2527
+0.1968
+0.1534
+0.1362
+0.1253
+0.0799
+0.0621
+0.0503
+0.0334
+0.0257
+0.0226
+0.2756
+0.2259
+0.1968
+0.1694
+0.1248
+0.0952
+0.0845
+0.4953
+0.4648
+0.4288
+0.3968
+0.3213
+0.2552
+0.2263
+0.3720
+0.3453
+0.2831
+0.2631
+0.1620
+0.1161
+0.1080
+0.0347
+0.0187
+0.0128
+0.0109
+0.0092
+0.0082
+0.0078
+0.5437
+0.4840
+
+R
+
+0.6293
+0.8098
+0.8732
+0.8780
+0.9561
+0.9854
+1.0000
+0.6300
+0.8500
+0.9200
+0.9800
+1.0000
+1.0000
+1.0000
+0.1375
+0.2125
+0.3125
+0.3625
+0.5125
+0.8500
+0.8500
+0.2712
+0.5014
+0.6027
+0.7014
+0.8479
+0.9493
+0.9932
+0.4905
+0.6429
+0.7381
+0.8190
+0.9286
+0.9714
+0.9952
+0.3440
+0.5620
+0.6460
+0.6760
+0.8840
+0.9460
+0.9960
+0.2625
+0.5275
+0.6775
+0.7500
+0.8900
+0.9725
+0.9975
+0.3756
+0.7024
+0.8146
+0.9317
+0.9902
+1.0000
+1.0000
+0.2533
+0.4667
+0.4533
+0.6933
+0.9467
+0.9867
+1.0000
+0.2471
+0.4882
+
+F
+
+0.2031
+0.1699
+0.1400
+0.1197
+0.0745
+0.0465
+0.0359
+0.2262
+0.1786
+0.1713
+0.1373
+0.0835
+0.0568
+0.0486
+0.1084
+0.1160
+0.1193
+0.1193
+0.1075
+0.0948
+0.0923
+0.3196
+0.3935
+0.3730
+0.3716
+0.3194
+0.2642
+0.2396
+0.1996
+0.1422
+0.1146
+0.0948
+0.0644
+0.0500
+0.0443
+0.3060
+0.3222
+0.3017
+0.2709
+0.2188
+0.1730
+0.1558
+0.3431
+0.4941
+0.5252
+0.5190
+0.4721
+0.4044
+0.3689
+0.3738
+0.4630
+0.4201
+0.4103
+0.2785
+0.2081
+0.1950
+0.0610
+0.0359
+0.0249
+0.0214
+0.0182
+0.0162
+0.0156
+0.3397
+0.4861
+
+211
+
+WSS
+
+54.55%
+67.23%
+68.82%
+65.77%
+55.84%
+31.81%
+11.75%
+52.26%
+64.98%
+69.11%
+66.79%
+46.09%
+19.53%
+5.57%
+5.81%
+7.51%
+9.38%
+10.06%
+7.19%
+22.35%
+24.87%
+18.03%
+29.96%
+31.18%
+33.96%
+28.62%
+14.27%
+4.28%
+41.11%
+47.98%
+49.72%
+48.91%
+36.47%
+20.42%
+10.39%
+24.15%
+35.77%
+37.65%
+34.84%
+30.26%
+13.02%
+2.83%
+14.73%
+28.08%
+33.40%
+33.91%
+28.78%
+14.42%
+3.93%
+27.03%
+49.02%
+51.44%
+56.22%
+35.26%
+10.18%
+3.41%
+19.61%
+27.09%
+17.57%
+19.44%
+14.19%
+3.85%
+0.05%
+12.42%
+21.55%
+
+212
+
+COHEN ET AL., Reducing Systematic Review Workload Using Citation Classiﬁcation
+
+Table 6 j (Continued)
+
+Drug Review
+
+WSS@95%
+
+ProtonPumpInhibitors
+
+27.68%
+
+SkeletalMuscleRelaxants
+
+0.00%
+
+Statins
+
+24.71%
+
+Triptans
+
+3.37%
+
+UrinaryIncontinence
+
+26.14%
+
+w
+
+0.75
+1
+2
+*4
+8
+0.25
+0.5
+0.75
+1
+*2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+*4
+8
+0.25
+0.5
+0.75
+1
+2
+*4
+8
+0.25
+0.5
+0.75
+1
+2
+*4
+8
+
+FNLR
+
+2.0240
+2.6990
+5.3970
+10.7940
+21.5880
+6.2840
+12.5690
+18.8530
+25.1370
+50.2750
+100.5490
+201.0980
+45.3890
+90.7780
+136.1670
+181.5560
+363.1110
+726.2220
+1452.4440
+9.9410
+19.8820
+29.8240
+39.7650
+79.5290
+159.0590
+318.1180
+6.7400
+13.4790
+20.2190
+29.9580
+53.9170
+107.8330
+215.6670
+1.7940
+3.5870
+5.3810
+7.1750
+14.3500
+28.7000
+57.4000
+
+P
+
+0.4284
+0.3962
+0.3375
+0.3004
+0.2797
+0.2335
+0.1522
+0.1162
+0.0879
+0.0602
+0.0471
+0.0412
+0.0042
+0.0038
+0.0044
+0.0050
+0.0051
+0.0055
+0.0055
+0.1707
+0.1154
+0.0883
+0.0702
+0.0469
+0.0311
+0.0263
+0.1389
+0.0883
+0.0711
+0.0639
+0.0449
+0.0365
+0.0359
+0.4509
+0.3434
+0.2824
+0.2523
+0.1880
+0.1559
+0.1325
+
+R
+
+0.5941
+0.6735
+0.8382
+0.9471
+0.9838
+0.4706
+0.6588
+0.7059
+0.7882
+0.9373
+0.9686
+0.9961
+0.0222
+0.0222
+0.3556
+0.4000
+0.8444
+1.0000
+1.0000
+0.5106
+0.6612
+0.7600
+0.8071
+0.8894
+0.9647
+0.9906
+0.2500
+0.5583
+0.6917
+0.7583
+0.8667
+0.9583
+1.0000
+0.5050
+0.7400
+0.7400
+0.8400
+0.9100
+0.9850
+1.0000
+
+F
+
+0.4978
+0.4989
+0.4812
+0.4561
+0.4355
+0.3121
+0.2472
+0.1996
+0.1582
+0.1132
+0.0898
+0.0792
+0.0070
+0.0064
+0.0088
+0.0099
+0.0102
+0.0109
+0.0109
+0.2559
+0.1965
+0.1583
+0.1291
+0.0891
+0.0603
+0.0512
+0.1786
+0.1524
+0.1290
+0.1178
+0.0854
+0.0703
+0.0693
+0.4764
+0.4691
+0.4088
+0.3880
+0.3116
+0.2691
+0.2341
+
+WSS
+
+21.92%
+21.39%
+16.67%
+9.46%
+3.27%
+39.35%
+49.32%
+47.35%
+44.52%
+34.18%
+18.18%
+7.17%
+20.70%
+21.02%
+28.34%
+23.90%
+25.56%
+0.00%
+0.00%
+43.72%
+52.06%
+54.89%
+52.49%
+42.44%
+20.41%
+6.55%
+18.56%
+33.21%
+34.38%
+33.36%
+17.64%
+1.94%
+0.39%
+36.80%
+47.64%
+41.95%
+43.27%
+31.80%
+21.19%
+7.71%
+
+WSS 5 work saved over sampling; w 5 normalized FNLR parameter; FNLR 5 false-negative learning rate; P 5 precision; R 5 recall; F 5 F1-measure;
+ACE 5 angiotensin-converting enzyme; ADHD 5 attention-deﬁcit/hyperactivity disorder; NSAIDs 5 nonsteroidal anti-inﬂammatory drugs;
+* 5 recall closest to 0.95.
+
+precision obtained at a recall at or above 0.95, we chose to use
+as our metric a measure of the work saved at a recall ﬁxed at
+0.95. We deﬁne the work saved as the percentage of papers
+that meet the original search criteria that the reviewers do
+not have to read (because they have been screened out by
+the classiﬁer). A recall of 0.95 can be obtained with a 0.95 ran-
+dom sampling of the data, and this process would save the re-
+viewers 5% of the work of reading the papers. Clearly, for the
+classiﬁer system to provide an advantage, the work saved
+must be greater than the work saved by simple random sam-
+pling. Therefore, we measure the work saved over and above
+the work saved by simple sampling for a given level of recall.
+We deﬁne the work saved over sampling (WSS) as:
+WSS 5ðTN 1 FNÞ=N 2ð1:0 2 RÞ
+
+5ðTN 1 FNÞ=N 2 1 1 TP=ðTP 1 FNÞ
+
+ð4Þ
+
+where TP is the number of true positives identiﬁed by the
+classiﬁer, TN is the number of true negatives identiﬁed by
+
+the classiﬁer, FN is the number of false negatives identiﬁed
+by the classiﬁer, R is recall and N is the total number of sam-
+ples in the test set. For the present work, we have ﬁxed recall
+at 0.95 and therefore work saved over sampling at 95% recall
+(WSS@95%) is
+
+WSS@95% 5ðTN 1 FNÞ=N 2 0:05
+
+ð5Þ
+
+This measure does make some simplifying assumptions. No
+speciﬁc consideration is given to variations in document
+length or the work expended during review of an article
+citation versus the review of a full text article. We assume
+the actual work saved by documents predicted to be negative
+by the classiﬁcation system is on average the same as the
+work required by the average document retrieved during
+the literature search.
+We applied the 5 3 2 cross-validation process to the data sets
+for each of the drug reviews multiple times, varying w
+
+Journal of the American Medical Informatics Association Volume 13 Number 2 Mar / Apr 2006
+
+213
+
+F i g u r e 2 . Recall versus w for each of the 15 drug review topics.
+
+between 0.25 and 8.00. This range of w used covered the useful
+range of FNLR for each of the review topics. At lower values of
+w (,0.25), the recall was well below the 0.95 that we were tar-
+geting. For higher values of w (.8.00), recall was at or near
+100%. Finally, we estimated WSS@95% by linearly interpolat-
+ing the WSS for the values of w with recall immediately above
+and below 0.95. This allowed us to both determine the best
+value of w for training the classiﬁer for a speciﬁc systematic re-
+view and to estimate the performance of the classiﬁer on future
+articles that meet the search criteria of the original drug review.
+
+Results
+The results of our cross-validation experiments are presented
+in Table 6. Precision, recall, F-measure, FNLR, and WSS for
+each drug review at eight different values of the parameter
+w, from 0.25 to 8.00 are shown. For each drug review, the
+value of w that leads to a recall closest to 0.95 is marked
+with an asterisk. This value varies between a low of 0.75
+and a high of 4.00. For some topics, estimating WSS@95% re-
+call required evaluating WSS at 8.0 to bracket the 95% recall
+value. Evaluating performance at values of w below 0.75
+appears not to be necessary to determine the best value of
+w to optimize WSS@95%.
+
+Figure 2 presents the relationship between w and recall for
+each of the 15 drug reviews. While recall monotonically in-
+creases very smoothly with w for all 15 reviews, the value
+of w for which recall reaches 0.95 varies widely. Furthermore,
+the curves ﬂatten out substantially as w was raised above 2.0,
+making 4.0 a practical upper limit for w.
+
+Figure 3 presents estimates of the potential work saved for
+each of
+the
+
+the 15 reviews. For 13 of
+
+the 15 topics,
+
+WSS@95% was positive, meaning that the automated classiﬁ-
+cation process is predicted to save the reviewers work in the
+future. For three of these topics, ACEInhibitors, ADHD, and
+NSAIDs, the predicted work savings was very large, about
+$50%. For these tasks the classiﬁcation system is clearly suc-
+cessful at producing a signiﬁcant work savings.
+
+The work savings for the 15 tasks varied between 0% for
+Antihistamines and SkeletalMuscleRelaxants and 67.95% for
+ADHD. To fully evaluate our method, it was necessary to
+set a WSS@95% threshold for success. We determined a suc-
+cess threshold in the following manner. EPC staff estimates
+that performing a thorough literature database search, review
+of abstracts, full text procurement of identiﬁed documents,
+and review of those documents takes on average about 332
+hours of a total 3,648-hour timeline to produce a systematic
+review or to update a review. WSS@95% measures the work
+saved over sampling at 95% recall, that is, the work saved
+over and above if one just took a 95% sample of the docu-
+ments. When computing the actual time saved, this addi-
+tional 5% (1.0 2 0.95 5 0.05) has to be added back in to
+arrive at an estimate of the total time saved by using the
+system, as opposed to just the beneﬁt over sampling.
+
+At a WSS@95% of 10.0%, actually 15% of the 332 hours spent
+on the tasks listed above is saved. This comes to about 50
+hours of decreased work or about one week less time spent
+on each report. The EPC staff thought that saving more
+than a week’s worth of labor was signiﬁcant and that the
+saved time could be put to good use in writing a better
+review, spending more time synthesizing the evidence, or
+conducting further analyses. Therefore, a WSS@95% of 10%
+is a reasonable threshold for distinguishing the review topics
+
+214
+
+COHEN ET AL., Reducing Systematic Review Workload Using Citation Classiﬁcation
+
+F i g u r e 3 . Work saved over sampling at 95% recall for each of the 15 drug review topics.
+
+where our methods provide a signiﬁcant savings from those
+topics that do not derive a signiﬁcant savings.
+
+For 11 of the 15 review topics, the predicted WSS@95% sav-
+ings was above 10%, and for seven of the 15 topics, the pre-
+dicted savings was greater than 20%. For only four of the
+topics was the predicted savings less than 10%. The overall
+average WSS@95% for the 15 topics was 23.43%.
+
+For two topics, Antihistamines and SkeletalMuscleRelaxants,
+the classiﬁcation process did not provide any savings. For the
+Antihistamine review, a recall of 95% was unable to be
+achieved, and increasing w from 4.00 to 8.00 did not increase
+the recall at all. For the SkeletalMuscleRelaxants review, a re-
+call of 95% was achievable, but the proportion of positives in
+the set chosen by the classiﬁer was lower than in the original
+sample. For the Triptans review, the savings was positive
+(3.37%) , but smaller than our required threshold.
+
+The last column in Table 3, the percentage retained included
+in EPC review, can be interpreted as the precision of the
+queries used in the literature search, as applied to the articles
+in our text collection. These numbers can be compared to the
+precision shown in Table 6. Table 7 presents these results also
+showing in the last column the factor by which the classiﬁca-
+tion process multiplies precision at approximately 95% recall,
+as compared to the original expert-created clinical query. The
+precision and recall ﬁgures are chosen for the recall from
+Table 6 that are closest to 0.95. The precision improvement
+factor varies widely, from a very modest 1.0139 for Triptans
+to a very large 3.9375 for ADHD. Since the classiﬁcation
+process was unable to achieve any improvement
+for
+results for
+Antihistamines and SkeletalMuscleRelaxants,
+
+these two reviews are labeled ‘‘NA’’ (not applicable) in the
+table. The last row of Table 7 provides an overall average for
+the 13 topics for which the classiﬁer system was successful.
+
+To ensure that our results were not confounded by the sizes
+or other descriptive statistics of the samples, we explored
+possible connections to classiﬁer performance by computing
+linear correlation between WSS@95% and sample size,
+percentage of positive samples, and the number of relevant
+
+Table 7 j Comparison of Precision with
+Original Query
+
+Drug Review Name
+
+Precision
+
+Query
+
+Classiﬁer
+Precision
+
+Classiﬁer
+
+Precision
+
+Recall
+
+Improvement
+
+0.0160
+ACEInhibitors
+0.0240
+ADHD
+0.0520
+Antihistamines
+0.1300
+AtypicalAntipsychotics
+0.0200
+BetaBlockers
+CalciumChannelBlockers 0.0820
+0.2170
+Estrogens
+0.1040
+NSAIDs
+0.0080
+Opioids
+OralHypoglycemics
+0.2700
+ProtonPumpInhibitors
+0.0380
+SkeletalMuscleRelaxants 0.0050
+0.0250
+Statins
+0.0360
+Triptans
+UrinaryIncontinence
+0.1220
+0.0840
+Mean for not NA
+
+NA 5 Not applicable.
+
+0.0387
+0.0945
+
+NA
+
+0.1534
+0.0334
+0.0952
+0.2552
+0.2631
+0.0092
+0.3004
+0.0602
+
+NA
+
+0.0311
+0.0365
+0.1559
+0.1174
+
+0.9561
+0.9200
+
+NA
+
+0.9493
+0.9286
+0.9460
+0.9725
+0.9317
+0.9467
+0.9471
+0.9373
+
+NA
+
+0.9647
+0.9583
+0.9850
+0.9495
+
+2.4188
+3.9375
+
+NA
+
+1.1800
+1.6700
+1.1610
+1.1760
+2.5298
+1.1500
+1.1126
+1.5842
+
+NA
+
+1.2440
+1.0139
+1.2779
+1.6504
+
+Journal of the American Medical Informatics Association Volume 13 Number 2 Mar / Apr 2006
+
+Table 8 j Results of 5 3 2 Cross-validation with Stemming and Stop List on Data Set for Each Review
+
+Drug Review
+
+ACEInhibitors
+
+WSS@95%
+
+60.95%
+
+ADHD
+
+67.60%
+
+Antihistamines
+
+0.00%
+
+AtypicalAntipsychotics
+
+15.09%
+
+BetaBlockers
+
+34.14%
+
+CalciumChannelBlockers
+
+23.83%
+
+Estrogens
+
+14.03%
+
+NSAIDs
+
+29.29%
+
+Opioids
+
+16.23%
+
+w
+
+0.25
+0.5
+0.75
+1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+4
+8
+
+FNLR
+
+15.2620
+30.5240
+45.7870
+61.0490
+122.0980
+244.1950
+488.3900
+10.3870
+20.7750
+31.1630
+41.5500
+83.1000
+166.2000
+332.4000
+4.5940
+9.1880
+13.7810
+18.3750
+36.7500
+73.5000
+147.0000
+1.6680
+3.3360
+5.0030
+6.6710
+13.3420
+26.6850
+53.3700
+12.0830
+24.1670
+36.2500
+48.3330
+96.6670
+193.3330
+386.6670
+2.7950
+5.5900
+8.3850
+11.1800
+22.3600
+44.7200
+89.4400
+0.9000
+1.8000
+2.7000
+3.6000
+7.2000
+14.4000
+28.8000
+2.1460
+4.2930
+6.4390
+8.5850
+17.1710
+34.3410
+68.6830
+31.6670
+63.3330
+95.0000
+126.6670
+253.3330
+506.6670
+1013.3338
+
+P
+
+0.128
+0.092
+0.075
+0.058
+0.042
+0.026
+0.020
+0.130
+0.104
+0.091
+0.078
+0.049
+0.031
+0.025
+0.097
+0.083
+0.061
+0.073
+0.054
+0.050
+0.049
+0.370
+0.298
+0.263
+0.238
+0.186
+0.155
+0.138
+0.123
+0.076
+0.054
+0.055
+0.032
+0.026
+0.023
+0.236
+0.216
+0.187
+0.164
+0.125
+0.096
+0.085
+0.506
+0.468
+0.418
+0.398
+0.319
+0.251
+0.226
+0.353
+0.301
+0.259
+0.203
+0.155
+0.115
+0.108
+0.029
+0.018
+0.016
+0.011
+0.009
+0.008
+0.008
+
+R
+
+0.737
+0.854
+0.898
+0.907
+0.966
+0.966
+0.985
+0.680
+0.800
+0.890
+0.980
+0.990
+1.000
+1.000
+0.175
+0.275
+0.275
+0.413
+0.488
+0.850
+0.850
+0.297
+0.521
+0.663
+0.725
+0.881
+0.951
+0.989
+0.514
+0.695
+0.805
+0.824
+0.948
+0.976
+0.995
+0.312
+0.484
+0.664
+0.754
+0.930
+0.974
+1.000
+0.303
+0.560
+0.670
+0.780
+0.890
+0.955
+0.990
+0.371
+0.629
+0.815
+0.912
+0.946
+1.000
+1.000
+0.267
+0.360
+0.507
+0.760
+0.973
+1.000
+1.000
+
+F
+
+0.218
+0.167
+0.139
+0.109
+0.080
+0.051
+0.039
+0.218
+0.184
+0.165
+0.144
+0.093
+0.059
+0.049
+0.125
+0.128
+0.100
+0.124
+0.098
+0.094
+0.092
+0.330
+0.379
+0.377
+0.359
+0.307
+0.266
+0.242
+0.199
+0.137
+0.102
+0.103
+0.062
+0.051
+0.044
+0.269
+0.298
+0.292
+0.269
+0.221
+0.174
+0.157
+0.379
+0.510
+0.515
+0.527
+0.469
+0.398
+0.369
+0.362
+0.407
+0.393
+0.333
+0.266
+0.206
+0.195
+0.053
+0.035
+0.031
+0.022
+0.018
+0.016
+0.016
+
+215
+
+WSS
+
+64.38%
+70.49%
+70.50%
+65.49%
+59.26%
+37.36%
+19.27%
+55.69%
+61.93%
+65.97%
+68.41%
+51.36%
+22.96%
+6.93%
+8.21%
+10.40%
+4.27%
+11.96%
+2.30%
+23.52%
+25.00%
+19.26%
+29.30%
+33.46%
+32.84%
+26.33%
+14.98%
+5.33%
+42.95%
+50.90%
+50.50%
+52.01%
+35.24%
+22.03%
+10.68%
+20.35%
+29.98%
+37.25%
+37.60%
+32.08%
+13.94%
+3.40%
+17.26%
+29.97%
+32.16%
+35.39%
+28.29%
+12.84%
+3.95%
+26.13%
+41.09%
+48.69%
+44.45%
+30.77%
+9.06%
+3.21%
+19.51%
+20.66%
+25.71%
+22.54%
+15.45%
+4.76%
+0.01%
+
+216
+
+COHEN ET AL., Reducing Systematic Review Workload Using Citation Classiﬁcation
+
+Table 8 j (Continued)
+
+Drug Review
+
+OralHypoglycemics
+
+WSS@95%
+
+6.96%
+
+ProtonPumpInhibitors
+
+28.47%
+
+SkeletalMuscleRelaxants
+
+0.00%
+
+Statins
+
+27.41%
+
+Triptans
+
+2.38%
+
+UrinaryIncontinence
+
+25.74%
+
+w
+
+0.25
+0.5
+0.75
+1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+4
+8
+0.25
+0.5
+0.75
+1
+2
+4
+8
+
+FNLR
+
+0.6750
+1.3490
+2.0240
+2.6990
+5.3970
+10.7940
+21.5880
+6.2840
+12.5690
+18.8530
+25.1370
+50.2750
+100.5490
+201.0980
+45.3890
+90.7780
+136.1670
+181.5560
+363.1110
+726.2220
+1452.4440
+9.9410
+19.8820
+29.8240
+39.7650
+79.5290
+159.0590
+318.1180
+6.7400
+13.4790
+20.2190
+29.9580
+53.9170
+107.8330
+215.6670
+1.7940
+3.5870
+5.3810
+7.1750
+14.3500
+28.7000
+57.4000
+
+P
+
+0.502
+0.446
+0.419
+0.394
+0.340
+0.298
+0.280
+0.217
+0.135
+0.110
+0.085
+0.059
+0.047
+0.041
+0.006
+0.006
+0.005
+0.005
+0.005
+0.005
+0.005
+0.137
+0.088
+0.072
+0.062
+0.040
+0.031
+0.028
+0.132
+0.077
+0.069
+0.060
+0.045
+0.037
+0.036
+0.375
+0.305
+0.255
+0.224
+0.184
+0.152
+0.130
+
+R
+
+0.240
+0.457
+0.578
+0.646
+0.846
+0.934
+0.984
+0.463
+0.643
+0.722
+0.792
+0.941
+0.969
+0.996
+0.022
+0.044
+0.378
+0.422
+0.844
+1.000
+1.000
+0.494
+0.654
+0.762
+0.805
+0.911
+0.984
+0.988
+0.325
+0.500
+0.775
+0.742
+0.883
+0.933
+1.000
+0.495
+0.715
+0.810
+0.870
+0.930
+0.975
+0.995
+
+F
+
+0.324
+0.451
+0.486
+0.489
+0.485
+0.452
+0.436
+0.295
+0.223
+0.190
+0.153
+0.112
+0.089
+0.078
+0.010
+0.010
+0.009
+0.010
+0.010
+0.011
+0.011
+0.214
+0.156
+0.131
+0.115
+0.077
+0.060
+0.055
+0.188
+0.134
+0.127
+0.111
+0.086
+0.071
+0.070
+0.427
+0.428
+0.388
+0.357
+0.307
+0.263
+0.230
+
+WSS
+
+11.05%
+17.98%
+20.50%
+20.26%
+17.28%
+8.65%
+3.43%
+38.10%
+46.04%
+46.98%
+43.36%
+33.53%
+17.78%
+5.74%
+0.25%
+0.31%
+26.67%
+22.71%
+25.56%
+0.00%
+0.00%
+40.56%
+47.28%
+50.16%
+48.63%
+35.83%
+20.25%
+12.33%
+23.71%
+26.81%
+37.38%
+29.90%
+18.44%
+2.87%
+0.89%
+33.35%
+42.81%
+42.16%
+39.54%
+31.17%
+18.97%
+5.98%
+
+WSS 5 work saved over sampling; w 5 normalized FNLR parameter; FNLR 5 false-negative learning rate; P 5 precision; R 5 recall; F 5 F1- measure;
+ACE 5 angiotensin-converting enzyme; ADHD 5 attention-deﬁcit/hyperactivity disorder; NSAIDs 5 nonsteroidal anti-inﬂammatory drugs.
+
+features. These calculations showed a very low level of non-
+statistically signiﬁcant correlation between WSS@95% and
+sample size (R2 5 0.025, p 5 0.576), between WSS@95%
+and percentage of positive samples (R2 5 0.036, p 5 0.498),
+and between WSS@95% and the number of features (R2 5
+0.013, p 5 0.689).
+
+Results obtained applying the 300-word stop list and the
+Porter stemming in addition to the previously described clas-
+siﬁcation algorithm are shown in Table 8. Overall stemming
+and stopping increased the range of best to worst scores,
+but the average effect was small. The results for NSAIDs de-
+creased markedly, but the score for CalciumChannelBlockers
+almost doubled. Since stemming and stopping did not pro-
+vide any clear and consistent beneﬁt and added to the overall
+computational complexity, we decided to base our results and
+analysis on the baseline classiﬁcation system without stem-
+ming or stopping.
+
+Discussion
+For more than 70% (11/15) of the drug reviews, the auto-
+mated classiﬁcation process showed a signiﬁcant savings of
+reviewer effort at the 95% recall level. At this high level of re-
+call, for 20% (3/15) of the reviews this savings was very large,
+about $50%. Clearly, a savings of $50% of the effort needed
+to review journal articles is substantial and attractive.
+Our research demonstrates a means of training an automated
+document classiﬁcation system to select the papers with the
+highest likelihood of containing high-quality evidence. We
+have shown that automated document classiﬁcation has
+strong potential for aiding the labor-intensive literature re-
+view process for systematic treatment reviews and other sim-
+ilar studies. Of course, the work savings could be greater if a
+lower level of recall were found acceptable.
+Furthermore, our research demonstrates how to determine
+which review topics the automated classiﬁer will provide
+
+Journal of the American Medical Informatics Association Volume 13 Number 2 Mar / Apr 2006
+
+217
+
+beneﬁt for and an estimate of the expected labor reduction.
+The 5 3 2 cross-validation method should provide an accu-
+rate estimate of the classiﬁcation performance on future arti-
+cles that meet the given search criteria. This allows us to apply
+the automated classiﬁcation system to only the review topics
+that gain sufﬁcient value in the review process. While further
+work is necessary to determine the requirements of system-
+atic reviewers before adding document classiﬁcation to the
+drug review work process, we have shown a robust means
+of estimating the beneﬁt that an automated document classi-
+ﬁcation approach could provide.
+
+We found that the performance of the classiﬁer system, while
+most often providing at least some beneﬁt, varied widely. In
+general, it is difﬁcult to determine why a machine-learning
+algorithm such as the voting perceptron performs well on
+one task and not on another. Unlike with rules-based classi-
+ﬁers (e.g., Cohen et al.23), the decision processes of a margin-
+based learning algorithm such as ours are rather opaque.
+Nevertheless, some observations can be made from the data
+in Tables 5 and 6 about why the classiﬁcation system per-
+formed very well on some review topics and poorly on others.
+
+Statistical analysis showed essentially no correlation between
+performance and the sample size or fraction of positive sam-
+ples. The two zero scoring topics, Antihistamines and
+SkeletalMuscleRelaxants, had the lowest number of signiﬁ-
+cant features, meaning that the classiﬁer system had fewer di-
+mensions with which to separate positives from negatives. It
+appears that 30 or fewer signiﬁcant features are not enough to
+adequately model the triage process. However, the highest
+scoring topics did not necessarily have the highest number
+of signiﬁcant features and the correlation between number
+of signiﬁcant features and WSS was not statistically signiﬁ-
+cant. The best performance occurred on ACEInhibitors,
+ADHD, and NSAIDs topics, but these topics had signiﬁ-
+cant feature counts in the middle of the range. The tasks
+with the highest number of signiﬁcant
+feature counts,
+AtypicalAntipsychotics and Statins, scored at the low and
+high extremes of the moderate performing group of tasks.
+We examined the data for correlations between performance
+and descriptive measures about the set of signiﬁcant features
+such as number of individual features above various recall
+and precision thresholds and were unable to ﬁnd any
+correlation.
+
+Our previous work in biomedical text mining has shown that
+examining the single most predictive feature can provide
+insight into the performance of text classiﬁcation tasks and
+at times can even dominate the performance,16 especially
+when human annotated features such as MeSH are available.
+We therefore conducted an analysis looking at the most
+strongly predictive feature for each of the 15 tasks. Table 9
+presents the single best feature for each of the review tasks,
+as determined by the F-measure prediction score on the indi-
+vidual features. There is no statistically signiﬁcant correlation
+of WSS@95% performance with the F-measure of the single
+best feature. Even when removing the Triptans review topic
+by assuming that it is an outlier, the correlation is very
+weak (R2 5 0.079) and still not signiﬁcant (p 5 0.329).
+Note, however, that the best features are most commonly
+words, as this is the case for nine of the 15 topics. Since the
+discriminatory power of the publication type and MeSH is
+one of the primary means by which the original expert-cre-
+ated queries were constructed, there have to be other useful
+features in order for the classiﬁer system to outperform the
+original query. Therefore, it is reasonable to infer that for
+this to be possible there must exist effective classiﬁcation fea-
+tures that are not as immediately obvious (to the human ex-
+perts constructing search queries) as MeSH and publication
+types are. For example,
+for the highest scoring topic,
+ADHD, the word ‘‘adults’’ was the most discriminating clas-
+siﬁer feature, although this term does not appear in the
+original expert-created query (the report inclusion criteria
+encompassed both pediatric and adult populations). Simi-
+larly, the terms for the single best features for BetaBlockers
+(hospitalization), ProtonPumpInhibitors (superior), and Uri-
+naryIncontinence (weeks) do not appear in the search strat-
+egy. For ACEInhibitors, the MeSH Myocardial Infarction
+does appear in the original search strategy, but not with the
+mortality subheading included in the single best feature. In
+fact, the word mortality does not appear in any form in the
+original search strategy. Most interesting is the best feature
+conﬁdence interval (CI) for the topic CalciumChannelBlock-
+ers. While this term, nor any obviously overlapping terms,
+does not appear in the original search strategy, one can infer
+that the presence of explicit conﬁdence intervals was one
+characteristic that reviewers were looking for when deciding
+whether to include a given paper in the systematic review.
+
+Table 9 j Best Single Feature and F-Measure of That Feature for Each Task
+
+Review
+
+WSS@95%
+
+Best Feature
+
+F-measure of Feature
+
+ACEInhibitors
+ADHD
+Antihistamines
+AtypicalAntipsychotics
+BetaBlockers
+CalciumChannelBlockers
+Estrogens
+NSAIDs
+Opioids
+OralHypoglycemics
+ProtonPumpInhibitors
+SkeletalMuscleRelaxants
+Statins
+Triptans
+UrinaryIncontinence
+
+0.5661
+0.6795
+0.0000
+0.1411
+0.2844
+0.1221
+0.1834
+0.4967
+0.1332
+0.0896
+0.2768
+0.0000
+0.2471
+0.0337
+0.2614
+
+MESH_Myocardial_Infarction/mortality
+adults
+scale
+PUBTYPE_Multicenter_Study
+hospitalization
+CI (abbreviation for Conﬁdence Interval)
+years
+PUBTYPE_Multicenter_Study
+safety
+study
+superior
+MESH_MAIN_Research_Support_Non-U
+PUBTYPE_Multicenter_Study
+MESH_PRIMARY_Indoles/*therapeutic_use
+weeks
+
+0.3206
+0.3098
+0.2641
+0.3464
+0.2429
+0.3128
+0.5242
+0.5217
+0.0965
+0.4743
+0.2620
+0.0437
+0.2255
+0.3157
+0.5192
+
+218
+
+COHEN ET AL., Reducing Systematic Review Workload Using Citation Classiﬁcation
+
+Conversely, for the Triptans topic, while the MeSH Indoles/
+*therapeutic use does not appear explicitly in the expert
+search strategy, the same concepts are largely covered by
+the inclusion of each of the triptans of interest explicitly
+(sumatriptan, almotriptan, etc.) in the search strategy along
+with the MeSH Migraine/Drug Therapy. Therefore, there
+may not be enough strong classiﬁcation concepts for the
+classiﬁer to use in addition to those already expressed in
+the original search strategy. This may be one reason why
+the performance on the Triptans topic is so poor, despite the
+presence of many statistically signiﬁcant features. For the
+OralHypoglycemics, another low-scoring topic, the most pre-
+dictive feature was the word study. This concept was certainly
+covered by the inclusion of expansions for Retrospective and
+Comparative Study in the original search strategy.
+
+The previously described work of Aphinyanaphongs et al. fo-
+cused on improving sensitivity and speciﬁcity as measured
+by the area under the receiver-operating curve, and not on
+labor reduction as we have done here. Nevertheless, at the
+highest levels of recall (sensitivity) such as we use in our
+work, the improvement in precision of the Aphinyanaphongs
+et al. approach is roughly similar to ours, varying from just
+over unity to above 2.0. It is interesting that the improvement
+in precision is similar considering the difference in sample
+sizes and topic speciﬁcity, as the topic-speciﬁc nature of our
+work leads to our sample sizes being much smaller and the
+inclusion requirements for each drug review study are
+much more speciﬁc.
+
+Our current methods have several limitations. We are only us-
+ing words from the title and abstract, MeSH, and MEDLINE
+publication types as potential classiﬁcation features. Addi-
+tional work needs to be done to explore possible performance
+improvements by including additional features such as full
+document text, N-grams, parts-of-speech, and conceptual re-
+lations derived from natural
+language- processing (NLP)
+techniques. Furthermore, while we have had consistently en-
+couraging results using the modiﬁed voting perceptron clas-
+siﬁer with a linear kernel, other classiﬁers or higher order
+kernels may improve performance.
+
+Many classiﬁer algorithms such as our voting perceptron pro-
+duce, in addition to a predicted class, a score that can be used
+as a conﬁdence measure. This conﬁdence measure can be
+used to rank the individual documents returned by a search
+query leading to an information retrieval approach, in con-
+trast with the binary document classiﬁcation presented
+here. For the purposes of aiding the process of updating sys-
+tematic treatment reviews, where the reviewers want to iden-
+tify the best set of documents to review, query reranking may
+not be as useful as document classiﬁcation. However, the
+ranking approach has been shown to have value in tasks
+that continuously rerun the same queries to determine the or-
+der in which query-matching publications are reviewed for
+database annotation, such as that done by the Swiss-Prot cu-
+rators when annotating the relationship between genetic dis-
+eases and polymorphisms.15
+
+Our data set included 15 drug reviews, all of which were
+available at the time this work was performed. While this
+number of topics is adequate to show that automated docu-
+ment classiﬁcation can provide beneﬁt in the drug review
+process, this sample size is small and our computation of
+
+average WSS@95% and precision improvement have to be in-
+terpreted in this context. Additional drug review data sets
+would help to further characterize the expected frequency
+and size of the work reduction for a typical drug review study.
+
+Extending the system to process full text articles and using
+full text classiﬁcation methods may make signiﬁcant im-
+provements in classiﬁer performance possible. For example,
+Porter stemming may have a more consistent and beneﬁcial
+effect on full text. However, it is not clear that all sources
+of full text, including MEDLINE-indexed journal articles,
+Cochrane reviews, and non-English journal articles should
+be processed together for classiﬁcation. Further work is neces-
+sary to determine the best means of including the different
+types of full text articles. Full text may also allow us to include
+some of the reports that were removed during the initial data
+preparation process, which required the document to have an
+entry within MEDLINE.
+
+An automated document classiﬁcation system such as ours
+could be integrated into a full system that would automati-
+cally rerun the drug review queries on PubMed or Ovid, clas-
+sify the resulting documents, and notify the reviewers when
+new positive documents were discovered for each drug re-
+view. It would be straightforward for this notiﬁcation to be
+either an automated e-mail or from a news-feed (RSS) server.
+These notiﬁcations would be useful both for focusing the
+reviewer’s time on the most likely articles to include high-
+quality topic-speciﬁc evidence, as well as to alert the review
+team when a sufﬁcient amount of new evidence had accumu-
+lated to warrant an update of a given drug class review.
+
+Conclusions
+We have demonstrated that automated document classiﬁca-
+tion systems can provide value to the process of preparing
+systematic evidence reviews. We have shown one method
+of constructing and training a classiﬁer system to accomplish
+this task and have presented a means of estimating the perfor-
+mance of such a system and using that estimate to decide for
+which topics such a system would be most useful. For the vast
+majority of topics studied, automated document classiﬁcation
+can provide some value in reducing the labor of manual re-
+view, and for about 20% of topics, the reduction is very large,
+approaching $50%.
+
+Future work will focus on improving the classiﬁer system and
+investigating the incorporation of the system into systematic
+review workﬂow. The results shown here are encouraging
+enough to warrant building a system that automatically re-
+runs the queries and notiﬁes reviewers of papers classiﬁed
+as positive for one of the 13 topics where a net gain was
+shown. This will allow collection of prospective data to deter-
+mine the actual effect on the workload of revising systematic
+drug evidence reviews. It will also help determine the re-
+quired level of recall and labor savings and how these param-
+eters may change based on the topic, schedule, and other
+environmental factors. Finally, additional classiﬁer features
+and classiﬁcation algorithms should be investigated, such
+as making use of the nine speciﬁc exclusion codes.
+
+We encourage others to investigate applying text mining
+and classiﬁcation approaches to practical real-world prob-
+lems in biomedical informatics such as presented here. Fur-
+thermore, we encourage other investigators to use publicly
+available collections whenever feasible. Therefore, we are
+
+Journal of the American Medical Informatics Association Volume 13 Number 2 Mar / Apr 2006
+
+219
+
+publicly releasing the text collection and data set built and
+used in this work. The ﬁles are available for download off
+of the ﬁrst author’s home page at http://medir.ohsu.edu/
+;cohenaa.
+
+References j
+
+1. Sackett DL, Haynes RB, Tugwell P. Clinical epidemiology:
+a basic science for clinical medicine. Boston: Little Brown, 1985.
+2. Sackett DL, Rosenberg WM, Gray JA, Haynes RB, Richardson
+WS. Evidence based medicine: what it is and what it isn’t.
+BMJ. 1996;312:71–2.
+
+3. Cohen AM, Stavri PZ, Hersh WR. A categorization and analysis
+of the criticisms of evidence-based medicine. Int J Med Inf. 2004;
+73:35–43.
+
+4. Hersh W. ‘‘A world of knowledge at your ﬁngertips’’: the prom-
+ise, reality, and future directions of on-line information retrieval.
+Acad Med. 1999;74:240–3.
+
+5. Haynes RB. What kind of evidence is it that evidence-based
+medicine advocates want health care providers and consumers
+to pay attention to? BMC Health Serv Res. 2002;2:3.
+
+6. Chou R, Clark E, Helfand M. Comparative efﬁcacy and safety of
+long-acting oral opioids for chronic non-cancer pain: a system-
+atic review. J Pain Symptom Manage. 2003;26:1026–48.
+
+7. Chou R, Peterson K, Helfand M. Comparative efﬁcacy and
+safety of skeletal muscle relaxants for spasticity and musculo-
+skeletal conditions: a systematic review. J Pain Symptom Man-
+age. 2004;28:140–75.
+
+8. Nelson HD, Humphrey LL, Nygren P, Teutsch SM, Allan JD.
+Postmenopausal hormone replacement therapy: scientiﬁc re-
+view. JAMA. 2002;288:872–81.
+
+9. Oregon Health & Science Universy, Drug Effectiveness Review
+Project Methods, 2003. Available from: http://www.ohsu.edu/
+drugeffectiveness/methods/index.htm/. Accessed 11/03/05.
+
+10. Mulrow C, Cook D. Systematic reviews: synthesis of best evi-
+dence for health care decisions. Philadelphia: The American
+College of Physicians; 1998.
+
+11. Haynes RB, Wilczynski N, McKibbon KA, Walker CJ, Sinclair JC.
+Developing optimal search strategies for detecting clinically
+sound studies in MEDLINE. J Am Med Inform Assoc. 1994;1:
+447–58.
+
+12. Wilczynski NL, Haynes RB. Developing optimal search strate-
+gies for detecting clinically sound causation studies in MED-
+LINE. AMIA Annu Symp Proc. 2003;719–23.
+
+13. Wong SS, Wilczynski NL, Haynes RB, Ramkissoonsingh R.
+Developing optimal search strategies for detecting sound clinical
+prediction studies in MEDLINE. AMIA Annu Symp Proc.
+2003;728–32.
+
+14. Aphinyanaphongs Y, Tsamardinos I, Statnikov A, Hardin D,
+Aliferis CF. Text categorization models for high-quality article
+retrieval in internal medicine. J Am Med Inform Assoc. 2005;
+12:207–16.
+
+15. Dobrokhotov PB, Goutte C, Veuthey AL, Gaussier E. Assisting
+medical annotation in Swiss-Prot using statistical classiﬁers. Int
+J Med Inform. 2005;74:317–24.
+
+16. Hersh WR, Bhupatiraju RT, Ross L, Johnson P, Cohen AM,
+Kraemer DF. TREC 2004 Genomics Track Overview. In: Proceed-
+ings of the Thirteenth Text Retrieval Conference–TREC 2004.
+Gaithersburg, MD. Available at http://trec.nist.gov/pubs/
+trec13/papers/GEO.OVERVIEW.pdf.
+
+17. Cohen AM, Hersh WR, Bhupatiraju RT. Feature generation,
+feature selection, classiﬁers, and conceptual drift for biomedical
+document
+the Thirteenth Text
+Retrieval Conference–TREC 2004. Gaithersburg, MD. Available
+at
+http://trec.nist.gov/pubs/trec13/papers/ohsu-hersh.geo.
+pdf.
+
+In: Proceedings of
+
+triage.
+
+18. Blaschke C, Leon EA, Krallinger M, Valencia A. Evaluation of
+BioCreAtIvE assessment of task 2. BMC Bioinformatics. 2005;6
+Suppl 1:S16.
+
+19. Porter MF. An algorithm for sufﬁx stripping. Program. 1980;14:
+
+127–30.
+
+20. Carroll JB, Davies P, Richman B. The American Heritage word
+
+frequency book. Boston: Houghton Mifﬂin; 1971.
+
+21. Freund Y, Schapire RE. Large margin classiﬁcation using the per-
+
+ceptron algorithm. Machine Learn. 1999;37:277–96.
+
+22. Rosenblatt F. The perceptron: a probabilistic model for informa-
+tion storage and organization in the brain. Psychol Rev.
+1958;386–407.
+
+23. Cohen WW, Singer Y. A Simple,
+
+In: Proceedings of
+
+the Annual Conference of
+
+fast, and effective rule
+the
+learner.
+American Association for Artiﬁcial Intelligence (AAAI). 1999;
+335–42.
+Joachims T. SVM-Light Support Vector Machine, 2004. Avail-
+able from: http://svmlight.joachims.org/. Accessed 07/20/
+05.
+
+24.
+
+25. Dietterich TG. Approximate statistical tests for comparing super-
+vised classiﬁcation learning algorithms. Neural Comput. 1998;
+10:1895–924.
+
+

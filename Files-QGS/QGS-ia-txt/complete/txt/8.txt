@@ -1,0 +1,985 @@
+Journal of Biomedical Informatics 47 (2014) 153–159
+
+Contents lists available at ScienceDirect
+
+Journal of Biomedical Informatics
+
+j o u r n a l h o m e p a g e : w w w . e l s e v i e r . c o m / l o c a t e / y j b i n
+
+An SVM-based high-quality article classiﬁer for systematic reviews
+
+Seunghee Kim, Jinwook Choi
+
+⇑
+
+Department of Biomedical Engineering, College of Medicine, Seoul National University, 103 Daehak-ro, Jongno-gu, Seoul 110-799, Republic of Korea
+
+a r t i c l e
+
+i n f o
+
+a b s t r a c t
+
+Article history:
+Received 4 January 2013
+Accepted 17 October 2013
+Available online 29 October 2013
+
+Keywords:
+Classiﬁcation
+Artiﬁcial intelligence
+Evidence-based medicine
+Review literature as topic
+
+Objective: To determine whether SVM-based classiﬁers, which are trained on a combination of inclusion
+and common exclusion articles, are useful to experts reviewing journal articles for inclusion during new
+systematic reviews.
+Methods: Test collections were built using the annotated reference ﬁles from 19 procedure and 4 drug
+systematic reviews. The classiﬁers were trained by balanced data sets, which were sampled using random
+sampling. This approach compared two balanced data sets, one with a combination of included and com-
+monly excluded articles and one with a combination of included and excluded articles. AUCs were used as
+evaluation metrics.
+Results: The AUCs of the classiﬁers, which were trained on the balanced data set with included and com-
+monly excluded articles, were signiﬁcantly higher than those of the classiﬁers, which were trained on the
+balanced data set with included and excluded articles.
+Conclusion: Automatic, high-quality article classiﬁers using machine learning could reduce the workload
+of experts performing systematic reviews when topic-speciﬁc data are scarce. In particular, when used as
+training data, a combination of included and commonly excluded articles is more helpful than a combi-
+nation of included and excluded articles.
+
+Ó 2013 Elsevier Inc. All rights reserved.
+
+1. Introduction
+
+Evidence-based medicine (EBM), the philosophical origins of
+which extend back to mid-19th century Paris and earlier, is the
+conscientious, explicit, and judicious use of the current best evi-
+dence in making decisions regarding individual patient care [1].
+EBM is an important development in clinical practice and scholarly
+research because this approach aims to provide better care with
+better outcomes through referring clinical decisions mainly on so-
+lid scientiﬁc evidence [2]. Because EBM directly applies the knowl-
+edge gained from large clinical trials to patient care, it promotes
+consistency in individual patient treatments, optimal clinical out-
+comes and quality of life [3]. The practice of EBM integrates indi-
+vidual clinical expertise with the best available external clinical
+evidence from systematic research.
+
+Systematic review (SR) plays a key role in EBM [4] and attempts
+to identify, appraise, and synthesize all empirical evidence that
+meets the pre-speciﬁed eligibility criteria to answer a given ques-
+tion [5]. SR is processed in four distinct steps [6]. In the ﬁrst step,
+the review topic and key questions are deﬁned; then, all relevant
+studies are retrieved from a number of different databases, such
+as MEDLINE and EMBASE. In the second, experts select the re-
+trieved abstracts that are most likely to meet the inclusion criteria
+
+⇑ Corresponding author. Fax: +82 2 745 7870.
+
+E-mail address: jinchoi@snu.ac.kr (J. Choi).
+
+1532-0464/$ - see front matter Ó 2013 Elsevier Inc. All rights reserved.
+http://dx.doi.org/10.1016/j.jbi.2013.10.005
+
+(abstract triage step). In the next step, the experts closely read the
+selected articles, classify the articles as inclusion or exclusion in
+the SR using pre-speciﬁed eligibility criteria (full text triage step),
+and assess quality of inclusion articles. Finally, if included articles
+are sufﬁciently similar, their results are synthesized.
+
+The new Health Technology Assessment (nHTA) center in the
+National Evidence-based Healthcare Collaborating Agency assesses
+new medical technologies introduced into Korean healthcare mar-
+kets. It evaluates the safety and effectiveness of new medical tech-
+nologies in real clinical settings.
+It systematically reviews all
+evidence relevant to the evaluation of those technologies. To date,
+126 evidence reports have been completed and published [7].
+
+The scientiﬁc literature is growing extremely fast (500,000 new
+abstracts are added to Medline every year), but only a minority of
+trials have been suggested in SRs [4,8]. The Cochrane Collaboration,
+which coordinates the creation and update of SRs, estimates that at
+least 10,000 reviews are needed to cover a substantial proportion
+of the studies relevant to health care [9]. However, creating a
+new SR or updating an existing one takes considerable time and ef-
+fort. Using current methods, we have not been able to cover new
+issues and keep even half of existing reviews up-to-date [10]. We
+need to reduce avoidable processes in the production of research
+evidence [11]. Advanced information technologies can be devel-
+oped and implemented to support SRs by reducing the labor re-
+quired while still capturing high-quality evidence [4].
+
+154
+
+S. Kim, J. Choi / Journal of Biomedical Informatics 47 (2014) 153–159
+
+Researchers conducting SRs try to provide a more precise esti-
+mate and reduce uncertainty aimed at minimizing bias [5]. To pro-
+duce more reliable ﬁndings, they exclude studies having high risk
+of biases (i.e., opinion pieces). In this study, we divided exclusion
+articles of the SRs into two parts: common and topic-speciﬁc. Com-
+mon exclusion articles cannot be included in any SRs, because their
+results are deﬁnitely biased. Topic-speciﬁc articles can be included
+or excluded in SRs according to the topics. We hypothesize that by
+using commonly excluded articles across all SRs, we can automat-
+ically classify rigorous articles with better results than previous
+works. We propose a method that creates classiﬁers through train-
+ing on articles that are included and commonly excluded.
+
+2. Background
+
+To ﬁnd high-quality articles concerning internal medicine,
+Aphinyanaphongs and colleagues [2] applied machine learning
+(ML) techniques using data derived from the ACP Journal Club.
+They used a variety of ML techniques and found that the support
+vector machine (SVM) achieved the best performance with those
+data. They showed an efﬁcient and improved means for identifying
+high-quality articles in internal medicine.
+
+Cohen [12] also applied ML technique to systematic drug class
+reviews. They evaluated various feature combinations to classify
+rigorous articles based on SVMlight [13]. They showed that the over-
+all top scoring combination among three feature combinations was
+the combination of unigram and n-gram with a length of 2 ex-
+tracted from the title/abstract of MEDLINE and MeSH(Medical Sub-
+ject Headings). On the other hand, the lowest scoring combination
+was the combination of unigram, MeSH, and UMLS CUI (Uniﬁed
+Medical Language System Concept Unique Identiﬁer). Among the
+two feature combinations, the combination of unigram and MeSH
+showed the best score, and the combination of unigram and UMLS
+CUI showed the worst score. They also compared the classiﬁcation
+performance of each feature. MeSH performed the best, and UMLS
+CUI performed the worst. They concluded that the MeSH feature
+was essential for good performance.
+
+Kilicoglu and colleagues [14] evaluated various ML techniques
+and feature sets to recognize scientiﬁcally rigorous research evi-
+dence. They showed that combining commonly used classiﬁers
+(Naïve Bayes, SVM, boosting) and disparate features in various
+ways using stacking improved recognition of rigorous studies. They
+also found that manually assigned metadata like MeSH and publi-
+cation types improved classiﬁcation effectiveness.
+
+If an SR already is created in a given topic, a set of associated in-
+cluded/excluded article judgments accumulates. These judgments
+can serve as input to an ML algorithm for updating the SR. How-
+ever, when an SR of another topic is ﬁrst created, no data for train-
+ing the ML algorithm are available. To solve this problem, Cohen
+and colleagues [6] proposed a method that creates a model by
+training on the data from a combination of other SR topics that al-
+ready has a base collection of included/excluded article judgments.
+They compared this method with three systems, a baseline system
+using only topic-speciﬁc training data obtaining from included/
+excluded article judgments in associated SRs, a non-topic system
+using only the non-topic data sampled from other SR topics, and
+a hybrid system combining topic-speciﬁc training data with data
+from other SR topics. On average, the hybrid system improved
+the mean AUC over the baseline system by 20% when topic-speciﬁc
+training data were scarce. In addition, the system performed better
+than the non-topic system on all but the two smallest fractions of
+topic-speciﬁc training data. However, with very sparse topic-
+speciﬁc training data, the performance of the non-topic system
+on individual topics is often better than the baseline system and
+is, at times, better than that of the hybrid system.
+
+3. Methods
+
+We present our methods in three parts. In the ﬁrst, we describe
+the data set used to evaluate our system. In the second, we show
+the classiﬁer system. Finally, we describe our evaluation process.
+
+3.1. Data collection
+
+3.1.1. Procedure data sets
+
+In this study, the procedure data corpus was collected, which
+was based on SR inclusion/exclusion judgments of the expert
+reviewers of the nHTA center. We analyzed criteria to judge inclu-
+sion or exclusion articles of 126 SRs and classiﬁed common and to-
+pic-speciﬁc ones. Common criteria are the same judgment criteria
+across all SRs. The criteria are shown in Table 1. Common exclusion
+criteria were as follows: gray literature (i.e., conference papers),
+non-original articles (i.e., review articles, editorials, letters, and
+opinion pieces), non-human (animal) articles, and pre-clinical
+studies.
+
+Among 126 SRs performed by the nHTA, we selected 19 proce-
+dure SRs with more than 10 inclusion articles for this experiment.
+Table 2 shows the 19 review topics with the number of articles in-
+cluded and excluded in each study. The number of articles ex-
+cluded by the common exclusion criteria (code 1-4) is shown in
+parenthesis. The number before parenthesis means number of arti-
+cles excluded by all exclusion criteria (code 1-5).
+
+3.1.2. Drug data sets
+
+We also used publicly available drug data to conﬁrm our meth-
+od [15]. Table 3 gives information on the inclusion/exclusion crite-
+ria of the drug topics [16]. We selected codes 8 and 9 as common
+exclusion criteria across all drug SRs because we thought that
+background articles (code 8) might be non-original articles (i.e., re-
+view articles, editorials, letters, and opinion pieces) and that arti-
+cles with only the abstracts available (code 9) might be gray
+literature (i.e., conference papers). In the drug sets, the number
+of common exclusion articles excluded by codes 8 and 9 were
+small because most articles were excluded by code E. In this study,
+we selected four topics (Atypical antipsychotics, Beta blockers, Cal-
+cium channel blockers, Urinary incontinence) with more than 10
+common exclusion articles. We also separated common exclusion
+articles (code 8-9) from exclusion articles (code E-9) (Table 4).
+
+3.1.3. Training and test sets
+
+As shown in Fig. 1, our data sets consisted of a small number of
+inclusion articles (I) and a large number of exclusion articles
+(E = TE + CD). This class imbalance issue corresponds to domains
+for which one class is represented by a large number of examples,
+whereas the other is represented by only a few [17]. This problem
+causes a signiﬁcant bottleneck in the performance attainable by
+standard learning methods, which assume a balanced distribution
+of the classes [18]. The classiﬁers, which are trained on the imbal-
+anced data set, tend to have a bias toward the majority class data
+because ML techniques cannot work well with such data for build-
+ing an accurate classiﬁer [19].
+
+Table 1
+Article triage decisions in procedure topics.
+
+Code
+
+Criteria
+
+Article type
+
+1
+2
+3
+4
+5
+
+Excluded due to gray literature
+Excluded due to non-original articles
+Excluded due to non-human articles
+Excluded due to pre-clinical studies
+Excluded due to topic-speciﬁc
+reasons
+
+Common exclusion article
+Common exclusion article
+Common exclusion article
+Common exclusion article
+Topic-speciﬁc exclusion
+article
+
+S. Kim, J. Choi / Journal of Biomedical Informatics 47 (2014) 153–159
+
+155
+
+Table 2
+Number of articles included and excluded across 19 procedure systematic review topics.
+
+Topics
+
+Included
+
+Excluded (coma)
+
+Auditory brainstem implant
+Autologous noncultured epidermal cellular transplantation
+Continuous intraarticular pain control
+Endoscopic cryotherapy of lung tumors
+Glaucoma aqueous tube insertion
+Hand transplantation
+Holmium laser treatment of benign prostatic hyperplasia
+Impedance controlled endometrial ablation
+Intrastromal corneal ring surgery for keratoconus
+Magnetic navigation assisted catheter technique
+Radiofrequency ablation of primary and secondary lung malignancy
+Small bowel transplantation
+Somatic nerves stimulation
+Surgical ablation of atrial ﬁbrillation
+Therapeutic temperature management with endovascular catheters
+Therapeutic use of autologous bone marrow cells in peripheral arterial disease
+Transanal endoscopic microsurgery
+Transarterial radioembolization
+Trigeminal nerve stimulation
+Totals
+
+14
+18
+22
+14
+10
+10
+34
+11
+31
+14
+18
+27
+12
+13
+16
+28
+10
+32
+11
+345
+
+156(46)
+126(23)
+742(38)
+334(172)
+500(102)
+227(113)
+155(93)
+55(22)
+140(26)
+365(86)
+506(192)
+911(184)
+378(42)
+185(66)
+293(62)
+249(143)
+246(43)
+473(156)
+730(50)
+6,771(1,659)
+
+a The number of common exclusion articles excluded by the common exclusion criteria among excluded articles excluded by all exclusion criteria.
+
+Total
+
+170
+144
+764
+348
+510
+237
+189
+66
+171
+379
+524
+938
+390
+198
+309
+277
+256
+505
+741
+7116
+
+Table 3
+Article triage decisions in drug topics.
+
+Code
+
+Criteria
+
+E
+1
+2
+3
+4
+5
+6
+7
+8
+
+9
+
+Nonspeciﬁcally excluded
+Excluded due to foreign language
+Excluded due to wrong outcome
+Excluded due to wrong drug
+Excluded due to wrong population
+Excluded due to wrong publication type
+Excluded due to wrong study design
+Excluded due to wrong study duration
+Excluded due to background article
+
+Excluded due to only abstract being
+available
+
+Article type
+
+Exclusion article
+Exclusion article
+Exclusion article
+Exclusion article
+Exclusion article
+Exclusion article
+Exclusion article
+Exclusion article
+Common exclusion
+article
+Common exclusion
+article
+
+Table 4
+Number of articles included and excluded across 4 drug systematic review topics.
+
+Topics
+
+Included
+
+Excluded (coma)
+
+Atypical antipsychotics
+Beta blockers
+Calcium channel blockers
+Urinary incontinence
+Totals
+
+146
+42
+100
+40
+328
+
+974(11)
+2030(104)
+1118(25)
+287(21)
+4409(161)
+
+Total
+
+1120
+2072
+1218
+327
+4737
+
+a The number of common exclusion articles excluded by the common exclusion
+
+criteria among excluded articles excluded by all the exclusion criteria.
+
+In order to build the balanced training sets, we proceeded in
+two phases. In the ﬁrst phase we randomly selected exclusion arti-
+cles with the same number of inclusion articles regarding each to-
+pic. Exclusion articles were sampled ﬁve times with replacement
+for the future ﬁve times of the evaluation test. They were combined
+with inclusion articles to form the balanced data set. In the second
+phase, in order to make a training set we combined all of the non-
+topic balanced data (Fig. 2). For example, regard to Auditory brain-
+stem implant, we trained our model using the combined balanced
+data set which consist of articles not related to the Auditory brain-
+stem implant.
+
+We made two kinds of the balanced training sets for each topic;
+the ﬁrst set (IE training set) has inclusion articles (I) and exclusion
+articles randomly selected from total exclusion articles (E), and the
+
+Fig. 1. Article collection diagram. Our collection consists of inclusion articles (I),
+topic-speciﬁc exclusion articles (TE), and common exclusion articles (CE). Each area
+depicts the proportion of article types.
+
+second set (ICE training set) consists of inclusion articles (I) and
+common exclusion articles randomly selected from CE.
+
+We used articles of each topic as test sets. Topics of each test set
+are shown in Table 2 and 4. We also made two kinds of test sets for
+each topic; one set (IE test set) has inclusion (I) and total exclusion
+articles (E), and the other set (ICE test set) consists of inclusion (I)
+and common exclusion articles (CE). For example, to classify Audi-
+tory brainstem implant, the IE test set has 170 articles (14 inclusion
+and 156 exclusion articles) and ICE test set has 60 articles (14
+inclusion and 46 common exclusion articles).
+
+3.2. Classiﬁer System
+
+We used four basic feature types, listed as follows:
+
+ Words in the titles of a MEDLINE citation.
+ Words in the abstracts of a MEDLINE citation.
+ Medical Subject Headings (MeSH) indexing terms from a MED-
+
+LINE citation.
+
+ Publication types assigned manually by NLM indexers.
+
+The titles and abstracts were parsed into tokens. MeSH indexing
+terms and publication types were encoded as phrases. Individual
+words of the titles and abstracts were further processed by the
+
+156
+
+S. Kim, J. Choi / Journal of Biomedical Informatics 47 (2014) 153–159
+
+Fig. 2. Building the two kinds of training set and test set.
+
+removal of stop words such as ‘the’, ‘an’, and ‘other’, which are not
+likely to add semantic value to the classiﬁcation [20]. The words
+were also stemmed by the Porter stemming algorithm [21].
+
+As titles and abstracts are narrative texts, the frequency-based
+representation is more appropriate. Conversely, because MeSH
+indexing terms and publication types do not occur in an article
+more than once, the binary representation method might be more
+suitable for the feature types [4]. Therefore, we represented the ti-
+tles and abstracts by word frequencies and the MeSH indexing
+terms and publication types as binary.
+
+In some tasks, it made sense to give some features weights
+greater than those of other features [4]. However, we did not weigh
+the features by term frequencies because, in an earlier study, the
+authors
+found that weighting features by intra-document
+frequency and/or inverse document frequency (TF, IDF, TFIDF)
+decreased the performance of the classiﬁer system [16].
+
+The ML system presented here was motivated by interesting re-
+sults observed in earlier studies on the best evidence for SRs [2,12–
+14]. The authors found that using the SVM rather than other ML
+techniques led to improved classiﬁcation performance. In the pres-
+ent work, our basic ML system was the SVMlight [22] implementa-
+tion of the SVM algorithm, with linear kernel and default settings
+[23].
+
+3.3. Evaluation
+
+We evaluated how well our classiﬁers, which were trained on a
+combination of inclusion and common exclusion articles, classiﬁed
+rigorous articles for new procedure or drug SRs. We performed
+three experiments.
+
+ Experiment 1: IE training set + IE test set.
+
+S. Kim, J. Choi / Journal of Biomedical Informatics 47 (2014) 153–159
+
+157
+
+sets gave the ﬁnal performance estimate. We applied one-way
+ANOVA to compare classiﬁer performances.
+
+As an additional experiment, we performed 10-fold cross vali-
+dation tests. The goal of cross validation is measuring the general-
+izability of an algorithm, comparing the performance of two or
+more different algorithms, and ﬁnding out the best algorithm for
+the available data [24]. In 10-fold cross validation, we used IE
+and ICE data sets. A single subsample is used as the validation data
+for testing the model, and the remaining nine subsamples are used
+as training data. We applied independent t-test to compare the re-
+sults of IE and ICE data sets.
+
+4. Results
+
+In order to evaluate the performance of the classiﬁers, we made
+receiver operating curves. The area under the curve (AUC) was cal-
+culated for the Procedure with inclusion and exclusion/common
+exclusion articles. The same evaluation was done using AUCs for
+the Drug with inclusion and exclusion/common exclusion articles.
+Table 5 shows the performances using 19 Procedure data by
+topics. The mean AUC of the Experiment 1 was 0.81 (range 0.66–
+0.91), Experiment 2 was 0.83 (range 0.70–0.90), and Experiment
+3 was 0.95 (range 0.89–1.00). The performances of the classiﬁers
+trained on the Procedure with inclusion and common exclusion
+articles (Experiments 2, 3) were signiﬁcantly higher than those of
+the classiﬁers trained on the Procedure with inclusion and exclu-
+sion articles (Experiment 1) (p < 0.05). The classiﬁer showed the
+
+Experiment 1
+
+Experiment 2
+
+Experiment 3
+
+0.80
+(0.78–0.81)
+0.82
+(0.74–0.86)
+0.75
+(0.68–0.80)
+0.84
+(0.83–0.86)
+0.67
+(0.62–0.70)
+0.85
+(0.81–0.88)
+0.82
+(0.79–0.85)
+0.66
+(0.62–0.72)
+0.91
+(0.88–0.93)
+0.89
+(0.86–0.92)
+0.78
+(0.76–0.81)
+0.88
+(0.85–0.90)
+0.81
+(0.79–0.82)
+0.83
+(0.76–0.90)
+0.88
+(0.85–0.93)
+0.86
+(0.86–0.88)
+0.68
+(0.66–0.71)
+0.84
+(0.81–0.86)
+0.86
+(0.85–0.88)
+0.81
+(0.66–0.91)
+
+0.82
+(0.81–0.82)
+0.80
+(0.78–0.82)
+0.76
+(0.70–0.78)
+0.84
+(0.84–0.85)
+0.70
+(0.68–0.72)
+0.87
+(0.86–0.88)
+0.84
+(0.83–0.85)
+0.74
+(0.73–0.75)
+0.90
+(0.88–0.93)
+0.90
+(0.88–0.90)
+0.79
+(0.77–0.80)
+0.87
+(0.85–0.88)
+0.80
+(0.78–0.81)
+0.88
+(0.88–0.89)
+0.87
+(0.86–0.88)
+0.86
+(0.85–0.87)
+0.75
+(0.72–0.77)
+0.87
+(0.86–0.87)
+0.84
+(0.83–0.85)
+0.83
+(0.70–0.90)
+
+0.89
+(0.88–0.90)
+0.91
+(0.90–0.92)
+0.92
+(0.91–0.93)
+0.95
+(0.94–0.96)
+0.97
+(0.96–0.97)
+0.96
+(0.95–0.97)
+0.96
+(0.96)
+0.95
+(0.93–0.95)
+0.98
+(0.97–1.00)
+1.00
+(0.99–1.00)
+0.97
+(0.97–0.98)
+0.94
+(0.93–0.95)
+0.93
+(0.91–0.96)
+0.98
+(0.98)
+0.96
+(0.95–0.96)
+0.91
+(0.90–0.92)
+0.98
+(0.97–0.98)
+0.98
+(0.98)
+0.95
+(0.94–0.95)
+0.95
+(0.89–1.00)
+
+Fig. 3. Process diagram of the experimental procedure.
+
+ Experiment 2: ICE training set + IE test set.
+ Experiment 3: ICE training set + ICE test set.
+
+All topics were tested using the same processes (Fig. 3). We
+used AUC as an evaluation metric. The average of ﬁve training data
+
+Table 5
+Mean AUCs of the three experiments across 19 procedure systematic reviews.
+
+Topics
+
+Auditory brainstem implant
+
+Autologous noncultured epidermal cellular transplantation
+
+Continuous intraarticular pain control
+
+Endoscopic cryotherapy of lung tumors
+
+Glaucoma aqueous tube insertion
+
+Hand transplantation
+
+Holmium laser treatment of benign prostatic hyperplasia
+
+Impedance controlled endometrial ablation
+
+Intrastromal corneal ring surgery for keratoconus
+
+Magnetic navigation assisted catheter technique
+
+Radiofrequency ablation of primary and secondary lung malignancy
+
+Small bowel transplantation
+
+Somatic nerves stimulation
+
+Surgical ablation of atrial ﬁbrillation
+
+Therapeutic temperature management with endovascular catheters
+
+Therapeutic use of autologous bone marrow cells in peripheral arterial disease
+
+Transanal endoscopic microsurgery
+
+Transarterial radioembolization
+
+Trigeminal nerve stimulation
+
+Mean
+
+The range of AUC is shown in parenthesis.
+
+158
+
+S. Kim, J. Choi / Journal of Biomedical Informatics 47 (2014) 153–159
+
+Table 6
+Mean AUCs of the three experiments across 4 drug systematic reviews.
+
+Topics
+
+Atypical antipsychotics
+Beta blockers
+Calcium channel blockers
+Urinary incontinence
+Mean
+
+The range of AUC is shown in parenthesis.
+
+Experiment 1
+
+0.75(0.75–0.77)
+0.82(0.79–0.85)
+0.71(0.69–0.74)
+0.83(0.80–0.85)
+0.78(0.71–0.83)
+
+best performance in the Experiment 3, in which common exclusion
+articles were used in training set and test set both.
+
+Table 6 indicates that the performances using 4 Drug data by
+topics. The mean AUC of the Experiment 1 was 0.78 (range
+0.71–0.83), Experiment 2 was 0.73 (range 0.56–0.87), and Experi-
+ment 3 was 0.84 (range 0.77–0.90). The performances of the clas-
+siﬁers trained on the Drug with inclusion and common exclusion
+articles (Experiment 3) were signiﬁcantly higher than those of
+the classiﬁers trained on the Drug with inclusion and exclusion
+articles (Experiments 1, 2) only if test data consisted of inclusion
+and common exclusion articles (p < 0.05).
+
+The 10-fold cross validation results showed that the mean AUC
+of IC data was 0.93 with a standard deviation of 0.02 and ICE data
+was 0.97 with a standard deviation of 0.01 in Procedure data sets.
+In Drug data sets, the mean AUC of IC data was 0.84 with a stan-
+dard deviation of 0.03 and that of ICE data was 0.92 with a stan-
+dard deviation of 0.05. In both of Procedure and Drug SRs, the
+results of ICE data which used common exclusion articles were sig-
+niﬁcantly better than those of IC data (p < 0.05).
+
+5. Discussion
+
+Our results show that AUCs of the classiﬁers trained on the Pro-
+cedure with common exclusion articles were signiﬁcantly higher
+than those of the classiﬁers trained on the Procedure with exclu-
+sion articles. In Drug, the AUCs of the classiﬁers trained with com-
+mon exclusion articles were signiﬁcantly higher than those of the
+classiﬁers trained with exclusion articles when test data consisted
+of inclusion and common exclusion articles.
+
+When we performed the cross validation experiments, the AUCs
+of the classiﬁers showed slightly better results than the previous
+experiments. For instance the mean AUC of the Experiment 1
+was improved from 0.81 to 0.93 in the case of Procedure data
+set. The reason for the good performance in cross validation test
+might be understood that in cross validation experiment, some
+topics in test data were included into the training data sets. As
+the SVM classiﬁer was already trained with a speciﬁc topic, so it
+would classify better. However, in the real world, above situation
+happens rarely. There will be many topics that are not systemati-
+cally reviewed, in which our method can be helpful.
+
+We focused on reducing the labor required for capturing high-
+quality articles to the new SRs that are not systematically re-
+viewed. If experts performing SRs use our classiﬁers after manually
+ﬁltering out topic-speciﬁc exclusion articles, their workload of lit-
+erature review will be reduced. Further research is required an ex-
+tended learning system that classiﬁes topic-speciﬁc exclusion
+articles of the new SRs.
+
+Our evaluation has several limitations. The sample sizes were
+small. Although the data corpus included 19 topics and expert
+judgments, there were approximately 7200 articles overall. We
+used the data generated by an SR-producing organization, which
+is a limitation even if the nHTA uses the most rigorous processes
+to maximize quality and consistency. We tried to conﬁrm our
+method using drug SRs generated by DERP (Drug Evidence Review
+
+Experiment 2
+
+0.73(0.72–0.74)
+0.78(0.76–0.83)
+0.56(0.54–0.57)
+0.87(0.86–0.87)
+0.73(0.56–0.87)
+
+Experiment 3
+
+0.90(0.88–0.91)
+0.83(0.81–0.85)
+0.77(0.76–0.87)
+0.87(0.86–0.87)
+0.84(0.77–0.90)
+
+Project) [6], but we could not properly evaluate our method with
+those articles because, in drug SRs, most articles were classiﬁed
+as E (nonspeciﬁcally excluded).
+
+6. Conclusion
+
+Our research has provided that SVM-based high-quality article
+classiﬁers can support new SRs by reducing the labor required to
+experts reviewing journal articles for inclusion. We focused on
+data in training sets to improve the performance of classiﬁers
+and showed the method of constructing training sets. The perfor-
+mance of classiﬁers, which were trained on a combination of inclu-
+sion and common exclusion articles, were signiﬁcantly higher than
+those of the classiﬁers, which were trained on other data.
+
+Acknowledgments
+
+This work was supported by the National Research Foundation
+of Korea (NRF) grant funded by the Korea government (MSIP) (No.
+2010-0028631).
+
+References
+
+[1] Sackett DL, Rosenberg WM, Gray JA, Haynes RB, Richardson WS. Evidence
+
+based medicine: what it is and what it isn’t. BMJ 1996;312:71–2.
+
+[2] Aphinyanaphongs Y, Tsamardinos I, Statnikov A, Hardin D, Aliferis CF. Text
+categorization models for high-quality article retrieval in internal medicine. J
+Am Med Inform Assoc 2005;12:207–16.
+
+[3] Lewis SJ, Orland BI. The importance and impact of evidence-based medicine. J
+
+Manag Care Pharm 2004;10:S3–5.
+
+[4] Matwin S, Kouznetsov A, Inkpen D, Frunza O, O’Blenis P. A new algorithm for
+reducing the workload of experts in performing systematic reviews. J Am Med
+Inform Assoc 2010;17:446–53.
+
+[5] The Cochrane Library [cited 07.08.12]. <http://www.thecochranelibrary.com/
+
+view/0/AboutCochraneSystematicReviews.html>.
+
+[6] Cohen AM, Ambert K, McDonagh M. Cross-topic learning for work
+prioritization in systematic review creation and update. J Am Med Inform
+Assoc 2009;16:690–704.
+
+[7] nHTA [cited 07.08.12]. <http://nhta.or.kr/nHTA/english/>.
+[8] Bastian H, Glasziou P, Chalmers I. Seventy-ﬁve trials and eleven systematic
+
+reviews a day: how will we ever keep up? PLoS Med 2010;7:e1000326.
+
+[9] Mallett S, Clarke M. How many Cochrane reviews are needed to cover existing
+evidence on the effects of health care interventions? ACP J Club 2003;139:A11.
+[10] Gg K, editor. No improvement – still less than half of the Cochrane reviews are
+
+up to date. Dublin, Ireland: XIV Cochrane Colloquium; 2006.
+
+[11] Chalmers I, Glasziou P. Avoidable waste in the production and reporting of
+
+research evidence. Lancet 2009;374:86–9.
+
+[12] Cohen AM. Optimizing feature representation for automated systematic
+
+review work prioritization. AMIA Annu Symp Proc 2008:121–5.
+
+[13] Joachims T. Text categorization with support vector machines: learning with
+many relevant features. In: Proceedings of the 10th European conference on
+machine learning; 1998. p. 137–42.
+
+[14] Kilicoglu H, Demner-Fushman D, Rindﬂesch TC, Wilczynski NL, Haynes RB.
+Towards automatic recognition of scientiﬁcally rigorous clinical research
+evidence. J Am Med Inform Assoc 2009;16:25–31.
+
+[15] Systematic drug class review gold standard data [cited 07.08.12]. <http://
+
+davinci.ohsu.edu/~cohenaa/systematic-drug-class-review-data.html>.
+
+[16] Cohen AM, Hersh WR, Peterson K, Yen PY. Reducing workload in systematic
+review preparation using automated citation classiﬁcation. J Am Med Inform
+Assoc 2006;13:206–19.
+
+[17] Tom F, Foster P. Adaptive fraud detection. Data Mining Knowledge Discov
+
+1997;3:291–316.
+
+S. Kim, J. Choi / Journal of Biomedical Informatics 47 (2014) 153–159
+
+159
+
+[18] Japkowicz N. The class imbalance problem: signiﬁcance and strategies. In:
+Proceedings of the 2000 international conference on artiﬁcial intelligence;
+2000. p. 111–7.
+
+[19] Yin HL, Leong TY. A model driven approach to imbalanced data sampling in
+
+[21] Porter MF. An algorithm for sufﬁx stripping. Program 1980;14:130–7.
+[22] SVMlight [cited 07.08.12]. <http://svmlight.joachims.org/>.
+[23] Joachims T. Making large-scale SVM learning practical, advances in kernel
+
+methods-support vector learning, Cambridge, MA, USA; 1999.
+
+medical decision making. Stud Health Technol Inform 2010;160:856–60.
+
+[24] Refaeilzadeh P, Tang L, Liu H. Cross-validation, encyclopedia of database
+
+[20] Onix Text Retrieval Toolkit
+
+[cited 07.08.12]. <http://www.lextek.com/
+
+systems; 2009. p. 532–8.
+
+manuals/onix/stopwords1.html>.
+
+

@@ -1,0 +1,1716 @@
+Original Article
+Healthc Inform Res. 2012 March;18(1):18-28. 
+http://dx.doi.org/10.4258/hir.2012.18.1.18
+pISSN 2093-3681  •  eISSN 2093-369X  
+
+Improving the Performance of Text Categorization 
+Models used for the Selection of High Quality Articles
+
+Seunghee Kim, BS, Jinwook Choi, MD, PhD
+Department	of	Biomedical	Engineering,	Seoul	National	University	College	of	Medicine,	Seoul,	Korea
+
+Objectives: Machine learning systems can considerably reduce the time and effort needed by experts to perform new system-
+atic reviews (SRs). This study investigates categorization models, which are trained on a combination of included and com-
+monly excluded articles, which can improve performance by identifying high quality articles for new procedures or drug SRs. 
+Methods: Test collections were built using the annotated reference files from 19 procedure and 15 drug systematic reviews. 
+The classification models, using a support vector machine, were trained by the combined even data of other topics, except-
+ing the desired topic. This approach was compared to the combination of included and commonly excluded articles with the 
+combination of included and excluded articles. Accuracy was used for the measure of comparison. Results: On average, the 
+performance was improved by about 15% in the procedure topics and 11% in the drug topics when the classification models 
+trained on the combination of articles included and commonly excluded, were used. The system using the combination of in-
+cluded and commonly excluded articles performed better than the combination of included and excluded articles in all of the 
+procedure topics. Conclusions: Automatically rigorous article classification using machine learning can reduce the workload 
+of experts when they perform systematic reviews when the topic-specific data are scarce. In particular, when the combination 
+of included and commonly excluded articles is used, this system will be more effective.
+
+Keywords: Classification, Artificial Intelligence, Evidence-Based Medicine, Review Literature as Topic, Comparative Study
+
+Submitted:	February	1,	2012
+Revised:	February	29,	2012
+Accepted:	March	6,	2012
+
+Corresponding Author 
+Jinwook	Choi,	MD,	PhD
+Department	of	Biomedical	Engineering,	Seoul	National	Univer-
+sity	College	of	Medicine,	103	Daehak-ro,	Jongno-gu,	Seoul	110-
+799,	Korea.	Tel:	+82-2-2072-3421,	Fax:	+82-2-745-7870,	E-mail:	
+jinchoi@snu.ac.kr
+
+This	is	an	Open	Access	article	distributed	under	the	terms	of	the	Creative	Com-
+mons	Attribution	Non-Commercial	License	(http://creativecommons.org/licenses/by-
+nc/3.0/)	which	permits	unrestricted	non-commercial	use,	distribution,	and	reproduc-
+tion	in	any	medium,	provided	the	original	work	is	properly	cited.
+
+ⓒ	2012	The	Korean	Society	of	Medical	Informatics
+
+I. Introduction
+
+Evidence based medicine (EBM) is the conscientious, ex-
+plicit, and judicious use of current best evidence in making 
+decisions about the care of individual patients [1]. EBM is 
+an important development in clinical practice and scholarly 
+research [2]. 
+  Systematic review (SR) plays a key role in EBM [3]. SR at-
+tempts to identify, appraise and synthesize all the empirical 
+evidences that meet pre-specified eligibility criteria to an-
+swer a given question [4]. Creation of a new SR or updating 
+of an existing one takes considerable time and effort. First, 
+the review topic and key questions are defined, and then 
+
+relevant studies are retrieved from a number of different 
+databases, such as MEDLINE and EMBASE. Next, experts 
+select retrieved abstracts which are most likely to meet the 
+inclusion criteria (abstract triage step). Finally, they closely 
+read selected articles in the prior step and classify articles as 
+included and excluded ones by pre-specified eligibility crite-
+ria (full text triage step) [5]. 
+  The new Health Technology Assessment (nHTA) center in 
+National Evidence-based Healthcare Collaborating Agency 
+(NECA) assesses new medical technologies introduced into 
+Korean healthcare markets whether these technologies are 
+safe and effective in real clinical settings or not. They review 
+all the evidences systematically to evaluate those technolo-
+gies. To date, 126 evidence reports have been completed and 
+published [6].
+  Using current methods, we have not been able to cover new 
+issues and keep even half of its reviews up-to-date [7]. We 
+need to reduce avoidable processes in the production of re-
+search evidence [8]. Advanced information technologies can 
+be developed and implemented to support SR by reducing 
+the labor required while capturing high-quality evidence [3]. 
+  When an SR is first created, no data specific to this topic 
+is available for information technologies. Cohen et al. [5] 
+proposed a method that creates a model by training on data 
+from a combination of other SR topics when topic-specific 
+data is small. They compared to three systems, a baseline 
+system using only topic-specific training data, a non-topic 
+system using only the non-topic data sampled from the 
+other topics and a hybrid system combining topic-specific 
+training data with data from other SR topics. As the amounts 
+of topic-specific training data become more available, their 
+system preferentially incorporates these data into the model, 
+reducing the influence of data from other topics. On average, 
+the hybrid system improved mean area under the receiver 
+operating characteristic (ROC) curves (AUC) over the base-
+line system by 20%, when topic-specific training data were 
+scarce. In addition, the system performed better than the 
+non-topic system at all but the two smallest fractions of topic 
+specific training data. However, with very sparse topic-spe-
+cific training data, the performance of the non-topic system 
+on individual topics is often better than the baseline system, 
+and is, at times, better than that of the hybrid system. 
+  In this article, we address how the creation of SRs can be 
+made more efficiently with machine learning (ML) tech-
+niques when the topic-specific data are small. We propose 
+a method that creates classification models by training on 
+articles included and commonly excluded. Inclusion and ex-
+clusion articles in SRs are judged by eligibility criteria. Those 
+criteria are consisted of two parts; one is common exclusion 
+
+Rigorous Articles Categorization Models
+
+criteria and the other is topic-specific inclusion/exclusion 
+criteria. Articles excluded by common exclusion criteria are 
+not included in other SRs regardless of topics. However, ar-
+ticles included or excluded by topic-specific criteria can be 
+included or excluded in some SRs according to the topics. 
+We hypothesized that by using commonly excluded articles 
+across all SRs, we can automatically classify articles with bet-
+ter accuracy than previous works when a new SR is created.
+
+II. Methods
+
+We presented our methods in three parts. In the first, we 
+described the data set used to evaluate our system. Then, we 
+showed the classifier system and training method. Finally, 
+we described our evaluation process. 
+
+1. Data Collection
+In this study, the procedure data corpus was based on SR 
+inclusion/exclusion judgments by the expert reviewers of the 
+nHTA center. The expert reviewers classified articles at the 
+abstract and full text level whether they are rigorous or not. 
+This process is described in greater detail in earlier studies 
+[5,9]. 
+  The reviewers classified articles by inclusion/exclusion cri-
+teria. Each article was encoded as shown in Table 1. Among 
+criteria, there were 4 common exclusion criteria (code 1-4) 
+across all SRs, such as grey literature (i.e., conference paper), 
+non-original articles (i.e., review article, editorial, letter, and 
+opinion pieces), non-human (animals) articles, and pre-
+clinical studies. 
+  Among 126 SRs of nHTA, we selected 19 procedure SRs 
+having more than 10 inclusion articles. Table 2 shows that 
+the 19 review topics with the number of articles included 
+and excluded in each study. We separated common exclusion 
+articles (Excluded_com set) excluded by the common exclu-
+sion criteria (code 1-4) from exclusion articles (Excluded 
+set) excluded by all the exclusion criteria (code 1-5). 
+  Also, we used publicly available drug SRs to confirm our 
+
+Table 1. Coded values for article triage decisions in procedure 
+
+topics
+
+Code
+
+0
+1
+2
+3
+4
+5
+
+Meaning
+Included at article level
+Excluded due to grey literature
+Excluded due to non-original articles
+Excluded due to non-human articles
+Excluded due to pre-clinical studies
+Excluded due to topic-specific reasons
+
+Vol.	18		•		No.	1		•		March	2012
+
+www.e-hir.org
+
+19
+
+Seunghee Kim and Jinwook Choi
+
+Table 2. Number of articles included and excluded across 19 procedure systematic review topics
+
+Topics
+
+Included
+
+Auditory brainstem implant
+Autologous noncultured epidermal cellular transplantation
+Continuous intraarticular pain control
+Endoscopic cryotherapy of lung tumors
+Glaucoma aqueous tube insertion
+Hand transplantation
+Holmium laser treatment of benign prostatic hyperplasia
+Impedance controlled endometrial ablation
+Intrastromal corneal ring surgery for keratoconus
+Magnetic navigation assisted catheter technique
+Radiofrequency ablation of primary and secondary lung malignancy
+Small bowel transplantation
+Somatic nerves stimulation
+Surgical ablation of atrial fibrillation
+Therapeutic temperature management with endovascular catheters
+Therapeutic use of autologous bone marrow cells in peripheral arterial disease
+Transanal endoscopic microsurgery
+Transarterial radioembolization
+Trigeminal nerve stimulation
+Totals
+aExclusion articles excluded by all the exclusion criteria. bExclusion articles excluded by the common exclusion criteria.
+
+Excludeda
+156
+126
+742
+334
+500
+227
+155
+55
+140
+365
+506
+911
+378
+185
+293
+249
+246
+473
+730
+6,771
+
+14
+18
+22
+14
+10
+10
+34
+11
+31
+14
+18
+27
+12
+13
+16
+28
+10
+32
+11
+345
+
+Excluded_comb
+
+46
+23
+38
+172
+102
+113
+93
+22
+26
+86
+192
+184
+42
+66
+62
+143
+43
+156
+50
+1,659
+
+Table 3. Number of articles included and excluded across 15 
+
+Table 4. Standardized coded values for article triage decisions in 
+
+drug systematic review topics
+
+drug topics
+
+Included Excludeda Excluded_comb
+
+41
+20
+16
+146
+42
+100
+80
+41
+15
+136
+51
+9
+85
+24
+40
+846
+
+2,503
+831
+294
+974
+2,030
+1,118
+288
+352
+1,900
+367
+1,282
+1,634
+3,380
+647
+287
+17,887
+
+Topics
+ACEInhibitors
+ADHD
+Antihistamines
+AtypicalAntipsychotics
+BetaBlockers
+CalciumChannelBlockers
+Estrogens
+NSAIDs
+Opiods
+OralHypoglycemics
+ProtonPumpInhibitors
+SkeletalMuscleRelaxants
+Statins
+Triptans
+UrinaryIncontinence
+Totals
+ACE: angiotensin converting enzyme, ADHD: attention deficit 
+hyperactivity disorder, NSAIDs: nonsteroidal antiinflammatory 
+drugs.
+aExcluded articles by all the exclusion criteria. bArticles exclud-
+ed by the common exclusion criteria.
+
+-
+1
+1
+11
+104
+25
+-
+7
+-
+-
+-
+-
+-
+-
+21
+170
+
+Code
+
+Meaning
+
+I
+E
+1
+2
+3
+4
+5
+6
+7
+8
+9
+
+Included at abstract or article level
+Nonspecifically excluded
+Excluded due to foreign language
+Excluded due to wrong outcome
+Excluded due to wrong drug
+Excluded due to wrong population
+Excluded due to wrong publication type
+Excluded due to wrong study design
+Excluded due to wrong study duration
+Excluded due to background article
+Excluded due to only abstract being available
+
+method [10]. Tables 3 and 4 give information about the 15 
+drug topics and the inclusion/exclusion criteria [9]. We se-
+lected code 8 and 9 as common exclusion criteria across all 
+drug SRs. Because, we thought background articles (code 8) 
+might be non-original articles (i.e., review article, editorial, 
+letter, and opinion pieces) and only abstract being available 
+(code 9) might be grey literature (i.e., conference paper). We 
+also separated common exclusion articles (code 8-9) from 
+
+20
+
+www.e-hir.org
+
+http://dx.doi.org/10.4258/hir.2012.18.1.18
+
+Rigorous Articles Categorization Models
+
+exclusion articles (code E-9). Looking at Table 3, the number 
+of exclusion articles excluded by code 8 and 9 were small be-
+cause most articles excluded by code E. 
+  As can be seen in Tables 2 and 3, small number of articles 
+was satisfied the inclusion criteria in most SRs. With small 
+number of inclusion articles, it was not enough to the future 
+predict. This approach may result in a model very biased to-
+wards negative (Excluded, as opposed to Included) prediction 
+[5]. 
+  To prevent the biased prediction, we devised ‘even’ sets with 
+the same number of inclusion and exclusion articles. We 
+needed two even sets in one topic, because we divided exclu-
+sion articles into Excluded set and Excluded_com set. One 
+was derived from Included and Excluded set (procedure/
+drug with Excluded even set) and the other was derived 
+from Included and Excluded_com set (procedure/drug with 
+Excluded_com even set). To make even sets, we randomly 
+selected the same number of exclusion articles from Exclud-
+ed set as inclusion articles if Excluded set had more articles 
+than Included set. However, if Included set had more articles 
+than Excluded set, we randomly selected the same number 
+of inclusion articles from Included set as exclusion articles. 
+
+For example, to make Intrastromal Corneal Ring Surgery for 
+Keratoconus with Excluded even set, we randomly selected 
+31 exclusion articles from Excluded set with 140 articles, 
+because Included set had 31 inclusion articles. This process 
+yielded a total of 62 articles (31 exclusion and inclusion ar-
+ticles) as Intrastromal Corneal Ring Surgery for Keratoconus 
+with Excluded even set. Also, to make Intrastromal Corneal 
+Ring Surgery for Keratoconus with Excluded_com even set, 
+we randomly selected 26 inclusion articles from Included set 
+with 31 articles, because the Excluded_com set had 26 com-
+mon exclusion articles. Intrastromal Corneal Ring Surgery for 
+Keratoconus with Excluded_com even set had a total of 52 
+articles (26 exclusion and inclusion articles). 
+  In the drug sets, we selected four topics (AtypicalAntipsy-
+chotics, BetaBlockers, CalciumChannelBlockers, UrinaryIn-
+continence) having more than 10 common exclusion articles, 
+because some topics have very small number of articles in 
+the Excluded_com sets. We also made even drug sets of four 
+topics using the same method. 
+
+2. Classifier System
+To determine the contribution of various feature types to the 
+
+Table 5. Number of training and test data across 19 procedure systematic review topics
+
+Topics
+
+Auditory brainstem implant
+Autologous noncultured epidermal cellular transplantation
+Continuous intraarticular pain control
+Endoscopic cryotherapy of lung tumors
+Glaucoma aqueous tube insertion
+Hand transplantation
+Holmium laser treatment of benign prostatic hyperplasia
+Impedance controlled endometrial ablation
+Intrastromal corneal ring surgery for keratoconus
+Magnetic navigation assisted catheter technique
+Radiofrequency ablation of primary and secondary lung malignancy
+Small bowel transplantation
+Somatic nerves stimulation
+Surgical ablation of atrial fibrillation
+Therapeutic temperature management with endovascular catheters
+Therapeutic use of autologous bone marrow cells in peripheral arterial disease
+Transanal endoscopic microsurgery
+Transarterial radioembolization
+Trigeminal nerve stimulation
+Totals
+
+With Excluded
+Test
+28
+36
+44
+28
+20
+20
+68
+22
+62
+28
+36
+54
+24
+26
+32
+56
+20
+64
+22
+690
+
+Train
+662
+654
+646
+662
+670
+670
+622
+668
+628
+662
+654
+636
+666
+664
+658
+634
+670
+626
+668
+12,420
+
+With Excluded_com
+Test
+Train
+652
+28
+36
+644
+44
+636
+652
+28
+20
+660
+20
+660
+612
+68
+22
+658
+52
+628
+28
+652
+644
+36
+54
+626
+24
+656
+654
+26
+32
+648
+56
+624
+660
+20
+64
+616
+22
+658
+12,240
+680
+
+Vol.	18		•		No.	1		•		March	2012
+
+www.e-hir.org
+
+21
+
+Seunghee Kim and Jinwook Choi
+
+classification task, we used four basic feature types as below: 
+1) words in the titles and abstracts of a MEDLINE citation; 
+2) Medical Subject Headings (MeSH) indexing terms from a 
+MEDLINE citation; 3) publication types assigned manually 
+by the National Library of Medicine (NLM) indexers.
+  The titles and abstracts were parsed into tokens. MeSH 
+indexing terms and publication types were encoded these 
+as phrases. Individual words of the titles and abstracts were 
+further processed by removal of stop words such as ‘the’, ‘an’, 
+and ‘other’ that are not likely to add semantic value to the 
+classification [11]. The words were also stemmed by the Porter 
+stemming algorithm, which reduced words to their roots [12]. 
+  As titles and abstracts were narrative text, the frequency-
+based representation worked better for them. On the other 
+hand, since MeSH indexing terms and publication types did 
+not occur in an article more than once, the binary represen-
+tation method might be more suitable for the feature types 
+[3]. Therefore, we represented the titles and abstracts by 
+word frequencies and the MeSH indexing terms and publica-
+tion types as binary. 
+  To compare the various feature combinations for the clas-
+sification tasks, we combined 4 features into 6 categories 
+given below: 1) titles + abstracts (TA); 2) titles + abstracts + 
+MeSH (TAM); 3) titles + abstracts + publication types (TAP); 
+
+4) titles + abstracts + MeSH + publication types (TAMP); 5) 
+abstracts + MeSH + publication types (AMP); 6) MeSH + 
+publication types (MP).
+  The ML system presented here was motivated by interesting 
+results observed in earlier studies on finding the best evi-
+dence for SRs [2,13-15]. They noticed that using the support 
+vector machine (SVM), rather than other MLs, led to im-
+proved classification performance. In the present work, our 
+basic ML system was the SVMlight [16] implementation of the 
+SVM algorithm, with a linear kernel and default settings [17]. 
+  The even set of each topic had small number of inclusion/
+exclusion articles. However, the accuracy of prediction sys-
+tems based on a small number of sampled training data was 
+unstable [18]. To solve this problem, we made training set 
+combining even data of other topics except own topic about 
+4 collections (procedure/drug with Excluded set, procedure/
+drug with Excluded_com set). Because no data specific to 
+new SR topic is available for information technologies, we 
+did not include own topic data in training set. For example, 
+to make Auditory Brainstem Implant training set, we com-
+bined even data of other 18 topics except the topic. Tables 5 
+and 6 show the number of training and test data across pro-
+cedure/drug SR topics. 
+
+Table 6. Number of training and test data across 15 drug systematic review topics
+
+Topics
+
+ACEInhibitors
+ADHD
+Antihistamines
+AtypicalAntipsychotics
+BetaBlockers
+CalciumChannelBlockers
+Estrogens
+NSAIDs
+Opiods
+OralHypoglycemics
+ProtonPumpInhibitors
+SkeletalMuscleRelaxants
+Statins
+Triptans
+UrinaryIncontinence
+Totals
+
+Train
+1,610
+1,652
+1,660
+1,400
+1,608
+1,492
+1,532
+1,610
+1,662
+1,420
+1,590
+1,674
+1,522
+1,644
+1,612
+23,688
+
+With Excluded
+
+With Excluded_com
+
+Test
+82
+40
+32
+292
+84
+200
+160
+82
+30
+272
+102
+18
+170
+48
+80
+1,692
+
+Train
+
+-
+-
+176
+-
+114
+148
+-
+-
+-
+-
+-
+-
+-
+-
+156
+594
+
+Test
+-
+-
+22
+-
+84
+50
+-
+-
+-
+-
+-
+-
+-
+-
+42
+198
+
+ACE: angiotensin converting enzyme, ADHD: attention deficit hyperactivity disorder, NSAIDs: nonsteroidal antiinflammatory 
+drugs.
+
+22
+
+www.e-hir.org
+
+http://dx.doi.org/10.4258/hir.2012.18.1.18
+
+3. Evaluation
+We evaluated how well our categorization models which are 
+trained on combination of included and commonly excluded 
+articles perform on identifying rigorous articles for new 
+procedure or drug SRs. In order to do that, first, we com-
+pared the classification accuracies using the various feature 
+combinations in the procedure with Exclude set. Then, we 
+compared the classification accuracies in the procedure/drug 
+with Exclude set and the procedure/drug with Exclude_com 
+set using the feature combination which shows the best clas-
+sification accuracy in the procedure with Exclude set. 
+  All collections were tested in the same processes. In the 
+first step, we made 3 even sets in a topic; one is training set, 
+others are test sets. We made two test sets, because randomly 
+selected test data might affect performance results. In the 
+second step, we combined training data of remaining topics 
+except own topic. Finally, we built a general classification 
+models by training on combined data of a given topic and 
+classified 2 test sets of the topic. The accuracy was calculated 
+for each constructed model, and all the computed results 
+were averaged 2 test sets to give a final performance estimate. 
+A representation of the overall process is shown in Figure 1. 
+  We applied one-way ANOVA to compare classification ac-
+curacies of various feature combinations and t-test for results 
+comparison of 4 collections. These statistical analyses used 
+SPSS ver. 19 (SPSS Inc., New York, NY, USA).
+
+Rigorous Articles Categorization Models
+
+III. Results
+
+We presented the classification results of various feature 
+combinations in the procedure with Exclude set and the ac-
+curacies in 4 collections using the best performance feature 
+combination. 
+  Table 7 shows the classification results of various feature 
+combinations in the procedure with Exclude set. We found 
+no statistical significance of the difference among them (p > 
+0.05). However, the MP showed the best accuracy, and was 
+significantly better than the TAM (p < 0.05). With this result, 
+we chose the MP as the best performance feature combina-
+tion. Among topics, Therapeutic Temperature Management 
+with Endovascular Catheters achieved the best average ac-
+curacies in 3 feature combinations (TAM, TAMP, MP) and 
+Small Bowel Transplantation in others (TA, TAP, AMP). 
+  Table 8 presents the results of procedure topics using the 
+MP which is the best performance feature combination. We 
+found that the overall mean percentage of accuracy in the 
+procedure with Excluded_com set (88.32%) was significantly 
+higher than that of the procedure with Excluded set (75.38%, 
+p < 0.05). Also, all of topics in the procedure with Excluded_
+com set showed high or the same accuracies compared with 
+those in the procedure with Exclude set. 
+  Drug results are shown in Table 9. The overall mean per-
+centage of accuracies in the drug with Excluded_com set was 
+better than those of the drug with Excluded set. However, 
+there was no statistically significant difference between them 
+
+Vol.	18		•		No.	1		•		March	2012
+
+Figure 1. Evaluation processes of one 
+
+topic.
+
+www.e-hir.org
+
+23
+
+Seunghee Kim and Jinwook Choi
+
+Table 7. Mean percentage of various feature combinations accuracies in the procedure with Exclude set
+
+Topics
+
+TA
+66.08
+64.29
+67.86
+61.11
+61.11
+61.11
+73.87
+68.18
+79.55
+62.50
+64.29
+60.71
+60.00
+55.00
+65.00
+65.00
+70.00
+60.00
+74.27
+76.47
+72.06
+63.64
+63.64
+63.64
+77.42
+75.81
+79.03
+60.71
+60.71
+60.71
+72.22
+72.22
+72.22
+83.33
+83.33
+83.33
+70.83
+70.83
+70.83
+80.77
+80.77
+80.77
+67.19
+65.63
+68.75
+72.32
+
+TAMP
+69.65
+71.43
+67.86
+68.06
+69.44
+66.67
+69.32
+70.45
+68.18
+55.36
+57.14
+53.57
+65.00
+70.00
+60.00
+72.50
+75.00
+70.00
+74.27
+73.53
+75.00
+63.64
+63.64
+63.64
+73.39
+72.58
+74.19
+64.29
+64.29
+64.29
+68.06
+66.67
+69.44
+77.78
+75.93
+79.63
+62.50
+62.50
+62.50
+65.38
+65.38
+65.38
+78.13
+78.13
+78.13
+73.22
+
+Auditory brainstem implant
+   Test set 1
+   Test set 2
+Autologous noncultured epidermal cellular transplantation
+   Test set 1
+   Test set 2
+Continuous intraarticular pain control
+   Test set 1
+   Test set 2
+Endoscopic cryotherapy of lung tumors
+   Test set 1
+   Test set 2
+Glaucoma aqueous tube insertion
+   Test set 1
+   Test set 2
+Hand transplantation
+   Test set 1
+   Test set 2
+Holmium laser treatment of benign prostatic hyperplasia
+   Test set 1
+   Test set 2
+Impedance controlled endometrial ablation
+   Test set 1
+   Test set 2
+Intrastromal corneal ring surgery for keratoconus
+   Test set 1
+   Test set 2
+Magnetic navigation assisted catheter technique
+   Test set 1
+   Test set 2
+Radiofrequency ablation of primary and secondary lung malignancy
+   Test set 1
+   Test set 2
+Small bowel transplantation
+   Test set 1
+   Test set 2
+Somatic nerves stimulation
+   Test set 1
+   Test set 2
+Surgical ablation of atrial fibrillation
+   Test set 1
+   Test set 2
+Therapeutic temperature management with endovascular catheters
+   Test set 1
+   Test set 2
+Therapeutic use of autologous bone marrow cells in peripheral 
+  arterial disease
+   Test set 1
+   Test set 2
+Transanal endoscopic microsurgery
+   Test set 1
+   Test set 2
+Transarterial radioembolization
+   Test set 1
+   Test set 2
+Trigeminal nerve stimulation
+   Test set 1
+   Test set 2
+Mean
+TA: titles + abstracts, TAM: titles + abstracts + MeSH, TAP: titles + abstracts + publication types, TAMP: titles + abstracts + MeSH 
++ publication types, AMP: abstracts + MeSH + publication types, MP: MeSH + publication types.
+
+MP
+73.22
+78.57
+67.86
+69.45
+66.67
+72.22
+64.77
+68.18
+61.36
+80.36
+78.57
+82.14
+72.50
+70.00
+75.00
+50.00
+50.00
+50.00
+77.94
+79.41
+76.47
+52.28
+54.55
+50.00
+80.65
+77.42
+83.87
+82.14
+82.14
+82.14
+81.95
+86.11
+77.78
+75.93
+79.63
+72.22
+68.75
+70.83
+66.67
+86.54
+88.46
+84.62
+92.19
+93.75
+90.63
+85.72
+
+87.50
+83.93
+82.50
+80.00
+85.00
+75.79
+73.44
+78.13
+79.55
+81.82
+77.27
+75.38
+
+TAM
+67.86
+71.43
+64.29
+63.89
+66.67
+61.11
+55.69
+56.82
+54.55
+60.72
+64.29
+57.14
+67.50
+70.00
+65.00
+62.50
+60.00
+65.00
+70.59
+70.59
+70.59
+63.64
+63.64
+63.64
+83.37
+82.86
+83.87
+55.36
+57.14
+53.57
+56.95
+58.33
+55.56
+76.86
+75.93
+77.78
+58.34
+62.50
+54.17
+80.77
+80.77
+80.77
+84.38
+84.38
+84.38
+68.75
+
+67.86
+69.64
+57.50
+60.00
+55.00
+76.57
+78.13
+75.00
+72.73
+72.73
+72.73
+67.58
+
+TAP
+75.00
+71.43
+78.57
+66.67
+66.67
+66.67
+60.23
+63.64
+56.82
+62.50
+60.71
+64.29
+65.00
+65.00
+65.00
+62.50
+65.00
+60.00
+73.53
+73.53
+73.53
+70.46
+68.18
+72.73
+79.04
+75.81
+82.26
+64.29
+64.29
+64.29
+68.06
+75.00
+61.11
+84.26
+81.48
+87.04
+66.67
+62.50
+70.83
+80.77
+80.77
+80.77
+64.07
+62.50
+65.63
+68.75
+
+69.64
+67.86
+62.50
+75.00
+50.00
+78.91
+76.56
+81.25
+75.00
+72.73
+77.27
+69.91
+
+AMP
+66.07
+60.71
+71.43
+62.50
+63.89
+61.11
+73.87
+72.73
+75.00
+60.72
+64.29
+57.14
+70.00
+75.00
+65.00
+62.50
+65.00
+60.00
+73.53
+75.00
+72.06
+63.64
+63.64
+63.64
+71.77
+69.35
+74.19
+55.36
+53.57
+57.14
+65.28
+63.89
+66.67
+83.33
+83.33
+83.33
+77.09
+75.00
+79.17
+78.85
+80.77
+76.92
+73.44
+68.75
+78.13
+79.47
+
+76.79
+82.14
+62.50
+70.00
+55.00
+74.22
+75.00
+73.44
+79.55
+81.82
+77.27
+70.19
+
+71.43
+73.21
+57.50
+60.00
+55.00
+70.32
+71.88
+68.75
+75.00
+77.27
+72.73
+69.16
+
+75.00
+71.43
+65.00
+70.00
+60.00
+73.44
+71.88
+75.00
+70.46
+72.73
+68.18
+68.92
+
+24
+
+www.e-hir.org
+
+http://dx.doi.org/10.4258/hir.2012.18.1.18
+
+Rigorous Articles Categorization Models
+
+Table 8. Mean percentage of accuracies in the procedure two sets using the MP
+
+Topics
+
+Auditory brainstem implant
+   Test set 1
+   Test set 2
+Autologous noncultured epidermal cellular transplantation
+   Test set 1
+   Test set 2
+Continuous intraarticular pain control
+   Test set 1
+   Test set 2
+Endoscopic cryotherapy of lung tumors
+   Test set 1
+   Test set 2
+Glaucoma aqueous tube insertion
+   Test set 1
+   Test set 2
+Hand transplantation
+   Test set 1
+   Test set 2
+Holmium laser treatment of benign prostatic hyperplasia
+   Test set 1
+   Test set 2
+Impedance controlled endometrial ablation
+   Test set 1
+   Test set 2
+Intrastromal corneal ring surgery for keratoconus
+   Test set 1
+   Test set 2
+Magnetic navigation assisted catheter technique
+   Test set 1
+   Test set 2
+Radiofrequency ablation of primary and secondary lung malignancy
+   Test set 1
+   Test set 2
+Small bowel transplantation
+   Test set 1
+   Test set 2
+Somatic nerves stimulation
+   Test set 1
+   Test set 2
+Surgical ablation of atrial fibrillation
+   Test set 1
+   Test set 2
+Therapeutic temperature management with endovascular catheters
+   Test set 1
+   Test set 2
+Therapeutic use of autologous bone marrow cells in peripheral arterial disease
+   Test set 1
+   Test set 2
+Transanal endoscopic microsurgery
+   Test set 1
+   Test set 2
+Transarterial radioembolization
+   Test set 1
+   Test set 2
+Trigeminal nerve stimulation
+   Test set 1
+   Test set 2
+Mean
+MP: MeSH + publication types.
+
+With Excluded
+
+73.22
+78.57
+67.86
+69.45
+66.67
+72.22
+64.77
+68.18
+61.36
+80.36
+78.57
+82.14
+72.50
+70.00
+75.00
+50.00
+50.00
+50.00
+77.94
+79.41
+76.47
+52.28
+54.55
+50.00
+80.65
+77.42
+83.87
+82.14
+82.14
+82.14
+81.95
+86.11
+77.78
+75.93
+79.63
+72.22
+68.75
+70.83
+66.67
+86.54
+88.46
+84.62
+92.19
+93.75
+90.63
+85.72
+87.50
+83.93
+82.50
+80.00
+85.00
+75.79
+73.44
+78.13
+79.55
+81.82
+77.27
+75.38
+
+With Excluded_com
+
+73.22
+78.57
+67.86
+88.89
+88.89
+88.89
+94.32
+95.45
+93.18
+83.93
+82.14
+85.71
+92.50
+95.00
+90.00
+60.00
+60.00
+60.00
+92.65
+92.65
+92.65
+79.55
+77.27
+81.82
+91.35
+92.31
+90.38
+92.86
+92.86
+92.86
+91.67
+91.67
+91.67
+89.82
+90.74
+88.89
+95.83
+95.83
+95.83
+96.16
+92.31
+100.00
+95.32
+93.75
+96.88
+90.18
+91.07
+89.29
+95.00
+90.00
+100.00
+92.97
+90.63
+95.31
+81.82
+81.82
+81.82
+88.32
+
+Vol.	18		•		No.	1		•		March	2012
+
+www.e-hir.org
+
+25
+
+Seunghee Kim and Jinwook Choi
+
+Table 9. Mean percentage of accuracies in the drug two sets us-
+
+ing the MP
+
+Topics
+
+With Excluded With Excluded_com
+
+AtypicalAntipsychotics
+   Test set 1
+   Test set 2
+BetaBlockers 
+   Test set 1
+   Test set 2
+CalciumChannelBlockers 
+   Test set 1
+   Test set 2
+UrinaryIncontinence
+   Test set 1
+   Test set 2
+Mean
+MP: MeSH + publication types.
+
+62.84
+64.04
+61.64
+71.43
+71.43
+71.43
+68.25
+67.50
+69.00
+70.63
+71.25
+70.00
+68.29
+
+84.09
+81.82
+86.36
+89.89
+90.48
+89.29
+69.00
+76.00
+62.00
+65.48
+64.29
+66.67
+77.12
+
+(p > 0.5). All of topics in the drug with Excluded_com set 
+showed higher accuracies than those in the drug with Ex-
+cluded set, except Urinary Incontinence.
+
+IV. Discussion
+
+Our results showed that categorization models which are 
+trained on combination of included and commonly excluded 
+articles can improve articles triage performance to create SR. 
+To improve the classification performance, we made even 
+sets, combined even data of remaining topics except own 
+topic, and used articles included and commonly excluded. 
+  We compared classification accuracies of various feature 
+combinations in the procedure with Exclude set. MP showed 
+the best classification performance (75.38%), and the next 
+was AMP (70.19%). TAM reported the worst classification 
+performance (67.58%), and its overall mean percentage of 
+accuracy was significantly lower than MP (p < 0.05). The 
+metadata features like MeSH and publication types were 
+benefiting the classification task, and the combination of all 
+features (TAMP) was less successful than expected. Classifi-
+cation performances of feature combinations including title 
+(TA, TAM, TAP, TAMP) were lower than other feature com-
+binations (AMP, MP) without title. The feature combination 
+showing the best performance (MP) was similar to that in 
+the held-out test set to recognize methodologically rigorous 
+studies of Kilicoglu et al. [15]. 
+  Using the best performance feature combination (MP), 
+we tested our hypothesis that general categorization model, 
+
+which is trained on the combination of included and com-
+monly excluded articles, could classify methodologically rig-
+orous articles with better accuracy than that which is trained 
+on the simply combination of all articles. Overall mean ac-
+curacy of the procedure with Excluded_com set (88.32%) 
+was significantly better than that of the procedure with Ex-
+cluded set (75.38%) (p < 0.05). In all topics, accuracies of the 
+procedure with Excluded_com set were higher than those 
+in the procedure with Excluded set. Overall mean accuracy 
+was 68.29% in the drug with Excluded set, and 77.12% in the 
+drug with Excluded_com set. Except UrinaryIncontinence, 
+accuracies of the drug with Excluded_com set were higher 
+than those in the drug with Excluded set. 
+  We analyzed articles encoded as 8 and 9 in 4 drug topics 
+(AtypicalAntipsychotics, BetaBlockers, CalciumChannelBlock-
+ers, UrinaryIncontinence). Unlike our thought about code 8 
+and 9 in drug topics, publication types of articles encoded 
+as 8 and 9 were various, such as Review, Comparative Study, 
+and Clinical Trial. We classified those articles into three 
+groups (articles excluded by our common exclusion criteria, 
+topic-specific reasons, and other reasons). In AtypicalAnti-
+psychotics, 45.45% of articles were excluded by our common 
+exclusion criteria, 36.36% by topic-specific reasons, and 
+18.18% by other reasons. In BetaBlocker, 75.00% of articles 
+were excluded by our common exclusion criteria, 19.23% by 
+topic-specific reasons, and 5.77% by other reasons. In Calci-
+umChannelBlockers, 48.00% of articles were excluded by our 
+common exclusion criteria, 44.00% by topic-specific reasons, 
+and 8.00% by other reasons. In UrinaryIncontinence, 23.81% 
+of articles were excluded by our common exclusion crite-
+ria, 66.67% by topic-specific reasons, and 9.52% by other 
+reasons. Three topics (AtypicalAntipsychotics, BetaBlockers, 
+CalciumChannelBlockers) had more articles excluded by our 
+common exclusion criteria than articles excluded by topic-
+specific and other reasons. However, UrinaryIncontinence 
+had more articles excluded by topic-specific reasons. Clas-
+sification accuracies of three topics (AtypicalAntipsychotics, 
+BetaBlockers, CalciumChannelBlockers) having the large por-
+tion of articles excluded by our common exclusion criteria 
+were improved in Excluded_com set. However, classification 
+accuracy of UrinaryIncontinence having small portion of 
+articles excluded by our common exclusion criteria was de-
+creased in Excluded_com set.
+  There are several limitations to our evaluation. We ran-
+domly selected one training set and two test sets in a topic. 
+Randomly selected one training data of a topic may not af-
+fect overall performance because we combined training data 
+across topics except own topic. However, some randomly 
+selected test data of a topic may poorly represent the topic 
+
+26
+
+www.e-hir.org
+
+http://dx.doi.org/10.4258/hir.2012.18.1.18
+
+and adversely affect performance. For example, Hand Trans-
+plantation, classification performance using MP was 50.00%. 
+We thought test data of MP in Hand Transplantation might 
+be poorly selected. 
+  Our sample sizes are small. Although the data corpus in-
+cludes 19 topics and expert judgments, overall articles are 
+about 7,200. We used the data generated by a single SR-
+producing organization. It is also our limitation even if the 
+nHTA uses the most rigorous processes to maximize quality 
+and consistency. We tried to confirm our method using drug 
+SRs generated by Drug Evidence Review Project (DERP) [5], 
+but we could not evaluate our method with those articles 
+properly. Because, in drug SRs, most articles were classified 
+E (nonspecifically excluded) and all of articles with code 8 
+and 9 were not commonly excluded articles.
+  In conclusion, we have presented and evaluated a robust 
+and effective method for improving the classification perfor-
+mance on articles for SRs. On average, performances were 
+improved by about 15% in procedure topics and 11% in drug 
+topics when categorization models, which are trained on 
+combination of articles included and commonly excluded, 
+were used. To the best of our knowledge, this is the first 
+work in classification of scientifically rigorous studies using 
+articles included and commonly excluded across all topics. 
+Future work will focus on other classification features and 
+classification algorithms to improve categorization perfor-
+mance.
+
+Conflict of Interest
+
+No potential conflict of interest relevant to this article was 
+reported.
+
+Acknowledgments
+
+This work was supported by the National Research Founda-
+tion of Korea (NRF) grant funded by the Ministry of Educa-
+tion, Science and Technology (MEST) in Korea (No. 2011-
+0018259).
+
+References
+
+1.  Sackett DL, Rosenberg WM, Gray JA, Haynes RB, Rich-
+ardson WS. Evidence based medicine: what it is and 
+what it isn't. BMJ 1996;312:71-2.
+
+2.  Aphinyanaphongs Y, Tsamardinos I, Statnikov A, Har-
+din D, Aliferis CF. Text categorization models for high-
+quality article retrieval in internal medicine. J Am Med 
+Inform Assoc 2005;12:207-16.
+
+Rigorous Articles Categorization Models
+
+3.  Matwin S, Kouznetsov A, Inkpen D, Frunza O, O'Blenis 
+P. A new algorithm for reducing the workload of experts 
+in performing systematic reviews. J Am Med Inform 
+Assoc 2010;17:446-53.
+
+4.  The Cochrane Library. About Cochrane systematic re-
+views and protocols [Internet]. West Sussex, UK: John 
+Wiley & Sons, Ltd.; c2012 [cited at 2012 Mar 13]. Avail-
+able from: http://www.thecochranelibrary.com/view/0/
+AboutCochraneSystematicReviews.html.
+
+5.  Cohen AM, Ambert K, McDonagh M. Cross-topic 
+learning for work prioritization in systematic review cre-
+ation and update. J Am Med Inform Assoc 2009;16:690-
+704.
+
+6.  Committee for New Health Technology Assessment. 
+nHTA. Seoul, Korea: Ministry of Health and Welfare; 
+c2012 [cited at 2012 Mar 13]. Available from: http://
+neca.re.kr/nHTA/english/.
+
+7.  Koch G. No improvement - still less than half of the Co-
+chrane reviews are up to date. In: 14th Cochrane Collo-
+quium, 2006.
+
+8.  Chalmers I, Glasziou P. Avoidable waste in the pro-
+duction and reporting of research evidence. Lancet 
+2009;374:86-9.
+
+9.  Cohen AM, Hersh WR, Peterson K, Yen PY. Reducing 
+workload in systematic review preparation using auto-
+mated citation classification. J Am Med Inform Assoc 
+2006;13:206-19.
+
+10.  Cohen AM. Systematic drug class review gold standard 
+data [Internet]. Portland (OR): Oregon Health & Sci-
+ence University; c2010 [cited at 2011 May 16]. Available 
+from: http://davinci.ohsu.edu/~cohenaa/systematic-
+drug-class-review-data.html.
+
+11.  Onix text retrieval toolkit: API reference [Internet]. 
+Provo (UT): Lextek International; c2000 [cited at 2011 
+May 21]. Available from: http://www.lextek.com/manu-
+als/onix/stopwords1.html.
+
+12.  Porter MF. An algorithm for suffix stripping. Program 
+
+1980;14:130-7.
+
+13.  Cohen AM. Optimizing feature representation for au-
+tomated systematic review work prioritization. AMIA 
+Annu Symp Proc 2008;2008:121-5.
+
+14.  Joachims T. Text categorization with support vector 
+machines: learning with many relevant features. In: Pro-
+ceedings of the 10th European Conference on Machine 
+Learning, 1998. p.137-42.
+
+15.  Kilicoglu H, Demner-Fushman D, Rindflesch TC, Wil-
+czynski NL, Haynes RB. Towards automatic recognition 
+of scientifically rigorous clinical research evidence. J Am 
+Med Inform Assoc 2009;16:25-31.
+
+Vol.	18		•		No.	1		•		March	2012
+
+www.e-hir.org
+
+27
+
+Seunghee Kim and Jinwook Choi
+
+16.  Joachims T. Support vector machine: SVMlight [Inter-
+net]. Ithaca (NY): Cornell University; c2008 [cited at 
+2011 May 20]. Available from: http://svmlight.joachims.
+org/.
+
+17.  Joachims T. Making large-scale support vector machine 
+learning practical. In: Scholkopf B, Burges CJ, Smola 
+AJ, eds. Advances in kernel methods. Cambridge (MA): 
+
+MIT Press; 1999. p.169-84.
+
+18.  Lee YH, Cheng TH, Lan CW, Wei CP, Hu PJ. Overcom-
+ing small-size training set problem in content-based 
+recommendation: a collaboration-based training set ex-
+pansion approach. In: Proceedings of the 11th Interna-
+tional Conference on Electronic Commerce, 2009. p.99-
+106.
+
+28
+
+www.e-hir.org
+
+http://dx.doi.org/10.4258/hir.2012.18.1.18
+
+

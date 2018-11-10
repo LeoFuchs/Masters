@@ -1,0 +1,2241 @@
+Expert Systems with Applications 41 (2014) 1498–1508
+
+Contents lists available at ScienceDirect
+
+Expert Systems with Applications
+
+j o u r n a l h o m e p a g e : w w w . e l s e v i e r . c o m / l o c a t e / e s w a
+
+Automatic text classiﬁcation to support systematic reviews in medicine
+J.J. García Adeva a,⇑
+, J.M. Pikatza Atxa a, M. Ubeda Carrillo b, E. Ansuategi Zengotitabengoa b
+
+a Erabaki Group, Department of Computer Languages and Systems, University of the Basque Country UPV/EHU, Manuel Lardizabal 1, 20018 Donostia-San Sebastián, Spain
+b Donostia University Hospital, 20014 Donostia-San Sebastián, Spain
+
+a r t i c l e
+
+i n f o
+
+a b s t r a c t
+
+Keywords:
+Medical systematic reviews
+Machine learning
+Text mining
+Text classiﬁcation
+
+Medical systematic reviews answer particular questions within a very speciﬁc domain of expertise by
+selecting and analysing the current pertinent literature. As part of this process, the phase of screening
+articles usually requires a long time and signiﬁcant effort as it involves a group of domain experts eval-
+uating thousands of articles in order to ﬁnd the relevant instances. Our goal is to support this process
+through automatic tools. There is a recent trend of applying text classiﬁcation methods to semi-automate
+the screening phase by providing decision support to the group of experts, hence helping reduce the
+required time and effort. In this work, we contribute to this line of work by performing a comprehensive
+set of text classiﬁcation experiments on a corpus resulting from an actual systematic review in the area of
+Internet-Based Randomised Controlled Trials. These experiments involved applying multiple machine
+learning algorithms combined with several feature selection techniques to different parts of the articles
+(i.e., titles, abstract, or both). Results are generally positive in terms of overall precision and recall mea-
+surements, reaching values of up to 84%. It is also revealing in terms of how using only article titles pro-
+vides virtually as good results as when adding article abstracts. Based on the positive results, it is clear
+that text classiﬁcation can support the screening stage of medical systematic reviews . However, selecting
+the most appropriate machine learning algorithms, related methods, and text sections of articles is a
+neglected but important requirement because of its signiﬁcant impact to the end results.
+
+Ó 2013 Elsevier Ltd. All rights reserved.
+
+1. Introduction
+
+Medical Systematic Reviews support the conversion of medical
+research into practice by bringing together the collection of exist-
+ing studies that are relevant to a speciﬁc medical question. This
+synthesis of current evidence beneﬁts different stakeholders such
+as clinicians and policymakers.
+
+Although Systematic Reviews started as early as the 18th cen-
+tury (Lind, 1753), their production exploded after the second half
+of the 20th century along with a signiﬁcant increment of publica-
+tions in medical, nursing, and allied health care (Shonjania & Bero,
+2001). Unfortunately, the signiﬁcant growth of clinical trials in the
+last decades, has not been matched by a suitable number of sys-
+tematic reviews produced (Bastian et al., 2010). An analysis of
+the situation at the time revealed that because the amount of work
+required to produce reviews is increasing, there was a majority of
+systematic reviews with many years out of date (Shojania et al.,
+2007).
+
+The general process for creating a systematic review is based on
+three main steps: (i) conducting broad searches in the relevant lit-
+erature, (ii) manually screenning titles and abstract of retrieved
+
+⇑ Corresponding author. Tel.: +34 943 018153.
+
+E-mail address: jjga@ehu.es (J.J. García Adeva).
+
+0957-4174/$ - see front matter Ó 2013 Elsevier Ltd. All rights reserved.
+http://dx.doi.org/10.1016/j.eswa.2013.08.047
+
+citations, and (iii) reviewing full articles of those citations identi-
+ﬁed as relevant. No matter how critical and necessary these steps
+are, they are very time consuming, especially the screening of cita-
+tions and the review of candidate studies.
+
+Multiple text mining techniques have been gaining popularity
+over the past years as a consequence of the ever increasing amount
+of available digital documents of unstructured text and, thus, the
+necessity of analysing their content in ﬂexible ways (Hearst,
+1999). From these techniques, one of the most prominent is text
+classiﬁcation using machine learning, which consists of automati-
+cally predicting one or more suitable categories for unstructured
+texts written in natural language (e.g., English, Spanish, etc.). Text
+classiﬁcation is currently a major research area with many com-
+mercial and research applications in a large number of domains.
+Medicine is one of the most evident areas where text mining meth-
+ods have multiple applications, such as the discovery of new liter-
+ature (Swanson, 1986), concept-based search (Ide, Loane, &
+Demner-Fushman, 2007), or automatic bibliographic update in
+clinical guidelines (Iruetaguena et al., 2013).
+
+This work was motivated by the hypothesis that text classiﬁca-
+tion could assist the production of Systematic Reviews by support-
+ing reviewers in their process of manually screening published
+articles. Although this assumption is not new, as there has been re-
+cently an incipient while still modest body of research in this
+
+J.J. García Adeva et al. / Expert Systems with Applications 41 (2014) 1498–1508
+
+1499
+
+direction (Thomas, McNaught, & Ananiadou, 2011), our contribu-
+tion is focused on: (i) studying the application of a comprehensive
+selection of machine learning algorithms, (ii) combining these
+algorithms with multiple feature selection methods and different
+numbers of features, (iii) selecting different parts of citations (i.e.,
+title, abstract, or both), and (iv) applying these methods to the
+medical domain of Internet-Based Randomised Controlled Trials.
+
+In such a way, an automatic text classiﬁcation system could be
+trained with a set of articles from the medical domain in question
+after the collection of studies had been already manually screened.
+As these articles describing primary studies had been manually la-
+belled as either relevant or irrelevant, they ﬁt well with the para-
+digm of a two-class text classiﬁer. Once the system was trained,
+it was ready to automatically classify unseen articles, therefore
+providing input into the screening process similarly to a human ex-
+pert. In consequence, this system would not aim at replacing the
+persons involved in the decision process but to complement and
+assist them. Contrary to other previous studies covered by Sec-
+tion 4, where they directly selected either the abstract of the full
+article to train and test the classiﬁers, we were interested in inves-
+tigating what sections of the articles provided the best results. We
+also applied a bigger variety of classiﬁers than other previous stud-
+ies, in addition to multiple feature selection methods.
+
+This paper is organised as follows. Section 2 describes the meth-
+ods used in this work to automatically classify articles. Section 3
+describes the manual process for performing systematic reviews
+in medicine and how it can be supported by text classiﬁcation. Pre-
+vious efforts in this area of research are described in Section 4. The
+design and analysis of the experiments proposed to validate our
+hypothesis is provided by Section 5 The paper concludes with Sec-
+tion 6, which also suggests some ideas for future work.
+
+2. Text classiﬁcation
+
+Text mining consists of discovering of previously unknown
+information from existing text resources (Hearst, 1999). It is also
+called intelligent text analysis, text data mining, or knowledge-dis-
+covery in text. Text mining is related to data mining, which intends
+to extract useful patterns from structured text or data usually
+stored in large database repositories. Instead, text mining searches
+for patterns in unstructured natural language texts (e.g., books,
+articles, e-mail messages, Web pages, etc.). Text mining is a multi-
+disciplinary ﬁeld that includes several tasks such as text analysis,
+clustering,
+language
+identiﬁcation.
+
+summarisation,
+
+categorisation,
+
+or
+
+Text classiﬁcation is one of key text mining tasks that has
+gained signiﬁcant popularity over the last decade or so. One of
+the main reasons for it is the increasing amount of digital docu-
+ments available and thus the necessity to access their content in
+ﬂexible ways (Sebastiani, 2002). Text classiﬁcation is also referred
+to as Text Categorisation, Document Classiﬁcation, or even Topic
+Spotting. The current approach to text classiﬁcation is applying
+the machine learning paradigm that uses of a set of previously cat-
+egorised documents to automatically build a categoriser by learn-
+ing from this data (i.e., inductive inference). As part of this whole
+process, each text document is represented by a feature vector,
+thus dismissing the order of words and other grammatical issues,
+as this representation is able to retain enough useful information
+for the classiﬁcation task (Salton, 1989).
+
+The next sections describe the sequential steps that shape text
+
+classiﬁcation.
+
+2.1. Document preprocessing
+
+The preprocessing stage starts by tokenising documents. In this
+step, a text document is transformed into smaller units known as
+
+words or terms. It is common that the process also involves the re-
+moval of certain characters such as non-alphabetical ones, as well
+as converting them into lower case. After tokenisation, there are
+two further steps performed: removal of stop words and stemming
+of words.
+
+A stop word is a term that is considered not to add signiﬁcant
+semantic meaning to sentences. Therefore, they can be safely re-
+moved without affecting the whole meaning of the sentence. They
+mainly consist of
+and
+prepositions.
+
+topic-neutral words
+
+articles
+
+like
+
+Stemming is the process of normalising words by applying mor-
+phological rules that allow a speaker to derive variants of the same
+idea to evoke an action (i.e., verb), an object or concept (i.e., noun),
+or a property (i.e., adjective) (Lovins, 1968). For example, the words
+activate, activating, activeness, activation are derived from the same
+stem activ and all share an abstract meaning of action or move-
+ment. Stemming does the reverse process, deducing the stem from
+a fully sufﬁxed word according to its morphological rules. These
+rules concern morphological and inﬂectional sufﬁxes. The former
+type usually changes the lexical category of words whereas the lat-
+ter indicates plural and gender. Because most languages have a
+large number of word stems, applying this technique will most
+probably reduce the number of global unique terms in all the
+documents.
+
+These three preprocessing procedures described above (tokeni-
+sation, stop-word removal, and stemming) are highly dependent
+on the language in question. Therefore, the preprocessing of docu-
+ments can be considered to be language dependent.
+
+2.2. Document modelling
+
+After the documents have been preprocessed, the extracted
+information from each document is used to build a model repre-
+senting that particular instance. Feature Selection contributes to
+this goal by reducing the overall dimensionality of terms, thus
+allowing the posterior creation of feature vectors to represent the
+documents. This step is crucial as machine learning algorithms
+usually work better on low-dimensional data, and they may re-
+quire too much time or memory when the dimensionality of the
+data set is high (Salton, 1989). In other words, Feature Selection
+consists of choosing the subset that contains the most relevant
+terms of all the existing ones in the collection of training
+documents.
+
+Because text classiﬁcation depends on a well-deﬁned set of cat-
+egories, Feature Selection can be local or global. Global Feature
+Selection consists of generating a subset of terms from all the
+terms in all categories, while local Feature Selection creates a sub-
+set for each document category, where the most relevant features
+of the category are included.
+
+Term Frequency (TF) is a very simple yet effective term evalua-
+tion function based on counting how many times each term ap-
+pears across all documents.
+
+The higher this count, the more relevant this term is considered.
+Document Frequency (DF) and inverse document frequency (IDF)
+are very similar to TF and are based on the count of documents
+each term appears in. The reason for having these two complemen-
+tary functions is that in some cases, and depending on the charac-
+teristics of the document collection, the feature selection may
+work better when only the terms that appear in the most docu-
+ments are kept, while in other situation it may be just the opposite.
+The term evaluation function v2 calculates the dependence be-
+tween the occurrences of a term and each category based on the
+number of expected vs observed occurrences.
+
+After feature selection, the documents are then modelled. A
+very commonly used algebraic model is the Vector Space Model
+(VSM), which represents text documents in a high-dimensional
+
+1500
+
+J.J. García Adeva et al. / Expert Systems with Applications 41 (2014) 1498–1508
+
+space where each of its dimensions corresponds to a word in the
+document collection and each document is represented by a fea-
+ture vector. One of the most common methods is term frequency
+related to its inverse document frequency (TF/IDF) (Baeza-Yates
+& Ribeiro-Neto, 1999; Salton & Buckley, 1988), that estimates a
+weight for each term in a document, where the term frequency
+in the given document offers a measure of the relevance of the
+term within a document, while the document frequency is a mea-
+sure of the global relevance of the term within a collection of doc-
+uments. In particular, considering a collection of documents D
+containing n documents, so that D = {d0, . . .,dn1}, where a single
+document is identiﬁed by di,0 6 i < n and contains a collection of
+terms di ¼ ft0; . . . ; tjdij1g, where jdij indicates its size. Finally, the
+value of TF/IDF for a term contained in a document within a collec-
+tion of documents was given by
+
+jtjj
+
+jDj
+
+TF=IDFðdi; tj; DÞ ¼ TFðtj; dÞ  log2IDFðtj; DÞ ¼
+
+maxfTFðt0; diÞ; . . . ; TFðtjdij1; diÞg  log2
+
+jD  tjj ;
+ð1Þ
+where jtjj is the number of times that the term tj occurs in the doc-
+ument di (which is normalised using the maximum term frequency
+found in di) and jD  tjj
+indicates in how many documents tj
+appears.
+
+2.3. Machine learning algorithms
+
+There is a wide variety of machine learning algorithms for data
+classiﬁcation (Aggarwal & Zhai, 2012) that can be applied to text
+classiﬁcation . However, it is important to take into account that
+words in text documents represent data attributes that are gener-
+ally quite sparse and high dimensional, due to the combination of
+usually large dictionary size and the low frequencies of most of its
+words.
+
+We selected a range of classiﬁcation algorithms based on the
+diversity of the underlying machine learning methods that support
+them. The types of algorithms considered included linear, probabi-
+listic, example-based, and proﬁle-based. The following sections
+provide a brief description of them.
+
+2.3.1. Naïve bayes
+
+Naïve bayes is a probabilistic classiﬁcation algorithm based on
+the assumption that any two terms from T = {t1, . . ., tjTj} represent-
+ing a document d and classiﬁed under category c are statistically
+independent of each other (Lewis, 1998). This can be expressed by
+
+PðdjcÞ ¼
+
+PðtijcÞ
+
+ð2Þ
+
+YjTj
+
+i¼1
+
+The category predicted for d is based on the highest probability gi-
+ven by
+
+measured by the Euclidean distance of the n corresponding feature
+vectors representing the documents
+
+sðdi; djÞ ¼
+
+ðdif djf Þ2
+
+:
+
+ð4Þ
+
+X
+
+n
+
+f¼1
+
+All neighbours can be treated either equally or with an assigned
+weight that corresponds to their distance to the document being
+categorised. We selected two weighting methods: inverse to the
+distance (1/s) and opposite to the distance (1  s). In cases where
+several of these k nearest neighbours are found to belong to the
+same category, their weights are added together, so that the ﬁnal
+weighted sum is used as the probability score for that category.
+Sorting them by rank yields a list of categories where to assign
+the document.
+
+Building a kNN categoriser also requires experimentally deter-
+mining a threshold k, obtaining good results with 30 6 k 6 45
+(Yang & Liu, 1999). It is also interesting to note that increasing
+the value of k does not degrade the performance signiﬁcantly.
+
+2.3.3. Support vector machines
+
+Support vector machines (SVM) are a group of supervised learn-
+ing methods that can be applied to either classiﬁcation or regres-
+sion. It has become a popular algorithm in the last years due to
+its good performance, with reports of possibly being the current
+most accurate technique for text classiﬁcation (Liu, 2011). It is also
+important to note that in certain situations (e.g., large set of sup-
+port vectors), using SVM can be signiﬁcantly expensive computa-
+tionally speaking (Burges, 1998).
+
+from computational
+
+Its foundation is the Structural Risk Minimisation principle
+learning theory, which
+(Vapnik, 1995)
+searches for a hypothesis with the lowest error. More speciﬁcally,
+given a set of two-class instances to classify, a SVM ﬁnds the un-
+ique hyperplane in a high dimensional space that separates the po-
+sitive and negative instances with maximum margin (i.e.,
+minimum error). Those instances deﬁning an hyperplane are
+known as support vectors. In consequence, the answer to a classi-
+ﬁcation problem is given by the support vectors that determine the
+maximum margin hyperplane. This is known as a linear classiﬁer.
+In those cases where classes cannot be separated by a linear clas-
+siﬁer, the features of the instances are mapped into a feature space
+using nonlinear functions called feature functions. The nonlinear
+mapping induced by the feature functions is computed with spe-
+cial nonlinear functions called kernels (Joachims, 2002). In this
+case, the solution is deﬁned as a weighted sum of the values of cer-
+tain kernel function evaluated at the support vectors.
+
+In other words, given a set of training documents D = {d0,d1,-
+. . ., dn}, where di represents the feature vector for a document cat-
+egorised as ci 2 {1, 1}n with 0 6 i < n, the support vector machines
+are based on solving the optimisation problem expressed by
+
+X
+
+X
+n1
+
+i¼0
+
+ai  1
+2
+
+aiajcicjKðdi; djÞ;
+
+i;j
+
+ð5Þ
+
+argmaxPðcjdÞ ¼ argmaxPðcÞ PðdjcÞ ¼ argmaxPðcÞ
+
+PðtijcÞ
+
+ð3Þ
+
+max
+
+ai
+
+YjTj
+
+i¼1
+
+Two commonly used probabilistic models for text classiﬁcation
+under the naïve bayes framework are the multi-variate Bernoulli
+and the multinomial models. These two approaches were com-
+pared in McCallum and Nigam (1998), with the multinomial model
+proving to perform signiﬁcantly better than the multi-variate Ber-
+noulli, hence motivating us to choose the ﬁrst for this work.
+
+2.3.2. k-Nearest neighbours
+
+k-Nearest Neighbours (kNN ) is an example-based classiﬁcation
+algorithm (Yang & Chute, 1994) where an unseen document is clas-
+siﬁed with the category of the majority of the k most similar train-
+ing documents. The similarity between two documents can be
+
+with ai P 0 and K representing the kernel function. Although new
+kernels are being proposed by the research community, the most
+established instances include the linear kernel where K(di,dj) = di -
+ dj, the polynomial kernel where K(di,dj) = [di  dj + 1]b, the Gaussian
+radial basis function kernel where Kðdi; djÞ ¼ expðckdi  djk2Þ for
+c > 0, and the sigmoid kernel where K(di,dj) = tanh(jdi  dj + c) with
+j > 0 and c < 0.
+
+2.3.4. Rocchio
+
+Rocchio is a proﬁle-based classiﬁcation algorithm (Moschitti,
+2003) adapted from the classical Vector Space Model with TF/IDF
+weighting and relevance feedback to the classiﬁcation process. This
+
+type of classiﬁer uses a similarity measure between a representa-
+tion (also called proﬁle) pi of each category ci and the unseen doc-
+ument dj to classify. This similarity is usually estimated as the
+cosine angle between the vector that represents ci and the feature
+vector obtained from dj. Therefore, a document to classify is con-
+sidered to belong to a particular category when its related similar-
+ity estimation is greater than a certain threshold.
+
+Rocchio needs a feature frequency function to be deﬁned, such
+
+as
+
+P
+
+sðf ; dÞ ¼ rðf ; dÞ logðjDj=nfÞ
+
+i2Frði; dÞ logðjDj=niÞ ;
+
+ð6Þ
+
+where F is the set of all existing features with f 2 F, ni expresses in
+how many documents fi appears, and r is the function of relative rel-
+evance of multiple occurrences
+can be deﬁned by
+r(f, d) = max(0,log(0,nf)).
+
+that
+
+The proﬁle pi of a category ci is a vector of weights where one
+
+instance is calculated by
+X
+
+0
+@
+wðf ; dÞ ¼ max 0;
+
+b
+jDcj
+
+d2Dc
+
+sðf ; dÞ  c
+jDcj
+
+X
+
+d2Dc
+
+1
+A
+sðf ; dÞ
+
+;
+
+ð7Þ
+
+where Dc is the set of documents belonging to c and Dc the set of
+documents not belonging to c. The parameters b and c control the
+relative impact of these positive and negative instances to the vec-
+tor of weights, with standard values being b = 16 and c = 4 (Mos-
+chitti, 2003).
+
+2.4. Evaluation measures
+
+Precision (p) and recall (q) are two common measures for
+assessing how successful a text categoriser is. Precision indicates
+the probability that a document assigned to a certain category by
+the classiﬁer actually belongs to that category. On the contrary, re-
+call estimates the probability that a document that actually be-
+longs to a certain category will be correctly assigned to that
+category during the categorisation process. These two measures
+are deﬁned by
+p ¼ TPi
+
+; q ¼
+
+ð8Þ
+
+TPi
+
+;
+
+TPi þ FPi
+
+TPi þ FNi
+
+where TPi indicates the number of true positives or how many doc-
+uments were correctly classiﬁed under category ci. Similarly, FPi
+indicates the number of false positives and FNi corresponds to false
+negatives. Table 1 provides an overview of these measures.
+
+Precision and recall are generally combined into a single mea-
+sure called Fb, with 0 6 b 6 1. The parameter b, which is used to
+ﬁnd the appropriate balance between the importance of p and q,
+is expressed by
+
+which procures the same importance for both p and q. Therefore,
+Eq. (9) is transformed into
+F1 ¼ 2pq
+p þ q
+
+2TPi þ FPi þ FNi
+
+ð10Þ
+
+2TPi
+
+¼
+
+:
+
+Instead of using category-speciﬁc values of F1, an averaged measure
+is usually preferred, concretely the macro- and micro-average, iden-
+tiﬁed by FM
+1 respectively. Micro-averaging gives more
+emphasis on performance of frequent categories (i.e., there are
+more training documents for these categories) and is deﬁned by
+
+1 and Fl
+
+P
+
+1 ¼
+Fl
+
+P
+jCj
+i¼12TPi
+
+i¼1ð2TPi þ FPi þ FNiÞ ;
+jCj
+
+where jCj indicates the number of categories.
+
+By contrast, macro-averaging focuses on uncommon categories.
+Micro-averaged measures will almost always have higher scores
+than the macro-averaged ones. This can be expressed by
+
+P
+
+1 ¼
+FM
+
+jCj
+i¼1F1i
+jCj
+
+:
+
+Finally, the overall error is measured through
+
+P
+
+error ¼
+
+P
+i¼1ðFPi þ FNiÞ
+jCj
+
+i¼1ðTPi þ FPi þ FNi þ TNiÞ :
+jCj
+
+2.5. Cross validation
+
+Cross validation consists of partitioning a sample of data into
+subsamples such that analysis is initially performed on a single
+subsample, while further subsamples are retained in order for sub-
+sequent use in conﬁrming and validating the initial analysis. Cross
+validation is a concept borrowed from statistics by text classiﬁca-
+tion where it is used to evaluate a categoriser by applying the mea-
+sures described in Section 2.4. A learning algorithm is trained with
+a percentage of all the existing training set. When the training is
+ﬁnished, the data that was not used for training is then used to test
+the performance of the trained algorithm.
+
+There are different types of cross validation, with the n-fold
+method (also called rotation estimation) possibly the most com-
+mon (Kohavi, 1995). It consists of dividing the complete collection
+of documents D into n mutually exclusive subsets called folds D0-
+,D1, . . .,Dn1. Each fold should have the same number of documents
+except for the last n  1 subset that may end having more docu-
+ments than the other subsets. Then, for each partition, one of the
+n subsets Dt is used as the test set while the rest of the subsets DnDt
+are used to create a training set. The accuracy estimation using
+cross validation corresponds to the number of correct categorisa-
+tions divided by the total number of documents in the collection
+as expressed by
+
+P
+
+dðCðD n Dj; djÞ; ciÞ
+
+hdj ;cii2Dk
+
+n
+
+ð14Þ
+
+J.J. García Adeva et al. / Expert Systems with Applications 41 (2014) 1498–1508
+
+1501
+
+ð11Þ
+
+ð12Þ
+
+ð13Þ
+
+Fb ¼ ðb2 þ 1Þpq
+b2p þ q
+
+:
+
+ð9Þ
+
+acccv ¼
+
+Values close to 0 give more importance to p while those closer to 1
+provide more relevance to q. The most common applied value is 1,
+
+with Dj being the test fold that incorporates the document dj with
+category ci, d(i,j) = 1 if i = j or 0 otherwise, and C is the categorisation
+function that returns a category.
+
+Table 1
+Category-speciﬁc contingency table of classiﬁcation. It shows the expert decision
+about a document belonging to a category, in relation to the classiﬁer prediction.
+
+Expert decision
+
+Classiﬁer prediction
+
+Result
+
+Yes
+Yes
+No
+No
+
+Yes
+No
+Yes
+No
+
+TP
+FN
+FP
+TN
+
+3. Medical systematic reviews
+
+A systematic review consists of synthesising the relevant pub-
+lished literature representing the high-quality research evidence
+that answers a speciﬁc research question (Sackett, Rosenberg,
+Gray, Haynes, & Richardson, 1996). Systematic reviews provide
+the foundation for Evidence-based Medicine (Greenhalgh, 2010),
+which is based on the premise that medical knowledge, based on
+
+1502
+
+J.J. García Adeva et al. / Expert Systems with Applications 41 (2014) 1498–1508
+
+the accumulation of results from multiple scientiﬁc studies, is
+more reliable than expert opinion. Although evidence-based re-
+search and practice originated in medicine, they are currently used
+in other areas including nursing, economics, software engineering
+(Kitchenham et al., 2009), and social sciences (Petticrew & Roberts,
+2006).
+
+Fig. 1 depicts the general process of producing a systematic re-
+view. It starts by proposing a health-related question, which is fol-
+lowed by the pertinent retrieval of candidate scientiﬁc studies
+from the literature. The corresponding search task should attempt
+to cover all the existing literature without bias (Dubben & Beck-
+Bornholdt, 2005) through a number of queries and ﬁlters that
+may include a combination of controlled vocabulary and natural
+language expressions.
+
+Once all potential studies have been retrieved, the screening
+phase consists of two or more reviewers reading each abstract in
+order to determine its eligibility for a full-text review (The Cochra-
+ne Collaboration, 2011). This screening process is typically per-
+formed over collections of 2000–5000 bibliographic references,
+and its main goal is to include all relevant articles (University of
+York, 2008). At the end of the screening process, the number of rel-
+evant articles detected would typically be around 200–400. Based
+on our own experience, the time required for one person to pro-
+ceed with screening 10,000 instances is about 500 hours (i.e., 20 in-
+stances per hour). In other words, this is a very time-consuming
+task.
+
+The last step consists of retrieving the full text of these relevant
+articles in order to systematically evaluate each one of them, even-
+tually selecting about 10–50 of those that are both pertinent and
+with a high standard of quality.
+
+It is during the screening where automatic text classiﬁcation
+can be useful as Fig. 1 illustrates. We identify two possible ap-
+proaches to take advantage of the text classiﬁer: (i) a conservative
+one where the classiﬁer is used as a reassurance tool by reviewers,
+
+who would pay especial attention to those articles in disagree-
+ment, and (ii) an aggressive approach where one or more reviewers
+are ‘replaced’ by the text classiﬁer.
+
+4. Related work
+
+One of the ﬁrst attempts of testing a similar hypothesis was re-
+ported by Aphinyanaphongs, Tsamardinos, Statnikov, and Hardin
+(2005). They applied naïve bayes and SVM text classiﬁers to a cor-
+pus of internal medicine articles from the ACP Journal Club to dis-
+cover that SVM offered the best performance in terms of
+sensitivity, speciﬁcity, and precision.
+
+More recently, Wallace, Trikalinos, Lau, Brodley, and Schmid
+(2010) used a SVM classiﬁer to three different collections of article
+abstracts plus titles, determining that the system was useful to re-
+duce the number of citations to manually screen by almost 50%.
+The authors proposed a semi-automatic ‘aggressive’ approach with
+reviewers trusting the text classiﬁer by not screening those articles
+it labelled as irrelevant.
+
+Frunza et al. (2011) applied a naïve bayes classiﬁer to a collec-
+tion of 47,274 article abstracts previously manually labelled, using
+20,000 abstracts for training and the rest for testing. They obtained
+results that included very high recall values (up to 99%) at the ex-
+pense of a moderate precision of 63%.
+
+The most recent work (Bekhuis & Demner-Fushman, 2012) is
+also the most complete so far. It consisted of applying kNN, naïve
+bayes, and SVM classiﬁers, combined with Information Gain as
+their method for feature selection, to either article titles or article
+title plus abstracts. The experiments also showed positive results
+where the initial set of documents to manually screen was reduced
+by up to 46%.
+
+The conclusion after looking at these previous instances is that
+there is a disparity about the type of classiﬁers being used and the
+text content selected from articles. Also, they did not analyse the
+
+DRAFT
+
+Fig. 1. Overview of the traditional process to produce a systematic review modiﬁed by the inclusion of automatic text classiﬁcation to the citation screening phase. The text
+classiﬁer can either replace or complement the input by a human expert depending on the acceptable level of risk.
+
+J.J. García Adeva et al. / Expert Systems with Applications 41 (2014) 1498–1508
+
+1503
+
+impact of different types of feature selection methods and number
+of selected features (i.e., dimensionality of the VSM) as part of the
+classiﬁcation process.
+
+5. Validation
+
+We considered appropriate to empirically evaluate our hypoth-
+esis through a validation exercise. It is important to differentiate
+veriﬁcation and validation. The ﬁrst consists of merely conﬁrming
+that the implemented system works sensibly and fulﬁls expecta-
+tions, while the latter requires an accurate analysis of experimental
+results with in relation to an existing set of actual results (Mihram,
+1972).
+
+For this purpose, Section 5.1 provides details on the character-
+istics of the collection of articles under study. Section 5.2 describes
+the selected conﬁgurations for machine learning algorithms and
+related methods such as feature selection. The implementation of
+these experiments is brieﬂy described in Section 5.3, before Sec-
+tion 5.4 provides and discusses the results.
+
+5.1. Corpus
+
+The corpus selected for this work is called Internet-Based Ran-
+domised Control Trial (IBRCT) mapping. It was created with the
+purpose of identifying those Randomised Controlled Trials (RCT)
+that used the Internet as an intrinsic component to their clinical
+trial process, including the phases such as design, information re-
+trieval, statistical analysis, or reporting regardless of whether the
+article describing the study explicitly established this fact.
+
+In order to be included as relevant, a study had to fulﬁl the fol-
+lowing criteria: (i) it had to be a RCT in the broad area of public
+health, including educational and behavioural applications; (ii) it
+used Internet, including the Web, to support its trial process; and
+(iii) it might utilise mobile Internet as a supplementary technology.
+Studies falling within the following categories were considered
+irrelevant: (i) they only used mobile technology with no Internet
+access; and (ii) they deal with social or educational care but not
+from a purely health research focus.
+
+The corpus was prepared by querying multiple medical data
+bases through very speciﬁc search approaches. The latter was
+based on search expressions that included synonyms, natural lan-
+guage, and keywords in order to identify the appropriate concepts
+to ﬁnd. Moreover, these queries were designed in order to favour
+high recall (see Section 2.4 for more details) at the expense of sig-
+niﬁcant noise (i.e., low precision as deﬁned also in Section 2.4). The
+data bases selected were Medline, Embase, Cinahl, Central, LILACS,
+PsycInfo, ERIC, Pedro, OT Seeker, in addition to general Web search
+engines such as Google, Yahoo, Copernic, and manual searches in
+the journals Journal of the American Medical Informatics Associa-
+tion (JAMIA) and Journal of Medical Internet Research (JMIR). Each
+of the retrieved articles were completely read and evaluated by the
+committee of experts in order to determine its suitability.
+
+The resulting corpus consists of 1941 articles divided into 510
+relevant and 1431 irrelevant instances. Each article includes its ti-
+tle, author list, journal, keywords, and abstract. The total number of
+terms is 631,435 terms in total, with 61,752 of them unique. This
+corresponds to an average of 325 per article, where the shortest
+article has 48 terms and the longest 1121.
+
+5.2. Experiments
+
+Three types of documents were prepared based on what text
+was selected from the citations: (i) only titles, (ii) only abstracts,
+or (iii) titles plus abstracts.
+
+These documents were selected in an arbitrary order to be pre-
+processed by following the steps covered by Section 2.1. We
+
+performed a preliminary removal of both numeric characters and
+stop-words to the articles. Afterwards, we applied a Porter stem-
+mer (Porter, 1980) to the remaining terms in order to remove the
+most common morphological and inﬂectional endings. In conse-
+quence, the initial dictionary was reduced by 40%, thus leaving
+380,384 terms, with 16,580 of them being unique. This preprocess-
+ing conﬁguration was chosen as the experimental baseline after
+several having performed preliminary trials that included combin-
+ing term n-grams (Tan, Wang, & Lee, 2002), no stemming, and no
+stop-words with inferior results.
+
+The machine learning algorithms selected were the 4 different
+instances explained in Section 2.3: Naïve bayes, kNN, SVM, and
+Rocchio. We parametrised kNN by chosing the value k = 35, which
+is known to perform well (Yang & Liu, 1999). For SVM, a linear ker-
+nel was preferred due to its good balance between execution time
+and accuracy of results. In the case of the Rocchio classiﬁer, it was
+conﬁgured with the standard parameter values a = 0.25, b = 16,
+c = 4, and a threshold of 0.7 (Moschitti, 2003).
+
+Feature selection was performed using the 7 different methods
+explained in Section 2.2: TF, DF, IDF, v2, local TF, local DF, and local
+IDF. The number of features to build the vectors representing the
+articles (i.e., the number of dimensions for the VSM) included: 5,
+10, 25, 50, 100, 250, 500, 1000, 2000, 4000, 8000, and 15000. Fea-
+ture vectors were built using the function TF/IDF as described in
+Section 2.2 by Eq. (1).
+
+The set of documents were divided into training and testing
+subsets. Because we used cross validation (see Section 2.5) with
+10 folds, the number of documents for training was 1747 while
+leaving 194 documents for testing in each of the 10 iterations.
+
+Table 2 offers a summary of all the experimental combinations
+of machine learning algorithms, feature selection methods, and
+number of features. Collectively, they amount to a total number
+of 336 classiﬁcation processes for each cross-validation fold, thus
+increasing the number of these to 3360 for each of the three doc-
+ument conﬁguration. In consequence, the total number of classiﬁ-
+cation processes was 10,080.
+
+5.3. Implementation
+
+These experiments were implemented as a text-mining applica-
+tion based on the general text-mining application framework
+called Pimiento (García Adeva & Calvo, 2006). This software was
+written using Java Standard Edition (J2SE) and aimed at providing
+developers with the primary beneﬁts of OOAF, such as modularity,
+reusability, extensibility, and inversion of control
+(Fayad &
+Schmidt, 1997).
+
+Pimiento offers numerous features to suit both a production
+environment where performance is crucial and a research context
+in which highly conﬁgurable experiments must be executed. It can
+be used in production systems due to its high scalability based on a
+cache system that allows for precise control of the amount of
+memory allocated, and its performance efﬁciency thanks to a care-
+fully tuned-up code-base. These features are offered as a collection
+of software components that cover all the functionalities that it
+tackles including categorisation, language identiﬁcation, cluster-
+ing, summarisation, and similarity analysis.
+
+Because the text classiﬁcation functionality offered by Pimiento
+offers the learning algorithms described in Section 2.3, we did not
+have to implement any new algorithm. This functionality supports
+preprocessing of documents in English, German, French, Spanish,
+and Basque. However, only the English preprocessor was needed
+for this work. There is also complete evaluation of results using
+the evaluation measures described in Section 2.4 such as the cate-
+gory-speciﬁc measures TPi, FPi, FNi, pi, qi, F1i and the averaged
+measures pl, ql, Fl
+1 , as well as partitioning of the test-
+ing space using n-fold cross-validation as explained in Section 2.5.
+
+1 , pM, qM, FM
+
+1504
+
+J.J. García Adeva et al. / Expert Systems with Applications 41 (2014) 1498–1508
+
+Table 2
+Summary of classiﬁcation experiments.
+
+Classiﬁcation
+algorithms
+
+Feature selection methods
+
+Number of features
+
+Number of documents
+
+Document sections
+
+naïve bayes , kNN ,
+
+SVM, Rocchio
+
+TF, DF, IDF, v2, local TF, local
+DF, local IDF
+
+5, 10, 25, 50, 100, 250, 500, 1000, 2000,
+4000, 8000, 15000
+
+1747 Training, 194 testing, 10-fold
+cross validation
+
+Title, abstract, title
+and abstract
+
+Fig. 2. Fl
+
+1 scores of classifying the articles based on their titles.
+
+The experiments were executed in a computer server based on a
+4-core Intel Xeon processor, 16 GB of RAM and the Linux operating
+system. Execution time varied signiﬁcantly among classiﬁers,
+depending mostly on the machine learning algorithm in question.
+Naïve bayes and Rocchio were always the fastest, taking a few sec-
+onds to complete for a 10-fold cross validation task. For the same
+work kNN took about 40 min, while SVM was unpredictable due
+to its stochastic nature, but ranging from a few minutes to several
+
+hours. It is interesting to note that the number of selected features
+only contributed marginally to the increase in execution time.
+
+5.4. Results
+
+We chose the micro-averaged measure Fl
+
+1 , explained in Sec-
+tion 2.4, in order to provide a general measure of performance by
+the classiﬁers.
+
+J.J. García Adeva et al. / Expert Systems with Applications 41 (2014) 1498–1508
+
+1505
+
+Three sets of results were prepared, based on what parts of an
+article were selected to form the documents used by the different
+classiﬁers, as described in previous Section 5.2. Thus, Fig. 2 pro-
+vides an overview of Fl
+1 values for each of the 4 classiﬁers com-
+bined with the 7 feature selection methods over a number of
+features when only selecting the titles of the articles. Likewise,
+Fig. 3 does so when only the abstracts were taken into account,
+while Fig. 4 corresponds to both titles and abstracts. Each data
+point in these graphs corresponds to the Fl
+1 value for the average
+of the 10 classiﬁcation tasks as produced by the 10-fold cross val-
+idation process.
+
+When using only titles, Fig. 2(c) shows that SVM was the classi-
+ﬁer with better performance in terms of Fl
+1 , with values frequently
+between 0.8 and 0.85. Naïve bayes and Rocchio, represented by
+
+Fig. 2(a) and (d) respectively, were both quite similar while slightly
+inferior to SVM. Fig. 2b made it clear that kNN was the worst per-
+forming classiﬁer, which in some cases provided signiﬁcant poor Fl
+1
+values — even below 0.4.
+
+SVM also performed better than the rest when both abstracts
+and titles plus abstracts were selected from the articles to classify,
+as showed by Fig. 2 and Fig. 4(c) respectively.
+
+Both naïve bayes and Rocchio performed slightly better when
+using only abstracts (Fig. 3(a) and (d) respectively) instead of only
+titles (Fig. 2(a) and 3(a) respectively). However, for these two clas-
+siﬁcation algorithms there was no remarkable difference when
+using only abstracts as opposed to using abstracts plus titles, as
+it can be observed by comparing Fig. 3(a) to Fig. 4(a) for naïve
+bayes and Fig. 3(a) to Fig. 4(a) for Rocchio.
+
+5
+
+10
+
+1
+0.95
+0.9
+0.85
+0.8
+0.75
+0.7
+0.65
+0.6
+0.55
+0.5
+0.45
+0.4
+0.35
+0.3
+0.25
+0.2
+0.15
+0.1
+0.05
+
+μ1
+F
+
+1
+0.95
+0.9
+0.85
+0.8
+0.75
+0.7
+0.65
+0.6
+0.55
+0.5
+0.45
+0.4
+0.35
+0.3
+0.25
+0.2
+0.15
+0.1
+0.05
+
+μ1
+F
+
+TF
+DF
+IDF
+χ2
+
+local TF
+local DF
+local IDF
+
+25
+
+50
+
+100
+
+250
+
+500 1000 2000 4000 8000 15000
+
+number of features on a logarithmic scale
+(a) Na¨ıve Bayes classiﬁer.
+
+TF
+DF
+IDF
+χ2
+
+local TF
+local DF
+local IDF
+
+5
+
+10
+
+25
+
+50
+
+100
+
+250
+
+500 1000 2000 4000 8000 15000
+
+number of features
+
+(c) SVM classiﬁer.
+
+1
+0.95
+0.9
+0.85
+0.8
+0.75
+0.7
+0.65
+0.6
+0.55
+0.5
+0.45
+0.4
+0.35
+0.3
+0.25
+0.2
+0.15
+0.1
+0.05
+
+μ1
+F
+
+1
+0.95
+0.9
+0.85
+0.8
+0.75
+0.7
+0.65
+0.6
+0.55
+0.5
+0.45
+0.4
+0.35
+0.3
+0.25
+0.2
+0.15
+0.1
+0.05
+
+μ1
+F
+
+5
+
+10
+
+25
+
+5
+
+10
+
+25
+
+TF
+DF
+IDF
+χ2
+
+local TF
+local DF
+local IDF
+
+50
+
+100
+
+250
+
+500 1000 2000 4000 8000 15000
+
+number of features on a logarithmic scale
+
+(b) kNN classiﬁer.
+
+TF
+DF
+IDF
+χ2
+
+local TF
+local DF
+local IDF
+
+50
+
+100
+
+250
+
+500 1000 2000 4000 8000 15000
+
+number of features on a logarithmic scale
+(d) Rocchio classiﬁer.
+
+Fig. 3. Fl
+
+1 scores of classifying the articles based on their abstracts.
+
+1506
+
+J.J. García Adeva et al. / Expert Systems with Applications 41 (2014) 1498–1508
+
+5
+
+10
+
+1
+0.95
+0.9
+0.85
+0.8
+0.75
+0.7
+0.65
+0.6
+0.55
+0.5
+0.45
+0.4
+0.35
+0.3
+0.25
+0.2
+0.15
+0.1
+0.05
+
+μ1
+F
+
+1
+0.95
+0.9
+0.85
+0.8
+0.75
+0.7
+0.65
+0.6
+0.55
+0.5
+0.45
+0.4
+0.35
+0.3
+0.25
+0.2
+0.15
+0.1
+0.05
+
+μ1
+F
+
+TF
+DF
+IDF
+χ2
+
+local TF
+local DF
+local IDF
+
+25
+
+50
+
+100
+
+250
+
+500 1000 2000 4000 8000 15000
+
+number of features on a logarithmic scale
+(a) Na¨ıve Bayes classiﬁer.
+
+TF
+DF
+IDF
+χ2
+
+local TF
+local DF
+local IDF
+
+5
+
+10
+
+25
+
+50
+
+100
+
+250
+
+500 1000 2000 4000 8000 15000
+
+number of features
+
+(c) SVM classiﬁer.
+
+1
+0.95
+0.9
+0.85
+0.8
+0.75
+0.7
+0.65
+0.6
+0.55
+0.5
+0.45
+0.4
+0.35
+0.3
+0.25
+0.2
+0.15
+0.1
+0.05
+
+μ1
+F
+
+1
+0.95
+0.9
+0.85
+0.8
+0.75
+0.7
+0.65
+0.6
+0.55
+0.5
+0.45
+0.4
+0.35
+0.3
+0.25
+0.2
+0.15
+0.1
+0.05
+
+μ1
+F
+
+5
+
+10
+
+25
+
+5
+
+10
+
+25
+
+TF
+DF
+IDF
+χ2
+
+local TF
+local DF
+local IDF
+
+50
+
+100
+
+250
+
+500 1000 2000 4000 8000 15000
+
+number of features on a logarithmic scale
+
+(b) kNN classiﬁer.
+
+TF
+DF
+IDF
+χ2
+
+local TF
+local DF
+local IDF
+
+50
+
+100
+
+250
+
+500 1000 2000 4000 8000 15000
+
+number of features on a logarithmic scale
+(d) Rocchio classiﬁer.
+
+Fig. 4. Fl
+
+1 scores of classifying the articles based on their titles and abstracts.
+
+By contrast, using SVM did not seem to make a major difference
+regardless of the article contents selected, except for an insigniﬁ-
+cant difference in the averaged error that can probably be ignored.
+It only made some difference in the number of features required, as
+could be observed by comparing Figs. 2(c), 3(c), and 4(c). In other
+words, when only titles were selected SVM required a larger num-
+ber of features to perform as well as when more article content was
+selected with fewer features. An explanation for this is that the
+more the contents selected from articles, the higher the diversity
+of features.
+
+In general, SVM clearly showed superiority over the rest of clas-
+siﬁers, not only in classiﬁcation performance but in the number of
+required features to perform well. This conforms with established
+
+research that describes how SVM tends to work well with few
+dimensions (Sindhwani & Keerthi, 2006). This situation might indi-
+cate that the number of ‘quality’ features in the corpus was small,
+based on the size of documents and the number of them. Another
+outcome is that the selection feature methods did not provide a
+dramatic difference in performance. It might seem as if SVM
+worked better when using term frequencies (either global or local),
+while the other algorithms preferred some type of document fre-
+quency (either direct, inverse, global, or local).
+
+Table 3 provides a detailed account about the classiﬁer conﬁg-
+uration that produced the best results for each combination of clas-
+siﬁcation algorithm and article type. By looking at
+these
+measurements, a positive outcome was that the values of Fl
+1 were
+
+J.J. García Adeva et al. / Expert Systems with Applications 41 (2014) 1498–1508
+
+1507
+
+Table 3
+Best results by classiﬁcation algorithm, feature selection method, number of features, and article type.
+
+Article
+
+Classiﬁer
+
+Category-speciﬁc measures
+
+Averaged measures
+
+Title
+
+Abstract
+
+Title and abstract
+
+Naïve bayes
+DF, 500
+Rocchio
+v2, 2000
+kNN
+TF, 5
+SVM
+TF, 100
+
+Naïve bayes
+Local IDF, 8000
+Rocchio
+IDF, 15000
+kNN
+TF, 50
+SVM
+TF, 10
+
+Naïve bayes
+Local IDF, 8000
+Rocchio
+IDF, 15000
+kNN
+TF, 5
+SVM
+Local TF, 50
+
+Category
+
+Relevant
+Irrelevant
+Relevant
+Irrelevant
+Relevant
+Irrelevant
+Relevant
+Irrelevant
+
+Relevant
+Irrelevant
+Relevant
+Irrelevant
+Relevant
+Irrelevant
+Relevant
+Irrelevant
+
+Relevant
+Irrelevant
+Relevant
+Irrelevant
+Relevant
+Irrelevant
+Relevant
+Irrelevant
+
+TP
+
+43
+104
+13
+136
+3
+138
+31
+130
+
+43
+111
+15
+135
+2
+137
+34
+128
+
+43
+111
+17
+134
+2
+136
+33
+130
+
+FP
+
+38
+7
+6
+37
+5
+47
+12
+19
+
+31
+7
+7
+35
+5
+49
+15
+16
+
+31
+7
+9
+33
+6
+48
+12
+17
+
+FN
+
+7
+38
+37
+6
+47
+5
+19
+12
+
+7
+31
+35
+7
+49
+5
+16
+15
+
+7
+31
+33
+9
+48
+6
+17
+12
+
+TN
+
+104
+43
+136
+13
+138
+3
+130
+31
+
+111
+43
+135
+15
+137
+2
+128
+34
+
+111
+43
+134
+17
+136
+2
+130
+33
+
+q
+
+0.86
+0.73
+0.27
+0.96
+0.06
+0.96
+0.63
+0.91
+
+0.86
+0.78
+0.3
+0.95
+0.04
+0.96
+0.69
+0.89
+
+0.86
+0.78
+0.33
+0.94
+0.05
+0.96
+0.7
+0.91
+
+p
+
+0.53
+0.94
+0.68
+0.79
+0.39
+0.74
+0.72
+0.87
+
+0.58
+0.94
+0.67
+0.79
+0.31
+0.74
+0.7
+0.89
+
+0.58
+0.94
+0.64
+0.8
+0.31
+74
+0.72
+0.88
+
+F1
+
+0.65
+0.82
+0.38
+0.86
+0.11
+0.84
+0.67
+0.89
+
+0.69
+0.85
+0.41
+0.86
+0.07
+0.84
+0.69
+0.89
+
+0.69
+0.853
+0.44
+0.86
+0.08
+0.83
+0.7
+0.9
+
+qM
+
+0.8
+
+pM
+
+0.73
+
+FM
+1
+0.74
+
+ql
+
+pl
+
+0.76
+
+0.76
+
+Fl
+1
+0.76
+
+Error
+
+0.18
+
+0.61
+
+0.73
+
+0.62
+
+0.77
+
+0.77
+
+0.77
+
+0.16
+
+0.51
+
+0.57
+
+0.47
+
+0.73
+
+0.73
+
+0.73
+
+0.18
+
+0.5
+
+0.8
+
+0.78
+
+0.84
+
+0.84
+
+0.84
+
+0.12
+
+0.82
+
+0.76
+
+0.77
+
+0.8
+
+0.8
+
+0.8
+
+0.15
+
+0.62
+
+0.73
+
+0.64
+
+0.78
+
+0.78
+
+0.78
+
+0.15
+
+0.5
+
+0.52
+
+0.45
+
+0.72
+
+0.72
+
+0.72
+
+0.19
+
+0.79
+
+0.79
+
+0.79
+
+0.84
+
+0.84
+
+0.84
+
+0.12
+
+0.82
+
+0.76
+
+0.77
+
+0.8
+
+0.8
+
+0.8
+
+0.15
+
+0.63
+
+0.72
+
+0.65
+
+0.78
+
+0.78
+
+0.78
+
+0.15
+
+0.5
+
+0.52
+
+0.46
+
+0.72
+
+0.72
+
+0.72
+
+0.19
+
+0.79
+
+0.8
+
+0.79
+
+0.84
+
+0.84
+
+0.84
+
+0.11
+
+produced by a generally well-balanced combination of precision
+and recall values, both when looking at category-speciﬁc measures
+(i.e., p and q ) or averaged measures (i.e., pl, ql, pM, and qM ).
+
+Within the context of how the classiﬁer was intended to be use-
+ful, it was sensible to assume that one of the key measures to pay
+attention to was the number of false negative predictions of rele-
+vant articles, which corresponded to the measure FN for category
+relevant (i.e., FP for category irrelevant). The reason is that these
+mistakes corresponded to relevant articles classiﬁed as irrelevant.
+This is especially important if the automatic classiﬁcation was used
+aggressively as described in Section 3. If this is the case, the number
+of citations to be screened manually would be reduced by up to
+57% in the case of naïve bayes and 77% for SVM, at the cost of miss-
+ing relevant articles. In other words, irrespective of overall mea-
+sures such as Fl
+1 , pl, or ql, naïve bayes seemed to provide the
+best results in terms of false negatives, with only 7 articles mistak-
+enly identiﬁed as such.
+
+By contrast, other mistakes such as false positives were less
+important because they did not exclude relevant articles — instead,
+they merely increased the burden by including irrelevant articles
+as relevant. These are probably important aspects to consider care-
+fully when applying a text classiﬁer to support decision-making.
+
+6. Conclusions and future work
+
+We empirically evaluated the application of automatic text clas-
+siﬁcation to the process of medical systematic reviews, in order to
+facilitate the manual process carried out by experts during the cita-
+tion screening phase. The experiments involved multiple classiﬁca-
+tion algorithms combined with several feature selection methods,
+and number of features, applied to different parts of the given arti-
+cles. The analysis of these experiments showed overall positive re-
+sults, especially when using the algorithms naïve bayes and SVM.
+Naïve bayes offered the lowest rate of mistakes in the form of FN
+for any type of article, whereas SVM performed as well when using
+only titles as then appending abstracts. The discussion of the re-
+sults explained how the selected method for feature selection
+
+can make signiﬁcant difference, contrary to common practice of
+ignoring this aspect of the text classiﬁcation process. In this regard,
+the experiments also provided an interesting insight into how a re-
+duced number of features can produce the best results. In sum-
+mary, the presented results indicated that including automatic
+text classiﬁcation to the manual screening process when perform-
+ing systematic reviews, can substantially reduce the number of
+articles reviewers have to analyse.
+
+Regarding future work, there are two aspects that could be ex-
+plored further. One is attempting to improve classiﬁcation perfor-
+mance by applying ensembles of classiﬁers (Valentini & Masulli,
+2002). Another would consist of performing similar experiments
+with other collections of articles within other medical domains,
+in order to contrast how useful automatic text classiﬁcation to
+the decision-making process.
+
+Acknowledgements
+
+The corpus used in this work was provided by Anne Brice from
+
+the Critical Appraisal Skills Programme in Oxford, UK.
+
+This work was supported by funding received from the Depart-
+ment of Education, Universities and Research of the Basque Gov-
+ernment (Grant No. BFI-09-270), the UPV/EHU [GIU08/27, INF10/
+58, GIU11/28 and UFI11/19], Gipuzkoa Regional Council [OF53/
+2011], the Department of Industry, Commerce and Tourism — Bas-
+que Government [S-PE09UN60 and S-PE11UN115], and the Span-
+ish Ministry of Science and Innovation [TIN2009-14 159-C05-03].
+
+References
+
+Aggarwal, Charu C., & Zhai, ChengXiang (2012). A survey of text classiﬁcation
+
+algorithms. In Mining text data (pp. 163–222).
+
+Aphinyanaphongs, Yindalon, Tsamardinos, Ioannis, Statnikov, Alexander R., Hardin,
+Douglas P., et al. (2005). Text categorization models for high-quality retrieval in
+internal medicine. JAMIA, 12(2), 207–216.
+
+Baeza-Yates, Ricardo, & Ribeiro-Neto, Berthier (1999). Modern information retrieval.
+
+Wokingham, UK: Addison-Wesley.
+
+Bastian, Hilda, Glasziou, Paul, & Chalmers, Iain (2010). Seventy-ﬁve trials and eleven
+
+systematic reviews a day: How will we ever keep up? PLoS Med 7(9).
+
+1508
+
+J.J. García Adeva et al. / Expert Systems with Applications 41 (2014) 1498–1508
+
+Bekhuis, Tanja, & Demner-Fushman, Dina (2012). Screening nonrandomized studies
+for medical systematic reviews: A comparative study of classiﬁers. Artiﬁcial
+Intelligence in Medicine, 55(3), 197–207.
+
+Burges, Christopher J. C. (1998). A tutorial on support vector machines for pattern
+
+recognition. Data Mining and Knowledge Discovery, 2(2), 121–167.
+
+Dubben, Hans-Hermann, & Beck-Bornholdt, Hans-Peter (2005). Systematic review
+of publication bias in studies on publication bias. BMJ, 331(7514), 433–434.
+http://dx.doi.org/10.1136/bmj.38478.497164.F7.
+
+Fayad, Mohamed, & Schmidt, Douglas C. (1997). Object-oriented application
+
+frameworks. Communications of the ACM, 40(10), 32–38.
+
+Frunza, Oana, Inkpen, Diana, Matwin, Stan, Klement, William, Peter O’Blenis (2011).
+Exploiting the systematic review protocol for classiﬁcation of medical abstracts.
+Artiﬁcial Intelligence in Medicine, 51(1), 17–25, January 2011.
+
+García Adeva, J. J., & Calvo, R. (2006). Mining text with pimiento. IEEE Internet
+
+Computing, 10(4), 27–35.
+
+Moschitti, A. (2003). A study on optimal parameter tuning for Rocchio Text
+Classiﬁer. In Proceedings of the 25th European conference on information retrieval
+research.
+
+Petticrew, Mark, & Roberts, Helen (2006). Systematic reviews in the social sciences: A
+
+practical guide. Blackwell Publishing.
+
+Porter, M. F. (1980). An algorithm for sufﬁx stripping. Program, 14(3), 130–137.
+Sackett, David L., Rosenberg, William M. C., Gray, J. A. Muir, Haynes, R. Brian, &
+Richardson, W. Scott (1996). Evidence based medicine: what it is and what it
+isn’t. BMJ, 312 (7023): 71–72.
+
+Salton, Gerard (1989). Automatic text processing: The transformation, analysis, and
+
+retrieval of information by computer. Addison-Wesley, Reading, Pennsylvania.
+
+Salton, Gerard, & Buckley, Christopher (1988). Term-weighting approaches in
+Information Processing and Management, 24(5),
+
+retrieval.
+
+automatic text
+513–523.
+
+Sebastiani, Fabrizio (2002). Machine learning in automated text categorization. ACM
+
+Greenhalgh, T. (2010). How to read a paper: The basics of evidence-based medicine.
+
+Computing Surveys, 34(1), 1–47.
+
+HOW – How To. Wiley. ISBN 9781444323184.
+
+Hearst, Marti A. (1999). Untangling text data mining. In Proceedings of the 37th
+conference on association for computational linguistics, College Park, Maryland (pp.
+3–10). Association for Computational Linguistics.
+
+Ide, N. C., Loane, R. F., & Demner-Fushman, D. (2007). Essie: A concept-based search
+the American Medical
+
+Journal of
+
+text.
+
+engine for structured biomedical
+Informatics Association, 14(3), 253–263.
+
+Iruetaguena, A., Garcíá Adeva, J. J., Pikatza, J. M., Segundo, U., Buenestado, D., &
+Barrena, R. (2013). Automatic retrieval of current evidence to support update of
+bibliography in clinical guidelines. Expert Systems with Applications, 40(6),
+2081–2091. http://dx.doi.org/10.1016/j.eswa.2012.10.015.
+
+Joachims, T. (2002). Learning to classify text using support vector machines – Methods,
+
+theory, and algorithms. Springer: Kluwer.
+
+Kitchenham, B., Brereton, O. P., Budgen, D., Turner, M., Bailey, J., & Linkman, S.
+(2009). Systematic literature reviews in software engineering — a systematic
+literature review. Information and Software Technology, 51 (1), 7–15. ISSN 0950-
+5849.
+
+Kohavi, Ron (1995). A study of cross-validation and bootstrap for accuracy
+
+estimation and model selection. In IJCAI (pp. 1137–1145).
+
+Lewis, David D. (1998). Naive (bayes) at forty: The independence assumption in
+information retrieval. In Claire Nédellec and Céline Rouveirol. Proceedings of
+ECML-98, 10th European Conference on Machine Learning, Chemnitz, DE
+(pp. 4–15). Heidelberg, DE: SpringerVerlag.
+
+Lind, James (1753). A treatise of the scurvy. In three parts. Containing an inquiry
+into the nature, causes and cure, of that disease. Together with a critical and
+chronological view of what has been published on the subject. Sands,
+Edinburgh.
+
+Liu, B. (2011). Web data mining: Exploring hyperlinks, contents, and usage data. Data-
+
+Centric Systems and Applications. Springer. ISBN 9783642194597.
+
+Lovins, B.
+
+Julie (1968). Development of a stemming algorithm. Mechanical
+
+Translation and Computational Linguistics, 11, 22–31.
+
+McCallum, Andrew & Nigam, Kamal (1998). A comparison of event models for naive
+bayes text classiﬁcation. In Proceedings of AAAI-98 workshop on learning for text
+categorization (pp. 137–142). Madison, Wisconsin
+
+Mihram, G. A. (1972). Some practical aspects of the veriﬁcation and validation of
+
+simulation models. Operational Research Quarterly, 23(1).
+
+Shojania, Kaveh G., Sampson, Margaret, Ansari, Mohammed T., Ji, Jun, Doucette,
+Steve, & Moher, David (2007). How quickly do systematic reviews go out of
+date? A survival analysis. Annals of Internal Medicine, 147(4), 224–233.
+
+Shonjania, Kaveh G., & Bero, Lisa A. (2001). Taking advantage of the explosion of
+systematic reviews: An efﬁcient MEDLINE search strategy. Effective Clinical
+Practice, 4(4), 157–162.
+
+Sindhwani, Vikas & Keerthi, S. Sathiya (2006). Large scale semi-supervised linear
+SVMs. In Proceedings of the 29th annual international ACM SIGIR conference on
+Research and development in information retrieval, SIGIR ’06 (pp. 477–484). New
+York, NY, USA, ACM. ISBN 1-59593-369-7.
+
+Swanson, D. R. (1986). Fish oil, Raynaud’s syndrome and undiscovered public
+
+knowledge. Perspectives in Biology and Medicine, 30(1), 7–18.
+
+Tan, Chade-Meng, Wang, Yuan-Fang, & Lee, Chan-Do (2002). The use of bigrams to
+Information Processing Management, 38(4),
+
+enhance text categorization.
+529–546. ISSN 0306-4573.
+
+The Cochrane Collaboration. (2011). Cochrane Handbook for Systematic Reviews of
+
+Interventions. Version 5.1.0 [updated March 2011].
+
+Thomas, James, McNaught, John, & Ananiadou, Sophia (2011). Applications of text
+mining within systematic reviews. Research Synthesis Methods, 2(1), 1–14. ISSN
+1759-2887.
+
+University of York (2008). Undertaking systematic reviews of research on effectiveness:
+CRD’s guidance for those carrying out or commissioning reviews. NHS Centre for
+Reviews and Dissemination, University of York.
+
+Valentini, G., & Masulli, F. (2002). Ensembles of learning machines. Neural Nets
+
+WIRN Vietri-02 Series Lecture Notes in Computer Sciences, 2486, 3–19.
+
+Vapnik, Vladimir N. (1995). The nature of statistical learning theory. Springer.
+Wallace, Byron, Trikalinos, Thomas, Lau,
+
+Joseph, Brodley, Carla, & Schmid,
+Christopher (2010). Semi-automated screening of biomedical citations for
+systematic reviews. BMC Bioinformatics, 11(1), 55.
+
+Yang, Y. & Liu, X. (1999). A re-examination of text categorization methods, In 22nd
+
+Annual international SIGIR (pp. 42–49).
+
+Yang, Yiming, & Chute, Christopher G. (1994). An example-based mapping method
+for text categorization and retrieval. ACM Transactions on Information Systems,
+12(3), 252–277.
+
+
