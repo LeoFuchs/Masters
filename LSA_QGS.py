@@ -27,6 +27,21 @@ def print_top_words(model, feature_names, number_words):
         message += "}\n"
         print(message)
 
+def print_string(model, feature_names, number_words):
+    message = ("TITLE-ABS-KEY(")
+    for topic_index, topic in enumerate(model.components_):
+        message += "(\""
+        message += "\" AND \"".join([feature_names[i]
+                               for i in topic.argsort()[:-number_words - 1:-1]])
+        message += "\")"
+        if topic_index < number_topics - 1:
+            message += " OR "
+        else:
+            message += ""
+    message += ")"
+    print(message)
+
+
 # Carrega o dataset de treinamento
 files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/QGS-ia-txt/metadata', encoding="iso-8859-1")
 
@@ -54,3 +69,5 @@ svd_transformer.fit_transform(files.data)
 
 # Imprime os (number_topics) tópicos com as (number_words) palavras
 print_top_words(svd_model, dic, number_words)
+
+print_string(svd_model, dic, number_words)
