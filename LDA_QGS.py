@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import math
 import wordcloud
 
-number_topics = 2
-number_words = 5
+number_topics = 1
+number_words = 10
 max_document_frequency = 1.0
 min_document_frequency = 0.4
 ngram = (1, 3)
