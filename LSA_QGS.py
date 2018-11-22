@@ -4,6 +4,8 @@ from time import time
 from sklearn.datasets import load_files
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import NMF, LatentDirichletAllocation
+from sklearn.decomposition import TruncatedSVD
+from sklearn.pipeline import Pipeline
 from sklearn.datasets import fetch_20newsgroups
 
 number_topics = 2
@@ -37,38 +39,18 @@ tfidf_vectorizer = TfidfVectorizer(max_df = max_document_frequency,
 
 tfidf = tfidf_vectorizer.fit_transform(files.data)
 
-# NMF 1
-print("Rodando NMF (Frobenius norm) com tf-idf... \n")
-
 # Salva os nomes das palavras em um dicionário
 dic = tfidf_vectorizer.get_feature_names()
 
-nmf = NMF(n_components = number_topics,
-          random_state = 1,
-          alpha = 0.1,
-          l1_ratio = 0.5,
-          max_iter = iterations)
+# SVD para reduzir a dimensionalidade
+svd_model = TruncatedSVD(n_components = number_topics,
+                         algorithm = 'randomized',
+                         n_iter = iterations)
 
-nmf.fit(tfidf)
+# Pipeline do tf-idf + SVD, fit e aplicando nos arquivos
+svd_transformer = Pipeline([('tfidf', tfidf_vectorizer), ('svd', svd_model)])
 
-# Imprime os (number_topics) tópicos com as (number_words) palavras
-print_top_words(nmf, dic, number_words)
-
-# NMF 2
-print("Rodando NMF (generalized Kullback-Leibler divergence) com tf-idf... \n")
-
-# Salva os nomes das palavras em um dicionário
-dic = tfidf_vectorizer.get_feature_names()
-
-nmf = NMF(n_components = number_topics,
-          random_state = 1,
-          beta_loss = 'kullback-leibler',
-          solver = 'mu',
-          max_iter = iterations,
-          alpha = 0.1,
-          l1_ratio = 0.5)
-
-nmf.fit(tfidf)
+svd_transformer.fit_transform(files.data)
 
 # Imprime os (number_topics) tópicos com as (number_words) palavras
-print_top_words(nmf, dic, number_words)
+print_top_words(svd_model, dic, number_words)
