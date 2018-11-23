@@ -2,7 +2,9 @@ from elsapy.elsclient import ElsClient
 from elsapy.elssearch import ElsSearch
 import scopus
 import json
-    
+
+scopus.utils.create_config()
+
 ## Load configuration
 con_file = open("config.json")
 config = json.load(con_file)
