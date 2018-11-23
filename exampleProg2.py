@@ -3,7 +3,7 @@ import pandas as pd
 import re
 
 #Quantos resultados quero que retorne?
-resultados = 500
+resultados = 5000
 
 #Chave de acesso Scopus
 key = '56c667e47c588caa7949591daf39d8a0'
@@ -26,7 +26,5 @@ pd.options.display.max_colwidth = 250
 
 # https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.to_csv.html
 
-print(search_df[['title']])
+#print(search_df[['title']])
 search_df[['title']].to_csv("Resultado.csv", index_label=False, encoding = 'utf-8', index=False, header=True, sep='\t')
-
-

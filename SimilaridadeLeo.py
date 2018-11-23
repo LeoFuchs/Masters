@@ -58,10 +58,10 @@ lin, col = matSimilaridade.shape
 for i in range (0, lin):
     linha = matSimilaridade[i]
     currentNearest = np.argsort(linha)[-4:] #Pega os x - 1 maiores elementos
-    linhaSaida = 'Nome do artigo do QGS:  ' + listaQGS[i] + '\t' + '\n'
+    linhaSaida = 'Artigo do QGS:  ' + listaQGS[i] + '\t' + '\n'
     for i in range(1, len(currentNearest)):
         book = currentNearest[-i]
-        linhaSaida = linhaSaida + '\t' + listaResultado[book].strip() + '\t' '\n'
+        linhaSaida = linhaSaida + '\t\t\t\t' + listaResultado[book].strip() + '\t' '\n'
     linhaSaida = linhaSaida + "\n"
     Saida.write(linhaSaida)
     Saida.flush()
