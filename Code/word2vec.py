@@ -63,7 +63,7 @@ def print_string_with_improvement(model, feature_names, number_words):
     for i in topic.argsort()[:-number_words - 1:-1]:
 
         counter = counter + 1
-        similar_word = wiki.most_similar(positive = feature_names[i], topn = 2)
+        similar_word = wiki.most_similar(positive = feature_names[i], topn = 3)
         similar_word = [j[0] for j in similar_word]
 
         message += "(\""
@@ -127,6 +127,8 @@ print("The %d topics with your %d words in textual format: " % (number_topics, n
 print_top_words(lda, dic, number_words)
 
 print_string_no_improvement(lda, dic, number_words)
+
+print("\n")
 
 print_string_with_improvement(lda, dic, number_words)
 
