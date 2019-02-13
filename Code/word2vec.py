@@ -5,7 +5,7 @@ from sklearn.datasets import load_files
 import gensim
 
 number_topics = 2
-number_words = 2
+number_words = 5
 max_document_frequency = 1.0
 min_document_frequency = 0.4
 ngram = (1, 3)
@@ -13,8 +13,8 @@ max_features = None
 
 alpha = None
 beta = None
-learning = 'batch'  # Bacth ou Online
-iterations = 50
+learning = 'batch'  # Batch ou Online
+iterations = 5000
 
 # Imprime os tópicos com as palavras em ordem
 def print_top_words(model, feature_names, number_words):
