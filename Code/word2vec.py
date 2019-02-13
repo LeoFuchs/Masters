@@ -45,7 +45,6 @@ def print_string_no_improvement(model, feature_names, number_words):
 
   message += ")"
   print(message)
-  print("\n")
 
 # Imprime a string com a melhoria do word2vec
 def print_string_with_improvement(model, feature_names, number_words):
@@ -89,11 +88,9 @@ def print_string_with_improvement(model, feature_names, number_words):
   message += ")"
 
   print(message)
-  print("\n")
-
 
 # Carrega o dataset de treinamento
-files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/QGS-ia-txt/complete', encoding="iso-8859-1")
+files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/QGS-ia-txt/metadata', encoding="iso-8859-1")
 
 # Extrai as palavras e vetoriza o dataset
 tf_vectorizer = CountVectorizer(max_df = max_document_frequency,
