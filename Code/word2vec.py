@@ -3,11 +3,9 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.datasets import load_files
 import gensim
-import matplotlib.pyplot as plt
-import math
 
 number_topics = 2
-number_words = 5
+number_words = 2
 max_document_frequency = 1.0
 min_document_frequency = 0.4
 ngram = (1, 3)
@@ -16,64 +14,82 @@ max_features = None
 alpha = None
 beta = None
 learning = 'batch'  # Bacth ou Online
-iterations = 5000
+iterations = 50
 
 # Imprime os tópicos com as palavras em ordem
 def print_top_words(model, feature_names, number_words):
-
-    wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
-
     for topic_index, topic in enumerate(model.components_):
         message = "Topic %d: " % (topic_index + 1)
         message += "{"
-        message += " - ".join([feature_names[i] for i in topic.argsort()[:-number_words - 1:-1]])
+        message += " - ".join([feature_names[i]
+                               for i in topic.argsort()[:-number_words - 1:-1]])
         message += "}\n"
-
         print(message)
 
-        top_words = [feature_names[i] for i in topic.argsort()[:-number_words - 1:-1]]
-        for i in top_words:
-          #similar = wiki.most_similar(positive = i, topn = 5)
-          print("Most Similar Words for: %s" % i)
-          print(wiki.most_similar(positive = i, topn=5))
-
-
+# Imprime a string sem a melhoria do word2vec
 def print_string_no_improvement(model, feature_names, number_words):
-  print("String without improvement:\n")
+  print("String without improvement:")
+
   message = ("TITLE-ABS-KEY(")
+
   for topic_index, topic in enumerate(model.components_):
+
     message += "(\""
-    message += "\" AND \"".join([feature_names[i]
-                                 for i in topic.argsort()[:-number_words - 1:-1]])
+    message += "\" AND \"".join([feature_names[i] for i in topic.argsort()[:-number_words - 1:-1]])
     message += "\")"
+
     if topic_index < number_topics - 1:
       message += " OR "
     else:
       message += ""
+
   message += ")"
   print(message)
+  print("\n")
 
+# Imprime a string com a melhoria do word2vec
 def print_string_with_improvement(model, feature_names, number_words):
-  print("String with improvement:\n")
+  print("String with improvement:")
 
-  #wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
+  wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
 
-  teste = [('Data', 0.7266719341278076), ('datasets', 0.7077047228813171), ('dataset', 0.6963621377944946), ('statistics', 0.6708579659461975), ('data--', 0.6617765426635742)]
   message = ("TITLE-ABS-KEY(")
+
   for topic_index, topic in enumerate(model.components_):
-    message += "(\""
-    message += "\" AND \"".join([feature_names[i]
-                                 for i in topic.argsort()[:-number_words - 1:-1]])
-    message += "\")"
+
+    counter = 0
+
+    message += "("
+
+    for i in topic.argsort()[:-number_words - 1:-1]:
+
+        counter = counter + 1
+        similar_word = wiki.most_similar(positive = feature_names[i], topn = 2)
+        similar_word = [j[0] for j in similar_word]
+
+        message += "(\""
+        message += "\" - \"".join([feature_names[i]])
+        message += "\" OR \""
+
+        message += "\" OR \"".join(similar_word)
+        message += "\")"
+
+        if counter < len(topic.argsort()[:-number_words - 1:-1]):
+            message += " AND "
+        else:
+          message += ""
+
+    message += ")"
+
     if topic_index < number_topics - 1:
-      message += " OR "
+        message += " OR "
     else:
-      message += ""
+        message += ""
+
   message += ")"
+
   print(message)
-
-
-
+  print("\n")
 
 
 # Carrega o dataset de treinamento
@@ -109,13 +125,16 @@ lda = LatentDirichletAllocation(n_components = number_topics,
 lda.fit(tf)
 
 # Imprime os (number_topics) tópicos com as (number_words) palavras
-print("The %d topics with your %d words in textual format: \n" % (number_topics, number_words))
-
-model = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
+print("The %d topics with your %d words in textual format: " % (number_topics, number_words))
 
 print_top_words(lda, dic, number_words)
+
+print_string_no_improvement(lda, dic, number_words)
+
+print_string_with_improvement(lda, dic, number_words)
 
 #model = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
 #similar = model.most_similar(positive=['man'], topn = 5)
 
-#print (similar)
+#teste = [('Data', 0.7266719341278076), ('datasets', 0.7077047228813171), ('dataset', 0.6963621377944946), ('statistics', 0.6708579659461975), ('data--', 0.6617765426635742)]
+#teste = [i[0] for i in teste]
