@@ -8,7 +8,7 @@ number_topics = 2
 number_words = 5
 max_document_frequency = 1.0
 min_document_frequency = 0.4
-ngram = (1, 3)
+ngram = (1, 2)
 max_features = None
 
 alpha = None
@@ -47,7 +47,7 @@ def print_string_no_improvement(model, feature_names, number_words):
   print(message)
 
 # Imprime a string com a melhoria do word2vec
-def print_string_with_improvement(model, feature_names, number_words):
+def print_string_with_improvement1(model, feature_names, number_words):
   print("String with improvement:")
 
   wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
@@ -63,7 +63,7 @@ def print_string_with_improvement(model, feature_names, number_words):
     for i in topic.argsort()[:-number_words - 1:-1]:
 
         counter = counter + 1
-        similar_word = wiki.most_similar(positive = feature_names[i], topn = 3)
+        similar_word = wiki.most_similar(positive = feature_names[i], topn = 2)
         similar_word = [j[0] for j in similar_word]
 
         message += "(\""
@@ -71,6 +71,49 @@ def print_string_with_improvement(model, feature_names, number_words):
         message += "\" OR \""
 
         message += "\" OR \"".join(similar_word)
+        message += "\")"
+
+        if counter < len(topic.argsort()[:-number_words - 1:-1]):
+            message += " AND "
+        else:
+          message += ""
+
+    message += ")"
+
+    if topic_index < number_topics - 1:
+        message += " OR "
+    else:
+        message += ""
+
+  message += ")"
+
+  print(message)
+
+# Imprime a string com a melhoria do word2vec
+def print_string_with_improvement2(model, feature_names, number_words):
+  print("String with improvement:")
+
+  wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
+
+  message = ("TITLE-ABS-KEY(")
+
+  for topic_index, topic in enumerate(model.components_):
+
+    counter = 0
+
+    message += "("
+
+    for i in topic.argsort()[:-number_words - 1:-1]:
+
+        counter = counter + 1
+        similar_word = wiki.most_similar(positive = feature_names[i], topn = 2)
+        similar_word = [j[0] for j in similar_word]
+
+        message += "(\""
+        message += "\" - \"".join([feature_names[i]])
+        message += "\" AND \""
+
+        message += "\" AND \"".join(similar_word)
         message += "\")"
 
         if counter < len(topic.argsort()[:-number_words - 1:-1]):
@@ -130,7 +173,10 @@ print_string_no_improvement(lda, dic, number_words)
 
 print("\n")
 
-print_string_with_improvement(lda, dic, number_words)
+print_string_with_improvement1(lda, dic, number_words)
+
+#print_string_with_improvement2(lda, dic, number_words)
+
 
 #model = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
 #similar = model.most_similar(positive=['man'], topn = 5)
