@@ -3,18 +3,24 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.datasets import load_files
 import gensim
+import nltk
+from nltk.stem import PorterStemmer
+from nltk.stem import LancasterStemmer
 
 number_topics = 2
 number_words = 5
 max_document_frequency = 1.0
 min_document_frequency = 0.4
-ngram = (1, 2)
+ngram = (1, 1)
 max_features = None
 
 alpha = None
 beta = None
 learning = 'batch'  # Batch ou Online
-iterations = 5000
+iterations = 50
+
+porter = PorterStemmer()
+lancaster = LancasterStemmer()
 
 # Imprime os tópicos com as palavras em ordem
 def print_top_words(model, feature_names, number_words):
@@ -47,7 +53,7 @@ def print_string_no_improvement(model, feature_names, number_words):
   print(message)
 
 # Imprime a string com a melhoria do word2vec
-def print_string_with_improvement1(model, feature_names, number_words):
+def print_string_with_improvement(model, feature_names, number_words):
   print("String with improvement:")
 
   wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
@@ -63,57 +69,42 @@ def print_string_with_improvement1(model, feature_names, number_words):
     for i in topic.argsort()[:-number_words - 1:-1]:
 
         counter = counter + 1
-        similar_word = wiki.most_similar(positive = feature_names[i], topn = 2)
+
+        #teste = [('systematic', 0.7266719341278076), ('mining', 0.7077047228813171), ('dataset', 0.6963621377944946), ('statistics', 0.6708579659461975), ('data--', 0.6617765426635742)]
+        #teste = [i[0] for i in teste]
+
+        similar_word = wiki.most_similar(positive = feature_names[i], topn = 30)
         similar_word = [j[0] for j in similar_word]
+
+        #print("Similar word:", similar_word)
+
+        stem_feature_names = lancaster.stem(feature_names[i])
+        #print("Stem feature names:", stem_feature_names)
+
+        stem_similar_word = []
+
+        final_stem_similar_word = []
+        final_similar_word = []
+
+        for j in similar_word:
+            stem_similar_word.append(lancaster.stem(j))
+
+        #print("Stem Similar Word:", stem_similar_word)
+
+        for number, word in enumerate(stem_similar_word):
+            if(stem_feature_names != word):
+                final_stem_similar_word.append(word)
+                final_similar_word.append(similar_word[number])
+
+            #print("Final Stem Similar Word:", final_stem_similar_word)
+            #print("Final Similar Word:", final_similar_word)
 
         message += "(\""
         message += "\" - \"".join([feature_names[i]])
         message += "\" OR \""
 
-        message += "\" OR \"".join(similar_word)
-        message += "\")"
+        message += "\" OR \"".join(final_similar_word[m] for m in range(0,3)) #Where defined the number of similar words
 
-        if counter < len(topic.argsort()[:-number_words - 1:-1]):
-            message += " AND "
-        else:
-          message += ""
-
-    message += ")"
-
-    if topic_index < number_topics - 1:
-        message += " OR "
-    else:
-        message += ""
-
-  message += ")"
-
-  print(message)
-
-# Imprime a string com a melhoria do word2vec
-def print_string_with_improvement2(model, feature_names, number_words):
-  print("String with improvement:")
-
-  wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
-
-  message = ("TITLE-ABS-KEY(")
-
-  for topic_index, topic in enumerate(model.components_):
-
-    counter = 0
-
-    message += "("
-
-    for i in topic.argsort()[:-number_words - 1:-1]:
-
-        counter = counter + 1
-        similar_word = wiki.most_similar(positive = feature_names[i], topn = 2)
-        similar_word = [j[0] for j in similar_word]
-
-        message += "(\""
-        message += "\" - \"".join([feature_names[i]])
-        message += "\" AND \""
-
-        message += "\" AND \"".join(similar_word)
         message += "\")"
 
         if counter < len(topic.argsort()[:-number_words - 1:-1]):
@@ -173,13 +164,7 @@ print_string_no_improvement(lda, dic, number_words)
 
 print("\n")
 
-print_string_with_improvement1(lda, dic, number_words)
-
-#print_string_with_improvement2(lda, dic, number_words)
-
+print_string_with_improvement(lda, dic, number_words)
 
 #model = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
 #similar = model.most_similar(positive=['man'], topn = 5)
-
-#teste = [('Data', 0.7266719341278076), ('datasets', 0.7077047228813171), ('dataset', 0.6963621377944946), ('statistics', 0.6708579659461975), ('data--', 0.6617765426635742)]
-#teste = [i[0] for i in teste]
