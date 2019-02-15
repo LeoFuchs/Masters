@@ -3,7 +3,7 @@ import pandas as pd
 import re
 
 #Quantos resultados quero que retorne?
-resultados = 2000
+resultados = 5000
 
 #Chave de acesso Scopus
 key = '56c667e47c588caa7949591daf39d8a0'
