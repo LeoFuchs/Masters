@@ -8,7 +8,7 @@ from nltk.stem import PorterStemmer
 from nltk.stem import LancasterStemmer
 
 number_topics = 2
-number_words = 10
+number_words = 5
 max_document_frequency = 1.0
 min_document_frequency = 0.4
 ngram = (1, 3)
