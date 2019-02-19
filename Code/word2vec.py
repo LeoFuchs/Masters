@@ -8,7 +8,7 @@ from nltk.stem import PorterStemmer
 from nltk.stem import LancasterStemmer
 
 number_topics = 2
-number_words = 5
+number_words = 10
 max_document_frequency = 1.0
 min_document_frequency = 0.4
 ngram = (1, 3)
@@ -106,7 +106,7 @@ def print_string_with_improvement(model, feature_names, number_words):
 
         if " " not in feature_names[i]:
             message += "\" OR \""
-            message += "\" OR \"".join(final_similar_word[m] for m in range(0,5)) #Where defined the number of similar words
+            message += "\" OR \"".join(final_similar_word[m] for m in range(0,3)) #Where defined the number of similar words
 
         message += "\")"
 
