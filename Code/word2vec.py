@@ -19,6 +19,7 @@ beta = None
 learning = 'batch'  # Batch ou Online
 iterations = 5000
 
+# Where is the best?
 porter = PorterStemmer()
 lancaster = LancasterStemmer()
 
@@ -102,9 +103,9 @@ def print_string_with_improvement(model, feature_names, number_words):
 
         message += "(\""
         message += "\" - \"".join([feature_names[i]])
-        message += "\" OR \""
 
         if " " not in feature_names[i]:
+            message += "\" OR \""
             message += "\" OR \"".join(final_similar_word[m] for m in range(0,5)) #Where defined the number of similar words
 
         message += "\")"
