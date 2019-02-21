@@ -3,15 +3,21 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.datasets import load_files
 import gensim
-import nltk
+import Levenshtein
 from nltk.stem import PorterStemmer
 from nltk.stem import LancasterStemmer
 
 number_topics = 2
-number_words = 10
+number_words = 8
+
+word2vec_selected_words = 1
+word2vec_total_words = 30
+
+levenshtein_distance = 4
+n_gram = (1, 3)
+
 max_document_frequency = 1.0
 min_document_frequency = 0.4
-ngram = (1, 3)
 max_features = None
 
 alpha = None
@@ -35,6 +41,7 @@ def print_top_words(model, feature_names, number_words):
 
 # Imprime a string sem a melhoria do word2vec
 def print_string_no_improvement(model, feature_names, number_words):
+
   print("String without improvement:")
 
   message = ("TITLE-ABS-KEY(")
@@ -55,6 +62,7 @@ def print_string_no_improvement(model, feature_names, number_words):
 
 # Imprime a string com a melhoria do word2vec
 def print_string_with_improvement(model, feature_names, number_words):
+
   print("String with improvement:")
 
   wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
@@ -75,7 +83,7 @@ def print_string_with_improvement(model, feature_names, number_words):
         #teste = [i[0] for i in teste]
 
         if " " not in feature_names[i]:
-            similar_word = wiki.most_similar(positive = feature_names[i], topn = 30)
+            similar_word = wiki.most_similar(positive = feature_names[i], topn = word2vec_total_words)
             similar_word = [j[0] for j in similar_word]
 
             #print("Similar word:", similar_word)
@@ -94,19 +102,28 @@ def print_string_with_improvement(model, feature_names, number_words):
             #print("Stem Similar Word:", stem_similar_word)
 
             for number, word in enumerate(stem_similar_word):
-                if(stem_feature_names != word):
-                    final_stem_similar_word.append(word)
-                    final_similar_word.append(similar_word[number])
+                if stem_feature_names != word and Levenshtein.distance(stem_feature_names, word) > levenshtein_distance:
 
-                #print("Final Stem Similar Word:", final_stem_similar_word)
-                #print("Final Similar Word:", final_similar_word)
+                    irrelevant = 0
+
+                    for k in final_stem_similar_word:
+                        if Levenshtein.distance(k, word) < levenshtein_distance:
+                            irrelevant = 1
+
+                    if irrelevant == 0:
+                        final_stem_similar_word.append(word)
+                        final_similar_word.append(similar_word[number])
+
+            #print("Final Stem Similar Word:", final_stem_similar_word)
+            #print("Final Similar Word:", final_similar_word)
+            #print("\n\n\n")
 
         message += "(\""
         message += "\" - \"".join([feature_names[i]])
 
         if " " not in feature_names[i]:
             message += "\" OR \""
-            message += "\" OR \"".join(final_similar_word[m] for m in range(0,3)) #Where defined the number of similar words
+            message += "\" OR \"".join(final_similar_word[m] for m in range(0, word2vec_selected_words)) #Where defined the number of similar words
 
         message += "\")"
 
@@ -132,7 +149,7 @@ files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Fil
 # Extrai as palavras e vetoriza o dataset
 tf_vectorizer = CountVectorizer(max_df = max_document_frequency,
                                 min_df = min_document_frequency,
-                                ngram_range = ngram,
+                                ngram_range = n_gram,
                                 max_features = max_features,
                                 stop_words = 'english')
 
