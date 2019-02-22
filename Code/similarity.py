@@ -1,9 +1,10 @@
 # encoding: utf-8
-
 import pandas as pd
+import numpy as np
+import Levenshtein
+
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
-import numpy as np
 
 QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/QGS.csv', sep='\t')
 Resultado = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Resultado.csv', sep='\t')
@@ -18,6 +19,7 @@ Saida = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Saida.csv', 'w')
 #    Resultado = list(csv.reader(csvfile))
 
 lenQGS = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/QGS.csv')) - 1
+
 lenResultado = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Resultado.csv')) - 1
 #QGS = [val for sublist in QGS for val in sublist]
 
@@ -48,14 +50,32 @@ tfidf_matrix_train = tfidf_vectorizer.fit_transform(train_set)
 matSimilaridade = cosine_similarity(tfidf_matrix_train[0:lenQGS], tfidf_matrix_train[lenQGS:lenQGS+lenResultado])
 lin, col = matSimilaridade.shape
 
+counter = 0
+
 for i in range (0, lin):
+
     linha = matSimilaridade[i]
-    currentNearest = np.argsort(linha)[-4:] #Pega os x - 1 maiores elementos
+
+    currentNearest = np.argsort(linha)[-2:] #Pega os x - 1 maiores elementos
+
     linhaSaida = 'QGS' + str(i + 1) + ':\t\t\t' + listaQGS[i] + '\t' + '\n'
-    for i in range(1, len(currentNearest)):
-        book = currentNearest[-i]
+
+
+
+    for j in range(1, len(currentNearest)):
+        book = currentNearest[-j]
         linhaSaida = linhaSaida + '\t\t\t\t' + listaResultado[book].strip() + '\t' '\n'
+
+
+    print("\n")
+
+    if Levenshtein.distance(listaQGS[i], listaResultado[book]) < 10:
+        counter = counter + 1
+
     linhaSaida = linhaSaida + "\n"
+
     Saida.write(linhaSaida)
     Saida.flush()
+
+print(counter)
 
