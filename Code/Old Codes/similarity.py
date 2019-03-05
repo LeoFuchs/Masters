@@ -6,10 +6,10 @@ import Levenshtein
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/QGS.csv', sep='\t')
-Resultado = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Resultado.csv', sep='\t')
+QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Old Codes/QGS.csv', sep='\t')
+Resultado = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Old Codes/Resultado.csv', sep='\t')
 
-Saida = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Saida.csv', 'w')
+Saida = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Old Codes/Saida.csv', 'w')
 
 
 #with open('/home/fuchs/Documentos/MESTRADO/Masters/QGS.csv') as csvfile:
@@ -18,9 +18,9 @@ Saida = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Saida.csv', 'w')
 #with open('/home/fuchs/Documentos/MESTRADO/Masters/Resultado.csv') as csvfile:
 #    Resultado = list(csv.reader(csvfile))
 
-lenQGS = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/QGS.csv')) - 1
+lenQGS = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Old Codes/QGS.csv')) - 1
 
-lenResultado = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Resultado.csv')) - 1
+lenResultado = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Old Codes/Resultado.csv')) - 1
 #QGS = [val for sublist in QGS for val in sublist]
 
 listaQGS = []

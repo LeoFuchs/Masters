@@ -22,7 +22,7 @@ def bag_of_words():
     n_gram = (1, 3)
 
     max_document_frequency = 1.0
-    min_document_frequency = 0.4
+    min_document_frequency = 0.3
     max_features = None
 
     # Carrega o dataset de treinamento

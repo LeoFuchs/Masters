@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import math
 import wordcloud
 
-number_topics = 1
-number_words = 10
+number_topics = 2
+number_words = 5
 max_document_frequency = 1.0
 min_document_frequency = 0.4
 ngram = (1, 3)
@@ -30,7 +30,8 @@ def print_top_words(model, feature_names, number_words):
 
 
 # Carrega o dataset de treinamento
-files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/QGS-ia-txt/complete', encoding="iso-8859-1")
+files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/QGS-ia-txt/metadata', encoding="iso-8859-1")
+#print (files)
 
 # Extrai as palavras e vetoriza o dataset
 tf_vectorizer = CountVectorizer(max_df = max_document_frequency,
