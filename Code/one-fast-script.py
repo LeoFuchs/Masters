@@ -17,12 +17,12 @@ from pyscopus import Scopus
 
 
 # Gera a representação de bag-of-words do QGS
-def bag_of_words(min_df):
+def bag_of_words():
 
     n_gram = (1, 3)
 
     max_document_frequency = 1.0
-    min_document_frequency = min_df
+    min_document_frequency = 0.3
     max_features = None
 
     # Carrega o dataset de treinamento
@@ -63,7 +63,7 @@ def lda_algorithm(tf, lda_iterations):
                                     perp_tol = 0.1,
                                     mean_change_tol = 0.001,
                                     max_doc_update_iter = 100,
-                                    random_state = 0)
+                                    random_state = None)
 
     lda.fit(tf)
 
@@ -106,14 +106,16 @@ def print_string_no_improvement(model, feature_names, number_words, number_topic
   return message
 
 # Imprime a string com a melhoria do word2vec
-def print_string_with_improvement(model, feature_names, number_words, number_topics, similar_words, levenshtein_distance, wiki):
+def print_string_with_improvement(model, feature_names, number_words, number_topics, similar_words, levenshtein_distance):
 
-  #print("String with improvement: <br>")
+  print("String with improvement: <br>")
 
   porter = PorterStemmer()
   lancaster = LancasterStemmer()
 
   word2vec_total_words = 30
+
+  wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
 
   message = ("TITLE-ABS-KEY(")
 
@@ -204,7 +206,7 @@ def scopus_without_improvement(string_no_improvement):
     return int(len(search_df))
 
 # Efetua a busca da string com melhorias no Scopus
-def scopus_with_improvement_1(string_with_improvement):
+def scopus_with_improvement(string_with_improvement):
     results = 5000
 
     key = '56c667e47c588caa7949591daf39d8a0'
@@ -216,39 +218,7 @@ def scopus_with_improvement_1(string_with_improvement):
     pd.options.display.max_rows = 99999
     pd.options.display.max_colwidth = 250
 
-    search_df[['title']].to_csv("ResultWithImprovement1.csv", index_label = False, encoding = 'utf-8', index = False, header = True, sep = '\t')
-
-    return int(len(search_df))
-
-def scopus_with_improvement_2(string_with_improvement):
-    results = 5000
-
-    key = '56c667e47c588caa7949591daf39d8a0'
-    scopus = Scopus(key)
-
-    search_df = scopus.search(string_with_improvement, count=results)
-    #print("Number of results with improvement:", len(search_df))
-
-    pd.options.display.max_rows = 99999
-    pd.options.display.max_colwidth = 250
-
-    search_df[['title']].to_csv("ResultWithImprovement2.csv", index_label = False, encoding = 'utf-8', index = False, header = True, sep = '\t')
-
-    return int(len(search_df))
-
-def scopus_with_improvement_3(string_with_improvement):
-    results = 5000
-
-    key = '56c667e47c588caa7949591daf39d8a0'
-    scopus = Scopus(key)
-
-    search_df = scopus.search(string_with_improvement, count=results)
-    #print("Number of results with improvement:", len(search_df))
-
-    pd.options.display.max_rows = 99999
-    pd.options.display.max_colwidth = 250
-
-    search_df[['title']].to_csv("ResultWithImprovement3.csv", index_label = False, encoding = 'utf-8', index = False, header = True, sep = '\t')
+    search_df[['title']].to_csv("ResultWithImprovement.csv", index_label = False, encoding = 'utf-8', index = False, header = True, sep = '\t')
 
     return int(len(search_df))
 
@@ -257,143 +227,22 @@ def open_files():
 
     QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/QGS.csv', sep='\t')
 
-    result_with_improvement_1 = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithImprovement1.csv',
-                                            sep='\t')
-    result_with_improvement_2 = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithImprovement2.csv',
-                                            sep='\t')
-    result_with_improvement_3 = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithImprovement3.csv',
-                                            sep='\t')
-
+    result_with_improvement = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithImprovement.csv',
+                                          sep='\t')
     result_without_improvement = pd.read_csv(
         '/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithoutImprovement.csv', sep='\t')
 
-    manual_exit_with_improvement_1 = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ExitWithImprovement1.csv', 'w')
-    manual_exit_with_improvement_2 = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ExitWithImprovement2.csv', 'w')
-    manual_exit_with_improvement_3 = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ExitWithImprovement3.csv', 'w')
+    manual_exit_with_improvement = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ExitWithImprovement.csv', 'w')
     manual_exit_without_improvement = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ExitWithoutImprovement.csv',
                                            'w')
 
-    return QGS, result_with_improvement_1, result_with_improvement_2, result_with_improvement_3, result_without_improvement, manual_exit_with_improvement_1, manual_exit_with_improvement_2, manual_exit_with_improvement_3, manual_exit_without_improvement
+    return QGS, result_with_improvement, result_without_improvement, manual_exit_with_improvement, manual_exit_without_improvement
 
 # Efetua o calculo da similaridade para os resultados sem melhoria
-def similarity_with_improvement_1(QGS, result_with_improvement, manual_exit_with_improvement):
+def similarity_with_improvement(QGS, result_with_improvement, manual_exit_with_improvement):
 
     len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/QGS.csv')) - 1
-    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithImprovement1.csv')) - 1
-
-    list_QGS = []
-    list_result = []
-
-    for i in range(0, len_qgs):
-        list_QGS.append(QGS.iloc[i, 0])
-
-    # print("Lista QGS:", list_QGS)
-    # print("Tamanho Lista QGS:", len(list_QGS))
-
-    for i in range(0, len_result):
-        list_result.append(result_with_improvement.iloc[i, 0])
-
-    # print("Lista Resultado:", list_result)
-    # print("Tamanho Lista Resultado:", len(list_result))
-
-    train_set = [list_QGS, list_result]
-    train_set = [val for sublist in train_set for val in sublist]
-
-    # print("Lista train_set:", train_set)
-    # print("Elementos train_set", len(train_set))
-
-    tfidf_vectorizer = TfidfVectorizer(stop_words ='english')
-    tfidf_matrix_train = tfidf_vectorizer.fit_transform(train_set)
-
-    matSimilaridade = cosine_similarity(tfidf_matrix_train[0:len_qgs], tfidf_matrix_train[len_qgs:len_qgs + len_result])
-    lin, col = matSimilaridade.shape
-
-    counter_improvement = 0
-
-    for i in range(0, lin):
-
-        line = matSimilaridade[i]
-        currentNearest = np.argsort(line)[-2:]  # Pega os x - 1 maiores elementos
-
-        line_exit = 'QGS' + str(i + 1) + ':\t\t\t' + list_QGS[i] + '\t' + '\n'
-
-        for j in range(1, len(currentNearest)):
-            book = currentNearest[-j]
-            line_exit = line_exit + '\t\t\t\t' + list_result[book].strip() + '\t' '\n'
-
-        if Levenshtein.distance(list_QGS[i], list_result[book]) < 10:
-            counter_improvement = counter_improvement + 1
-
-        line_exit = line_exit + "\n"
-
-        manual_exit_with_improvement.write(line_exit)
-        manual_exit_with_improvement.flush()
-
-    #print("Number of QGS articles founded (with improvement):", counter_improvement)
-
-    return counter_improvement
-
-def similarity_with_improvement_2(QGS, result_with_improvement, manual_exit_with_improvement):
-
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/QGS.csv')) - 1
-    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithImprovement2.csv')) - 1
-
-    list_QGS = []
-    list_result = []
-
-    for i in range(0, len_qgs):
-        list_QGS.append(QGS.iloc[i, 0])
-
-    # print("Lista QGS:", list_QGS)
-    # print("Tamanho Lista QGS:", len(list_QGS))
-
-    for i in range(0, len_result):
-        list_result.append(result_with_improvement.iloc[i, 0])
-
-    # print("Lista Resultado:", list_result)
-    # print("Tamanho Lista Resultado:", len(list_result))
-
-    train_set = [list_QGS, list_result]
-    train_set = [val for sublist in train_set for val in sublist]
-
-    # print("Lista train_set:", train_set)
-    # print("Elementos train_set", len(train_set))
-
-    tfidf_vectorizer = TfidfVectorizer(stop_words ='english')
-    tfidf_matrix_train = tfidf_vectorizer.fit_transform(train_set)
-
-    matSimilaridade = cosine_similarity(tfidf_matrix_train[0:len_qgs], tfidf_matrix_train[len_qgs:len_qgs + len_result])
-    lin, col = matSimilaridade.shape
-
-    counter_improvement = 0
-
-    for i in range(0, lin):
-
-        line = matSimilaridade[i]
-        currentNearest = np.argsort(line)[-2:]  # Pega os x - 1 maiores elementos
-
-        line_exit = 'QGS' + str(i + 1) + ':\t\t\t' + list_QGS[i] + '\t' + '\n'
-
-        for j in range(1, len(currentNearest)):
-            book = currentNearest[-j]
-            line_exit = line_exit + '\t\t\t\t' + list_result[book].strip() + '\t' '\n'
-
-        if Levenshtein.distance(list_QGS[i], list_result[book]) < 10:
-            counter_improvement = counter_improvement + 1
-
-        line_exit = line_exit + "\n"
-
-        manual_exit_with_improvement.write(line_exit)
-        manual_exit_with_improvement.flush()
-
-    #print("Number of QGS articles founded (with improvement):", counter_improvement)
-
-    return counter_improvement
-
-def similarity_with_improvement_3(QGS, result_with_improvement, manual_exit_with_improvement):
-
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/QGS.csv')) - 1
-    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithImprovement3.csv')) - 1
+    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithImprovement.csv')) - 1
 
     list_QGS = []
     list_result = []
@@ -506,59 +355,36 @@ def similarity_wihout_improvement(QGS, result_without_improvement, manual_exit_w
 
     return counter_no_improvement
 
-min_df = int(input("min_df (0.0 - 0.4): "))
-
+lda_iterations = int(input("LDA Iterations: "))
 number_topics = int(input("LDA Topics: "))
 number_words = int(input("LDA Words: "))
-#similar_words = int(input("Similar Words: "))
 
-levenshtein_distance = 4
-lda_iterations = 5000
-
-#levenshtein_distance = int(input("Levenshtein Distance: "))
-#lda_iterations = int(input("LDA Iterations: "))
+similar_words = int(input("Similar Words: "))
+levenshtein_distance = int(input("Levenshtein Distance: "))
 print("\n")
 
-print("__Metadata from QGS with " + str(number_topics) + " topics and " + str(number_words) + " words__")
+print("__Metadata from QGS with " + str(number_topics) + " topics and " + str(number_words) + " words. Improvement with more " + str(similar_words) + " similar words and Levenshtein distance is " + str(levenshtein_distance) + "__")
 print("\n")
 
-dic, tf = bag_of_words(min_df)
+dic, tf = bag_of_words()
 lda = lda_algorithm(tf, lda_iterations)
 print_top_words(lda, dic, number_words, number_topics)
 
 string_no_improvement = print_string_no_improvement(lda, dic, number_words, number_topics)
 print("\n")
+string_with_improvement = print_string_with_improvement(lda, dic, number_words, number_topics, similar_words, levenshtein_distance)
 
-wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
-
-print("String with improvement with more 1 similar word: <br>")
-string_with_improvement_1 = print_string_with_improvement(lda, dic, number_words, number_topics, 1, levenshtein_distance, wiki)
 print("\n")
-
-print("String with improvement with more 2 similar words: <br>")
-string_with_improvement_2 = print_string_with_improvement(lda, dic, number_words, number_topics, 2, levenshtein_distance, wiki)
-print("\n")
-
-print("String with improvement with more 3 similar words: <br>")
-string_with_improvement_3 = print_string_with_improvement(lda, dic, number_words, number_topics, 3, levenshtein_distance, wiki)
-print("\n")
-
 print("**Results from Scopus Search:**\n")
 
 result_1 = scopus_without_improvement(string_no_improvement)
-result_2 = scopus_with_improvement_1(string_with_improvement_1)
-result_3 = scopus_with_improvement_2(string_with_improvement_2)
-result_4 = scopus_with_improvement_3(string_with_improvement_3)
+result_2 = scopus_with_improvement(string_with_improvement)
 
-#raw_input("...")
+raw_input("...")
 
-QGS, result_with_improvement_1, result_with_improvement_2, result_with_improvement_3, result_without_improvement, manual_exit_with_improvement_1, manual_exit_with_improvement_2, manual_exit_with_improvement_3, manual_exit_without_improvement = open_files()
+QGS, result_with_improvement, result_without_improvement, manual_exit_with_improvement, manual_exit_without_improvement = open_files()
 counter_1 = similarity_wihout_improvement(QGS, result_without_improvement, manual_exit_without_improvement)
-counter_2 = similarity_with_improvement_1(QGS, result_with_improvement_1, manual_exit_with_improvement_1)
-counter_3 = similarity_with_improvement_2(QGS, result_with_improvement_2, manual_exit_with_improvement_2)
-counter_4 = similarity_with_improvement_3(QGS, result_with_improvement_3, manual_exit_with_improvement_3)
+counter_2 = similarity_with_improvement(QGS, result_with_improvement, manual_exit_with_improvement)
 
 print("<font color='red'> **String without improvement**: " + str(result_1) + " results where " + str(counter_1) + " of the 46 QGS articles are present in the search <br>")
-print("**String with improvement (1 similar words)**: " + str(result_2) + " results where " + str(counter_2) + " of the 46 QGS articles are present in the search </font>")
-print("**String with improvement (2 similar words)**: " + str(result_3) + " results where " + str(counter_3) + " of the 46 QGS articles are present in the search </font>")
-print("**String with improvement (3 similar words)**: " + str(result_4) + " results where " + str(counter_4) + " of the 46 QGS articles are present in the search </font>")
+print("**String with improvement**: " + str(result_2) + " results where " + str(counter_2) + " of the 46 QGS articles are present in the search </font>")

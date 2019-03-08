@@ -9,7 +9,7 @@ import wordcloud
 number_topics = 2
 number_words = 5
 max_document_frequency = 1.0
-min_document_frequency = 0.4
+min_document_frequency = 0.02
 ngram = (1, 3)
 max_features = None
 
@@ -44,6 +44,11 @@ tf = tf_vectorizer.fit_transform(files.data)
 
 # Salva os nomes das palavras em um dicionário
 dic = tf_vectorizer.get_feature_names()
+
+print(len(dic))
+print(dic)
+
+# random_state = 1
 
 # Executa o LDA e treina-o
 lda = LatentDirichletAllocation(n_components = number_topics,
