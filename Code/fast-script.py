@@ -194,7 +194,7 @@ def scopus_without_improvement(string_no_improvement):
     scopus = Scopus(key)
 
     search_df = scopus.search(string_no_improvement, count=results)
-    #print("Number of results without improvement:", len(search_df))
+    print("Number of results without improvement:", len(search_df))
 
     pd.options.display.max_rows = 99999
     pd.options.display.max_colwidth = 250
