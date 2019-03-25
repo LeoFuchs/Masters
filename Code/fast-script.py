@@ -129,10 +129,10 @@ def print_string_with_improvement(model, feature_names, number_words, number_top
         if " " not in feature_names[i]:
             similar_word = wiki.most_similar(positive = feature_names[i], topn = word2vec_total_words)
             similar_word = [j[0] for j in similar_word]
-            #print("Similar word:", similar_word)
+            print("Similar word:", similar_word)
 
             stem_feature_names = lancaster.stem(feature_names[i])
-            #print("Stem feature names:", stem_feature_names)
+            print("Stem feature names:", stem_feature_names)
 
             stem_similar_word = []
 
@@ -141,7 +141,7 @@ def print_string_with_improvement(model, feature_names, number_words, number_top
 
             for j in similar_word:
                 stem_similar_word.append(lancaster.stem(j))
-            #print("Stem Similar Word:", stem_similar_word)
+            print("Stem Similar Word:", stem_similar_word)
 
             for number, word in enumerate(stem_similar_word):
                 if stem_feature_names != word and Levenshtein.distance(stem_feature_names, word) > levenshtein_distance:
@@ -156,9 +156,9 @@ def print_string_with_improvement(model, feature_names, number_words, number_top
                         final_stem_similar_word.append(word)
                         final_similar_word.append(similar_word[number])
 
-            #print("Final Stem Similar Word:", final_stem_similar_word)
-            #print("Final Similar Word:", final_similar_word)
-            #print("\n\n\n")
+            print("Final Stem Similar Word:", final_stem_similar_word)
+            print("Final Similar Word:", final_similar_word)
+            print("\n\n\n")
 
         message += "(\""
         message += "\" - \"".join([feature_names[i]])
