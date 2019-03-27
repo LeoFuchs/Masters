@@ -26,7 +26,7 @@ def bag_of_words():
     max_features = None
 
     # Carrega o dataset de treinamento
-    files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/QGS-ia-txt/metadata', encoding="iso-8859-1")
+    files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-ia/QGS-txt/metadata', encoding="iso-8859-1")
 
     # Extrai as palavras e vetoriza o dataset
     tf_vectorizer = CountVectorizer(max_df = max_document_frequency,
@@ -227,13 +227,13 @@ def open_files():
 
     QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/QGS.csv', sep='\t')
 
-    result_with_improvement = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithImprovement.csv',
+    result_with_improvement = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement.csv',
                                           sep='\t')
     result_without_improvement = pd.read_csv(
-        '/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithoutImprovement.csv', sep='\t')
+        '/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithoutImprovement.csv', sep='\t')
 
-    manual_exit_with_improvement = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ExitWithImprovement.csv', 'w')
-    manual_exit_without_improvement = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ExitWithoutImprovement.csv',
+    manual_exit_with_improvement = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ExitWithImprovement.csv', 'w')
+    manual_exit_without_improvement = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ExitWithoutImprovement.csv',
                                            'w')
 
     return QGS, result_with_improvement, result_without_improvement, manual_exit_with_improvement, manual_exit_without_improvement
@@ -242,7 +242,7 @@ def open_files():
 def similarity_with_improvement(QGS, result_with_improvement, manual_exit_with_improvement):
 
     len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/QGS.csv')) - 1
-    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithImprovement.csv')) - 1
+    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement.csv')) - 1
 
     list_QGS = []
     list_result = []
@@ -301,7 +301,7 @@ def similarity_wihout_improvement(QGS, result_without_improvement, manual_exit_w
 
     len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/QGS.csv')) - 1
 
-    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithoutImprovement.csv')) - 1
+    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithoutImprovement.csv')) - 1
 
     list_qgs = []
     list_result = []

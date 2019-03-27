@@ -25,8 +25,8 @@ def bag_of_words(min_df):
     min_document_frequency = min_df
     max_features = None
 
-    # Carrega o dataset de treinamento
-    files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/QGS-ia-txt/metadata', encoding="iso-8859-1")
+    # Carrega o dataset de treinamento (Está sempre na pasta Files-QGS)
+    files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-ia/QGS-txt/metadata', encoding="iso-8859-1")
 
     # Extrai as palavras e vetoriza o dataset
     tf_vectorizer = CountVectorizer(max_df = max_document_frequency,
@@ -129,10 +129,10 @@ def print_string_with_improvement(model, feature_names, number_words, number_top
         if " " not in feature_names[i]:
             similar_word = wiki.most_similar(positive = feature_names[i], topn = word2vec_total_words)
             similar_word = [j[0] for j in similar_word]
-            print("Similar word:", similar_word)
+            #print("Similar word:", similar_word)
 
             stem_feature_names = lancaster.stem(feature_names[i])
-            print("Stem feature names:", stem_feature_names)
+            #print("Stem feature names:", stem_feature_names)
 
             stem_similar_word = []
 
@@ -141,7 +141,7 @@ def print_string_with_improvement(model, feature_names, number_words, number_top
 
             for j in similar_word:
                 stem_similar_word.append(lancaster.stem(j))
-            print("Stem Similar Word:", stem_similar_word)
+            #print("Stem Similar Word:", stem_similar_word)
 
             for number, word in enumerate(stem_similar_word):
                 if stem_feature_names != word and Levenshtein.distance(stem_feature_names, word) > levenshtein_distance:
@@ -156,9 +156,9 @@ def print_string_with_improvement(model, feature_names, number_words, number_top
                         final_stem_similar_word.append(word)
                         final_similar_word.append(similar_word[number])
 
-            print("Final Stem Similar Word:", final_stem_similar_word)
-            print("Final Similar Word:", final_similar_word)
-            print("\n\n\n")
+            #print("Final Stem Similar Word:", final_stem_similar_word)
+            #print("Final Similar Word:", final_similar_word)
+            #print("\n\n\n")
 
         message += "(\""
         message += "\" - \"".join([feature_names[i]])
@@ -188,98 +188,94 @@ def print_string_with_improvement(model, feature_names, number_words, number_top
 
 # Efetua a busca da string sem melhorias no Scopus
 def scopus_without_improvement(string_no_improvement):
-    results = 5000
 
+    results = 5000
     key = '56c667e47c588caa7949591daf39d8a0'
     scopus = Scopus(key)
 
-    search_df = scopus.search(string_no_improvement, count=results)
-    print("Number of results without improvement:", len(search_df))
+    search_df = scopus.search(string_no_improvement, count = results, view = 'STANDARD', type_ = 1)
+    #print("Number of results without improvement:", len(search_df))
 
     pd.options.display.max_rows = 99999
     pd.options.display.max_colwidth = 250
 
-    search_df[['title']].to_csv("ResultWithoutImprovement.csv", index_label = False, encoding ='utf-8', index = False, header = True, sep = '\t')
+    search_df[['title']].to_csv("/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithoutImprovement.csv", index_label = False, encoding ='utf-8', index = False, header = True, sep = '\t')
 
     return int(len(search_df))
 
-# Efetua a busca da string com melhorias no Scopus
+# Efetua a busca da string com 1 melhoria no Scopus
 def scopus_with_improvement_1(string_with_improvement):
     results = 5000
 
     key = '56c667e47c588caa7949591daf39d8a0'
     scopus = Scopus(key)
 
-    search_df = scopus.search(string_with_improvement, count=results)
+    search_df = scopus.search(string_with_improvement, count = results, view = 'STANDARD', type_= 1)
     #print("Number of results with improvement:", len(search_df))
 
     pd.options.display.max_rows = 99999
     pd.options.display.max_colwidth = 250
 
-    search_df[['title']].to_csv("ResultWithImprovement1.csv", index_label = False, encoding = 'utf-8', index = False, header = True, sep = '\t')
+    search_df[['title']].to_csv("/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement1.csv", index_label = False, encoding = 'utf-8', index = False, header = True, sep = '\t')
 
     return int(len(search_df))
 
+# Efetua a busca da string com 2 melhorias no Scopus
 def scopus_with_improvement_2(string_with_improvement):
     results = 5000
 
     key = '56c667e47c588caa7949591daf39d8a0'
     scopus = Scopus(key)
 
-    search_df = scopus.search(string_with_improvement, count=results)
+    search_df = scopus.search(string_with_improvement, count = results, view = 'STANDARD', type_= 1)
     #print("Number of results with improvement:", len(search_df))
 
     pd.options.display.max_rows = 99999
     pd.options.display.max_colwidth = 250
 
-    search_df[['title']].to_csv("ResultWithImprovement2.csv", index_label = False, encoding = 'utf-8', index = False, header = True, sep = '\t')
+    search_df[['title']].to_csv("/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement2.csv", index_label = False, encoding = 'utf-8', index = False, header = True, sep = '\t')
 
     return int(len(search_df))
 
+# Efetua a busca da string com 3 melhorias no Scopus
 def scopus_with_improvement_3(string_with_improvement):
     results = 5000
 
     key = '56c667e47c588caa7949591daf39d8a0'
     scopus = Scopus(key)
 
-    search_df = scopus.search(string_with_improvement, count=results)
+    search_df = scopus.search(string_with_improvement, count = results, view = 'STANDARD', type_= 1)
     #print("Number of results with improvement:", len(search_df))
 
     pd.options.display.max_rows = 99999
     pd.options.display.max_colwidth = 250
 
-    search_df[['title']].to_csv("ResultWithImprovement3.csv", index_label = False, encoding = 'utf-8', index = False, header = True, sep = '\t')
+    search_df[['title']].to_csv("/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement3.csv", index_label = False, encoding = 'utf-8', index = False, header = True, sep = '\t')
 
     return int(len(search_df))
 
 # Abre os arquivos que serão utilizados
 def open_files():
 
-    QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/QGS.csv', sep='\t')
+    QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-ia/QGS.csv', sep='\t')
 
-    result_with_improvement_1 = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithImprovement1.csv',
-                                            sep='\t')
-    result_with_improvement_2 = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithImprovement2.csv',
-                                            sep='\t')
-    result_with_improvement_3 = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithImprovement3.csv',
-                                            sep='\t')
+    result_with_improvement_1 = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement1.csv', sep='\t')
+    result_with_improvement_2 = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement2.csv', sep='\t')
+    result_with_improvement_3 = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement3.csv', sep='\t')
+    result_without_improvement = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithoutImprovement.csv', sep='\t')
 
-    result_without_improvement = pd.read_csv(
-        '/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithoutImprovement.csv', sep='\t')
-
-    manual_exit_with_improvement_1 = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ExitWithImprovement1.csv', 'w')
-    manual_exit_with_improvement_2 = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ExitWithImprovement2.csv', 'w')
-    manual_exit_with_improvement_3 = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ExitWithImprovement3.csv', 'w')
-    manual_exit_without_improvement = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ExitWithoutImprovement.csv',
-                                           'w')
+    manual_exit_with_improvement_1 = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ExitWithImprovement1.csv', 'w')
+    manual_exit_with_improvement_2 = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ExitWithImprovement2.csv', 'w')
+    manual_exit_with_improvement_3 = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ExitWithImprovement3.csv', 'w')
+    manual_exit_without_improvement = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ExitWithoutImprovement.csv','w')
 
     return QGS, result_with_improvement_1, result_with_improvement_2, result_with_improvement_3, result_without_improvement, manual_exit_with_improvement_1, manual_exit_with_improvement_2, manual_exit_with_improvement_3, manual_exit_without_improvement
 
-# Efetua o calculo da similaridade para os resultados sem melhoria
+# Efetua o calculo da similaridade para os resultados com 1 melhoria
 def similarity_with_improvement_1(QGS, result_with_improvement, manual_exit_with_improvement):
 
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/QGS.csv')) - 1
-    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithImprovement1.csv')) - 1
+    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-ia/QGS.csv')) - 1
+    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement1.csv')) - 1
 
     list_QGS = []
     list_result = []
@@ -302,7 +298,7 @@ def similarity_with_improvement_1(QGS, result_with_improvement, manual_exit_with
     # print("Lista train_set:", train_set)
     # print("Elementos train_set", len(train_set))
 
-    tfidf_vectorizer = TfidfVectorizer(stop_words ='english')
+    tfidf_vectorizer = TfidfVectorizer()
     tfidf_matrix_train = tfidf_vectorizer.fit_transform(train_set)
 
     matSimilaridade = cosine_similarity(tfidf_matrix_train[0:len_qgs], tfidf_matrix_train[len_qgs:len_qgs + len_result])
@@ -333,10 +329,11 @@ def similarity_with_improvement_1(QGS, result_with_improvement, manual_exit_with
 
     return counter_improvement
 
+# Efetua o calculo da similaridade para os resultados com 2 melhorias
 def similarity_with_improvement_2(QGS, result_with_improvement, manual_exit_with_improvement):
 
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/QGS.csv')) - 1
-    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithImprovement2.csv')) - 1
+    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-ia/QGS.csv')) - 1
+    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement2.csv')) - 1
 
     list_QGS = []
     list_result = []
@@ -359,7 +356,7 @@ def similarity_with_improvement_2(QGS, result_with_improvement, manual_exit_with
     # print("Lista train_set:", train_set)
     # print("Elementos train_set", len(train_set))
 
-    tfidf_vectorizer = TfidfVectorizer(stop_words ='english')
+    tfidf_vectorizer = TfidfVectorizer()
     tfidf_matrix_train = tfidf_vectorizer.fit_transform(train_set)
 
     matSimilaridade = cosine_similarity(tfidf_matrix_train[0:len_qgs], tfidf_matrix_train[len_qgs:len_qgs + len_result])
@@ -390,10 +387,11 @@ def similarity_with_improvement_2(QGS, result_with_improvement, manual_exit_with
 
     return counter_improvement
 
+# Efetua o calculo da similaridade para os resultados com 3 melhorias
 def similarity_with_improvement_3(QGS, result_with_improvement, manual_exit_with_improvement):
 
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/QGS.csv')) - 1
-    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithImprovement3.csv')) - 1
+    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-ia/QGS.csv')) - 1
+    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement3.csv')) - 1
 
     list_QGS = []
     list_result = []
@@ -416,7 +414,7 @@ def similarity_with_improvement_3(QGS, result_with_improvement, manual_exit_with
     # print("Lista train_set:", train_set)
     # print("Elementos train_set", len(train_set))
 
-    tfidf_vectorizer = TfidfVectorizer(stop_words ='english')
+    tfidf_vectorizer = TfidfVectorizer()
     tfidf_matrix_train = tfidf_vectorizer.fit_transform(train_set)
 
     matSimilaridade = cosine_similarity(tfidf_matrix_train[0:len_qgs], tfidf_matrix_train[len_qgs:len_qgs + len_result])
@@ -447,12 +445,13 @@ def similarity_with_improvement_3(QGS, result_with_improvement, manual_exit_with
 
     return counter_improvement
 
-# Efetua o calculo da similaridade para os resultados com melhoria
+# Efetua o calculo da similaridade para os resultados sem melhoria
 def similarity_wihout_improvement(QGS, result_without_improvement, manual_exit_without_improvement):
 
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/QGS.csv')) - 1
+    global book
+    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-ia/QGS.csv')) - 1
 
-    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/ResultWithoutImprovement.csv')) - 1
+    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithoutImprovement.csv')) - 1
 
     list_qgs = []
     list_result = []
@@ -466,16 +465,16 @@ def similarity_wihout_improvement(QGS, result_without_improvement, manual_exit_w
     for i in range(0, len_result):
         list_result.append(result_without_improvement.iloc[i, 0])
 
-    # print("Lista Resultado:", list_result)
-    # print("Tamanho Lista Resultado:", len(list_result))
+    #print("Lista Resultado:", list_result)
+    #print("Tamanho Lista Resultado:", len(list_result))
 
     train_set = [list_qgs, list_result]
     train_set = [val for sublist in train_set for val in sublist]
 
-    # print("Lista train_set:", train_set)
-    # print("Elementos train_set", len(train_set))
+    #print("Lista train_set:", train_set)
+    #print("Elementos train_set", len(train_set))
 
-    tfidf_vectorizer = TfidfVectorizer(stop_words ='english')
+    tfidf_vectorizer = TfidfVectorizer()
     tfidf_matrix_train = tfidf_vectorizer.fit_transform(train_set)
 
     matSimilaridade = cosine_similarity(tfidf_matrix_train[0:len_qgs], tfidf_matrix_train[len_qgs:len_qgs + len_result])
@@ -506,17 +505,20 @@ def similarity_wihout_improvement(QGS, result_without_improvement, manual_exit_w
 
     return counter_no_improvement
 
-min_df = int(input("min_df (0.0 - 0.4): "))
+# MAIN
+
+min_df = float(input("min_df (0.0 - 0.4): "))
 
 number_topics = int(input("LDA Topics: "))
 number_words = int(input("LDA Words: "))
+
 #similar_words = int(input("Similar Words: "))
+#levenshtein_distance = int(input("Levenshtein Distance: "))
+#lda_iterations = int(input("LDA Iterations: "))
 
 levenshtein_distance = 4
 lda_iterations = 5000
 
-#levenshtein_distance = int(input("Levenshtein Distance: "))
-#lda_iterations = int(input("LDA Iterations: "))
 print("\n")
 
 print("__Metadata from QGS with " + str(number_topics) + " topics and " + str(number_words) + " words__")
