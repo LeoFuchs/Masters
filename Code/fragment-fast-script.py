@@ -3,6 +3,8 @@ import gensim
 import Levenshtein
 import pandas as pd
 import numpy as np
+import os
+import glob
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
@@ -26,7 +28,18 @@ def bag_of_words(min_df):
     max_features = None
 
     # Carrega o dataset de treinamento (Está sempre na pasta Files-QGS)
-    files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-chico/QGS-txt/metadata', encoding="iso-8859-1")
+
+    file_list = glob.glob(os.path.join(os.getcwd(), '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-chico/QGS-txt/metadatas/txt', "*.txt"))
+
+    corpus = []
+
+    for file_path in file_list:
+        with open(file_path) as f_input:
+            corpus.append(f_input.readlines())
+
+    corpusList = [item for sublist in corpus for item in sublist]
+
+    print(corpusList)
 
     # Extrai as palavras e vetoriza o dataset
     tf_vectorizer = CountVectorizer(max_df = max_document_frequency,
@@ -35,7 +48,7 @@ def bag_of_words(min_df):
                                     max_features = max_features,
                                     stop_words = 'english')
 
-    tf = tf_vectorizer.fit_transform(files.data)
+    tf = tf_vectorizer.fit_transform(corpusList)
 
     # Salva os nomes das palavras em um dicionário
     dic = tf_vectorizer.get_feature_names()
@@ -63,7 +76,7 @@ def lda_algorithm(tf, lda_iterations):
                                     perp_tol = 0.1,
                                     mean_change_tol = 0.001,
                                     max_doc_update_iter = 100,
-                                    random_state = 0)
+                                    random_state = None)
 
     lda.fit(tf)
 
@@ -564,3 +577,4 @@ print("<font color='red'> **String without improvement**: " + str(result_1) + " 
 print("**String with improvement (1 similar words)**: " + str(result_2) + " results where " + str(counter_2) + " of the 46 QGS articles are present in the search </font>")
 print("**String with improvement (2 similar words)**: " + str(result_3) + " results where " + str(counter_3) + " of the 46 QGS articles are present in the search </font>")
 print("**String with improvement (3 similar words)**: " + str(result_4) + " results where " + str(counter_4) + " of the 46 QGS articles are present in the search </font>")
+
