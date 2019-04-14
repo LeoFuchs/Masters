@@ -26,7 +26,7 @@ def bag_of_words(min_df):
     max_features = None
 
     # Carrega o dataset de treinamento (Está sempre na pasta Files-QGS)
-    files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-chico/QGS-txt/metadata', encoding="iso-8859-1")
+    files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-menezes/QGS-txt/metadata', encoding="iso-8859-1")
 
     # Extrai as palavras e vetoriza o dataset
     tf_vectorizer = CountVectorizer(max_df = max_document_frequency,
@@ -257,7 +257,7 @@ def scopus_with_improvement_3(string_with_improvement):
 # Abre os arquivos que serão utilizados
 def open_files():
 
-    QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-chico/QGS.csv', sep='\t')
+    QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-menezes/QGS.csv', sep='\t')
 
     result_with_improvement_1 = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement1.csv', sep='\t')
     result_with_improvement_2 = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement2.csv', sep='\t')
@@ -274,7 +274,7 @@ def open_files():
 # Efetua o calculo da similaridade para os resultados com 1 melhoria
 def similarity_with_improvement_1(QGS, result_with_improvement, manual_exit_with_improvement):
 
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-chico/QGS.csv')) - 1
+    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-menezes/QGS.csv')) - 1
     len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement1.csv')) - 1
 
     list_QGS = []
@@ -317,8 +317,8 @@ def similarity_with_improvement_1(QGS, result_with_improvement, manual_exit_with
             book = currentNearest[-j]
             line_exit = line_exit + '\t\t\t\t' + list_result[book].strip() + '\t' '\n'
 
-        if Levenshtein.distance(list_QGS[i], list_result[book]) < 10:
-            counter_improvement = counter_improvement + 1
+            if Levenshtein.distance(list_QGS[i], list_result[book]) < 10:
+                counter_improvement = counter_improvement + 1
 
         line_exit = line_exit + "\n"
 
@@ -332,7 +332,7 @@ def similarity_with_improvement_1(QGS, result_with_improvement, manual_exit_with
 # Efetua o calculo da similaridade para os resultados com 2 melhorias
 def similarity_with_improvement_2(QGS, result_with_improvement, manual_exit_with_improvement):
 
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-chico/QGS.csv')) - 1
+    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-menezes/QGS.csv')) - 1
     len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement2.csv')) - 1
 
     list_QGS = []
@@ -375,8 +375,8 @@ def similarity_with_improvement_2(QGS, result_with_improvement, manual_exit_with
             book = currentNearest[-j]
             line_exit = line_exit + '\t\t\t\t' + list_result[book].strip() + '\t' '\n'
 
-        if Levenshtein.distance(list_QGS[i], list_result[book]) < 10:
-            counter_improvement = counter_improvement + 1
+            if Levenshtein.distance(list_QGS[i], list_result[book]) < 10:
+                counter_improvement = counter_improvement + 1
 
         line_exit = line_exit + "\n"
 
@@ -390,7 +390,7 @@ def similarity_with_improvement_2(QGS, result_with_improvement, manual_exit_with
 # Efetua o calculo da similaridade para os resultados com 3 melhorias
 def similarity_with_improvement_3(QGS, result_with_improvement, manual_exit_with_improvement):
 
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-chico/QGS.csv')) - 1
+    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-menezes/QGS.csv')) - 1
     len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement3.csv')) - 1
 
     list_QGS = []
@@ -433,8 +433,8 @@ def similarity_with_improvement_3(QGS, result_with_improvement, manual_exit_with
             book = currentNearest[-j]
             line_exit = line_exit + '\t\t\t\t' + list_result[book].strip() + '\t' '\n'
 
-        if Levenshtein.distance(list_QGS[i], list_result[book]) < 10:
-            counter_improvement = counter_improvement + 1
+            if Levenshtein.distance(list_QGS[i], list_result[book]) < 10:
+                counter_improvement = counter_improvement + 1
 
         line_exit = line_exit + "\n"
 
@@ -449,7 +449,7 @@ def similarity_with_improvement_3(QGS, result_with_improvement, manual_exit_with
 def similarity_wihout_improvement(QGS, result_without_improvement, manual_exit_without_improvement):
 
     global book
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-chico/QGS.csv')) - 1
+    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-menezes/QGS.csv')) - 1
 
     len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithoutImprovement.csv')) - 1
 
@@ -493,8 +493,8 @@ def similarity_wihout_improvement(QGS, result_without_improvement, manual_exit_w
             book = currentNearest[-j]
             line_exit = line_exit + '\t\t\t\t' + list_result[book].strip() + '\t' '\n'
 
-        if Levenshtein.distance(list_qgs[i], list_result[book]) < 10:
-            counter_no_improvement = counter_no_improvement + 1
+            if Levenshtein.distance(list_qgs[i], list_result[book]) < 10:
+                counter_no_improvement = counter_no_improvement + 1
 
         line_exit = line_exit + "\n"
 

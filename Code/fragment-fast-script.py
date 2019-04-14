@@ -39,7 +39,7 @@ def bag_of_words(min_df):
 
     corpusList = [item for sublist in corpus for item in sublist]
 
-    print(corpusList)
+    #print(corpusList)
 
     # Extrai as palavras e vetoriza o dataset
     tf_vectorizer = CountVectorizer(max_df = max_document_frequency,
@@ -76,7 +76,7 @@ def lda_algorithm(tf, lda_iterations):
                                     perp_tol = 0.1,
                                     mean_change_tol = 0.001,
                                     max_doc_update_iter = 100,
-                                    random_state = None)
+                                    random_state = 0)
 
     lda.fit(tf)
 
@@ -140,38 +140,39 @@ def print_string_with_improvement(model, feature_names, number_words, number_top
         counter = counter + 1
 
         if " " not in feature_names[i]:
-            similar_word = wiki.most_similar(positive = feature_names[i], topn = word2vec_total_words)
-            similar_word = [j[0] for j in similar_word]
-            #print("Similar word:", similar_word)
+            if feature_names[i] != "gqm" and feature_names[i] != "cmmi":
+                similar_word = wiki.most_similar(positive = feature_names[i], topn = word2vec_total_words)
+                similar_word = [j[0] for j in similar_word]
+                #print("Similar word:", similar_word)
 
-            stem_feature_names = lancaster.stem(feature_names[i])
-            #print("Stem feature names:", stem_feature_names)
+                stem_feature_names = lancaster.stem(feature_names[i])
+                #print("Stem feature names:", stem_feature_names)
 
-            stem_similar_word = []
+                stem_similar_word = []
 
-            final_stem_similar_word = []
-            final_similar_word = []
+                final_stem_similar_word = []
+                final_similar_word = []
 
-            for j in similar_word:
-                stem_similar_word.append(lancaster.stem(j))
-            #print("Stem Similar Word:", stem_similar_word)
+                for j in similar_word:
+                    stem_similar_word.append(lancaster.stem(j))
+                #print("Stem Similar Word:", stem_similar_word)
 
-            for number, word in enumerate(stem_similar_word):
-                if stem_feature_names != word and Levenshtein.distance(stem_feature_names, word) > levenshtein_distance:
+                for number, word in enumerate(stem_similar_word):
+                    if stem_feature_names != word and Levenshtein.distance(stem_feature_names, word) > levenshtein_distance:
 
-                    irrelevant = 0
+                        irrelevant = 0
 
-                    for k in final_stem_similar_word:
-                        if Levenshtein.distance(k, word) < levenshtein_distance:
-                            irrelevant = 1
+                        for k in final_stem_similar_word:
+                            if Levenshtein.distance(k, word) < levenshtein_distance:
+                                irrelevant = 1
 
-                    if irrelevant == 0:
-                        final_stem_similar_word.append(word)
-                        final_similar_word.append(similar_word[number])
+                        if irrelevant == 0:
+                            final_stem_similar_word.append(word)
+                            final_similar_word.append(similar_word[number])
 
-            #print("Final Stem Similar Word:", final_stem_similar_word)
-            #print("Final Similar Word:", final_similar_word)
-            #print("\n\n\n")
+                #print("Final Stem Similar Word:", final_stem_similar_word)
+                #print("Final Similar Word:", final_similar_word)
+                #print("\n\n\n")
 
         message += "(\""
         message += "\" - \"".join([feature_names[i]])
@@ -330,8 +331,8 @@ def similarity_with_improvement_1(QGS, result_with_improvement, manual_exit_with
             book = currentNearest[-j]
             line_exit = line_exit + '\t\t\t\t' + list_result[book].strip() + '\t' '\n'
 
-        if Levenshtein.distance(list_QGS[i], list_result[book]) < 10:
-            counter_improvement = counter_improvement + 1
+            if Levenshtein.distance(list_QGS[i], list_result[book]) < 10:
+                counter_improvement = counter_improvement + 1
 
         line_exit = line_exit + "\n"
 
@@ -388,8 +389,8 @@ def similarity_with_improvement_2(QGS, result_with_improvement, manual_exit_with
             book = currentNearest[-j]
             line_exit = line_exit + '\t\t\t\t' + list_result[book].strip() + '\t' '\n'
 
-        if Levenshtein.distance(list_QGS[i], list_result[book]) < 10:
-            counter_improvement = counter_improvement + 1
+            if Levenshtein.distance(list_QGS[i], list_result[book]) < 10:
+                counter_improvement = counter_improvement + 1
 
         line_exit = line_exit + "\n"
 
@@ -446,8 +447,8 @@ def similarity_with_improvement_3(QGS, result_with_improvement, manual_exit_with
             book = currentNearest[-j]
             line_exit = line_exit + '\t\t\t\t' + list_result[book].strip() + '\t' '\n'
 
-        if Levenshtein.distance(list_QGS[i], list_result[book]) < 10:
-            counter_improvement = counter_improvement + 1
+            if Levenshtein.distance(list_QGS[i], list_result[book]) < 10:
+                counter_improvement = counter_improvement + 1
 
         line_exit = line_exit + "\n"
 
@@ -461,7 +462,6 @@ def similarity_with_improvement_3(QGS, result_with_improvement, manual_exit_with
 # Efetua o calculo da similaridade para os resultados sem melhoria
 def similarity_wihout_improvement(QGS, result_without_improvement, manual_exit_without_improvement):
 
-    global book
     len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-chico/QGS.csv')) - 1
 
     len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithoutImprovement.csv')) - 1
@@ -506,8 +506,8 @@ def similarity_wihout_improvement(QGS, result_without_improvement, manual_exit_w
             book = currentNearest[-j]
             line_exit = line_exit + '\t\t\t\t' + list_result[book].strip() + '\t' '\n'
 
-        if Levenshtein.distance(list_qgs[i], list_result[book]) < 10:
-            counter_no_improvement = counter_no_improvement + 1
+            if Levenshtein.distance(list_qgs[i], list_result[book]) < 10:
+                counter_no_improvement = counter_no_improvement + 1
 
         line_exit = line_exit + "\n"
 
@@ -520,7 +520,8 @@ def similarity_wihout_improvement(QGS, result_without_improvement, manual_exit_w
 
 # MAIN
 
-min_df = float(input("min_df (0.0 - 0.4): "))
+#min_df = float(input("min_df (0.0 - 0.4): "))
+min_df = 0.2
 
 number_topics = int(input("LDA Topics: "))
 number_words = int(input("LDA Words: "))
