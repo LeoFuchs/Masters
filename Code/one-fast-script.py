@@ -22,7 +22,7 @@ def bag_of_words():
     n_gram = (1, 3)
 
     max_document_frequency = 1.0
-    min_document_frequency = 0.3
+    min_document_frequency = 0.4
     max_features = None
 
     # Carrega o dataset de treinamento
@@ -284,8 +284,8 @@ def similarity_with_improvement(QGS, result_with_improvement, manual_exit_with_i
             book = currentNearest[-j]
             line_exit = line_exit + '\t\t\t\t' + list_result[book].strip() + '\t' '\n'
 
-        if Levenshtein.distance(list_QGS[i], list_result[book]) < 10:
-            counter_improvement = counter_improvement + 1
+            if Levenshtein.distance(list_QGS[i], list_result[book]) < 10:
+                counter_improvement = counter_improvement + 1
 
         line_exit = line_exit + "\n"
 
@@ -343,8 +343,8 @@ def similarity_wihout_improvement(QGS, result_without_improvement, manual_exit_w
             book = currentNearest[-j]
             line_exit = line_exit + '\t\t\t\t' + list_result[book].strip() + '\t' '\n'
 
-        if Levenshtein.distance(list_qgs[i], list_result[book]) < 10:
-            counter_no_improvement = counter_no_improvement + 1
+            if Levenshtein.distance(list_qgs[i], list_result[book]) < 10:
+                counter_no_improvement = counter_no_improvement + 1
 
         line_exit = line_exit + "\n"
 
