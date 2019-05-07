@@ -26,7 +26,7 @@ def bag_of_words(min_df):
     max_features = None
 
     # Carrega o dataset de treinamento (Está sempre na pasta Files-QGS)
-    files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-rahman/QGS-txt/metadata', encoding="iso-8859-1")
+    files = load_files(container_path = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-tofan/QGS-txt/metadata', encoding="iso-8859-1")
 
     # Extrai as palavras e vetoriza o dataset
     tf_vectorizer = CountVectorizer(max_df = max_document_frequency,
@@ -257,12 +257,17 @@ def scopus_with_improvement_3(string_with_improvement):
 # Abre os arquivos que serão utilizados
 def open_files():
 
-    QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-rahman/QGS.csv', sep='\t')
+    QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-tofan/QGS.csv', sep='\t')
 
     result_with_improvement_1 = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement1.csv', sep='\t')
     result_with_improvement_2 = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement2.csv', sep='\t')
     result_with_improvement_3 = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement3.csv', sep='\t')
     result_without_improvement = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithoutImprovement.csv', sep='\t')
+
+    result_with_improvement_1 = result_with_improvement_1.fillna(' ')
+    result_with_improvement_2 = result_with_improvement_2.fillna(' ')
+    result_with_improvement_3 = result_with_improvement_3.fillna(' ')
+    result_without_improvement = result_without_improvement.fillna(' ')
 
     manual_exit_with_improvement_1 = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ExitWithImprovement1.csv', 'w')
     manual_exit_with_improvement_2 = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ExitWithImprovement2.csv', 'w')
@@ -274,7 +279,7 @@ def open_files():
 # Efetua o calculo da similaridade para os resultados com 1 melhoria
 def similarity_with_improvement_1(QGS, result_with_improvement, manual_exit_with_improvement):
 
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-rahman/QGS.csv')) - 1
+    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-tofan/QGS.csv')) - 1
     len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement1.csv')) - 1
 
     list_QGS = []
@@ -332,7 +337,7 @@ def similarity_with_improvement_1(QGS, result_with_improvement, manual_exit_with
 # Efetua o calculo da similaridade para os resultados com 2 melhorias
 def similarity_with_improvement_2(QGS, result_with_improvement, manual_exit_with_improvement):
 
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-rahman/QGS.csv')) - 1
+    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-tofan/QGS.csv')) - 1
     len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement2.csv')) - 1
 
     list_QGS = []
@@ -390,7 +395,7 @@ def similarity_with_improvement_2(QGS, result_with_improvement, manual_exit_with
 # Efetua o calculo da similaridade para os resultados com 3 melhorias
 def similarity_with_improvement_3(QGS, result_with_improvement, manual_exit_with_improvement):
 
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-rahman/QGS.csv')) - 1
+    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-tofan/QGS.csv')) - 1
     len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithImprovement3.csv')) - 1
 
     list_QGS = []
@@ -449,7 +454,7 @@ def similarity_with_improvement_3(QGS, result_with_improvement, manual_exit_with
 def similarity_wihout_improvement(QGS, result_without_improvement, manual_exit_without_improvement):
 
     global book
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-rahman/QGS.csv')) - 1
+    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-tofan/QGS.csv')) - 1
 
     len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ResultWithoutImprovement.csv')) - 1
 
@@ -560,7 +565,7 @@ counter_2 = similarity_with_improvement_1(QGS, result_with_improvement_1, manual
 counter_3 = similarity_with_improvement_2(QGS, result_with_improvement_2, manual_exit_with_improvement_2)
 counter_4 = similarity_with_improvement_3(QGS, result_with_improvement_3, manual_exit_with_improvement_3)
 
-print("<font color='red'> **String without improvement**: " + str(result_1) + " results where " + str(counter_1) + " of the 46 QGS articles are present in the search <br>")
-print("**String with improvement (1 similar words)**: " + str(result_2) + " results where " + str(counter_2) + " of the 46 QGS articles are present in the search </font>")
-print("**String with improvement (2 similar words)**: " + str(result_3) + " results where " + str(counter_3) + " of the 46 QGS articles are present in the search </font>")
-print("**String with improvement (3 similar words)**: " + str(result_4) + " results where " + str(counter_4) + " of the 46 QGS articles are present in the search </font>")
+print("<font color='red'> **String without improvement**: " + str(result_1) + " results where " + str(counter_1) + " of the 40 QGS articles are present in the search <br>")
+print("**String with improvement (1 similar words)**: " + str(result_2) + " results where " + str(counter_2) + " of the 40 QGS articles are present in the search </font>")
+print("**String with improvement (2 similar words)**: " + str(result_3) + " results where " + str(counter_3) + " of the 40 QGS articles are present in the search </font>")
+print("**String with improvement (3 similar words)**: " + str(result_4) + " results where " + str(counter_4) + " of the 40 QGS articles are present in the search </font>")
