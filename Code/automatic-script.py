@@ -172,8 +172,8 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
 def scopus_search(string):
 
     results = 5000
-    #key = '56c667e47c588caa7949591daf39d8a0'
-    key = 'd2360c1a12032021bf536c604f9c7e12'
+    #key = '7f59af901d2d86f78a1fd60c1bf9426a'
+    key = 'b29099098519c38c89057349200957da'
     scopus = Scopus(key)
 
     search_df = scopus.search(string, count = results, view = 'STANDARD', type_ = 1)
@@ -263,8 +263,8 @@ lda_iterations = 5000
 
 QGS_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-roda/QGS-txt/metadata'
 
-min_df_list = [0.4]
-number_topics_list = [1, 2, 3, 4]
+min_df_list = [0.4, 0.3, 0.2, 0.1]
+number_topics_list = [5]
 number_words_list = [5, 6, 7, 8, 9, 10]
 
 enrichment_list = [0, 1, 2, 3]
