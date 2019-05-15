@@ -108,46 +108,48 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
                 counter = counter + 1
 
                 if " " not in feature_names[i]:
-                    similar_word = wiki.most_similar(positive = feature_names[i], topn = word2vec_total_words)
-                    similar_word = [j[0] for j in similar_word]
-                    #print("Similar word:", similar_word)
+                    if feature_names[i] != "gqm" and feature_names[i] != "cmmi":
+                        similar_word = wiki.most_similar(positive = feature_names[i], topn = word2vec_total_words)
+                        similar_word = [j[0] for j in similar_word]
+                        #print("Similar word:", similar_word)
 
-                    stem_feature_names = lancaster.stem(feature_names[i])
-                    #print("Stem feature names:", stem_feature_names)
+                        stem_feature_names = lancaster.stem(feature_names[i])
+                        #print("Stem feature names:", stem_feature_names)
 
-                    stem_similar_word = []
+                        stem_similar_word = []
 
-                    final_stem_similar_word = []
-                    final_similar_word = []
+                        final_stem_similar_word = []
+                        final_similar_word = []
 
-                    for j in similar_word:
-                        stem_similar_word.append(lancaster.stem(j))
-                    #print("Stem Similar Word:", stem_similar_word)
+                        for j in similar_word:
+                            stem_similar_word.append(lancaster.stem(j))
+                        #print("Stem Similar Word:", stem_similar_word)
 
-                    for number, word in enumerate(stem_similar_word):
+                        for number, word in enumerate(stem_similar_word):
 
-                        if stem_feature_names != word and Levenshtein.distance(stem_feature_names, word) > levenshtein_distance:
+                            if stem_feature_names != word and Levenshtein.distance(stem_feature_names, word) > levenshtein_distance:
 
-                            irrelevant = 0
+                                irrelevant = 0
 
-                            for k in final_stem_similar_word:
-                                if Levenshtein.distance(k, word) < levenshtein_distance:
-                                    irrelevant = 1
+                                for k in final_stem_similar_word:
+                                    if Levenshtein.distance(k, word) < levenshtein_distance:
+                                        irrelevant = 1
 
-                            if irrelevant == 0:
-                                final_stem_similar_word.append(word)
-                                final_similar_word.append(similar_word[number])
+                                if irrelevant == 0:
+                                    final_stem_similar_word.append(word)
+                                    final_similar_word.append(similar_word[number])
 
-                    #print("Final Stem Similar Word:", final_stem_similar_word)
-                    #print("Final Similar Word:", final_similar_word)
-                    #print("\n\n\n")
+                        #print("Final Stem Similar Word:", final_stem_similar_word)
+                        #print("Final Similar Word:", final_similar_word)
+                        #print("\n\n\n")
 
                 message += "(\""
                 message += "\" - \"".join([feature_names[i]])
 
                 if " " not in feature_names[i]:
-                    message += "\" OR \""
-                    message += "\" OR \"".join(final_similar_word[m] for m in range(0, similar_words)) #Where defined the number of similar words
+                    if feature_names[i] != "gqm" and feature_names[i] != "cmmi":
+                        message += "\" OR \""
+                        message += "\" OR \"".join(final_similar_word[m] for m in range(0, similar_words)) #Where defined the number of similar words
 
                 message += "\")"
 
@@ -172,8 +174,7 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
 def scopus_search(string):
 
     results = 5000
-    #key = '7f59af901d2d86f78a1fd60c1bf9426a'
-    key = 'b29099098519c38c89057349200957da'
+    key = '7f59af901d2d86f78a1fd60c1bf9426a'
     scopus = Scopus(key)
 
     search_df = scopus.search(string, count = results, view = 'STANDARD', type_ = 1)
@@ -189,7 +190,7 @@ def scopus_search(string):
 # Abre os arquivos que serão utilizados
 def open_necessary_files():
 
-    QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-roda/QGS.csv', sep = '\t')
+    QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS.csv', sep = '\t')
 
     result_name_list = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Result.csv', sep = '\t')
     result_name_list = result_name_list.fillna(' ')
@@ -201,7 +202,7 @@ def open_necessary_files():
 # Faz a comparação automática entre o QGS e os resultados, obtendo a contagem de artigos do QGS presentes no resultado
 def similarity_score(QGS, result_name_list, manual_comparation):
 
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-roda/QGS.csv')) - 1
+    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS.csv')) - 1
     len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Result.csv')) - 1
 
     list_QGS = []
@@ -261,11 +262,11 @@ def similarity_score(QGS, result_name_list, manual_comparation):
 levenshtein_distance = 4
 lda_iterations = 5000
 
-QGS_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-roda/QGS-txt/metadata'
+QGS_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS-txt/complete'
 
-min_df_list = [0.4, 0.3, 0.2, 0.1]
+min_df_list = [0.3, 0.2, 0.1]
 number_topics_list = [5]
-number_words_list = [5, 6, 7, 8, 9, 10]
+number_words_list = [5,6,7,8]
 
 enrichment_list = [0, 1, 2, 3]
 
