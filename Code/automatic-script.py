@@ -72,6 +72,7 @@ def lda_algorithm(tf, lda_iterations):
 # Formula a string de busca baseada nos parâmetros de entrada
 def string_formulation(model, feature_names, number_words, number_topics, similar_words, levenshtein_distance, wiki):
 
+    global final_similar_word
     message = ("TITLE-ABS-KEY(")
 
     if(similar_words == 0):
@@ -190,7 +191,7 @@ def scopus_search(string):
 # Abre os arquivos que serão utilizados
 def open_necessary_files():
 
-    QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS.csv', sep = '\t')
+    QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-roda/QGS.csv', sep = '\t')
 
     result_name_list = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Result.csv', sep = '\t')
     result_name_list = result_name_list.fillna(' ')
@@ -202,7 +203,7 @@ def open_necessary_files():
 # Faz a comparação automática entre o QGS e os resultados, obtendo a contagem de artigos do QGS presentes no resultado
 def similarity_score(QGS, result_name_list, manual_comparation):
 
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS.csv')) - 1
+    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-roda/QGS.csv')) - 1
     len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Result.csv')) - 1
 
     list_QGS = []
@@ -262,13 +263,13 @@ def similarity_score(QGS, result_name_list, manual_comparation):
 levenshtein_distance = 4
 lda_iterations = 5000
 
-QGS_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS-txt/complete'
+QGS_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-roda/QGS-txt/metadata'
 
-min_df_list = [0.3, 0.2, 0.1]
+min_df_list = [0.2]
 number_topics_list = [5]
-number_words_list = [5,6,7,8]
+number_words_list = [6]
 
-enrichment_list = [0, 1, 2, 3]
+enrichment_list = [2]
 
 print("Loading wiki...\n")
 wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
