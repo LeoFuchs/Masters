@@ -1,5 +1,6 @@
 # encoding: utf-8
 # run with ./full-fast-script.py > out.txt
+# run with python full-fast-script.py >> out.txt
 import gensim
 import Levenshtein
 import pandas as pd
@@ -94,7 +95,7 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
 
     else:
 
-        porter = PorterStemmer()
+        #porter = PorterStemmer()
         lancaster = LancasterStemmer()
 
         word2vec_total_words = 30
@@ -178,8 +179,12 @@ def scopus_search(string):
     key = '7f59af901d2d86f78a1fd60c1bf9426a'
     scopus = Scopus(key)
 
-    search_df = scopus.search(string, count = results, view = 'STANDARD', type_ = 1)
-    #print("Number of results without improvement:", len(search_df))
+    try:
+        search_df = scopus.search(string, count = results, view = 'STANDARD', type_ = 1)
+        #print("Number of results without improvement:", len(search_df))
+    except Exception as e:
+        print (e)
+        return -1
 
     pd.options.display.max_rows = 99999
     pd.options.display.max_colwidth = 250
@@ -209,31 +214,34 @@ def similarity_score(QGS, result_name_list, manual_comparation):
     list_QGS = []
     list_result = []
 
-    for i in range(0, len_qgs):
-        list_QGS.append(QGS.iloc[i, 0])
+    counter_improvement = 0
 
-    # print("Lista QGS:", list_QGS)
-    # print("Tamanho Lista QGS:", len(list_QGS))
+    for i in range(0, len_qgs):
+        list_QGS.append(QGS.iloc[i, 0].lower())
+
+    #print("Lista QGS:", list_QGS)
+    #print("Tamanho Lista QGS:", len(list_QGS))
 
     for i in range(0, len_result):
-        list_result.append(result_name_list.iloc[i, 0])
+        list_result.append(result_name_list.iloc[i, 0].lower())
 
-    # print("Lista Resultado:", list_result)
-    # print("Tamanho Lista Resultado:", len(list_result))
+    if(len_result == 0):
+        return counter_improvement
+
+    #print("Lista Resultado:", list_result)
+    #print("Tamanho Lista Resultado:", len(list_result))
 
     train_set = [list_QGS, list_result]
     train_set = [val for sublist in train_set for val in sublist]
 
-    # print("Lista train_set:", train_set)
-    # print("Elementos train_set", len(train_set))
+    #print("Lista train_set:", train_set)
+    #print("Elementos train_set", len(train_set))
 
     tfidf_vectorizer = TfidfVectorizer()
     tfidf_matrix_train = tfidf_vectorizer.fit_transform(train_set)
 
     matSimilaridade = cosine_similarity(tfidf_matrix_train[0:len_qgs], tfidf_matrix_train[len_qgs:len_qgs + len_result])
     lin, col = matSimilaridade.shape
-
-    counter_improvement = 0
 
     for i in range(0, lin):
 
@@ -265,11 +273,11 @@ lda_iterations = 5000
 
 QGS_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-roda/QGS-txt/metadata'
 
-min_df_list = [0.2]
-number_topics_list = [5]
-number_words_list = [6]
+min_df_list = [0.1, 0.2, 0.3, 0.4]
+number_topics_list = [1, 2, 3, 4, 5]
+number_words_list = [2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-enrichment_list = [2]
+enrichment_list = [0, 1, 2, 3]
 
 print("Loading wiki...\n")
 wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
