@@ -3,6 +3,7 @@
 # run with python full-fast-script.py >> out.txt
 import gensim
 import Levenshtein
+import csv
 import pandas as pd
 import numpy as np
 
@@ -282,25 +283,35 @@ enrichment_list = [0, 1, 2, 3]
 print("Loading wiki...\n")
 wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
 
-for min_df in min_df_list:
-    for number_topics in number_topics_list:
-        for number_words in number_words_list:
 
-            print("Test with " + str(number_topics) + " topics and " + str(number_words) + " words in " + str(min_df) + " min_df:")
-            print("\n")
+with open('roda-output.csv', mode = 'w') as file:
 
-            dic, tf = bag_of_words(min_df, QGS_txt)
-            lda = lda_algorithm(tf, lda_iterations)
+    file_writer = csv.writer(file, delimiter = ',')
 
-            for enrichment in enrichment_list:
+    file_writer.writerow(['min_df', 'Topics', 'Words', 'Similar Words', 'No. Results', 'No. QGS'])
 
-                string = string_formulation(lda, dic, number_words, number_topics, enrichment, levenshtein_distance, wiki)
+    for min_df in min_df_list:
+        for number_topics in number_topics_list:
+            for number_words in number_words_list:
 
-                scopus_number_results = scopus_search(string)
-
-                QGS, result_name_list, manual_comparation = open_necessary_files()
-                counter = similarity_score(QGS, result_name_list, manual_comparation)
-
-                print("String with " + str(enrichment) + " similar words: " + str(string))
-                print("Generating " + str(scopus_number_results) + " results with " + str(counter) + " of the QGS articles")
+                print("Test with " + str(number_topics) + " topics and " + str(number_words) + " words in " + str(min_df) + " min_df:")
                 print("\n")
+
+                dic, tf = bag_of_words(min_df, QGS_txt)
+                lda = lda_algorithm(tf, lda_iterations)
+
+                for enrichment in enrichment_list:
+
+                    string = string_formulation(lda, dic, number_words, number_topics, enrichment, levenshtein_distance, wiki)
+
+                    scopus_number_results = scopus_search(string)
+
+                    QGS, result_name_list, manual_comparation = open_necessary_files()
+                    counter = similarity_score(QGS, result_name_list, manual_comparation)
+
+                    file_writer.writerow([min_df, number_topics, number_words, enrichment, scopus_number_results, counter])
+
+                    print("String with " + str(enrichment) + " similar words: " + str(string))
+                    print("Generating " + str(scopus_number_results) + " results with " + str(counter) + " of the QGS articles")
+                    print("\n")
+file.close()
