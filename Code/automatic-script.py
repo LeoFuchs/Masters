@@ -77,7 +77,7 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
     global final_similar_word
     message = ("TITLE-ABS-KEY(")
 
-    if(similar_words == 0):
+    if (similar_words == 0):
 
         for topic_index, topic in enumerate(model.components_):
 
@@ -110,8 +110,12 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
 
                 counter = counter + 1
 
+                message += "(\""
+                message += "\" - \"".join([feature_names[i]])
+
                 if " " not in feature_names[i]:
-                    if feature_names[i] != "gqm" and feature_names[i] != "cmmi":
+                    #if feature_names[i] != "gqm" and feature_names[i] != "cmmi":
+                    try:
                         similar_word = wiki.most_similar(positive = feature_names[i], topn = word2vec_total_words)
                         similar_word = [j[0] for j in similar_word]
                         #print("Similar word:", similar_word)
@@ -146,13 +150,11 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
                         #print("Final Similar Word:", final_similar_word)
                         #print("\n\n\n")
 
-                message += "(\""
-                message += "\" - \"".join([feature_names[i]])
-
-                if " " not in feature_names[i]:
-                    if feature_names[i] != "gqm" and feature_names[i] != "cmmi":
                         message += "\" OR \""
-                        message += "\" OR \"".join(final_similar_word[m] for m in range(0, similar_words)) #Where defined the number of similar words
+                        message += "\" OR \"".join(final_similar_word[m] for m in range(0, similar_words))  # Where defined the number of similar words
+
+                    except Exception as e:
+                        print (e)
 
                 message += "\")"
 
@@ -274,9 +276,9 @@ lda_iterations = 5000
 
 QGS_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-roda/QGS-txt/metadata'
 
-min_df_list = [0.1, 0.2, 0.3, 0.4]
-number_topics_list = [1, 2, 3, 4, 5]
-number_words_list = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+min_df_list = [0.1]
+number_topics_list = [3]
+number_words_list = [6, 7]
 
 enrichment_list = [0, 1, 2, 3]
 
