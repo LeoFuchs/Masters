@@ -114,7 +114,6 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
                 message += "\" - \"".join([feature_names[i]])
 
                 if " " not in feature_names[i]:
-                    #if feature_names[i] != "gqm" and feature_names[i] != "cmmi":
                     try:
                         similar_word = wiki.most_similar(positive = feature_names[i], topn = word2vec_total_words)
                         similar_word = [j[0] for j in similar_word]
@@ -276,15 +275,14 @@ lda_iterations = 5000
 
 QGS_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-roda/QGS-txt/metadata'
 
-min_df_list = [0.1]
-number_topics_list = [3]
-number_words_list = [6, 7]
+min_df_list = [0.3]
+number_topics_list = [5]
+number_words_list = [5, 6, 7, 8, 9, 10]
 
 enrichment_list = [0, 1, 2, 3]
 
 print("Loading wiki...\n")
 wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
-
 
 with open('roda-output.csv', mode = 'w') as file:
 
