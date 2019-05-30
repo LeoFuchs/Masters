@@ -198,7 +198,7 @@ def scopus_search(string):
 # Abre os arquivos que serão utilizados
 def open_necessary_files():
 
-    QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS.csv', sep = '\t')
+    QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-roda/QGS.csv', sep = '\t')
 
     result_name_list = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Result.csv', sep = '\t')
     result_name_list = result_name_list.fillna(' ')
@@ -210,7 +210,7 @@ def open_necessary_files():
 # Faz a comparação automática entre o QGS e os resultados, obtendo a contagem de artigos do QGS presentes no resultado
 def similarity_score(QGS, result_name_list, manual_comparation):
 
-    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS.csv')) - 1
+    len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-roda/QGS.csv')) - 1
     len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Result.csv')) - 1
 
     list_QGS = []
@@ -273,18 +273,18 @@ def similarity_score(QGS, result_name_list, manual_comparation):
 levenshtein_distance = 4
 lda_iterations = 5000
 
-QGS_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS-txt/metadata'
+QGS_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-roda/QGS-txt/metadata'
 
-min_df_list = [0.1, 0.2, 0.3, 0.4]
-number_topics_list = [1, 2, 3, 4, 5]
-number_words_list = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+min_df_list = [0.3]
+number_topics_list = [5]
+number_words_list = [5, 6, 7, 8, 9, 10]
 
 enrichment_list = [0, 1, 2, 3]
 
 print("Loading wiki...\n")
 wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
 
-with open('vasconcellos-output.csv', mode = 'w') as file:
+with open('roda-output.csv', mode = 'w') as file:
 
     file_writer = csv.writer(file, delimiter = ',')
 
