@@ -198,6 +198,8 @@ def scopus_search(string):
 # Abre os arquivos que serão utilizados
 def open_necessary_files():
 
+    GS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/GS.csv', sep = '\t')
+
     QGS = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS.csv', sep = '\t')
 
     result_name_list = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Result.csv', sep = '\t')
@@ -205,10 +207,10 @@ def open_necessary_files():
 
     manual_comparation = open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/ManualExit.csv', 'w')
 
-    return QGS, result_name_list, manual_comparation
+    return QGS, GS, result_name_list, manual_comparation
 
 # Faz a comparação automática entre o QGS e os resultados, obtendo a contagem de artigos do QGS presentes no resultado
-def similarity_score(QGS, result_name_list, manual_comparation):
+def similarity_score_QGS(QGS, result_name_list, manual_comparation):
 
     len_qgs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS.csv')) - 1
     len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Result.csv')) - 1
@@ -268,6 +270,67 @@ def similarity_score(QGS, result_name_list, manual_comparation):
 
     return counter_improvement
 
+# Faz a comparação automática entre o GS e os resultados, obtendo a contagem de artigos do GS presentes no resultado
+def similarity_score_GS(GS, result_name_list, manual_comparation):
+
+    len_gs = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/GS.csv')) - 1
+    len_result = sum(1 for line in open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Result.csv')) - 1
+
+    list_GS = []
+    list_result = []
+
+    counter_improvement = 0
+
+    for i in range(0, len_gs):
+        list_GS.append(GS.iloc[i, 0].lower())
+
+    #print("Lista GS:", list_GS)
+    #print("Tamanho Lista GS:", len(list_GS))
+
+    for i in range(0, len_result):
+        list_result.append(result_name_list.iloc[i, 0].lower())
+
+    if(len_result == 0):
+        return counter_improvement
+
+    #print("Lista Resultado:", list_result)
+    #print("Tamanho Lista Resultado:", len(list_result))
+
+    train_set = [list_GS, list_result]
+    train_set = [val for sublist in train_set for val in sublist]
+
+    #print("Lista train_set:", train_set)
+    #print("Elementos train_set", len(train_set))
+
+    tfidf_vectorizer = TfidfVectorizer()
+    tfidf_matrix_train = tfidf_vectorizer.fit_transform(train_set)
+
+    matSimilaridade = cosine_similarity(tfidf_matrix_train[0:len_gs], tfidf_matrix_train[len_gs:len_gs + len_result])
+    lin, col = matSimilaridade.shape
+
+    for i in range(0, lin):
+
+        line = matSimilaridade[i]
+        currentNearest = np.argsort(line)[-2:]  # Pega os x - 1 maiores elementos
+
+        line_exit = 'GS' + str(i + 1) + ':\t\t\t' + list_GS[i] + '\t' + '\n'
+
+        for j in range(1, len(currentNearest)):
+            book = currentNearest[-j]
+            line_exit = line_exit + '\t\t\t\t' + list_result[book].strip() + '\t' '\n'
+
+            if Levenshtein.distance(list_GS[i], list_result[book]) < 10:
+                counter_improvement = counter_improvement + 1
+
+        line_exit = line_exit + "\n"
+
+        manual_comparation.write(line_exit)
+        manual_comparation.flush()
+
+    #print("Number of GS articles founded (with improvement):", counter_improvement)
+
+    return counter_improvement
+
 # MAIN
 
 levenshtein_distance = 4
@@ -288,7 +351,7 @@ with open('vasconcellos-output.csv', mode = 'w') as file:
 
     file_writer = csv.writer(file, delimiter = ',')
 
-    file_writer.writerow(['min_df', 'Topics', 'Words', 'Similar Words', 'No. Results', 'No. QGS'])
+    file_writer.writerow(['min_df', 'Topics', 'Words', 'Similar Words', 'No. Results', 'No. QGS', 'No. GS'])
 
     for min_df in min_df_list:
         for number_topics in number_topics_list:
@@ -306,12 +369,13 @@ with open('vasconcellos-output.csv', mode = 'w') as file:
 
                     scopus_number_results = scopus_search(string)
 
-                    QGS, result_name_list, manual_comparation = open_necessary_files()
-                    counter = similarity_score(QGS, result_name_list, manual_comparation)
+                    QGS, GS, result_name_list, manual_comparation = open_necessary_files()
+                    counter_one = similarity_score_QGS(QGS, result_name_list, manual_comparation)
+                    counter_two = similarity_score_GS(GS, result_name_list, manual_comparation)
 
-                    file_writer.writerow([min_df, number_topics, number_words, enrichment, scopus_number_results, counter])
+                    file_writer.writerow([min_df, number_topics, number_words, enrichment, scopus_number_results, counter_one, counter_two])
 
                     print("String with " + str(enrichment) + " similar words: " + str(string))
-                    print("Generating " + str(scopus_number_results) + " results with " + str(counter) + " of the QGS articles")
+                    print("Generating " + str(scopus_number_results) + " results with " + str(counter_one) + " of the QGS articles and " + str(counter_two) + " of the GS articles.")
                     print("\n")
 file.close()
