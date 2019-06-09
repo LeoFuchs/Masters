@@ -338,11 +338,11 @@ lda_iterations = 5000
 
 QGS_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS-txt/metadata'
 
-min_df_list = [0.1, 0.2, 0.3, 0.4]
-number_topics_list = [1, 2, 3, 4, 5]
-number_words_list = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+min_df_list = [0.4]
+number_topics_list = [3]
+number_words_list = [7]
 
-enrichment_list = [0, 1, 2, 3]
+enrichment_list = [0]
 
 print("Loading wiki...\n")
 wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
