@@ -86,7 +86,7 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
             message += "\")"
 
             if topic_index < number_topics - 1:
-                message += " OR "
+                message += " AND "
             else:
                 message += ""
 
@@ -165,7 +165,7 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
             message += ")"
 
             if topic_index < number_topics - 1:
-                message += " OR "
+                message += " AND "
 
             else:
                 message += ""
@@ -339,10 +339,10 @@ lda_iterations = 5000
 QGS_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS-txt/metadata'
 
 min_df_list = [0.4]
-number_topics_list = [3, 4]
-number_words_list = [7]
+number_topics_list = [3]
+number_words_list = [4, 5, 6, 7, 8, 9, 10]
 
-enrichment_list = [0]
+enrichment_list = [0, 1, 2, 3]
 
 print("Loading wiki...\n")
 wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
