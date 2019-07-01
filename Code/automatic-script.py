@@ -92,6 +92,10 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
 
         message += ")"
 
+        if pubyear != 0:
+            message += " AND PUBYEAR < "
+            message += str(pubyear)
+
         return message
 
     else:
@@ -171,6 +175,10 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
                 message += ""
 
         message += ")"
+
+        if pubyear != 0:
+            message += " AND PUBYEAR < "
+            message += str(pubyear)
 
         return message
 
@@ -338,11 +346,12 @@ lda_iterations = 5000
 
 QGS_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS-txt/metadata'
 
+pubyear = 2015 #Pubyear with 0 = disable
 min_df_list = [0.4]
 number_topics_list = [3, 4]
 number_words_list = [7]
 
-enrichment_list = [0]
+enrichment_list = [0, 1, 2, 3]
 
 print("Loading wiki...\n")
 wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
