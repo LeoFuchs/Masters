@@ -181,7 +181,11 @@ g.edge('29', '14')
 min_df = 0.4
 number_topics = 2
 number_words = 10
-r = graphviz.Source(g, filename = "graph-with-%0.1f-%d-%d" % (min_df, number_topics, number_words), format = "ps")
+enrichment = 1
+r = graphviz.Source(g, filename="graph-with-%0.1f-%d-%d-%d" % (min_df, number_topics, number_words, enrichment),
+                    directory='/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Graphs/', format="ps")
+
+#r = graphviz.Source(g, filename = "graph-with-%0.1f-%d-%d" % (min_df, number_topics, number_words), format = "ps")
 r.render()
 #r.view()
 

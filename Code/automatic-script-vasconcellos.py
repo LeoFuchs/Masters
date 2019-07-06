@@ -548,7 +548,7 @@ def graph_result(list, min_df, number_topics, number_words, enrichment):
     g.edge('28', '22')
     g.edge('29', '14')
 
-    r = graphviz.Source(g, filename = "graph-with-%0.1f-%d-%d-%d" % (min_df, number_topics, number_words, enrichment), format="ps")
+    r = graphviz.Source(g, filename = "graph-with-%0.1f-%d-%d-%d" % (min_df, number_topics, number_words, enrichment), directory = '/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Graphs/', format = "ps")
     r.render()
 
 # MAIN
