@@ -369,65 +369,83 @@ def graph_result(list, min_df, number_topics, number_words, enrichment):
         if i == 3:
             g.edge('03', '02')
             if (16 not in list): list.append(16)
-            if (21 not in list): list.append(21)
             if (17 not in list): list.append(17)
+            if (21 not in list): list.append(21)
+
         if i == 4:
             g.edge('04', '15')
             g.edge('04', '18')
             g.edge('04', '19')
-            if (17 not in list): list.append(17)
             if (5 not in list): list.append(5)
-            if (15 not in list): list.append(15)
             if (14 not in list): list.append(14)
+            if (15 not in list): list.append(15)
+            if (17 not in list): list.append(17)
             if (18 not in list): list.append(18)
         if i == 5:
             g.edge('05', '18')
-            if (17 not in list): list.append(17)
             if (4 not in list): list.append(4)
             if (15 not in list): list.append(15)
+            if (17 not in list): list.append(17)
         if i == 6:
             pass
         if i == 7:
             pass
         if i == 8:
             g.edge('08', '09')
+            g.edge('08', '14')
+            if (9 not in list): list.append(9)
+            if (12 not in list): list.append(12)
+            if (13 not in list): list.append(13)
             if (14 not in list): list.append(14)
+            if (19 not in list): list.append(19)
+            if (29 not in list): list.append(29)
         if i == 9:
             g.edge('09', '08')
+            g.edge('09', '13')
             g.edge('09', '14')
+            if (8 not in list): list.append(8)
             if (12 not in list): list.append(12)
+            if (14 not in list): list.append(14)
             if (19 not in list): list.append(19)
             if (29 not in list): list.append(29)
         if i == 10:
             g.edge('10', '11')
             g.edge('10', '30')
-            if (25 not in list): list.append(25)
             if (24 not in list): list.append(24)
+            if (25 not in list): list.append(25)
         if i == 11:
             g.edge('11', '10')
             if (30 not in list): list.append(30)
         if i == 12:
+            g.edge('12', '13')
             g.edge('12', '14')
+            if (8 not in list): list.append(8)
             if (9 not in list): list.append(9)
             if (19 not in list): list.append(19)
             if (29 not in list): list.append(29)
         if i == 13:
-            pass
+            g.edge('13', '09')
+            g.edge('13', '12')
+            if (8 not in list): list.append(8)
+            if (14 not in list): list.append(14)
         if i == 14:
+            g.edge('14', '08')
             g.edge('14', '09')
             g.edge('14', '12')
             g.edge('14', '19')
             g.edge('14', '29')
             if (4 not in list): list.append(4)
             if (8 not in list): list.append(8)
+            if (9 not in list): list.append(9)
+            if (13 not in list): list.append(13)
         if i == 15:
             g.edge('15', '04')
             g.edge('15', '18')
-            if (5 not in list): list.append(5)
-            if (19 not in list): list.append(19)
-            if (18 not in list): list.append(18)
-            if (17 not in list): list.append(17)
             if (4 not in list): list.append(4)
+            if (5 not in list): list.append(5)
+            if (18 not in list): list.append(18)
+            if (19 not in list): list.append(19)
+            if (17 not in list): list.append(17)
         if i == 16:
             g.edge('16', '02')
             if (3 not in list): list.append(3)
@@ -437,35 +455,37 @@ def graph_result(list, min_df, number_topics, number_words, enrichment):
             g.edge('17', '02')
             g.edge('17', '18')
             if (3 not in list): list.append(3)
-            if (16 not in list): list.append(16)
-            if (21 not in list): list.append(21)
+            if (4 not in list): list.append(4)
             if (5 not in list): list.append(5)
             if (15 not in list): list.append(15)
-            if (4 not in list): list.append(4)
+            if (16 not in list): list.append(16)
+            if (21 not in list): list.append(21)
         if i == 18:
             g.edge('18', '04')
             g.edge('18', '05')
             g.edge('18', '15')
             g.edge('18', '17')
             if (2 not in list): list.append(2)
-            if (19 not in list): list.append(19)
             if (4 not in list): list.append(4)
+            if (15 not in list): list.append(15)
+            if (19 not in list): list.append(19)
         if i == 19:
             g.edge('19', '04')
             g.edge('19', '14')
+            if (8 not in list): list.append(8)
+            if (9 not in list): list.append(9)
+            if (12 not in list): list.append(12)
             if (15 not in list): list.append(15)
             if (18 not in list): list.append(18)
             if (29 not in list): list.append(29)
-            if (9 not in list): list.append(9)
-            if (12 not in list): list.append(12)
         if i == 20:
             g.edge('20', '21')
             if (2 not in list): list.append(2)
         if i == 21:
             g.edge('21', '02')
             g.edge('21', '20')
-            if (16 not in list): list.append(16)
             if (3 not in list): list.append(3)
+            if (16 not in list): list.append(16)
             if (17 not in list): list.append(17)
         if i == 22:
             g.edge('22', '28')
@@ -473,12 +493,12 @@ def graph_result(list, min_df, number_topics, number_words, enrichment):
             pass
         if i == 24:
             g.edge('24', '30')
-            if (25 not in list): list.append(25)
             if (10 not in list): list.append(10)
+            if (25 not in list): list.append(25)
         if i == 25:
             g.edge('25', '30')
-            if (24 not in list): list.append(24)
             if (10 not in list): list.append(10)
+            if (24 not in list): list.append(24)
         if i == 26:
             pass
         if i == 27:
@@ -487,9 +507,10 @@ def graph_result(list, min_df, number_topics, number_words, enrichment):
             g.edge('28', '22')
         if i == 29:
             g.edge('29', '14')
+            if (8 not in list): list.append(8)
+            if (9 not in list): list.append(9)
             if (12 not in list): list.append(12)
             if (19 not in list): list.append(19)
-            if (9 not in list): list.append(9)
         if i == 30:
             g.edge('30', '10')
             g.edge('30', '24')
@@ -561,9 +582,9 @@ QGS_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcello
 pubyear = 2015 #Pubyear with 0 = disable
 
 min_df_list = [0.4]
-number_topics_list = [3]
-number_words_list = [7]
-enrichment_list = [0, 1]
+number_topics_list = [1, 2, 3, 4, 5]
+number_words_list = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+enrichment_list = [0, 1, 2, 3]
 
 print("Loading wiki...\n")
 wiki = gensim.models.KeyedVectors.load_word2vec_format('/home/fuchs/Documentos/MESTRADO/Datasets/wiki-news-300d-1M.vec')
