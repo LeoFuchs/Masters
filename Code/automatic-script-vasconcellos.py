@@ -529,7 +529,7 @@ def main():
     min_df_list = [0.4]
     number_topics_list = [3]
     number_words_list = [7]
-    enrichment_list = [0, 1]
+    enrichment_list = [0, 1, 2, 3]
 
     # Running FastText
     print("Loading wiki...\n")
