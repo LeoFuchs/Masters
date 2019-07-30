@@ -575,7 +575,7 @@ def main():
               "/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/GS-pdf/ -outputs zones "
     os.system(cermine)
 
-    with open('vasconcellos-output.csv', mode='w') as file_output:
+    with open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/vasconcellos-result.csv', mode='w') as file_output:
 
         file_writer = csv.writer(file_output, delimiter=',')
 
