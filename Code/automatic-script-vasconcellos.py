@@ -468,10 +468,13 @@ def graph_snowballing(results_list, min_df, number_topics, number_words, enrichm
         # Creating a list where each element is the name of a GS article, without spaces, capital letters and '-'
         title_list = [line.strip().lower().replace(' ', '').replace('-', '') for line in gs]
 
-        # Creating an auxiliary list of size n in the format [1, 2, 3, 4, 5, ..., n]
-        node_list = range(1, len(title_list) + 1)
-
     gs.close()
+
+    # Creating an auxiliary list of size n in the format [1, 2, 3, 4, 5, ..., n]
+    node_list = range(1, len(title_list) + 1)
+
+    # Initializing the adjacency matrix with zeros
+    adjacency_matrix = np.zeros((len(title_list), len(title_list)))
 
     # Initializing the graph with its respective nodes
     g = Graph('Snowballing Graph', strict=True)
@@ -504,16 +507,46 @@ def graph_snowballing(results_list, min_df, number_topics, number_words, enrichm
                         if title_list[j - 1] in reader:
                             # print("the article GS-%02.d cite the article %02.d.\n" % (i, j))
                             g.edge('%02d' % i, '%02d' % j)
-                            g.edge('%02d' % j, '%02d' % i)
+                            adjacency_matrix[i - 1][j - 1] = 1
+                            adjacency_matrix[j - 1][i - 1] = 1
+                            # g.edge('%02d' % j, '%02d' % i)
         file_zone.close()
 
-    for i in results_list:
+    final_list = []
+
+    for z in results_list:
+        final_list.append(z)
+
+    flag = 1
+
+    while flag:
+        flag = 0
+        for i in range(0, len(title_list)):
+            for k in final_list:
+                if i + 1 == k:
+                    for j in range(0, len(title_list)):
+                        if adjacency_matrix[i][j] == 1 and j + 1 not in final_list:
+                            final_list.append(j + 1)
+                            flag = 1
+
+    for i in final_list:
         g.node('%02d' % i, shape='circle', color='red')
+
+    for i in results_list:
+        g.node('%02d' % i, shape='circle', color='blue')
+
+    g.attr(label=r'\nGraph with search results for min_df = %0.1f, number_topics = %d, number_words = %d and '
+                 r'enrichment = %d.\n Blue nodes were found in the search step in digital bases, red nodes were found '
+                 r'through snowballing and black nodes were not found.'
+                 % (min_df, number_topics, number_words, enrichment))
+    g.attr(fontsize='12')
 
     r = graphviz.Source(g, filename="graph-with-%0.1f-%d-%d-%d" % (min_df, number_topics, number_words, enrichment),
                         directory='/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Snowballing/', format="ps")
     r.render()
     # r.view()
+
+    return len(final_list)
 
 
 def main():
@@ -546,7 +579,8 @@ def main():
 
         file_writer = csv.writer(file_output, delimiter=',')
 
-        file_writer.writerow(['min_df', 'Topics', 'Words', 'Similar Words', 'No. Results', 'No. QGS', 'No. GS'])
+        file_writer.writerow(['min_df', 'Topics', 'Words', 'Similar Words', 'No. Results',
+                              'No. QGS', 'No. GS', 'No. Total'])
 
         for min_df in min_df_list:
             for number_topics in number_topics_list:
@@ -569,16 +603,19 @@ def main():
                         counter_one = similarity_score_qgs(qgs, result_name_list, manual_comparation)
                         counter_two, list_graph = similarity_score_gs(gs, result_name_list, manual_comparation)
 
+                        counter_total = graph_snowballing(list_graph, min_df, number_topics, number_words, enrichment)
+
                         file_writer.writerow(
                             [min_df, number_topics, number_words, enrichment, scopus_number_results, counter_one,
-                             counter_two])
+                             counter_two, counter_total])
 
                         print("String with " + str(enrichment) + " similar words: " + str(string))
-                        print("Generating " + str(scopus_number_results) + " results with " + str(
-                            counter_one) + " of the QGS articles and " + str(counter_two) + " of the GS articles.")
+                        print("Generating " + str(scopus_number_results) + " results with " +
+                              str(counter_one) + " of the QGS articles, " + str(counter_two) +
+                              " of the GS articles (without snowballing) and " + str(counter_total) +
+                              " of the GS articles (with snowballing).")
                         print("\n")
 
-                        graph_snowballing(list_graph, min_df, number_topics, number_words, enrichment)
     file_output.close()
 
 

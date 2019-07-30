@@ -106,6 +106,13 @@ def graph_snowballing(results_list):
     for i in results_list:
         g.node('%02d' % i, shape='circle', color='blue')
 
+    min_df = 4
+
+    g.attr(label=r'\nGraph with search results for min_df = %d, number_topics =d, number_words =d and '
+                 r'enrichment =d.\n Blue nodes were found in the search step in digital bases, red nodes were found '
+                 r'through snowballing and black nodes were not found.' % min_df)
+    g.attr(fontsize='12')
+
     r = graphviz.Source(g, filename="graph",
                         directory='/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Snowballing/', format="ps")
     # r.render()
@@ -113,7 +120,7 @@ def graph_snowballing(results_list):
 
 def main():
     """Main function."""
-    results_list = [1, 4, 6, 7, 11, 24, 28]
+    results_list = [3]
 
     graph_snowballing(results_list)
 
