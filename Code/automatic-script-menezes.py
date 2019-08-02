@@ -466,7 +466,8 @@ def graph_snowballing(results_list, min_df, number_topics, number_words, enrichm
         next(gs)
 
         # Creating a list where each element is the name of a GS article, without spaces, capital letters and '-'
-        title_list = [line.strip().lower().replace(' ', '').replace('-', '') for line in gs]
+        title_list = [line.strip().lower().replace(' ', '').replace('-', '').replace(':', '')
+                          .replace('\'', '').replace(',', '').replace('?', '').replace('s', '') for line in gs]
 
     gs.close()
 
@@ -483,7 +484,7 @@ def graph_snowballing(results_list, min_df, number_topics, number_words, enrichm
 
     # Analyzing the citations of each of the articles
     for i in range(1, len(title_list) + 1):
-        article_name = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-menezes/GS-pdf/%d.cermzones' % i
+        article_name = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-menezes/GS-pdf/%d.cermtxt' % i
         with open('%s' % article_name, mode='r') as file_zone:
 
             # Making all lowercase letters
@@ -493,7 +494,8 @@ def graph_snowballing(results_list, min_df, number_topics, number_words, enrichm
             reader = reader.strip().replace('\n', ' ').replace('\r', '')
 
             # Removing spaces and special characters
-            reader = reader.replace(' ', '').replace('-', '')
+            reader = reader.replace(' ', '').replace('-', '').replace(':', '').replace('\'', '')\
+                .replace(',', '').replace('?', '').replace('s', '')
 
             # Filtering only the part of the references in the zone file
             # sep = "<zonelabel=\"gen_references\">"
@@ -503,7 +505,7 @@ def graph_snowballing(results_list, min_df, number_topics, number_words, enrichm
             for j in range(1, len(title_list) + 1):
                 if i != j:
                     if title_list[j - 1] in reader:
-                        # print("the article GS-%02.d cite the article %02.d.\n" % (i, j))
+                        print("the article GS-%02.d cite the article %02.d.\n" % (i, j))
                         g.edge('%02d' % i, '%02d' % j)
                         adjacency_matrix[i - 1][j - 1] = 1
                         adjacency_matrix[j - 1][i - 1] = 1
@@ -560,7 +562,7 @@ def main():
     min_df_list = [0.4]
     number_topics_list = [3]
     number_words_list = [7]
-    enrichment_list = [0, 1, 2, 3]
+    enrichment_list = [0]
 
     # Running FastText
     print("Loading wiki...\n")
@@ -570,7 +572,7 @@ def main():
     # Running CERMINE
     print("Loading CERMINE...\n")
     cermine = "java -cp cermine-impl-1.13-jar-with-dependencies.jar pl.edu.icm.cermine.ContentExtractor -path " \
-              "/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-menezes/GS-pdf/ -outputs zones "
+              "/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-menezes/GS-pdf/ -outputs text "
     os.system(cermine)
 
     with open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/menezes-result.csv', mode='w') as file_output:
