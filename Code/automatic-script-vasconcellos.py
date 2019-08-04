@@ -501,7 +501,7 @@ def snowballing():
 
                 if i != j:
                     ratio = process.extractOne(title_list[j - 1], options)
-                    print("Ratio: (" + str(i) + " - " + str(j) + "): " + str(ratio))
+                    # print("Ratio: (" + str(i) + " - " + str(j) + "): " + str(ratio))
                     if ratio is not None:
                         if ratio[1] >= 90:
                             auxiliar_list = [i, j]
@@ -517,20 +517,24 @@ def snowballing():
 
 
 def graph(results_list, title_list, adjacency_matrix, final_edges, min_df, number_topics, number_words, enrichment):
-    """Lorem Lorem Lorem
+    """Print the graph with the black, red and blue nodes.
 
-       Args:
-           results_list:
-           title_list:
-           adjacency_matrix:
-           final_edges:
-           min_df:
-           number_topics:
-           number_words:
-           enrichment:
+    Args:
+        results_list: List with the nodes founded in the search.
+        title_list: List with the title of que GS files.
+        adjacency_matrix: Adjacency Matrix for the representation
+            of the edges.
+        final_edges: List of lists with the node couples with need a edge.
+        min_df: The minimum number of documents that a term must be found in.
+        number_topics: Number of topics that the Latent
+            Dirichlet Allocation (LDA) algorithm should return.
+        number_words: Number of words that will be broken down
+            in each topic.
+        enrichment: Number of enrichments added to search string.
 
-       Returns:
-           final_list:
+    Returns:
+        final_list: Length of the final list with the articles
+            founded in GS.
        """
     # Creating an auxiliary list of size n in the format [1, 2, 3, 4, 5, ..., n]
     node_list = range(1, len(title_list) + 1)
