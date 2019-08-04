@@ -493,7 +493,7 @@ def snowballing():
     for i in range(1, len(title_list) + 1):
         article_name = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/GS-pdf/%d.cermtxt' % i
         with open('%s' % article_name, mode='r') as file_zone:
-            reader = file_zone.read().strip().lower().replace('\n', ' ').replace('\r', '').\
+            reader = file_zone.read().strip().lower().replace('\n', ' ').replace('\r', ''). \
                 replace(' ', '').replace('.', '')
             for j in range(1, len(title_list) + 1):
                 window_size = len(title_list[j - 1])
@@ -605,8 +605,9 @@ def main():
 
     # Running CERMINE
     print("Loading CERMINE...\n")
-    cermine = "java -cp cermine-impl-1.13-jar-with-dependencies.jar pl.edu.icm.cermine.ContentExtractor -path " \
-              "/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/GS-pdf/ -outputs zones "
+    cermine = "java -cp cermine-impl-1.14-20180204.213009-17-jar-with-dependencies.jar " \
+              "pl.edu.icm.cermine.ContentExtractor -path " \
+              "/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/GS-pdf/ -outputs text"
     os.system(cermine)
 
     print("Doing Snowballing...\n")
