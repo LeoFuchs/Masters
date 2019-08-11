@@ -501,7 +501,7 @@ def snowballing():
 
                 if i != j:
                     ratio = process.extractOne(title_list[j - 1], options)
-                    # print("Ratio: (" + str(i) + " - " + str(j) + "): " + str(ratio))
+                    #print("Ratio: (" + str(i) + " - " + str(j) + "): " + str(ratio))
                     if ratio is not None:
                         if ratio[1] >= 90:
                             auxiliar_list = [i, j]
@@ -594,8 +594,8 @@ def main():
     pubyear = 2015  # Pubyear = 0 --> disable
 
     min_df_list = [0.4]
-    number_topics_list = [3]
-    number_words_list = [7]
+    number_topics_list = [1, 2, 3, 4, 5]
+    number_words_list = [5, 6, 7, 8, 9, 10]
     enrichment_list = [0, 1, 2, 3]
 
     # Running FastText

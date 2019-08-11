@@ -591,11 +591,11 @@ def main():
 
     qgs_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-menezes/QGS-txt/metadata'
 
-    pubyear = 2015  # Pubyear = 0 --> disable
+    pubyear = 2017  # Pubyear = 0 --> disable
 
-    min_df_list = [0.4]
-    number_topics_list = [3]
-    number_words_list = [7]
+    min_df_list = [0.2]
+    number_topics_list = [4, 5]
+    number_words_list = [2, 3, 4, 5, 6, 7, 8, 9, 10]
     enrichment_list = [0, 1, 2, 3]
 
     # Running FastText
