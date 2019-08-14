@@ -21,7 +21,7 @@ with open('README.md') as fp:
     questions = [v.replace(prefix_q, '').strip() for v in fp if v.strip() and v.startswith(prefix_q)]
     print('%d questions loaded, avg. len of %d' % (len(questions), np.mean([len(d.split()) for d in questions])))
 
-with BertClient(port=4000, port_out=4001) as bc:
+with BertClient(port=5555, port_out=5556) as bc:
     doc_vecs = bc.encode(questions)
 
     while True:
