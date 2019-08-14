@@ -1,7 +1,8 @@
 import torch
-import importlib
 import warnings
 from collections import defaultdict
+import sys
+import traceback
 
 
 def _type(self, dtype=None, non_blocking=False, **kwargs):
@@ -125,10 +126,9 @@ def _get_async_or_non_blocking(function_name, non_blocking, kwargs):
 
 
 def _rebuild_tensor(storage, storage_offset, size, stride):
-    class_name = storage.__class__.__name__.replace('Storage', 'Tensor')
-    module = importlib.import_module(storage.__module__)
-    tensor_class = getattr(module, class_name)
-    return tensor_class().set_(storage, storage_offset, size, stride)
+    # first construct a tensor with the correct dtype/device
+    t = torch.tensor([], dtype=storage.dtype, device=storage.device)
+    return t.set_(storage, storage_offset, size, stride)
 
 
 def _rebuild_tensor_v2(storage, storage_offset, size, stride, requires_grad, backward_hooks):
@@ -140,6 +140,15 @@ def _rebuild_tensor_v2(storage, storage_offset, size, stride, requires_grad, bac
     tensor._backward_hooks = backward_hooks
     return tensor
 
+def _rebuild_qtensor(storage, storage_offset, size, stride, scale, zero_point, requires_grad, backward_hooks):
+    tensor = torch._empty_affine_quantized(size, scale=scale, zero_point=zero_point, dtype=storage.dtype)
+    tensor.set_(storage, storage_offset, size, stride)
+    tensor.requires_grad = requires_grad
+    # NB: This line exists only for backwards compatibility; the
+    # general expectation is that backward_hooks is an empty
+    # OrderedDict.  See Note [Don't serialize hooks]
+    tensor._backward_hooks = backward_hooks
+    return tensor
 
 def _rebuild_parameter(data, requires_grad, backward_hooks):
     param = torch.nn.Parameter(data, requires_grad)
@@ -309,3 +318,52 @@ def _take_tensors(tensors, size_limit):
     for buf, _ in buf_dict.values():
         if len(buf) > 0:
             yield buf
+
+
+# annotation decorator to get annotations in a way that is compatible
+# with both Python 2 and 3
+def annotate(ret, **kwargs):
+    def dec(fun):
+        fun.__annotations__ = dict(kwargs)
+        fun.__annotations__['return'] = ret
+        return fun
+    return dec
+
+
+# NOTE [ Python Traceback Reference Cycle Problem ]
+#
+# When using sys.exc_info(), it is important to **not** store the exc_info[2],
+# which is the traceback, because otherwise you will run into the traceback
+# reference cycle problem, i.e., the traceback holding reference to the frame,
+# and the frame (which holds reference to all the object in its temporary scope)
+# holding reference the traceback.
+
+class KeyErrorMessage(str):
+    r"""str subclass that returns itself in repr"""
+    def __repr__(self):
+        return self
+
+
+class ExceptionWrapper(object):
+    r"""Wraps an exception plus traceback to communicate across threads"""
+    def __init__(self, exc_info=None, where="in background"):
+        # It is important that we don't store exc_info, see
+        # NOTE [ Python Traceback Reference Cycle Problem ]
+        if exc_info is None:
+            exc_info = sys.exc_info()
+        self.exc_type = exc_info[0]
+        self.exc_msg = "".join(traceback.format_exception(*exc_info))
+        self.where = where
+
+    def reraise(self):
+        r"""Reraises the wrapped exception in the current thread"""
+        # Format a message such as: "Caught ValueError in DataLoader worker
+        # process 2. Original Traceback:", followed by the traceback.
+        msg = "Caught {} {}.\nOriginal {}".format(
+            self.exc_type.__name__, self.where, self.exc_msg)
+        if self.exc_type == KeyError:
+            # KeyError calls repr() on its argument (usually a dict key). This
+            # makes stack traces unreadable. It will not be changed in Python
+            # (https://bugs.python.org/issue2651), so we work around it.
+            msg = KeyErrorMessage(msg)
+        raise self.exc_type(msg)

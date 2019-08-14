@@ -2,8 +2,8 @@
 # It defines the following variables
 #  GLOO_INCLUDE_DIRS       - include directories for Gloo
 #  GLOO_LIBRARIES          - libraries to link against
-#  GLOO_BUILDER_LIBRARIES  - builder libraries to link against
 #  GLOO_CUDA_LIBRARIES     - cuda libraries to link against
+#  GLOO_HIP_LIBRARIES      - hip libraries to link against
 
 # library version information
 
@@ -31,5 +31,5 @@ get_filename_component(
 set(GLOO_INCLUDE_DIRS "${_INSTALL_PREFIX}/include")
 
 set(GLOO_LIBRARIES gloo)
-set(GLOO_BUILDER_LIBRARIES gloo_builder gloo)
 set(GLOO_CUDA_LIBRARIES gloo_cuda gloo)
+set(GLOO_HIP_LIBRARIES gloo_hip gloo)

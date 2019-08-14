@@ -1,8 +1,6 @@
 import math
 import torch
-from functools import reduce
-from sys import float_info
-from torch._six import inf, nan
+from torch._six import inf
 
 
 class __PrinterOptions(object):
@@ -10,6 +8,7 @@ class __PrinterOptions(object):
     threshold = 1000
     edgeitems = 3
     linewidth = 80
+    sci_mode = None
 
 
 PRINT_OPTS = __PrinterOptions()
@@ -22,6 +21,7 @@ def set_printoptions(
         edgeitems=None,
         linewidth=None,
         profile=None,
+        sci_mode=None
 ):
     r"""Set options for printing. Items shamelessly taken from NumPy
 
@@ -37,6 +37,8 @@ def set_printoptions(
             ignore this parameter.
         profile: Sane defaults for pretty printing. Can override with any of
             the above options. (any one of `default`, `short`, `full`)
+        sci_mode: Enable (True) or disable (False) scientific notation. If
+            None (default) is specified, the value is defined by `_Formatter`
     """
     if profile is not None:
         if profile == "default":
@@ -63,6 +65,7 @@ def set_printoptions(
         PRINT_OPTS.edgeitems = edgeitems
     if linewidth is not None:
         PRINT_OPTS.linewidth = linewidth
+    PRINT_OPTS.sci_mode = sci_mode
 
 
 class _Formatter(object):
@@ -122,6 +125,9 @@ class _Formatter(object):
                     for value in nonzero_finite_vals:
                         value_str = ('{{:.{}f}}').format(PRINT_OPTS.precision).format(value)
                         self.max_width = max(self.max_width, len(value_str))
+
+        if PRINT_OPTS.sci_mode is not None:
+            self.sci_mode = PRINT_OPTS.sci_mode
 
     def width(self):
         return self.max_width
@@ -190,7 +196,7 @@ def _tensor_str(self, indent):
         return '[]'
 
     summarize = self.numel() > PRINT_OPTS.threshold
-    if self.dtype is torch.float16:
+    if self.dtype is torch.float16 or self.dtype is torch.bfloat16:
         self = self.float()
     formatter = _Formatter(get_summarized_data(self) if summarize else self)
     return _tensor_str_with_formatter(self, indent, formatter, summarize)
@@ -233,17 +239,20 @@ def get_summarized_data(self):
 def _str(self):
     prefix = 'tensor('
     indent = len(prefix)
-
     suffixes = []
-    if not torch._C._is_default_type_cuda():
-        if self.device.type == 'cuda':
-            suffixes.append('device=\'' + str(self.device) + '\'')
-    else:
-        if self.device.type == 'cpu' or torch.cuda.current_device() != self.device.index:
-            suffixes.append('device=\'' + str(self.device) + '\'')
 
-    has_default_dtype = self.dtype == torch.get_default_dtype() or self.dtype == torch.int64
+    # Note [Print tensor device]:
+    # A general logic here is we only print device when it doesn't match
+    # the device specified in default tensor type.
+    # Currently torch.set_default_tensor_type() only supports CPU/CUDA, thus
+    # torch._C._get_default_device() only returns either cpu or cuda.
+    # In other cases, we don't have a way to set them as default yet,
+    # and we should always print out device for them.
+    if self.device.type != torch._C._get_default_device()\
+            or (self.device.type == 'cuda' and torch.cuda.current_device() != self.device.index):
+        suffixes.append('device=\'' + str(self.device) + '\'')
 
+    has_default_dtype = self.dtype in (torch.get_default_dtype(), torch.int64, torch.bool)
     if self.is_sparse:
         suffixes.append('size=' + str(tuple(self.shape)))
         suffixes.append('nnz=' + str(self._nnz()))
@@ -260,6 +269,16 @@ def _str(self):
         if values.numel() == 0:
             values_str += ', size=' + str(tuple(values.shape))
         tensor_str = indices_prefix + indices_str + '),\n' + ' ' * indent + values_prefix + values_str + ')'
+    elif self.is_quantized:
+        suffixes.append('size=' + str(tuple(self.shape)))
+        if not has_default_dtype:
+            suffixes.append('dtype=' + str(self.dtype))
+        # TODO: change to a call to self.q_scheme() when we add q_scheme method
+        # and uncomment this
+        # suffixes.append('quantization_scheme=' + 'per_tensor_affine')
+        suffixes.append('scale=' + str(self.q_scale()))
+        suffixes.append('zero_point=' + str(self.q_zero_point()))
+        tensor_str = _tensor_str(self.dequantize(), indent)
     else:
         if self.numel() == 0 and not self.is_sparse:
             # Explicitly print the shape if it is not (0,), to match NumPy behavior
@@ -274,7 +293,11 @@ def _str(self):
         else:
             if not has_default_dtype:
                 suffixes.append('dtype=' + str(self.dtype))
-            tensor_str = _tensor_str(self, indent)
+
+            if self.layout != torch.strided:
+                tensor_str = _tensor_str(self.to_dense(), indent)
+            else:
+                tensor_str = _tensor_str(self, indent)
 
     if self.layout != torch.strided:
         suffixes.append('layout=' + str(self.layout))
@@ -282,7 +305,7 @@ def _str(self):
     if self.grad_fn is not None:
         name = type(self.grad_fn).__name__
         if name == 'CppFunction':
-            name = self.grad_fn.name().rsplit('::', maxsplit=1)[-1]
+            name = self.grad_fn.name().rsplit('::', 1)[-1]
         suffixes.append('grad_fn=<{}>'.format(name))
     elif self.requires_grad:
         suffixes.append('requires_grad=True')

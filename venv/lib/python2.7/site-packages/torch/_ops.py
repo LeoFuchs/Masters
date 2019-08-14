@@ -2,11 +2,12 @@ import torch._C
 
 import contextlib
 import ctypes
+import os
 import sys
 import types
-import os.path
 
 import torch.jit
+import torch._utils_internal
 
 # Query `hasattr` only once.
 _SET_GLOBAL_FLAGS = hasattr(sys, 'getdlopenflags') and hasattr(sys, 'setdlopenflags')
@@ -62,10 +63,13 @@ class _OpNamespace(types.ModuleType):
         # with qualified_op_name
         torch.jit._register_builtin(op, qualified_op_name)
         setattr(self, op_name, op)
+        op.__module__ = self.__module__ + "." + self.name
         return op
 
 
 class _Ops(types.ModuleType):
+    __file__ = os.path.join(os.path.dirname(__file__), '_ops.py')
+
     def __init__(self):
         super(_Ops, self).__init__('torch.ops')
         self.loaded_libraries = set()
@@ -94,7 +98,7 @@ class _Ops(types.ModuleType):
         Arguments:
             path (str): A path to a shared library to load.
         """
-        path = os.path.realpath(path)
+        path = torch._utils_internal.resolve_library_path(path)
         with dl_open_guard():
             # Import the shared library into the process, thus running its
             # static (global) initialization code in order to register custom
