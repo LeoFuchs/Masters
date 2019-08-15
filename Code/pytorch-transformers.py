@@ -128,10 +128,10 @@ def enrichment_words(word):
         if counter <= 2:
             formated_sentences += i + " [SEP]"
             counter = counter + 1
-    print("Sentence: " + str(formated_sentences))
+    # print("Sentence: " + str(formated_sentences))
 
     tokenized_text = tokenizer.tokenize(formated_sentences)
-    print("Tokenized Text: " + str(tokenized_text))
+    # print("Tokenized Text: " + str(tokenized_text))
 
     # Defining the masked index equal the word of input
 
@@ -142,8 +142,8 @@ def enrichment_words(word):
             # print ("Masked Index: " + str(masked_index))
 
             # Mask a token that we will try to predict back with `BertForMaskedLM`
-            original_word = tokenized_text[masked_index]
-            print("Original Word: " + str(original_word))
+            # original_word = tokenized_text[masked_index]
+            # print("Original Word: " + str(original_word))
 
             tokenized_text[masked_index] = '[MASK]'
             # print("New Tokenized Text: " + str(tokenized_text))
@@ -173,16 +173,18 @@ def enrichment_words(word):
         predictions = outputs[0]
 
     # Predict the five first possibilities of the word removed
-    predicted_index = torch.topk(predictions[0, masked_index], 10)[1]
+    predicted_index = torch.topk(predictions[0, masked_index], 30)[1]
     predicted_index = list(np.array(predicted_index))
     # print("Predicted Index: " + str(predicted_index))
 
     predicted_tokens = tokenizer.convert_ids_to_tokens(predicted_index)
     predicted_tokens = [str(string) for string in predicted_tokens]
-    print("Predicted Word: " + str(predicted_tokens))
-    print("\n")
+    # print("Predicted Word: " + str(predicted_tokens))
 
     return predicted_tokens
+
+
+# similar_word = enrichment_words(feature_names[i])
 
 def string_formulation(model, feature_names, number_words, number_topics, similar_words, levenshtein_distance,
                        pubyear):
@@ -228,6 +230,8 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
         return message
 
     else:
+        lancaster = LancasterStemmer()
+
         for topic_index, topic in enumerate(model.components_):
             counter = 0
             message += "("
@@ -241,12 +245,38 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
                 if " " not in feature_names[i]:
                     try:
                         similar_word = enrichment_words(feature_names[i])
-                        #similar_word = wiki.most_similar(positive=feature_names[i], topn=word2vec_total_words)
-                        #similar_word = [j[0] for j in similar_word]
-                        #print("similar word:", similar_word)
+                        # print("Similar word:" + str(similar_word))
+
+                        stem_feature_names = lancaster.stem(feature_names[i])
+                        # print("stem feature names:", stem_feature_names)
+
+                        stem_similar_word = []
+
+                        final_stem_similar_word = []
+                        final_similar_word = []
+
+                        for j in similar_word:
+                            stem_similar_word.append(lancaster.stem(j))
+                        # print("stem Similar Word:", stem_similar_word)
+
+                        for number, word in enumerate(stem_similar_word):
+                            if stem_feature_names != word and Levenshtein.distance(str(stem_feature_names),
+                                                                                   str(word)) > levenshtein_distance:
+                                irrelevant = 0
+
+                                for k in final_stem_similar_word:
+                                    if Levenshtein.distance(str(k), str(word)) < levenshtein_distance:
+                                        irrelevant = 1
+
+                                if irrelevant == 0:
+                                    final_stem_similar_word.append(word)
+                                    final_similar_word.append(similar_word[number])
+
+                        # print("final stem similar word:", final_stem_similar_word)
+                        # print("final similar word:", final_similar_word)
 
                         message += "\" OR \""
-                        message += "\" OR \"".join(similar_word[m] for m in
+                        message += "\" OR \"".join(final_similar_word[m] for m in
                                                    range(0, similar_words))  # Where defined the number of similar words
 
                     except Exception as e:
@@ -278,7 +308,7 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
 def main():
     """Main function."""
 
-    levenshtein_distance = 4
+    levenshtein_distance = 3
     lda_iterations = 5000
 
     qgs_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS-txt/metadata'
@@ -288,7 +318,7 @@ def main():
     min_df_list = [0.4]
     number_topics_list = [3]
     number_words_list = [2]
-    enrichment_list = [0, 2]
+    enrichment_list = [0, 1, 2, 3]
 
     with open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/vasconcellos-result.csv', mode='w') as file_output:
 
