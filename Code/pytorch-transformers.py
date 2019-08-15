@@ -111,23 +111,21 @@ def enrichment_words(word):
     with open("result.txt", "wb") as merge_files:
         for f in read_files:
             with open(f, "rb") as infile:
-                merge_files.write(infile.read( ))
+                merge_files.write(infile.read())
 
     merge_files.close()
 
     with open("result.txt", "r") as metadata_file:
-        text = metadata_file.read( ).strip( )
+        text = metadata_file.read().strip()
         text = text.replace('\r\n', '')
-
-    #text = "Over the last decade many organizations are increasingly concerned with the improvement of their. "
 
     sentences = [sentence + '.' for sentence in text.split('.') if word in sentence]
 
-    counter = 0
+    counter = 1
 
     formated_sentences = "[CLS] "
     for i in sentences:
-        if counter <= 5:
+        if counter <= 2:
             formated_sentences += i + " [SEP]"
             counter = counter + 1
     print("Sentence: " + str(formated_sentences))
@@ -135,30 +133,30 @@ def enrichment_words(word):
     tokenized_text = tokenizer.tokenize(formated_sentences)
     print("Tokenized Text: " + str(tokenized_text))
 
-    len_segments_ids = len(tokenized_text)
-
     # Defining the masked index equal the word of input
 
     masked_index = 0
-
     for count, token in enumerate(tokenized_text):
         if word in token:
             masked_index = count
-            print ("Masked Index: " + str(masked_index))
+            # print ("Masked Index: " + str(masked_index))
 
             # Mask a token that we will try to predict back with `BertForMaskedLM`
             original_word = tokenized_text[masked_index]
             print("Original Word: " + str(original_word))
 
             tokenized_text[masked_index] = '[MASK]'
-            print("New Tokenized Text: " + str(tokenized_text))
+            # print("New Tokenized Text: " + str(tokenized_text))
 
     # Convert token to vocabulary indices
     indexed_tokens = tokenizer.convert_tokens_to_ids(tokenized_text)
-    #print("Indexed Tokens: " + str(indexed_tokens))
+    # print("Indexed Tokens: " + str(indexed_tokens))
+    # SEP = 102
 
     # Define sentence A and B indices associated to 1st and 2nd sentences (see paper)
-    segments_ids = [0] * len_segments_ids
+    len_first = tokenized_text.index("[SEP]")
+    segments_ids = [0] * len_first + [1] * (len(tokenized_text) - len_first)
+
     # print("Segments IDs: " + str(segments_ids))
 
     # Convert inputs to PyTorch tensors
@@ -167,15 +165,15 @@ def enrichment_words(word):
 
     # Load pre-trained model (weights)
     model = BertForMaskedLM.from_pretrained('bert-base-uncased')
-    model.eval( )
+    model.eval()
 
     # Predict all tokens
-    with torch.no_grad( ):
+    with torch.no_grad():
         outputs = model(tokens_tensor, token_type_ids=segments_tensors)
         predictions = outputs[0]
 
     # Predict the five first possibilities of the word removed
-    predicted_index = torch.topk(predictions[0, masked_index], 5)[1]
+    predicted_index = torch.topk(predictions[0, masked_index], 10)[1]
     predicted_index = list(np.array(predicted_index))
     # print("Predicted Index: " + str(predicted_index))
 
@@ -275,6 +273,7 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
             message += str(pubyear)
 
         return message
+
 
 def main():
     """Main function."""
