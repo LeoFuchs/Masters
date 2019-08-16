@@ -1,2 +1,1 @@
-# Masters
-Directory for the masters project
+# Directory used for the development of the Master in Computer Science at the Federal University of Mato Grosso do Sul. The work consists of the use of data mining for the formulation of search strings in systematic literature reviews.

@@ -22,6 +22,7 @@ from nltk.stem import LancasterStemmer
 from graphviz import Graph
 from pyscopus import Scopus
 
+
 def bag_of_words(min_df, qgs_txt):
     """Generates the Quasi-Gold Standard (QGS) bag-of-words representation.
 
