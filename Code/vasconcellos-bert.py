@@ -100,7 +100,7 @@ def lda_algorithm(tf, lda_iterations, number_topics):
 
 
 def string_formulation(model, feature_names, number_words, number_topics, similar_words, levenshtein_distance,
-                       pubyear):
+                       pubyear, bert_model, bert_tokenizer):
     """Formulate the search string based on the input parameters.
 
     Args:
@@ -117,6 +117,8 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
         levenshtein_distance: Distance of levenshtein used for
             comparison of titles.
         pubyear: Search year delimiter.
+        bert_tokenizer:
+        bert_model:
 
     Return:
         message: Search string to be used.
@@ -157,7 +159,7 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
 
                 if " " not in feature_names[i]:
                     try:
-                        similar_word = enrichment_words(feature_names[i])
+                        similar_word = enrichment_words(feature_names[i], bert_model, bert_tokenizer)
                         # print("similar word:", similar_word)
 
                         stem_feature_names = lancaster.stem(feature_names[i])
@@ -218,22 +220,11 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
         return message
 
 
-def enrichment_words(word):
-    """Searching the enrichment words for the search string.
-
-       Args:
-           word: Word that needs similar terms
-
-       Returns:
-            predicted_tokens: List with the most similar words returned.
-       """
-
-    # Load pre-trained model tokenizer (vocabulary)
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+def enrichment_words(word, bert_model, bert_tokenizer):
 
     # Tokenize input
     read_files = glob.glob(
-        "/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS-txt/metadata-enrichment/txt/*.txt")
+        "/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/QGS-txt/metadata-enrichment/txt/*.txt" % author)
 
     with open("sentences.txt", "wb") as merge_files:
         for f in read_files:
@@ -244,29 +235,48 @@ def enrichment_words(word):
 
     with open("sentences.txt", "r") as metadata_file:
         text = metadata_file.read().strip()
-        text = text.replace('\r\n', '')
+        text = text.replace('\r\n', '#.')
 
-    sentences = [sentence + '.' for sentence in text.split('.') if word in sentence]
+    # print("Word: " + str(word))
+    # print("Text: " + str(text))
 
-    counter = 1
+    all_sentences = []
+    selected_sentences = []
+    for sentence in text.split('.'):
+        all_sentences.append(sentence)
+
+    # Treatment for if the selected sentence is the last sentence of the text (return only one sentence)
+    flag = 0
+    for sentence in all_sentences:
+        if flag == 1:
+            if '#' in sentence:
+                break
+            else:
+                selected_sentences.append(sentence + '.')
+                break
+        if word in sentence:
+            selected_sentences.append(sentence + '.')
+            flag = 1
+    # print("All Sentences:" + str(all_sentences))
+    # print("Selected Sentences:" + str(selected_sentences))
 
     formated_sentences = "[CLS] "
-    for i in sentences:
-        if counter <= 2:
-            formated_sentences += i + " [SEP]"
-            counter = counter + 1
-    # print("Sentence: " + str(formated_sentences))
+    for sentence in selected_sentences:
+        formated_sentences += sentence + " [SEP] "
+    # print("Formated Sentences: " + str(formated_sentences))
 
-    tokenized_text = tokenizer.tokenize(formated_sentences)
+    tokenized_text = bert_tokenizer.tokenize(formated_sentences)
     # print("Tokenized Text: " + str(tokenized_text))
 
     # Defining the masked index equal the word of input
+
     masked_index = 0
     for count, token in enumerate(tokenized_text):
         if word in token:
             masked_index = count
             # print ("Masked Index: " + str(masked_index))
 
+            # Mask a token that we will try to predict back with `BertForMaskedLM`
             # original_word = tokenized_text[masked_index]
             # print("Original Word: " + str(original_word))
 
@@ -274,26 +284,24 @@ def enrichment_words(word):
             # print("New Tokenized Text: " + str(tokenized_text))
 
     # Convert token to vocabulary indices
-    indexed_tokens = tokenizer.convert_tokens_to_ids(tokenized_text)
+    indexed_tokens = bert_tokenizer.convert_tokens_to_ids(tokenized_text)
     # print("Indexed Tokens: " + str(indexed_tokens))
 
-    # Define sentence A and B indices associated to 1st and 2nd sentences
+    # Define sentence A and B indices associated to 1st and 2nd sentences (see paper)
     len_first = tokenized_text.index("[SEP]")
+    len_first = len_first + 1
     segments_ids = [0] * len_first + [1] * (len(tokenized_text) - len_first)
 
     # print("Segments IDs: " + str(segments_ids))
+    # print("\n")
 
     # Convert inputs to PyTorch tensors
     tokens_tensor = torch.tensor([indexed_tokens])
     segments_tensors = torch.tensor([segments_ids])
 
-    # Load pre-trained model (weights)
-    model = BertForMaskedLM.from_pretrained('bert-base-uncased')
-    model.eval()
-
     # Predict all tokens
     with torch.no_grad():
-        outputs = model(tokens_tensor, token_type_ids=segments_tensors)
+        outputs = bert_model(tokens_tensor, token_type_ids=segments_tensors)
         predictions = outputs[0]
 
     # Predict the five first possibilities of the word removed
@@ -301,7 +309,7 @@ def enrichment_words(word):
     predicted_index = list(np.array(predicted_index))
     # print("Predicted Index: " + str(predicted_index))
 
-    predicted_tokens = tokenizer.convert_ids_to_tokens(predicted_index)
+    predicted_tokens = bert_tokenizer.convert_ids_to_tokens(predicted_index)
     predicted_tokens = [str(string) for string in predicted_tokens]
     # print("Predicted Word: " + str(predicted_tokens))
 
@@ -353,9 +361,9 @@ def open_necessary_files():
         manual_comparation: List for manual comparison of results
             found with results initially stored.
     """
-    gs = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/GS.csv', sep='\t')
+    gs = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/GS.csv' % author, sep='\t')
 
-    qgs = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS.csv', sep='\t')
+    qgs = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/QGS.csv' % author, sep='\t')
 
     result_name_list = pd.read_csv('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Result.csv', sep='\t')
     result_name_list = result_name_list.fillna(' ')
@@ -382,7 +390,7 @@ def similarity_score_qgs(qgs, result_name_list, manual_comparation):
             search result that are in the QGS
     """
     len_qgs, len_result = 0, 0
-    for len_qgs, l in enumerate(open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS.csv')):
+    for len_qgs, l in enumerate(open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/QGS.csv' % author)):
         pass
     for len_result, l in enumerate(open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Result.csv')):
         pass
@@ -465,7 +473,7 @@ def similarity_score_gs(gs, result_name_list, manual_comparation):
     """
 
     len_gs, len_result = 0, 0
-    for len_gs, l in enumerate(open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/GS.csv')):
+    for len_gs, l in enumerate(open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/GS.csv' % author)):
         pass
     for len_result, l in enumerate(open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Result.csv')):
         pass
@@ -561,7 +569,7 @@ def snowballing():
        final_edges:
    """
 
-    with open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/GS.csv', mode='r') as gs:
+    with open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/GS.csv' % author, mode='r') as gs:
 
         # Skipping the GS.csv line written 'title'
         next(gs)
@@ -579,7 +587,7 @@ def snowballing():
 
     # Analyzing the citations of each of the articles
     for i in range(1, len(title_list) + 1):
-        article_name = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/GS-pdf/%d.cermtxt' % i
+        article_name = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/GS-pdf/%d.cermtxt' % (author, i)
         with open('%s' % article_name, mode='r') as file_zone:
             reader = file_zone.read().strip().lower().replace('\n', ' ').replace('\r', ''). \
                 replace(' ', '').replace('.', '')
@@ -674,29 +682,40 @@ def graph(results_list, title_list, adjacency_matrix, final_edges, min_df, numbe
 def main():
     """Main function."""
 
+    global author
+    author = 'vasconcellos'
+
     levenshtein_distance = 4
     lda_iterations = 5000
 
-    qgs_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/QGS-txt/metadata'
+    qgs_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/QGS-txt/metadata' % author
 
     pubyear = 2015  # Pubyear = 0 --> disable
 
     min_df_list = [0.4]
-    number_topics_list = [1, 2, 3, 4, 5]
-    number_words_list = [5, 6, 7, 8, 9, 10]
+    number_topics_list = [3]
+    number_words_list = [2]
     enrichment_list = [0, 1, 2, 3]
 
     # Running CERMINE
-    print("Loading CERMINE...\n")
-    cermine = "java -cp cermine-impl-1.14-20180204.213009-17-jar-with-dependencies.jar " \
-              "pl.edu.icm.cermine.ContentExtractor -path " \
-              "/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-vasconcellos/GS-pdf/ -outputs text"
-    os.system(cermine)
+    #print("Loading CERMINE...\n")
+    #cermine = "java -cp cermine-impl-1.14-20180204.213009-17-jar-with-dependencies.jar " \
+    #          "pl.edu.icm.cermine.ContentExtractor -path " \
+    #          "/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/GS-pdf/ -outputs text" % author
+    #os.system(cermine)
 
-    print("Doing Snowballing...\n")
-    title_list, adjacency_matrix, final_edges = snowballing()
+    #print("Doing Snowballing...\n")
+    #title_list, adjacency_matrix, final_edges = snowballing()
 
-    with open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/vasconcellos-result.csv', mode='w') as file_output:
+    print("Loading BERT...\n")
+    # Load pre-trained model tokenizer (vocabulary)
+    bert_tokenizer = BertTokenizer.from_pretrained('bert-large-cased')
+
+    # Load pre-trained model (weights)
+    bert_model = BertForMaskedLM.from_pretrained('bert-large-cased')
+    bert_model.eval()
+
+    with open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/%s-result.csv' % author, mode='w') as file_output:
 
         file_writer = csv.writer(file_output, delimiter=',')
 
@@ -716,7 +735,7 @@ def main():
 
                     for enrichment in enrichment_list:
                         string = string_formulation(lda, dic, number_words, number_topics, enrichment,
-                                                    levenshtein_distance, pubyear)
+                                                    levenshtein_distance, pubyear, bert_model, bert_tokenizer)
 
                         scopus_number_results = scopus_search(string)
 
@@ -724,13 +743,13 @@ def main():
                         counter_one = similarity_score_qgs(qgs, result_name_list, manual_comparation)
                         counter_two, list_graph = similarity_score_gs(gs, result_name_list, manual_comparation)
 
-                        counter_total = graph(list_graph, title_list, adjacency_matrix, final_edges,
-                                              min_df, number_topics, number_words, enrichment)
+                        #counter_total = graph(list_graph, title_list, adjacency_matrix, final_edges,
+                        #                     min_df, number_topics, number_words, enrichment)
 
-                        file_writer.writerow(
-                            [min_df, number_topics, number_words, enrichment, scopus_number_results, counter_one,
-                             counter_two, counter_total])
-
+                        #file_writer.writerow(
+                        #    [min_df, number_topics, number_words, enrichment, scopus_number_results, counter_one,
+                        #     counter_two, counter_total])
+                        counter_total = 0
                         print("String with " + str(enrichment) + " similar words: " + str(string))
                         print("Generating " + str(scopus_number_results) + " results with " +
                               str(counter_one) + " of the QGS articles, " + str(counter_two) +

@@ -10,6 +10,7 @@ import csv
 import pandas as pd
 import graphviz
 import os
+import logging
 
 from itertools import islice
 from sklearn.feature_extraction.text import CountVectorizer
@@ -100,10 +101,7 @@ def lda_algorithm(tf, lda_iterations, number_topics):
     return lda
 
 
-def enrichment_words(word):
-
-    # Load pre-trained model tokenizer (vocabulary)
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+def enrichment_words(word, bert_model, bert_tokenizer):
 
     # Tokenize input
     read_files = glob.glob(
@@ -118,21 +116,39 @@ def enrichment_words(word):
 
     with open("result.txt", "r") as metadata_file:
         text = metadata_file.read().strip()
-        text = text.replace('\r\n', '')
+        text = text.replace('\r\n', '#.')
 
-    sentences = [sentence + '.' for sentence in text.split('.') if word in sentence]
+    print("Word: " + str(word))
+    # print("Text: " + str(text))
 
-    counter = 1
+    all_sentences = []
+    selected_sentences = []
+    for sentence in text.split('.'):
+        all_sentences.append(sentence)
+
+    # Treatment for if the selected sentence is the last sentence of the text (return only one sentence)
+    flag = 0
+    for sentence in all_sentences:
+        if flag == 1:
+            if '#' in sentence:
+                break
+            else:
+                selected_sentences.append(sentence + '.')
+                break
+        if word in sentence:
+            selected_sentences.append(sentence + '.')
+            flag = 1
+    # print("All Sentences:" + str(all_sentences))
+    print("Selected Sentences:" + str(selected_sentences))
+    #print("Centences:" + str(centences))
 
     formated_sentences = "[CLS] "
-    for i in sentences:
-        if counter <= 2:
-            formated_sentences += i + " [SEP]"
-            counter = counter + 1
-    # print("Sentence: " + str(formated_sentences))
+    for sentence in selected_sentences:
+        formated_sentences += sentence + " [SEP] "
+    print("Formated Sentences: " + str(formated_sentences))
 
-    tokenized_text = tokenizer.tokenize(formated_sentences)
-    # print("Tokenized Text: " + str(tokenized_text))
+    tokenized_text = bert_tokenizer.tokenize(formated_sentences)
+    print("Tokenized Text: " + str(tokenized_text))
 
     # Defining the masked index equal the word of input
 
@@ -150,27 +166,24 @@ def enrichment_words(word):
             # print("New Tokenized Text: " + str(tokenized_text))
 
     # Convert token to vocabulary indices
-    indexed_tokens = tokenizer.convert_tokens_to_ids(tokenized_text)
+    indexed_tokens = bert_tokenizer.convert_tokens_to_ids(tokenized_text)
     # print("Indexed Tokens: " + str(indexed_tokens))
-    # SEP = 102
 
     # Define sentence A and B indices associated to 1st and 2nd sentences (see paper)
     len_first = tokenized_text.index("[SEP]")
+    len_first = len_first + 1
     segments_ids = [0] * len_first + [1] * (len(tokenized_text) - len_first)
 
-    # print("Segments IDs: " + str(segments_ids))
+    print("Segments IDs: " + str(segments_ids))
+    print("\n")
 
     # Convert inputs to PyTorch tensors
     tokens_tensor = torch.tensor([indexed_tokens])
     segments_tensors = torch.tensor([segments_ids])
 
-    # Load pre-trained model (weights)
-    model = BertForMaskedLM.from_pretrained('bert-base-uncased')
-    model.eval()
-
     # Predict all tokens
     with torch.no_grad():
-        outputs = model(tokens_tensor, token_type_ids=segments_tensors)
+        outputs = bert_model(tokens_tensor, token_type_ids=segments_tensors)
         predictions = outputs[0]
 
     # Predict the five first possibilities of the word removed
@@ -178,7 +191,7 @@ def enrichment_words(word):
     predicted_index = list(np.array(predicted_index))
     # print("Predicted Index: " + str(predicted_index))
 
-    predicted_tokens = tokenizer.convert_ids_to_tokens(predicted_index)
+    predicted_tokens = bert_tokenizer.convert_ids_to_tokens(predicted_index)
     predicted_tokens = [str(string) for string in predicted_tokens]
     # print("Predicted Word: " + str(predicted_tokens))
 
@@ -188,7 +201,7 @@ def enrichment_words(word):
 # similar_word = enrichment_words(feature_names[i])
 
 def string_formulation(model, feature_names, number_words, number_topics, similar_words, levenshtein_distance,
-                       pubyear):
+                       pubyear, bert_model, bert_tokenizer):
     """Formulate the search string based on the input parameters.
 
     Args:
@@ -205,6 +218,8 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
         levenshtein_distance: Distance of levenshtein used for
             comparison of titles.
         pubyear: Search year delimiter.
+        bert_model:
+        bert_tokenizer:
 
     Return:
         message: Search string to be used.
@@ -245,7 +260,7 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
 
                 if " " not in feature_names[i]:
                     try:
-                        similar_word = enrichment_words(feature_names[i])
+                        similar_word = enrichment_words(feature_names[i], bert_model, bert_tokenizer)
                         # print("Similar word:" + str(similar_word))
 
                         stem_feature_names = lancaster.stem(feature_names[i])
@@ -319,7 +334,15 @@ def main():
     min_df_list = [0.4]
     number_topics_list = [3]
     number_words_list = [2]
-    enrichment_list = [0, 1, 2, 3]
+    enrichment_list = [1]
+
+    print("Loading BERT...\n")
+    # Load pre-trained model tokenizer (vocabulary)
+    bert_tokenizer = BertTokenizer.from_pretrained('bert-large-cased')
+
+    # Load pre-trained model (weights)
+    bert_model = BertForMaskedLM.from_pretrained('bert-large-cased')
+    bert_model.eval()
 
     with open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/vasconcellos-result.csv', mode='w') as file_output:
 
@@ -341,7 +364,7 @@ def main():
 
                     for enrichment in enrichment_list:
                         string = string_formulation(lda, dic, number_words, number_topics, enrichment,
-                                                    levenshtein_distance, pubyear)
+                                                    levenshtein_distance, pubyear, bert_model, bert_tokenizer)
 
                         print("String with " + str(enrichment) + " similar words: " + str(string))
                         print("\n")

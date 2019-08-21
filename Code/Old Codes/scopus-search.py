@@ -13,7 +13,7 @@ string = "TITLE(\"Entropy based software processes improvement\")"
 #string = re.sub(r'(")', r'\"', string)
 
 #Executing SCOPUS search with pyscopus
-search_df = scopus.search(string, count = results)
+search_df = scopus.search(string, count = results, view='STANDARD', type_=1)
 print("Number of Results:", len(search_df))
 
 data_top = search_df.head()
