@@ -226,9 +226,9 @@ def enrichment_words(word, bert_model, bert_tokenizer):
     read_files = glob.glob(
         "/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/QGS-txt/metadata-enrichment/txt/*.txt" % author)
 
-    with open("sentences.txt", "wb") as merge_files:
+    with open("sentences.txt", "w") as merge_files:
         for f in read_files:
-            with open(f, "rb") as infile:
+            with open(f, "r") as infile:
                 merge_files.write(infile.read())
 
     merge_files.close()
@@ -237,6 +237,9 @@ def enrichment_words(word, bert_model, bert_tokenizer):
         text = metadata_file.read().strip()
         text = text.replace('\r\n', '#.')
 
+    metadata_file.close()
+
+    print("\n\n\n")
     # print("Word: " + str(word))
     # print("Text: " + str(text))
 
@@ -246,33 +249,28 @@ def enrichment_words(word, bert_model, bert_tokenizer):
         all_sentences.append(sentence)
 
     # Treatment for if the selected sentence is the last sentence of the text (return only one sentence)
-    flag = 0
+    # Treatment for 1 sentence.
     for sentence in all_sentences:
-        if flag == 1:
-            if '#' in sentence:
-                break
-            else:
-                selected_sentences.append(sentence + '.')
-                break
         if word in sentence:
             selected_sentences.append(sentence + '.')
-            flag = 1
-    # print("All Sentences:" + str(all_sentences))
-    # print("Selected Sentences:" + str(selected_sentences))
+            break
+        elif word in sentence.lower():
+            selected_sentences.append(sentence + '.')
+            break
 
     formated_sentences = "[CLS] "
     for sentence in selected_sentences:
-        formated_sentences += sentence + " [SEP] "
+        formated_sentences += sentence.lower() + " [SEP] "
     # print("Formated Sentences: " + str(formated_sentences))
 
     tokenized_text = bert_tokenizer.tokenize(formated_sentences)
     # print("Tokenized Text: " + str(tokenized_text))
 
     # Defining the masked index equal the word of input
-
     masked_index = 0
+    mark = 0
     for count, token in enumerate(tokenized_text):
-        if word in token:
+        if word in token.lower():
             masked_index = count
             # print ("Masked Index: " + str(masked_index))
 
@@ -281,7 +279,12 @@ def enrichment_words(word, bert_model, bert_tokenizer):
             # print("Original Word: " + str(original_word))
 
             tokenized_text[masked_index] = '[MASK]'
+            mark = 1
             # print("New Tokenized Text: " + str(tokenized_text))
+
+    # Mark for return if the word it's not presented in tokens
+    if mark == 0:
+        return []
 
     # Convert token to vocabulary indices
     indexed_tokens = bert_tokenizer.convert_tokens_to_ids(tokenized_text)
@@ -305,12 +308,12 @@ def enrichment_words(word, bert_model, bert_tokenizer):
         predictions = outputs[0]
 
     # Predict the five first possibilities of the word removed
-    predicted_index = torch.topk(predictions[0, masked_index], 30)[1]
+    predicted_index = torch.topk(predictions[0, masked_index], 15)[1]
     predicted_index = list(np.array(predicted_index))
     # print("Predicted Index: " + str(predicted_index))
 
     predicted_tokens = bert_tokenizer.convert_ids_to_tokens(predicted_index)
-    predicted_tokens = [str(string) for string in predicted_tokens]
+    # predicted_tokens = [string for string in predicted_tokens]
     # print("Predicted Word: " + str(predicted_tokens))
 
     return predicted_tokens
@@ -698,14 +701,14 @@ def main():
     enrichment_list = [0, 1, 2, 3]
 
     # Running CERMINE
-    #print("Loading CERMINE...\n")
-    #cermine = "java -cp cermine-impl-1.14-20180204.213009-17-jar-with-dependencies.jar " \
-    #          "pl.edu.icm.cermine.ContentExtractor -path " \
-    #          "/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/GS-pdf/ -outputs text" % author
-    #os.system(cermine)
+    print("Loading CERMINE...\n")
+    cermine = "java -cp cermine-impl-1.14-20180204.213009-17-jar-with-dependencies.jar " \
+              "pl.edu.icm.cermine.ContentExtractor -path " \
+              "/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/GS-pdf/ -outputs text" % author
+    os.system(cermine)
 
-    #print("Doing Snowballing...\n")
-    #title_list, adjacency_matrix, final_edges = snowballing()
+    print("Doing Snowballing...\n")
+    title_list, adjacency_matrix, final_edges = snowballing()
 
     print("Loading BERT...\n")
     # Load pre-trained model tokenizer (vocabulary)
@@ -743,13 +746,13 @@ def main():
                         counter_one = similarity_score_qgs(qgs, result_name_list, manual_comparation)
                         counter_two, list_graph = similarity_score_gs(gs, result_name_list, manual_comparation)
 
-                        #counter_total = graph(list_graph, title_list, adjacency_matrix, final_edges,
-                        #                     min_df, number_topics, number_words, enrichment)
+                        counter_total = graph(list_graph, title_list, adjacency_matrix, final_edges,
+                                             min_df, number_topics, number_words, enrichment)
 
-                        #file_writer.writerow(
-                        #    [min_df, number_topics, number_words, enrichment, scopus_number_results, counter_one,
-                        #     counter_two, counter_total])
-                        counter_total = 0
+                        file_writer.writerow(
+                            [min_df, number_topics, number_words, enrichment, scopus_number_results, counter_one,
+                             counter_two, counter_total])
+
                         print("String with " + str(enrichment) + " similar words: " + str(string))
                         print("Generating " + str(scopus_number_results) + " results with " +
                               str(counter_one) + " of the QGS articles, " + str(counter_two) +

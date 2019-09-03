@@ -390,7 +390,7 @@ def main():
     global author
     author = 'vasconcellos'
 
-    levenshtein_distance = 3
+    levenshtein_distance = 4
     lda_iterations = 5000
 
     #aqui

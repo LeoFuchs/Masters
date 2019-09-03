@@ -228,9 +228,9 @@ def enrichment_words(word, bert_model, bert_tokenizer):
     read_files = glob.glob(
         "/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/QGS-txt/metadata-enrichment/txt/*.txt" % author)
 
-    with open("sentences.txt", "wb") as merge_files:
+    with open("sentences.txt", "w") as merge_files:
         for f in read_files:
-            with open(f, "rb") as infile:
+            with open(f, "r") as infile:
                 merge_files.write(infile.read())
 
     merge_files.close()
@@ -239,6 +239,9 @@ def enrichment_words(word, bert_model, bert_tokenizer):
         text = metadata_file.read().strip()
         text = text.replace('\r\n', '#.')
 
+    metadata_file.close()
+
+    print("\n\n\n")
     # print("Word: " + str(word))
     # print("Text: " + str(text))
 
@@ -248,33 +251,28 @@ def enrichment_words(word, bert_model, bert_tokenizer):
         all_sentences.append(sentence)
 
     # Treatment for if the selected sentence is the last sentence of the text (return only one sentence)
-    flag = 0
+    # Treatment for 1 sentence.
     for sentence in all_sentences:
-        if flag == 1:
-            if '#' in sentence:
-                break
-            else:
-                selected_sentences.append(sentence + '.')
-                break
         if word in sentence:
             selected_sentences.append(sentence + '.')
-            flag = 1
-    # print("All Sentences:" + str(all_sentences))
-    # print("Selected Sentences:" + str(selected_sentences))
+            break
+        elif word in sentence.lower():
+            selected_sentences.append(sentence + '.')
+            break
 
     formated_sentences = "[CLS] "
     for sentence in selected_sentences:
-        formated_sentences += sentence + " [SEP] "
+        formated_sentences += sentence.lower() + " [SEP] "
     # print("Formated Sentences: " + str(formated_sentences))
 
     tokenized_text = bert_tokenizer.tokenize(formated_sentences)
     # print("Tokenized Text: " + str(tokenized_text))
 
     # Defining the masked index equal the word of input
-
     masked_index = 0
+    mark = 0
     for count, token in enumerate(tokenized_text):
-        if word in token:
+        if word in token.lower():
             masked_index = count
             # print ("Masked Index: " + str(masked_index))
 
@@ -283,7 +281,12 @@ def enrichment_words(word, bert_model, bert_tokenizer):
             # print("Original Word: " + str(original_word))
 
             tokenized_text[masked_index] = '[MASK]'
+            mark = 1
             # print("New Tokenized Text: " + str(tokenized_text))
+
+    # Mark for return if the word it's not presented in tokens
+    if mark == 0:
+        return []
 
     # Convert token to vocabulary indices
     indexed_tokens = bert_tokenizer.convert_tokens_to_ids(tokenized_text)
@@ -307,12 +310,12 @@ def enrichment_words(word, bert_model, bert_tokenizer):
         predictions = outputs[0]
 
     # Predict the five first possibilities of the word removed
-    predicted_index = torch.topk(predictions[0, masked_index], 30)[1]
+    predicted_index = torch.topk(predictions[0, masked_index], 15)[1]
     predicted_index = list(np.array(predicted_index))
     # print("Predicted Index: " + str(predicted_index))
 
     predicted_tokens = bert_tokenizer.convert_ids_to_tokens(predicted_index)
-    predicted_tokens = [str(string) for string in predicted_tokens]
+    # predicted_tokens = [string for string in predicted_tokens]
     # print("Predicted Word: " + str(predicted_tokens))
 
     return predicted_tokens
@@ -762,19 +765,17 @@ def main():
     levenshtein_distance = 4
     lda_iterations = 5000
 
-    qgs_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/QGS-txt/metadata' % author
-
-
-
-    min_df_list = [0.4]
+    min_df_list = [0.1]
     number_topics_list = [3]
-    number_words_list = [2]
-    enrichment_list = [0, 1, 2, 3]
+    number_words_list = [8]
+    enrichment_list = [1]
 
     author = 'vasconcellos'
     pubyear = 2015  # Pubyear = 0 --> disable
     qgs_size = 10
     gs_size = 30
+
+    qgs_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/QGS-txt/metadata' % author
 
     # Running CERMINE
     print("Loading CERMINE...\n")
@@ -791,10 +792,10 @@ def main():
 
     print("Loading BERT...\n")
     # Load pre-trained model tokenizer (vocabulary)
-    bert_tokenizer = BertTokenizer.from_pretrained('bert-large-cased')
+    bert_tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
     # Load pre-trained model (weights)
-    bert_model = BertForMaskedLM.from_pretrained('bert-large-cased')
+    bert_model = BertForMaskedLM.from_pretrained('bert-base-uncased')
     bert_model.eval()
 
     with open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/%s-result.csv' % author, mode='w') as file_output:
