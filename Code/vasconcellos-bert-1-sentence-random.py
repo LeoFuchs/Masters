@@ -10,6 +10,7 @@ import glob
 import os
 import shutil
 import random
+import sys
 
 from itertools import islice
 from sklearn.feature_extraction.text import CountVectorizer
@@ -22,6 +23,9 @@ from pytorch_transformers import BertTokenizer, BertForMaskedLM
 from nltk.stem import LancasterStemmer
 from graphviz import Graph
 from pyscopus import Scopus
+
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 
 def bag_of_words(min_df, qgs_txt):
@@ -164,40 +168,43 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
                         similar_word = enrichment_words(feature_names[i], bert_model, bert_tokenizer)
                         # print("similar word:", similar_word)
 
-                        stem_feature_names = lancaster.stem(feature_names[i])
-                        # print("stem feature names:", stem_feature_names)
+                        if similar_word == ['erro']:
+                            pass
+                        else:
+                            stem_feature_names = lancaster.stem(feature_names[i])
+                            # print("stem feature names:", stem_feature_names)
 
-                        stem_similar_word = []
+                            stem_similar_word = []
 
-                        final_stem_similar_word = []
-                        final_similar_word = []
+                            final_stem_similar_word = []
+                            final_similar_word = []
 
-                        for j in similar_word:
-                            stem_similar_word.append(lancaster.stem(j))
-                        # print("stem Similar Word:", stem_similar_word)
+                            for j in similar_word:
+                                stem_similar_word.append(lancaster.stem(j))
+                            # print("stem Similar Word:", stem_similar_word)
 
-                        for number, word in enumerate(stem_similar_word):
-                            if stem_feature_names != word and Levenshtein.distance(str(stem_feature_names),
-                                                                                   str(word)) > levenshtein_distance:
-                                irrelevant = 0
+                            for number, word in enumerate(stem_similar_word):
+                                if stem_feature_names != word and Levenshtein.distance(str(stem_feature_names),
+                                                                                       str(word)) > levenshtein_distance:
+                                    irrelevant = 0
 
-                                for k in final_stem_similar_word:
-                                    if Levenshtein.distance(str(k), str(word)) < levenshtein_distance:
-                                        irrelevant = 1
+                                    for k in final_stem_similar_word:
+                                        if Levenshtein.distance(str(k), str(word)) < levenshtein_distance:
+                                            irrelevant = 1
 
-                                if irrelevant == 0:
-                                    final_stem_similar_word.append(word)
-                                    final_similar_word.append(similar_word[number])
+                                    if irrelevant == 0:
+                                        final_stem_similar_word.append(word)
+                                        final_similar_word.append(similar_word[number])
 
-                        # print("final stem similar word:", final_stem_similar_word)
-                        # print("final similar word:", final_similar_word)
+                            # print("final stem similar word:", final_stem_similar_word)
+                            # print("final similar word:", final_similar_word)
 
-                        message += "\" OR \""
-                        message += "\" OR \"".join(final_similar_word[m] for m in
-                                                   range(0, similar_words))  # Where defined the number of similar words
+                            message += "\" OR \""
+                            message += "\" OR \"".join(final_similar_word[m] for m in
+                                                       range(0, similar_words))
 
                     except Exception as e:
-                        print (e)
+                        print ("Exception: " + str(e))
 
                 message += "\")"
 
@@ -241,7 +248,6 @@ def enrichment_words(word, bert_model, bert_tokenizer):
 
     metadata_file.close()
 
-    print("\n\n\n")
     # print("Word: " + str(word))
     # print("Text: " + str(text))
 
@@ -277,7 +283,7 @@ def enrichment_words(word, bert_model, bert_tokenizer):
             # print ("Masked Index: " + str(masked_index))
 
             # Mask a token that we will try to predict back with `BertForMaskedLM`
-            # original_word = tokenized_text[masked_index]
+            original_word = tokenized_text[masked_index]
             # print("Original Word: " + str(original_word))
 
             tokenized_text[masked_index] = '[MASK]'
@@ -286,7 +292,7 @@ def enrichment_words(word, bert_model, bert_tokenizer):
 
     # Mark for return if the word it's not presented in tokens
     if mark == 0:
-        return []
+        return ['erro']
 
     # Convert token to vocabulary indices
     indexed_tokens = bert_tokenizer.convert_tokens_to_ids(tokenized_text)
@@ -311,8 +317,15 @@ def enrichment_words(word, bert_model, bert_tokenizer):
 
     # Predict the five first possibilities of the word removed
     predicted_index = torch.topk(predictions[0, masked_index], 15)[1]
+    # print("Predicted Index: " + str(predicted_index))
     predicted_index = list(np.array(predicted_index))
     # print("Predicted Index: " + str(predicted_index))
+
+    # Remove the \2022 ascii error index
+    for index in predicted_index:
+        if index == '1528':
+            predicted_index.remove('1528')
+            # print("Predicted Index NOVO: " + str(predicted_index))
 
     predicted_tokens = bert_tokenizer.convert_ids_to_tokens(predicted_index)
     # predicted_tokens = [string for string in predicted_tokens]
@@ -483,12 +496,18 @@ def similarity_score_gs(gs, result_name_list, manual_comparation):
     for len_result, l in enumerate(open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/Result.csv')):
         pass
 
+    # print("Len_gs:" + str(len_gs))
+    # print("Len_gs:" + str(len_result))
+
     list_gs = []
     list_result = []
 
     list_graph = []
 
     counter_improvement = 0
+
+    if len_result == 0:
+        return counter_improvement
 
     for i in range(0, len_gs):
         list_gs.append(gs.iloc[i, 0].lower())
@@ -498,9 +517,6 @@ def similarity_score_gs(gs, result_name_list, manual_comparation):
 
     for i in range(0, len_result):
         list_result.append(result_name_list.iloc[i, 0].lower())
-
-    if len_result == 0:
-        return counter_improvement
 
     # print("result list:", list_result)
     # print("result list size:", len(list_result))
@@ -765,10 +781,10 @@ def main():
     levenshtein_distance = 4
     lda_iterations = 5000
 
-    min_df_list = [0.1]
-    number_topics_list = [3]
-    number_words_list = [8]
-    enrichment_list = [1]
+    min_df_list = [0.1, 0.2, 0.3, 0.4]
+    number_topics_list = [1, 2, 3, 4, 5]
+    number_words_list = [5, 6, 7, 8, 9, 10]
+    enrichment_list = [0, 1, 2, 3]
 
     author = 'vasconcellos'
     pubyear = 2015  # Pubyear = 0 --> disable
@@ -787,8 +803,8 @@ def main():
     print("Randomize QGS...\n")
     randomize_qgs(qgs_size, gs_size)
 
-    print("Doing Snowballing...\n")
-    title_list, adjacency_matrix, final_edges = snowballing()
+    # print("Doing Snowballing...\n")
+    # title_list, adjacency_matrix, final_edges = snowballing()
 
     print("Loading BERT...\n")
     # Load pre-trained model tokenizer (vocabulary)
@@ -820,24 +836,24 @@ def main():
                         string = string_formulation(lda, dic, number_words, number_topics, enrichment,
                                                     levenshtein_distance, pubyear, bert_model, bert_tokenizer)
 
-                        scopus_number_results = scopus_search(string)
+                        # scopus_number_results = scopus_search(string)
 
-                        qgs, gs, result_name_list, manual_comparation = open_necessary_files()
-                        counter_one = similarity_score_qgs(qgs, result_name_list, manual_comparation)
-                        counter_two, list_graph = similarity_score_gs(gs, result_name_list, manual_comparation)
+                        # qgs, gs, result_name_list, manual_comparation = open_necessary_files()
+                        # counter_one = similarity_score_qgs(qgs, result_name_list, manual_comparation)
+                        # counter_two, list_graph = similarity_score_gs(gs, result_name_list, manual_comparation)
 
-                        counter_total = graph(list_graph, title_list, adjacency_matrix, final_edges,
-                                              min_df, number_topics, number_words, enrichment)
+                        # counter_total = graph(list_graph, title_list, adjacency_matrix, final_edges,
+                        #                      min_df, number_topics, number_words, enrichment)
 
-                        file_writer.writerow(
-                            [min_df, number_topics, number_words, enrichment, scopus_number_results, counter_one,
-                             counter_two, counter_total])
+                        # file_writer.writerow(
+                        #    [min_df, number_topics, number_words, enrichment, scopus_number_results, counter_one,
+                        #     counter_two, counter_total])
 
                         print("String with " + str(enrichment) + " similar words: " + str(string))
-                        print("Generating " + str(scopus_number_results) + " results with " +
-                              str(counter_one) + " of the QGS articles, " + str(counter_two) +
-                              " of the GS articles (without snowballing) and " + str(counter_total) +
-                              " of the GS articles (with snowballing).")
+                        # print("Generating " + str(scopus_number_results) + " results with " +
+                        #      str(counter_one) + " of the QGS articles, " + str(counter_two) +
+                        #      " of the GS articles (without snowballing) and " + str(counter_total) +
+                        #      " of the GS articles (with snowballing).")
                         print("\n")
 
     file_output.close()
