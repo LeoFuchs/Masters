@@ -10,6 +10,7 @@ import glob
 import os
 import shutil
 import random
+import sys
 
 from itertools import islice
 from sklearn.feature_extraction.text import CountVectorizer
@@ -126,7 +127,9 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
         message: Search string to be used.
     """
     global final_similar_word
+
     message = "TITLE-ABS-KEY("
+
     if similar_words == 0:
         for topic_index, topic in enumerate(model.components_):
             message += "(\""
@@ -162,42 +165,50 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
                 if " " not in feature_names[i]:
                     try:
                         similar_word = enrichment_words(feature_names[i], bert_model, bert_tokenizer)
-                        # print("similar word:", similar_word)
+                        # print("Similar Word:", similar_word)
 
-                        stem_feature_names = lancaster.stem(feature_names[i])
-                        # print("stem feature names:", stem_feature_names)
+                        # Error if the word searched it's not presented in the tokens
+                        if similar_word == ['error']:
+                            pass
+                        else:
+                            stem_feature_names = lancaster.stem(feature_names[i])
+                            # print("Stemming Feature Names:", stem_feature_names)
 
-                        stem_similar_word = []
+                            stem_similar_word = []
 
-                        final_stem_similar_word = []
-                        final_similar_word = []
+                            final_stem_similar_word = []
+                            final_similar_word = []
 
-                        for j in similar_word:
-                            stem_similar_word.append(lancaster.stem(j))
-                        # print("stem Similar Word:", stem_similar_word)
+                            for j in similar_word:
+                                stem_similar_word.append(lancaster.stem(j))
+                            # print("Stemming Similar Word:", stem_similar_word)
 
-                        for number, word in enumerate(stem_similar_word):
-                            if stem_feature_names != word and Levenshtein.distance(str(stem_feature_names),
-                                                                                   str(word)) > levenshtein_distance:
-                                irrelevant = 0
+                            for number, word in enumerate(stem_similar_word):
+                                if stem_feature_names != word and Levenshtein.distance(str(stem_feature_names),
+                                                                                       str(word)) > levenshtein_distance:
+                                    irrelevant = 0
 
-                                for k in final_stem_similar_word:
-                                    if Levenshtein.distance(str(k), str(word)) < levenshtein_distance:
-                                        irrelevant = 1
+                                    for k in final_stem_similar_word:
+                                        if Levenshtein.distance(str(k), str(word)) < levenshtein_distance:
+                                            irrelevant = 1
 
-                                if irrelevant == 0:
-                                    final_stem_similar_word.append(word)
-                                    final_similar_word.append(similar_word[number])
+                                    if irrelevant == 0:
+                                        final_stem_similar_word.append(word)
+                                        final_similar_word.append(similar_word[number])
 
-                        # print("final stem similar word:", final_stem_similar_word)
-                        # print("final similar word:", final_similar_word)
+                            # print("Final Stemming Similar Word:", final_stem_similar_word)
+                            # print("Final Similar Word:", final_similar_word)
 
-                        message += "\" OR \""
-                        message += "\" OR \"".join(final_similar_word[m] for m in
-                                                   range(0, similar_words))  # Where defined the number of similar words
+                            message += "\" OR \""
+                            if len(final_similar_word) < similar_words:
+                                message += "\" OR \"".join(final_similar_word[m] for m in
+                                                           range(0, len(final_similar_word)))
+                            else:
+                                message += "\" OR \"".join(final_similar_word[m] for m in
+                                                           range(0, similar_words))
 
                     except Exception as e:
-                        print (e)
+                        print ("Exception: " + str(e))
 
                 message += "\")"
 
@@ -223,22 +234,34 @@ def string_formulation(model, feature_names, number_words, number_topics, simila
 
 
 def enrichment_words(word, bert_model, bert_tokenizer):
+    """Formulate the enrichment words for using in the search string.
+
+        Args:
+            word: Word that will be used to find as similar
+            bert_model: Bert Model loading with the choosed parametrers in main function.
+            bert_tokenizer: Bert Tokenizer used to create sentence tokenization via BERT.
+        Return:
+            predicted_tokens: List with the enrichement words.
+    """
+
     # Tokenize input
     read_files = glob.glob(
         "/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/QGS-txt/metadata-enrichment/txt/*.txt" % author)
 
+    # Merge all the files in one file named 'sentences.txt'
     with open("sentences.txt", "w") as merge_files:
         for f in read_files:
             with open(f, "r") as infile:
-                merge_files.write(infile.read( ))
+                merge_files.write(infile.read())
 
-    merge_files.close( )
+    merge_files.close()
 
+    # Manipulating the file 'sentences.txt', replacing line breaks for #.
     with open("sentences.txt", "r") as metadata_file:
-        text = metadata_file.read( ).strip( )
+        text = metadata_file.read().strip()
         text = text.replace('\r\n', '#.')
 
-    metadata_file.close( )
+    metadata_file.close()
 
     # print("Word: " + str(word))
     # print("Text: " + str(text))
@@ -249,7 +272,7 @@ def enrichment_words(word, bert_model, bert_tokenizer):
         all_sentences.append(sentence)
 
     # Treatment for if the selected sentence is the last sentence of the text (return only one sentence)
-    # Just two sentences.
+    # Treatment for two sentences.
     flag = 0
     for sentence in all_sentences:
         if flag == 1:
@@ -264,23 +287,24 @@ def enrichment_words(word, bert_model, bert_tokenizer):
         elif word in sentence.lower( ):
             selected_sentences.append(sentence + '.')
             flag = 1
+
     # print("All Sentences:" + str(all_sentences))
     # print("Selected Sentences:" + str(selected_sentences))
 
     formated_sentences = "[CLS] "
     for sentence in selected_sentences:
-        formated_sentences += sentence + " [SEP] "
+        formated_sentences += sentence.lower() + " [SEP] "
     # print("Formated Sentences: " + str(formated_sentences))
 
     tokenized_text = bert_tokenizer.tokenize(formated_sentences)
     # print("Tokenized Text: " + str(tokenized_text))
 
     # Defining the masked index equal the word of input
-
     masked_index = 0
     mark = 0
+
     for count, token in enumerate(tokenized_text):
-        if word in token:
+        if word in token.lower():
             masked_index = count
             # print ("Masked Index: " + str(masked_index))
 
@@ -289,12 +313,13 @@ def enrichment_words(word, bert_model, bert_tokenizer):
             # print("Original Word: " + str(original_word))
 
             tokenized_text[masked_index] = '[MASK]'
-            mark = 1
             # print("New Tokenized Text: " + str(tokenized_text))
+
+            mark = 1
 
     # Mark for return if the word it's not presented in tokens
     if mark == 0:
-        return []
+        return ['error']
 
     # Convert token to vocabulary indices
     indexed_tokens = bert_tokenizer.convert_tokens_to_ids(tokenized_text)
@@ -313,17 +338,21 @@ def enrichment_words(word, bert_model, bert_tokenizer):
     segments_tensors = torch.tensor([segments_ids])
 
     # Predict all tokens
-    with torch.no_grad( ):
+    with torch.no_grad():
         outputs = bert_model(tokens_tensor, token_type_ids=segments_tensors)
         predictions = outputs[0]
 
     # Predict the five first possibilities of the word removed
-    predicted_index = torch.topk(predictions[0, masked_index], 15)[1]
+    predicted_index = torch.topk(predictions[0, masked_index], 30)[1]
     predicted_index = list(np.array(predicted_index))
     # print("Predicted Index: " + str(predicted_index))
 
+    # Remove the \2022 ascii error index
+    for index in predicted_index:
+        if index == '1528':
+            predicted_index.remove('1528')
+
     predicted_tokens = bert_tokenizer.convert_ids_to_tokens(predicted_index)
-    # predicted_tokens = [str(string) for string in predicted_tokens]
     # print("Predicted Word: " + str(predicted_tokens))
 
     return predicted_tokens
@@ -349,7 +378,7 @@ def scopus_search(string):
         search_df = scopus.search(string, count=results, view='STANDARD', type_=1)
         # print("number of results without improvement:", len(search_df))
     except Exception as e:
-        print (e)
+        print ("Exception: " + str(e))
         return -1
 
     pd.options.display.max_rows = 99999
@@ -413,11 +442,14 @@ def similarity_score_qgs(qgs, result_name_list, manual_comparation):
 
     counter_improvement = 0
 
+    if len_result == 0:
+        return counter_improvement
+
     for i in range(0, len_qgs):
         list_qgs.append(qgs.iloc[i, 0].lower())
 
-    # print("qgs list:", list_qgs)
-    # print("qgs list size:", len(list_qgs))
+    # print("QGS List:", list_qgs)
+    # print("QGS List Size:", len(list_qgs))
 
     for i in range(0, len_result):
         list_result.append(result_name_list.iloc[i, 0].lower())
@@ -425,14 +457,14 @@ def similarity_score_qgs(qgs, result_name_list, manual_comparation):
     if len_result == 0:
         return counter_improvement
 
-    # print("list result:", list_result)
-    # print("list result size:", len(list_result))
+    # print("List Result:", list_result)
+    # print("List Result Size:", len(list_result))
 
     train_set = [list_qgs, list_result]
     train_set = [val for sublist in train_set for val in sublist]
 
-    # print("train_set list:", train_set)
-    # print("train_set list size", len(train_set))
+    # print("Train Set List:", train_set)
+    # print("Train Set List Size", len(train_set))
 
     tfidf_vectorizer = TfidfVectorizer()
     tfidf_matrix_train = tfidf_vectorizer.fit_transform(train_set)
@@ -460,7 +492,7 @@ def similarity_score_qgs(qgs, result_name_list, manual_comparation):
         manual_comparation.write(line_exit)
         manual_comparation.flush()
 
-    # print("number of QGS articles founded (with improvement):", counter_improvement)
+    # print("Number of QGS articles founded (with improvement):", counter_improvement)
 
     return counter_improvement
 
@@ -498,26 +530,26 @@ def similarity_score_gs(gs, result_name_list, manual_comparation):
 
     counter_improvement = 0
 
+    if len_result == 0:
+        return counter_improvement
+
     for i in range(0, len_gs):
         list_gs.append(gs.iloc[i, 0].lower())
 
-    # print("gs list:", list_gs)
-    # print("gs list size:", len(list_gs))
+    # print("GS List:", list_gs)
+    # print("GS List Size:", len(list_gs))
 
     for i in range(0, len_result):
         list_result.append(result_name_list.iloc[i, 0].lower())
 
-    if len_result == 0:
-        return counter_improvement
-
-    # print("result list:", list_result)
-    # print("result list size:", len(list_result))
+    # print("Result List:", list_result)
+    # print("Result List Size:", len(list_result))
 
     train_set = [list_gs, list_result]
     train_set = [val for sublist in train_set for val in sublist]
 
-    # print("train_set list:", train_set)
-    # print("train_set list size", len(train_set))
+    # print("Train Set List:", train_set)
+    # print("Train Set List Size", len(train_set))
 
     tfidf_vectorizer = TfidfVectorizer()
     tfidf_matrix_train = tfidf_vectorizer.fit_transform(train_set)
@@ -545,7 +577,7 @@ def similarity_score_gs(gs, result_name_list, manual_comparation):
         manual_comparation.write(line_exit)
         manual_comparation.flush()
 
-    # print("number of GS articles founded (with improvement):", counter_improvement)
+    # print("Number of GS articles founded (with improvement):", counter_improvement)
 
     return counter_improvement, list_graph
 
@@ -716,7 +748,7 @@ def randomize_qgs(qgs_size, gs_size):
             if os.path.isfile(file_path):
                 os.unlink(file_path)
         except Exception as e:
-            print(e)
+            print ("Exception: " + str(e))
 
     folder_enrich = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/QGS-txt/metadata-enrichment/txt/' \
                     % author
@@ -726,7 +758,7 @@ def randomize_qgs(qgs_size, gs_size):
             if os.path.isfile(file_path):
                 os.unlink(file_path)
         except Exception as e:
-            print(e)
+            print ("Exception: " + str(e))
 
     # Copy files from the GS folder to the QGS folder
     for i in random_list:
@@ -768,15 +800,18 @@ def randomize_qgs(qgs_size, gs_size):
 def main():
     """Main function."""
 
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+
     global author
 
     levenshtein_distance = 4
     lda_iterations = 5000
 
-    min_df_list = [0.1]
-    number_topics_list = [5]
-    number_words_list = [6]
-    enrichment_list = [0, 1]
+    min_df_list = [0.1, 0.2, 0.3, 0.4]
+    number_topics_list = [1, 2, 3, 4, 5]
+    number_words_list = [5, 6, 7, 8, 9, 10]
+    enrichment_list = [0, 1, 2, 3]
 
     author = 'vasconcellos'
     pubyear = 2015  # Pubyear = 0 --> disable
@@ -800,10 +835,10 @@ def main():
 
     print("Loading BERT...\n")
     # Load pre-trained model tokenizer (vocabulary)
-    bert_tokenizer = BertTokenizer.from_pretrained('bert-large-cased')
+    bert_tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
     # Load pre-trained model (weights)
-    bert_model = BertForMaskedLM.from_pretrained('bert-large-cased')
+    bert_model = BertForMaskedLM.from_pretrained('bert-base-uncased')
     bert_model.eval()
 
     with open('/home/fuchs/Documentos/MESTRADO/Masters/Code/Exits/%s-result.csv' % author, mode='w') as file_output:
