@@ -254,14 +254,10 @@ def enrichment_words(word, bert_model, bert_tokenizer):
             with open(f, "r") as infile:
                 merge_files.write(infile.read())
 
-    merge_files.close()
-
     # Manipulating the file 'sentences.txt', replacing line breaks for #.
     with open("sentences.txt", "r") as metadata_file:
         text = metadata_file.read().strip()
         text = text.replace('\r\n', '#.')
-
-    metadata_file.close()
 
     # print("Word: " + str(word))
     # print("Text: " + str(text))
@@ -615,8 +611,6 @@ def snowballing():
         title_list = [line.strip().lower().replace(' ', '').replace('.', '') for line in gs]
         # print("Compact Title List: " + str(title_list))
 
-    gs.close()
-
     adjacency_matrix = np.zeros((len(title_list), len(title_list)))
     # print(adjacency_matrix)
 
@@ -642,8 +636,6 @@ def snowballing():
 
                             adjacency_matrix[i - 1][j - 1] = 1
                             adjacency_matrix[j - 1][i - 1] = 1
-
-            file_zone.close()
 
     # print ("Final edges:" + str(final_edges))
     return title_list, adjacency_matrix, final_edges
@@ -774,8 +766,6 @@ def randomize_qgs(qgs_size, gs_size):
         # Creating a list where each element is the name of a GS article, without spaces, capital letters and '-'
         title_list = [line.strip() for line in gs]
 
-    gs.close()
-
     with open('/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/QGS.csv' % author, mode='wr') as qgs:
 
         # Skipping the GS.csv line written 'title'
@@ -785,8 +775,6 @@ def randomize_qgs(qgs_size, gs_size):
             if i + 1 in random_list:
                 qgs.write('\n')
                 qgs.write(line)
-
-    qgs.close()
 
 
 def main():
@@ -800,7 +788,7 @@ def main():
     levenshtein_distance = 4
     lda_iterations = 5000
 
-    min_df_list = [0.1, 0.2, 0.3, 0.4]
+    min_df_list = [0.3, 0.4]
     number_topics_list = [1, 2, 3, 4, 5]
     number_words_list = [5, 6, 7, 8, 9, 10]
     enrichment_list = [0, 1, 2, 3]
@@ -861,7 +849,7 @@ def main():
                         counter_one = similarity_score_qgs(qgs, result_name_list, manual_comparation)
                         counter_two, list_graph = similarity_score_gs(gs, result_name_list, manual_comparation)
 
-                        counter_total = graph(list_graph, title_list, adjacency_matrix, final_edges,
+                        counter_total = graph(list_graph, title_list,  adjacency_matrix, final_edges,
                                               min_df, number_topics, number_words, enrichment)
 
                         file_writer.writerow(
@@ -874,9 +862,6 @@ def main():
                               " of the GS articles (without snowballing) and " + str(counter_total) +
                               " of the GS articles (with snowballing).")
                         print("\n")
-
-    file_output.close()
-
 
 if __name__ == "__main__":
     main()
