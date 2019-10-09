@@ -427,17 +427,14 @@ def similarity_score_qgs(qgs, result_name_list):
     for i in range(0, len_qgs):
         list_qgs.append(qgs.iloc[i, 0].lower())
 
-    # print("QGS List:", list_qgs)
-    # print("QGS List Size:", len(list_qgs))
+    print("QGS List:", list_qgs)
+    print("QGS List Size:", len(list_qgs))
 
     for i in range(0, len_result):
         list_result.append(result_name_list.iloc[i, 0].lower())
 
-    if len_result == 0:
-        return counter_improvement
-
-    # print("List Result:", list_result)
-    # print("List Result Size:", len(list_result))
+    print("List Result:", list_result)
+    print("List Result Size:", len(list_result))
 
     train_set = [list_qgs, list_result]
     train_set = [val for sublist in train_set for val in sublist]
@@ -510,9 +507,9 @@ def main():
             for number_topics in number_topics_list:
                 for number_words in number_words_list:
 
-                    # print("Test with " + str(number_topics) + " topics and " + str(number_words) + " words in " + str(
-                    #     min_df) + " min_df:")
-                    # print("\n")
+                    print("Test with " + str(number_topics) + " topics and " + str(number_words) + " words in " + str(
+                         min_df) + " min_df:")
+                    print("\n")
 
                     dic, tf = bag_of_words(min_df, qgs_txt)
                     lda = lda_algorithm(tf, lda_iterations, number_topics)
@@ -524,6 +521,7 @@ def main():
                         scopus_number_results = scopus_search(string)
 
                         qgs, result_name_list = open_necessary_files()
+
                         counter_one = similarity_score_qgs(qgs, result_name_list)
 
                         file_writer.writerow(
