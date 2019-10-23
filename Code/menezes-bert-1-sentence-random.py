@@ -807,8 +807,8 @@ def main():
 
     author = 'menezes'
     pubyear = 2017  # Pubyear = 0 --> disable
-    # qgs_size = 10
-    # gs_size = 30
+    qgs_size = 6
+    gs_size = 41
 
     qgs_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/QGS-txt/metadata' % author
 
@@ -819,8 +819,8 @@ def main():
               "/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/GS-pdf/ -outputs text" % author
     os.system(cermine)
 
-    # print("Randomize QGS...\n")
-    # randomize_qgs(qgs_size, gs_size)
+    print("Randomize QGS...\n")
+    randomize_qgs(qgs_size, gs_size)
 
     print("Doing Snowballing...\n")
     title_list, adjacency_matrix, final_edges = snowballing()
