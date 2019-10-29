@@ -362,7 +362,7 @@ def scopus_search(string):
         search_df: Structure containing all search
             results in Scopus digital library
     """
-    results = 5000
+    results = 2000
     key = '7f59af901d2d86f78a1fd60c1bf9426a'
     scopus = Scopus(key)
 
@@ -727,8 +727,9 @@ def randomize_qgs(qgs_size, gs_size):
     """
 
     # List with the numbers of the random articles in GS that integrate the QGS
-    random_list = random.sample(range(1, gs_size + 1), qgs_size)
-    random_list.sort()
+    # random_list = random.sample(range(1, gs_size + 1), qgs_size)
+    # random_list.sort()
+    random_list = [1, 7, 9, 11, 13, 16, 17, 34, 37, 41]
     print(random_list)
 
     # Delete all the files in the QGS folder before the randomization
@@ -800,14 +801,14 @@ def main():
     levenshtein_distance = 4
     lda_iterations = 5000
 
-    min_df_list = [0.1, 0.2, 0.3, 0.4]
+    min_df_list = [0.4]
     number_topics_list = [1, 2, 3, 4, 5]
     number_words_list = [5, 6, 7, 8, 9, 10]
     enrichment_list = [0, 1, 2, 3]
 
     author = 'menezes'
     pubyear = 2017  # Pubyear = 0 --> disable
-    qgs_size = 6
+    qgs_size = 10
     gs_size = 41
 
     qgs_txt = '/home/fuchs/Documentos/MESTRADO/Masters/Files-QGS/revisao-%s/QGS-txt/metadata' % author
