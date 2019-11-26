@@ -1,0 +1,764 @@
+Towards Omnia: a Monitoring Factory
+for Quality-Aware DevOps
+Marco Miglierina
+Politecnico di Milano
+Via Golgi 42, 20133
+Milan, Italy
+marco.miglierina@polimi.it
+ABSTRACT
+Modern DevOps pipelines entail extreme automation and
+speed as paramount assets for continuous application improvement.
+Likewise, monitoring is required to assess the
+quality of service and user-experience such that applications
+can continuously evolve towards use-centric excellence. In
+this scenario however, it is increasingly di cult to pull up
+and maintain e cient monitoring infrastructures which are
+frictionless, i.e., they do not introduce any slowdown neither
+in the DevOps pipeline nor in the DevOps organizational
+and social structure comprising multiple roles and responsibilities.
+Using an experimental prototype, this paper elaborates
+Omnia an approach for structured monitoring con guration
+and rollout based around a monitoring factory, i.e.,
+a re-interpretation of the factory design-pattern for building
+and managing ad-hoc monitoring platforms. Comparing
+with practitioner surveys and the state of the art, we observed
+that Omnia shows the promise of delivering an e ective
+solution that tackles the steep learning curve and entry
+costs needed to embrace cloud monitoring and monitoringbased
+DevOps continuous improvement.
+Keywords
+Monitoring, Monitoring Management, Monitoring Factory,
+Monitoring Interface, Monitoring Infrastructure as Code,
+Monitoring Con guration as Code
+1. INTRODUCTION
+The advent of cloud computing triggered a huge change
+in software release cycles for an increasing number of companies
+embracing cloud technologies as the 21st century's
+technological utility. Upfront investments in physical servers
+are being replaced by on-demand and pay-per-use cloud access
+while complex manual deployment procedures are automated
+in the context of DevOps [7]. However, where automation
+is needed to speedily deploy new versions of a service
+in a safe and reproducible way, monitoring is required
+to assess the quality of service and the user experience in
+Permission to make digital or hard copies of all or part of this work for personal or
+classroom use is granted without fee provided that copies are not made or distributed
+for profit or commercial advantage and that copies bear this notice and the full citation
+on the first page. Copyrights for components of this work owned by others than
+ACM must be honored. Abstracting with credit is permitted. To copy otherwise, or republish,
+to post on servers or to redistribute to lists, requires prior specific permission
+and/or a fee. Request permissions from permissions@acm.org.
+ICPE '17 Companion, April 22-26, 2017, L'Aquila, Italy
+c 2017 ACM. ISBN 978-1-4503-4899-7/17/04. . . $15.00
+DOI: http://dx.doi.org/10.1145/3053600.3053629
+Damian A. Tamburri
+Politecnico di Milano
+Via Golgi 42, 20133
+Milan, Italy
+damianandrew.tamburri@polimi.it
+order to understand and solve problems and take business
+decisions equally fast. Also, both automation and monitoring
+play multiple roles in a complex organizational and social
+structure [19] around the cloud application, its required middleware
+(often from an open-source community) and indoor
+components.
+In our previous work [13] we observed that e ective monitoring
+in such a complex organizational structure and ecosystem
+[18] is still a di cult task, hardly a ordable by small
+and medium enterprises where resources and expertise availability
+are scarce. Although a huge number of monitoring
+tools, both commercial and open-source ones, proliferated in
+the last few years, there is no holistic framework that drives
+the embracing of standardized monitoring solution [6] for
+monitoring while big corporations with high expertise such
+as Google, Facebook or Net ix are developing and re ning
+their own appropriate solutions.
+The main objective of this work is to provide an initial
+investigation of such a standardized monitoring solution, by
+o ering an approach called Omnia, whose key objective is
+reducing the learning curve and entry-cost to monitoring
+technologies. Omnia is an approach that assists system administrators
+in deploying a monitoring system and developers
+in con guring and accessing monitoring information,
+exploiting DevOps practices such as Infrastructure as Code
+and automation [20]. Omnia consists of two major parts: (1)
+a monitoring interface for developers that helps using monitoring
+systems, independently of the speci c implementation,
+and (2) a monitoring factory for system administrators
+that helps building a monitoring system that is compatible
+with such interface, leveraging existing monitoring tools.
+Our approach is a reinterpretation of the factory pattern
+[10]. Similarly to the famous design pattern, our monitoring
+factory creates a concrete implementation of a monitoring
+system (by automatically composing and con guring
+existing monitoring tools) and users refer to it using a common
+monitoring interface that is independent of the actual
+implementation.
+Together with the implementation of the tool, we also
+propose the de nition of a common reference vocabulary
+for resources being monitored and general purpose metrics,
+versioned with the Omnia source code and to which every
+component should adhere when integrated with our tool.
+Although many research works exist in the scope of monitoring
+research (e.g., as highlighted by several surveys in
+the eld [9, 6]), a fundamental lack in the monitoring research
+scenario is the de nition of a reference dictionary as
+for monitoring is concerned. On the one hand, the approach
+Product Team
+Product Team
+Product Team
+A
+P
+I
+Platform Team
+Prod
+Mgr
+UX
+Dev
+QA
+DB
+Admin
+Sys
+Admin
+Net
+Admin
+SAN
+Admin
+Figure 1: Team organization at Net ix. Retailored
+from [12]
+proposed in this paper helps system administrators address
+the multitude of available tools and easily setup a monitoring
+system [13]. On the other hand, Omnia assists all software
+practitioners throughout all phases of their monitoring
+infrastructure lifecycle (e.g., dashboard con guration, data
+exchange, analytics representation and more) providing to
+the entire organizational structure a single protocol, a common
+vocabulary and a versionable monitoring con guration
+language, compatible with any monitoring system deployed
+via the Omnia monitoring factory.
+In conclusion, comparing the proposed research solution
+with challenges and pitfalls observed in industrial practice [13,
+17], we argue that although in a prototype stage, Omnia
+and connected technical contributions o er a valuable basis
+to enter the complex and often (very) expensive world of
+monitoring infrastructures for cloud applications.
+The rest of the paper is structured as follows. Section 2
+outlines the organizational and socio-technical scenario that
+Omnia was designed to address as well as required terminology
+and motivations for this contribution. Section 3 describes
+the approach and the technological contributions.
+Section 4 compares the state of the art with our solution.
+Section 5 concludes the paper.
+2.
+RESEARCH PLAYGROUND
+This section outlines the organizational and socio-technical
+scenario that Omnia was designed to address. More in particular,
+we elaborate on the domain assumptions and terminology
+typical of the scenario we have in mind. Even
+though the approach could be extended to di erent usage
+scenarios, for the design of an initial prototype we consider
+a scenario in which a cloud application is structured according
+to the microservices architecture pattern along with
+the typical organizational-social structure [19] connected to
+that pattern - the scenario we address is tailored from the
+one adopted at Net ix [12] (Figure 1).
+2.1
+Domain Assumptions
+Omnia assumes that each product team is responsible for
+its own product (or service), which is implemented as a microservice,
+for which source-code is maintained in a separate
+versioned repository and following an organization where
+development and deployment cycles are still independent
+from each other. Conversely, the platform team is crossfunctional:
+it is in charge of supporting product teams providing
+infrastructure support, e.g., via APIs, orchestration
+software, middleware and similar technology. Such platforms
+are either managed by a public cloud provider, managed
+in-house, or a mix of these two. However, according
+to Net ix, there are at least three key properties that shall
+de ne the platform usage: \API-driven, self-service and automatable"
+[12].
+2.2
+Terminology
+This section recaps the terminology and common vocabulary
+we use throughout this paper:
+Metric: a measurable property of a phenomenon that
+can be quantitatively determined. Example: response
+time is a metric measuring the \elapsed time between
+the end of an inquiry or demand on a computer system
+and the beginning of a response" [11].
+Monitoring datum: a single measurement of a metric.
+Example: the authentication service took 100 ms
+to respond.
+Resource: anything that can be monitored and, consequently,
+the source of a monitoring datum. Example:
+a web server, a database, a virtual machine, a
+container.
+Data collector: a software component in charge of
+collecting monitoring data from a resource, also called
+monitoring agent.
+2.3
+Motivations
+Standardizing a way to describe what every product team
+would like to see and be noti ed about is de nitely challenging,
+since every monitoring tool has its own peculiarity and
+is usually focused on delivering value from a speci c perspective.
+For example, a graphing tool maybe able to plot
+multiple time series on the same graph for simplifying the
+comparison, or some analysis tool may be able to compute
+prediction or perform statistics that another tool is not able
+to perform. Or else, some tool may be able to send app
+noti cations while another is only able to send emails.
+With Omnia, our goal is to nd a reasonable subset of
+standard features a company with small to medium cloud
+resources (e.g., personnel, expertise, consultancy, budget or
+otherwise) would like to have available, from a monitoring
+perspective. Omnia assumes that, stemming from these
+standard features, that very same company can gradually
+and incrementally: (a) add new features to its own indoor
+monitoring \language"; (b) push monitoring tool vendors to
+implement the missing ones or alternatively, (c) elaborate
+further on their own monitoring (micro)services to ful ll new
+feature requests.
+In this scenario, every product team can describe its Monitoring
+Con guration as Code, and keep that code versioned
+together with its services code in the root of its repository.
+The next section elaborates further on this key idea, which
+constitutes the basis of the Omnia approach.
+3.
+THE OMNIA APPROACH
+Considering an organizational and social structure like the
+one we described in Section 2.1, we describe how monitoring
+and its management is addressed today and how it can
+be addressed with our approach. Figure 2 depicts a ctional
+scenario where a company with low budget constraints
+wants to monitor its microservices architecture using existing
+open source monitoring tools. After studying existing
+solution, the platform team decides to build a monitoring
+system composed of 3 di erent components on the server
+Agents X
+pushData
+Service Alfa
+v0.1
+TDB X Lib pushData
+learn, code, release
+ProduAclftaTeam
+Service Alfa
+v0.2
+learn, code, release
+ProduAclftaTeam
+TDB X
+DashXboard
+Monitoring
+Tool Y
+learn, configure, view
+sendAlerts
+learn, configure
+Alerting X
+Agents Y
+pushData
+AgY Lib
+pullData
+sendAlerts
+learn, configure, view
+learn, configure, deploy
+CLASSICAL APPROACH
+OMNIA-BASED APPROACH
+learn, configure, deploy
+sendAlerts
+Alerting X
+configure, deploy
+Platform
+Team
+Platform
+Team
+Omnia CLI parse
+omnia.admin.yml
+v1
+learn, use
+learn, code
+Omnia CLI parse
+omnia.admin.yml
+v2
+use
+code
+Platform
+Team
+Platform
+Team
+T
+I
+M
+E
+omnia.yml
+Service Alfa
+v0.1
+learn, code, release
+ProduAclftaTeam
+parse
+Agents X
+Omnia Lib
+parse
+Agents Y
+pushData
+pushData
+view
+TDB X
+DashXboard
+omnia.yml
+Service Alfa
+v0.1
+pushData
+Omnia Lib
+ProduAclftaTeam
+pullData
+view
+sendAlerts
+Monitoring
+Tool Y
+configure, deploy
+Legend:
+Team
+Instrumentation
+library
+manual action
+automated action
+Monitoring
+System v1
+Monitoring
+System v2
+Microservice
+Omnia code
+Figure 2: Comparison between the classical approach and the Omnia approach when adopting di erent
+monitoring solutions.
+side: the temporal database TDB X for storing historical
+data, the Dashboard X for exposing time-series in form of
+graphs via a web interface, and Alerting X for sending noti
+cations to product teams. Moreover, the team decides to
+adopt Agent X as data collectors to be run as daemons on
+the hosts.
+On the left of Figure 2 the reader can look at how the
+adoption would work according to the classical approach.
+The platform team has to learn how to use the di erent
+tools, con gure and deploy them. The platform team would
+then ask product teams to instrument their microservice
+with a vendor dependent instrumentation library, i.e., the
+TDB X Lib. Product teams have to learn how to con gure
+and use the graphical user interfaces provided by the deployed
+monitoring tools in order to setup their graphs and
+alerts. The entire process require a steep learning curve and
+most of the work is manual or can be automated using custom
+scripts.
+By using Omnia, on the other hand, most of the process is
+automated. The platform team has to describe the system
+using the proposed Infrastructure as Code approach. The
+automated setup and deployment is carried out transparently
+by the Omnia CLI, using a convention over con guration
+approach. Product teams describe their graphs and
+alerts using the proposed Con guration as Code approach
+and keep the le versioned in their code base.
+After few months of practical experience with the installed
+monitoring system, performance problems as well as usability
+issues are raised and the platform team decides to switch
+to a more simple all-in-one monitoring solution, o ering storing,
+graphing and alerting features in a single application
+and using a pull strategy for retrieving data instead of having
+agents pushing data to the time series database (bottom
+side of Figure 2). On the left side, we can see how the migration
+process would work in a classical scenario. Most of
+the e ort carried out by all teams is thrown away, and an
+additional learning step is required. The platform team has
+to con gure the new platform and deploy it. Product teams
+has to release a new version of the microservice with a new
+instrumentation library, i.e., AgY Lib, has to learn how to
+use the new graphical interface of Monitoring Tool Y and
+recon gure all required graphs and alerts.
+By using Omnia, on the other hand, no additional learning
+step is required. Product teams are not even required to
+touch their code. They just start using the new dashboard,
+with the same kind of graphs they de ned for the rst version
+of the platform already available. Alerts will be received as
+well as con gured in the previously released Con guration
+as Code le. The platform team only requires to update the
+Infrastructure as Code le and trigger a new deployment
+phase via the Omnia CLI.
+Product Team
+Product Team
+Product Team
+Product Team
+Monitoring
+Interface
+Omnia
+protocol
+omnia.yml
+Omnia
+Vocabulary
+Monitoring
+factory
+Omnia CLI
+omnia.admin.yml
+Monitoring
+System
+Platform Team
+Figure 3: Omnia technological contributions
+Both the product- and the platform-team work ows can
+be reiterated multiple times independently.
+In the following sections we are going to detail the technological
+contributions we overviewed in the above example
+scenario. Figure 3 depicts such contributions and highlights
+how such decoupling between teams is obtained.
+3.1
+The monitoring interface
+3.1.1
+The Omnia vocabulary
+The Omnia vocabulary is a dictionary of terms de ning
+naming conventions for resource types and metrics that are
+common to all applications. It is supposed to be extended
+and maintained together with Omnia development and the
+addition of tools and libraries. Whenever Omnia is extended
+for supporting a new collecting tool, such tool should be
+adapted to agree with Omnia vocabulary. If some metric or
+resource is missing, this should be added to the Omnia vocabulary.
+The same is valid when building instrumentation
+libraries. Users can obviously specify custom metrics, but
+meta-data such as the application name should be added to
+monitoring data, possibly in a transparent way, using terms
+from the Omnia vocabulary.
+Here is a rst version of the Omnia vocabulary with some
+examples of resources de nitions:
+Resource
+host
+service
+service id
+container id
+container image
+Description
+a physical or virtual machine
+5 an application
+a unique identi er for an instance of
+an application
+a unique identi er for a Linux container
+a Linux container image
+Metrics can be categorized according to the resource being
+monitored. For example, here is a short list for host and Java
+metrics:
+Host metrics Java metrics
+cpu usage user heap memory usage
+cpu usage system thread count
+cpu usage idle loaded class count
+mem used garbage collection time
+mem used percent thread count
+Both les are maintained together with Omnia source
+code.
+3.1.2
+The Omnia protocol and instrumentation libraries
+The Omnia protocol speci es how monitoring data should
+be serialized and sent by data collectors to the other tools
+composing the monitoring system. We decided to adopt an
+existent and widely adopted protocol, that supported multidimensional
+meta-data in form of key values, since we could
+rely on existing community provided libraries and ease the
+adoption of industries. Such protocol is the Statsd protocol,
+with In uxdb tagging extension1.
+Once a protocol is de ned, it is important to maintain
+instrumentation libraries that adhere to such protocol and
+enforce Omnia conventions. There exist an ever growing
+number of languages and frameworks, and each combination
+of these requires a library. A Omnia-compatible instrumentation
+library must adhere to the following mandatory
+requirements:
+MR1. Use the Omnia protocol, i.e., the In ux
+Statsd protocol to serialize metrics and send metrics
+MR2. Use the common Omnia vocabulary (Section
+3.1.1) for decorating metrics with meta-data
+MR3. Set http://collector:8125 as default endpoint
+for sending metrics
+Also it should adhere to the following optional requirements:
+OR1. Require the least possible instrumentation
+e ort and overhead to product teams
+OR2. O er an API that is not supposed to change
+in the near future
+OR3. Favor convention over con guration, for example
+by automatically inferring meta-data to be
+added to monitoring data
+For a rst prototype, a Java library for the Spring Cloud
+framework2 was developed3. Instrumentation only requires
+to add a Maven4 dependency to the project and decorate the
+main application class with the @EnableOmnia annotation.
+This would automatically enables the collection of default
+Spring Boot Actuator metrics (e.g., heap memory usage or
+thread count) to the default endpoint (i.e., http://collector:
+8125) and the addition to all metrics of the service and service
+id meta-data. Moreover, developers can easily describe
+additional custom metrics, such as the number of payments
+processed by the service instance, using the the API provided
+by the Spring Boot Actuator library as described in
+the following example.
+@ S e r v i c e
+p u b l i c c l a s s MyService f
+p r i v a t e f i n a l C o u n t e r S e r v i c e c o u n t e r ;
+@Autowired
+p u b l i c MyService ( C o u n t e r S e r v i c e c o u n t e r ) f
+t h i s . c o u n t e r = c o u n t e r ;
+p u b l i c v o i d pay ( ) f
+t h i s . c o u n t e r . i n c r e m e n t ( "payments ") ;
+g
+g
+g
+Listing 1: Custom metrics instrumentation
+1https://www.in uxdata.com/getting-started-withsending-statsd-metrics-to-telegraf-in
+uxdb/
+2http://projects.spring.io/spring-cloud/
+3https://github.com/mmiglier/omnia-spring-boot
+4https://maven.apache.org
+In the prototype developed for this work, additional system
+level meta-data such as the host name where the service is
+running, will be added to each metric by the data collector
+(or agent).
+3.1.3
+Monitoring Configuration as Code
+The omnia.yml le is a versionable YAML le used for
+con guring the monitoring activity, such as metrics time series
+to be plotted or alerts. Whenever a new version of the
+omnia.yml le is pushed, Omnia will update the product
+team speci c dashboard together with any alert speci ed in
+the document. If this con guration le was standard and
+shared among tools, the monitoring team would be free to
+update the tool set of monitoring tools without interfering
+with the product teams work. During a rst phase, interpreters
+and translators should be provided to compile the
+standard con guration le into the tool speci c con guration
+format, with the hope an increase of popularity of the
+standard format, it may become widely adopted.
+The rst version of the omnia.yml is composed of two
+sections: (1) the dashboard section, where things to be visualized
+are described, and (2) the action section, where
+things to be done in response to events are con gured. The
+dashboard can be composed of di erent kind of graphs, such
+as time series or pie charts. In the action section, product
+teams can describe actions such as email or SMS noti cations,
+but could also adaptive actions to be triggered.
+An example of omnia.yml le is shown in the following
+listing:
+dashboard :
+t i m e s e r i e s :
+m e t r i c : payments
+compute : r a t e
+m e t r i c : java heap memory
+m e t r i c : cpu
+compute : a v e r a g e by h o s t
+m e t r i c : ram
+a c t i o n s :
+e m a i l :
+c o n d i t i o n : h t t p e r r o r s / h t t p r e q u e s t s >
+0 . 1
+omnia.yml
+le
+for
+monitoring
+Listing 2:
+con guration.
+The le shall be automatically validated during automatic
+integration tests. Also, the le shall favor convention over
+con guration: every missing piece of information shall be
+con gured using standardizable defaults.
+3.2
+The monitoring factory
+3.2.1
+Monitoring Infrastructure as Code
+The omnia.admin.yml le depicted in Figure 3 is a le
+where the monitoring system is described as Infrastructure
+as Code and product teams repositories are listed.
+This Monitoring Infrastructure as Code le is composed
+of 3 parts (1) the provisioner, where the platform team is
+supposed to specify the provisioner the Omnia CLI should
+use to provision the monitoring system, (2) the tools section,
+where the platform team has to list the monitoring tools, the
+functionalities they o er and their interconnections, and (3)
+the team repos section, where product teams repositories are
+listed.
+For our rst prototype we experimented Omnia integrations
+with the following popular tools: CollectD, Telegraf,
+In uxDB, Prometheus, Graphite, Grafana, Riemann. Each
+one o er di erent con guration languages and di erent functionalities.
+The user is responsible of setting what role should
+cover each tool under the provides eld: agent, dashboard
+or actions.
+We here provide an example of omnia.admin.yml le:
+p r o v i s i o n e r :
+name : d o c k e r
+a r g s :
+username : m m i g l i e r
+i m a g e s t a g : l a t e s t
+t o o l s :
+t e l e g r a f :
+p r o v i d e s :
+a g e n t
+p u s h e s t o :
+i n f l u x d b
+i n f l u x d b :
+g r a f a n a :
+p u l l s f r o m :
+i n f l u x d b
+p r o v i d e s :
+dashboard
+a c t i o n s
+t e a m s r e p o s :
+" g i t h u b . com/ m m i g l i e r /omnia examples /
+s e r v i c e 1 "
+" g i t h u b . com/ m m i g l i e r /omnia examples /
+s e r v i c e 2 "
+" g i t h u b . com/ m m i g l i e r /omnia examples /
+s e r v i c e 3 "
+Listing 3: An example of omnia.admin.yml le.
+3.2.2
+The Omnia CLI
+The Omnia CLI is the application that is used by the platform
+team to deploy a monitoring system that implements
+the monitoring interface according to the omnia.admin.yml
+(see Figure 3). The application exposes three simple commands:
+compile, the CLI parses the omnia.admin.yml le, retrieves
+omnia.yml les from team repositories and creates
+the required con guration les required by the
+chosen provisioner to deploy the monitoring system;
+deploy : the CLI deploys the monitoring system using
+the API o ered by the chosen provisioner;
+stop: the CLI stops the monitoring system using the
+API o ered by the chosen provisioner.
+The platform is written in Go5 and is easily extensible
+with new provisioners and new monitoring tools by using the
+Go template package6. During compilation time, both provisioner's
+and tools' con guration les are generated from
+templates by applying to them a data structure generated
+from the omnia.admin.yml and the omnia.yml le. Besides
+templates for con guration, a developer extending Omnia
+CLI with a new tool has to create a setup.sh and a run.sh
+script, which will be executed for setting up the tool and
+running it respectively.
+Starting from the Monitoring Infrastructure as Code example
+in Listing 3, the Omnia CLI will generate the code required
+to provision the monitoring platform according to the
+chosen provisioner. In our rst prototype only the Docker
+5https://golang.org
+6https://golang.org/pkg/text/template/
+provisioner was implemented and the nal compilation will
+be a Docker Compose le together with required scripts and
+con guration les.
+A prototype implementation of this component has been
+released on GitHub7.
+4.
+RELATED WORK
+Existing monitoring solutions, such as Grafana [2] or InspectIT
+[4], usually provide graphical con guration interfaces
+as default option. For tools where a con guration language
+is available, it is always a custom DSL and often highly
+detailed [3]. Monitoring Con guration as Code approaches
+have been used by using existing con guration and management
+tools such as Puppet [5] or Chef [1] with custom
+plugins for writing checks [8, 16]. However this approach is
+not portable across multiple monitoring platform and only
+provide checks and not dashboards con guration.
+Regarding the standardization of a common exchange format
+attempts have been done both in the academia [14] and
+in the industry [15], however there is yet no strong adoption
+of such proposals. Our approach does not aim at creating a
+new protocol or a new vocabulary, we rather aim at reducing
+product teams e orts, preventing them to care about the
+underlying protocol and make metrics available to them selfservice.
+As for the underlying protocol, we aim at reusing
+existing contributions and de-facto standards.
+5.
+CONCLUSION AND FUTURE WORK
+In this paper we proposed Omnia, an approach and a tool
+with the key objective of reducing the learning curve and
+entry-cost to monitoring technologies. The concept of monitoring
+factory was introduced, as a reinterpretation of the
+famous design pattern where the concrete implementation
+of a monitoring system is kept hidden to developers via a
+common monitoring interface. Deployment and con guration
+of the monitoring platform is automated via the simple
+API o ered by the monitoring factory we presented. System
+administrators can leverage the proposed Monitoring
+Infrastructure as Code to easily compose the set of existing
+monitoring tools to use and con gure their roles and interconnections.
+Our monitoring interface allows to separate the development
+work ow of the core application from the monitoring
+system, increasing agility and reduce e ort required. The
+monitoring factory permits to switch across di erent monitoring
+solutions, automating the deployment of a solution
+that is compliant with our monitoring interface.
+The proposal we o er in this paper is a baseline approach
+for further experimentation of wrapping monitoring solutions
+within a common abstraction layer. To our knowledge,
+this is the rst attempt and it is exposed to the risk
+of simplifying tools speci c characteristics. In this paper we
+addressed very simple example for demonstration purposes.
+We planned to address real world examples where monitoring
+requirements have been selected by the teams according
+to real world scenarios and better evaluate our approach.
+6.
+ACKNOWLEDGMENTS
+The authors' work is partially supported by the European
+Commission grant no. 644869 (H2020 - Call 1), DICE
+7https://github.com/mmiglier/omnia
+7.
+REFERENCES
+[1] Chef. https://www.chef.io. Accessed: 2017-02-17.
+[2] Grafana. http://grafana.org. Accessed: 2017-02-17.
+[3] Grafana scripted dashboard.
+http://docs.grafana.org/reference/scripting/.
+Accessed: 2017-02-17.
+[4] Inspectit. http://www.inspectit.rocks. Accessed:
+2017-02-17.
+[5] Puppet. https://puppet.com. Accessed: 2017-02-17.
+[6] G. Aceto, A. Botta, W. de Donato, and
+A. PescapA~ CA^ l. Cloud monitoring: A survey.
+Computer Networks, 57(9):2093{2115, 2013.
+[7] L. J. Bass, I. M. Weber, and L. Zhu. DevOps - A
+Software Architect's Perspective. SEI series in software
+engineering. Addison-Wesley, 2015.
+[8] K. Buytaert. Monitoring in an infrastructure as code
+age. PuppetConf, 2013.
+[9] K. Fatema, V. C. Emeakaroha, P. D. Healy, J. P.
+Morrison, and T. Lynn. A survey of cloud monitoring
+tools: Taxonomy, capabilities and objectives. J.
+Parallel Distrib. Comput., 74(10):2918{2933, 2014.
+[10] E. Gamma, R. Helm, R. Johnson, and J. Vlissides.
+Design patterns: Elements of reusable object oriented
+software, 1995.
+[11] IBM. IBM Dictionary of Computing. McGraw-Hill,
+Inc., New York, NY, USA, 10th edition, 1993.
+[12] T. Mauro. Adopting microservices at net ix: Lessons
+for team and process design.
+https://www.nginx.com/blog/adopting-microservicesat-net
+ix-lessons-for-team-and-process-design/, 2015
+(accessed January 16, 2017).
+[13] M. Miglierina. Monitoring Modern Distributed
+Software Applications: Challenges And Soloutions.
+PhD thesis, Politecnico di Milano, 2017. Under
+revision.
+[14] D. Okanovic, A. van Hoorn, C. Heger, A. Wert, and
+S. Siegl. Towards Performance Tooling
+Interoperability: An Open Format for Representing
+Execution Traces, pages 94{108. Springer
+International Publishing, Cham, 2016.
+[15] D. Plaetinck. Metrics 2.0: An emerging set of
+conventions, standards and concepts around timeseries
+metrics metadata. http://metrics20.org.
+[16] S. Porter. Infrastructure as code & monitoring.
+AutomaCon, 2015.
+[17] R. Rabiser, M. Vierhauser, and P. GrA~ ijnbacher.
+Assessing the usefulness of a requirements monitoring
+tool: a study involving industrial software engineers.
+In L. K. Dillon, W. Visser, and L. Williams, editors,
+ICSE (Companion Volume), pages 122{131. ACM,
+2016.
+[18] S. SchA~ ijtz, T. Kude, and K. Popp. The impact of
+software-as-a-service on software ecosystems. In 4th
+International Conference on Software Business,
+Potsdam, Germany, 2013.
+[19] D. A. Tamburri, P. Lago, and H. van Vliet.
+Organizational social structures for software
+engineering. ACM Comput. Surv., 46(1):3, 2013.
+[20] L. Zhu, L. Bass, and G. Champlin-Schar . Devops and
+its practices. IEEE Software, 33(3):32{34, 2016.

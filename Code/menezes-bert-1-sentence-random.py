@@ -446,9 +446,6 @@ def similarity_score_qgs(qgs, result_name_list, manual_comparation):
     for i in range(0, len_result):
         list_result.append(result_name_list.iloc[i, 0].lower())
 
-    if len_result == 0:
-        return counter_improvement
-
     # print("List Result:", list_result)
     # print("List Result Size:", len(list_result))
 
@@ -523,7 +520,7 @@ def similarity_score_gs(gs, result_name_list, manual_comparation):
     counter_improvement = 0
 
     if len_result == 0:
-        return counter_improvement
+        return counter_improvement, list_graph
 
     for i in range(0, len_gs):
         list_gs.append(gs.iloc[i, 0].lower())
