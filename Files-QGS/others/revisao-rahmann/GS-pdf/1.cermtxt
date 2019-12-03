@@ -1,0 +1,450 @@
+Cloud WorkBench: Benchmarking IaaS Providers based on
+Infrastructure-as-Code
+Joel Scheuner, Jürgen Cito, Philipp Leitner, Harald Gall
+software evolution & architecture lab
+University of Zurich
+Switzerland
+{lastname}@ifi.uzh.ch
+ABSTRACT
+Optimizing the deployment of applications in Infrastructureas-a-Service
+clouds requires to evaluate the costs and performance
+of different combinations of cloud con gurations
+which is unfortunately a cumbersome and error-prone process.
+In this paper, we present Cloud WorkBench (CWB),
+a concrete implementation of a cloud benchmarking Web
+service, which fosters the de nition of reusable and representative
+benchmarks. We demonstrate the complete cycle
+of benchmarking an IaaS service with the sample benchmark
+SysBench. In distinction to existing work, our system
+is based on the notion of Infrastructure-as-Code, which is
+a state of the art concept to de ne IT infrastructure in a
+reproducible, well-de ned, and testable way.
+Categories and Subject Descriptors
+D.m [Software]: MISCELLANEOUS
+Keywords
+Cloud Computing; IaaS; Benchmarking; DevOps; IaC
+1. INTRODUCTION
+In the cloud computing model Infrastructure-as-a-Service
+(IaaS), "processing, storage, networks, and other fundamental
+computing resources" [7] are acquired on a pay-per-use
+basis, most commonly in the form of virtual machines (VMs).
+The functional similarities of these services are contrasted by
+signi cant variations in non-functional properties. Service
+performance not only varies between providers, as studies
+listed in [2] show, but also for services exhibiting the same
+speci cation [3]. Representative benchmarks (i.e., performance
+tests) can be used to assess service performance and
+thus assist software engineers in service selection. However,
+testing multiple providers with variable con gurations results
+in a large parameter space to explore, making benchmarking
+a labor-intensive task. Moreover, in fast moving
+Copyright is held by the International World Wide Web Conference Committee
+(IW3C2). IW3C2 reserves the right to provide a hyperlink to the
+author's site if the Material is used in electronic media.
+WWW 2015 Companion, May 18-22, 2015, Florence, Italy.
+ACM 978-1-4503-3473-0/15/05.
+http://dx.doi.org/10.1145/2740908.2742833 .
+239
+cloud environments, continuous reevaluation is inevitable,
+when providers change their supported instance types or upgrade
+their hardware. Therefore, several research projects
+[1, 5, 9] aiming at extensible cloud benchmark automation
+were recently introduced. They all facilitate systematic cloud
+benchmarking. However, de ning benchmarks is typically a
+tedious and error-prone activity, which often involves manually
+creating VM images for each benchmark, cloud provider,
+and region. This increases the time necessary to benchmark
+a given con guration, and reduces comparability and reproducibility
+of results.
+In this paper we demonstrate Cloud WorkBench (CWB),
+a web-based framework that is grounded on the notion of
+Infrastructure-as-Code (IaC) to foster simple de nition, execution,
+and repetition of benchmarks over a wide array of
+cloud providers and con gurations. IaC was introduced by
+the current DevOps trend [4] and captures the complete provisioning
+and con guration of various middleware components,
+most importantly IaaS VMs, operating systems, and
+standard software, in provisioning code. Applying provisioning
+code reproducibly converges a system to a desired
+state, without the need for manual steps and irrespective of
+previous con gurations of the same components.
+We introduced Cloud WorkBench (CWB) in a companion
+full paper [8], presented the results of a large-scale cloud
+evaluation analyzing more than 33000 measurements in [6],
+and we now give an example of its capabilities by showing
+how a common benchmark from literature can be completely
+de ned, scheduled, and automatically executed in a cloud
+environment.
+2.
+SYSTEM OVERVIEW
+This section introduces the CWB framework for de ning,
+scheduling, and executing benchmarks.
+2.1
+Architecture
+De ning and executing a benchmark in CWB involves
+interactions among the components shown in Figure 1.
+The (human) experimenter de nes benchmarks via the
+provisioning service and the CWB web interface, which subsequently
+allows one to schedule and manage executions
+of benchmarks. The CWB server is the main component
+consisting of a standard three-tiered web application. It
+provides the web interface, implements the business logic
+in collaboration with external dependencies, and stores its
+data (de nitions and results of benchmarks) in a relational
+database. The scheduler component of the CWB server periodically
+triggers the execution of de ned benchmarks.
+Configure
+Benchmarks +
+Schedule and
+Manage
+Executions
+Experimenter
+Upload
+Configuration
+REST
+CWB Server
+Notify State +
+Submit Results
+Web Interface REST
+r
+ed Business Logic irde in
+e
+l
+chuS rvoP lugPProCvoEismxieomcnauVnteMdss +
+Manage VMs
+REST
+I
+P
+A
+r
+e
+d
+i
+v
+o
+r
+P
+SSH
+Relational
+Database
+IaIaaISaaaSPSrPoPrvoroivdviedidreserr
+y
+rr
+a
+b
+i
+L
+t
+n
+e
+li
+C
+B
+W
+C
+t
+n
+e
+m
+rka iron
+chm vnE
+n n
+eB ituo
+c
+e
+sVM dVM xE
+d u
+louC loC
+Fetch
+Configuration
+REST
+REST
+Configurations
+Provisioning Service
+Figure 1: Architecture Overview
+Benchmarks in CWB are typically de ned across a multitude
+of different IaaS providers, which the CWB server
+interacts with over a provider API. Fundamentally, this API
+is mostly used to acquire and release cloud VMs of a given
+user-de ned speci cation. These cloud VMs are the System
+Under Test (SUT) and execute the actual benchmarking
+code. To ease the interaction between the cloud VMs
+and the CWB server, a small CWB client library is installed
+in each VM. This client library, along with all other
+required code (e.g., Linux packages required by a benchmark,
+or the benchmark code itself), is provisioned in the
+cloud VMs based on IaC con gurations retrieved from a
+provisioning service. The provisioning service knows how to
+prepare a given bare VM to execute a given benchmark.
+All interactions among these components happen typically
+over REST services to foster loose coupling and reusability,
+with the exception of the interaction between the CWB
+server and the cloud VMs. These components communicate
+over the standard Linux utilities rsync and ssh for simplicity
+reasons.
+2.2
+Benchmark Definition
+One core feature of CWB is that benchmarks, including
+the cloud con guration they are evaluating, can be de ned
+entirely in code, essentially following the ideas of DevOps
+and IaC. As argued in [4], this renders the process reproducible,
+modularizable, exible, and testable using standard
+software engineering techniques. Common components
+among benchmarks can be easily shared and provisioning
+con gurations from a large provisioning service community
+can be reused to efficiently describe the benchmark installation.
+Logically, a benchmark de nition requires the information
+depicted in the simpli ed UML class diagram in Figure
+2. Every benchmark de nition must specify one or more
+client VMs, which are brought into the expected con guration
+state via executing one or more provisioning con gurations.
+Both, the de nition of client VMs and provisioning
+con gurations follow the established notions of standard IaC
+240
+Timeout
+1
+1
+*
+Benchmark
+Definition
+*
+Schedule
+*
+1
+1..* Cloud VM *
+Configuration
+1..* Provisioning
+Configuration
+1..* Result Model *
+1 <<enum>>
+Result Type
+Figure 2: Structure of a Benchmark De nition
+tooling (e.g., Vagrant1 and Opscode Chef2). In addition, every
+benchmark de nition requires one or more result models,
+which capture the type of outcome (i.e., either nominal, ordinal,
+interval, or ratio scale) a benchmark will deliver. Finally,
+benchmarks optionally also contain a schedule (benchmarks
+without a schedule are only triggered manually by the
+experimenter) and a timeout, after which the execution of a
+benchmark is terminated no matter whether it is nished or
+not. This timeout prevents potentially costly resource leaks
+caused by unforeseen exceptions during the execution.
+CWB de nes an interface to handle the interaction with
+user-de ned benchmarks. Each benchmark must implement
+a callback (i.e., a piece of code following a de ned convention,
+which can be invoked by the CWB server) to start
+executing. Further, benchmarks should use the provided
+CWB client library to notify state updates (e.g., when the
+benchmark run is completed or a failure has occurred and
+submit results back to the CWB server. The client library
+is transparently installed via a pre-de ned provisioning conguration.
+As the provisioning code is logically separated from the
+de nition of the cloud VMs, it is easy to set up a large array
+of benchmarks that evaluate different cloud con gurations,
+and be con dent that the code and setup of each benchmark
+is in fact identical except for the facets that the experimenter
+speci cally wants to vary.
+2.3
+Executing Benchmarks
+Figure 3 illustrates the interactions when a new benchmark
+execution is triggered by the experimenter or the scheduler.
+For simplicity, we focus on a successful execution here
+(i.e., neither provisioning nor benchmark execution fails,
+and the benchmark nishes before the de ned timeout is
+exceeded). For further detail regarding the executional behavior,
+we refer to the benchmark state model presented in
+our accompanying paper [8].
+A provider plugin in the business logic asynchronously
+acquires cloud resources (typically cloud VMs, but it may
+also comprise of cloud speci c features such as dedicated
+block storage or dynamically mapped IP addresses). As soon
+as the business logic has managed to establish a remote shell
+connection to the cloud VM, it starts orchestrating the VM
+provisioning via the remote shell connection. Thereby, each
+cloud VM fetches its role dependent con gurations from the
+provisioning service and applies them.
+At this point, the benchmark is entirely prepared for execution
+and asynchronously started via a remote shell command.
+This command invokes a de ned callback on the VM
+1https://www.vagrantup.com/
+2https://www.chef.io/
+Figure 3: Executing a Benchmark
+that any benchmark has to implement. Once the actual
+benchmark workload is completed, the benchmark should
+notify this state update to the CWB server via the client library.
+The benchmark results are then postprocessed, which
+typically involves textual result extraction, and submitted to
+the CWB server as individual metrics or as a collection of
+metrics via a CSV le. After completed work, the cloud
+VM noti es the state update to the CWB server in order to
+trigger all resources being released.
+2.4
+System Implementation
+The CWB web application is implemented using the Ruby
+on Rails3 framework. One of the fundamental distinctions
+between CWB and related work is that it strives to reuse
+as much existing DevOps tooling as possible, so that experimenters
+can build upon existing community artifacts (e.g.,
+for provisioning con gurations) and knowledge. Hence, it
+integrates Cron as the scheduler, Vagrant as the VM environment
+management tool, and Opscode Chef as the provisioning
+tool.
+Vagrant was chosen to represent cloud VM con gurations
+using an established Ruby-based domain speci c language
+(DSL). It abstracts cloud provider APIs, provisioning orchestration,
+and the execution of remote shell commands.
+The DSL exposes all relevant con guration options in a
+declarative and easy-to-understand manner. Vagrant provides
+open source plugins for all relevant IaaS providers.
+The CWB web interface integrates a minimal web IDE with
+syntax highlighting for the Vagrant DSL.
+Choosing Opscode Chef with a dedicated Chef server as
+provisioning service provides us with a exible way to install
+and con gure benchmark components in a reusable
+manner by exploiting Chef attributes. Experimenters can
+reuse software components (e.g., database installation and
+setup code) in terms of cookbooks from the worldwide Chef
+community, and easily share benchmark infrastructure code
+with others. Furthermore, Chef integrates particularly well
+with Vagrant. The attribute passing mechanism from Vagrant
+to Chef allows to build con gurable and thus reusable
+benchmark cookbooks. Since both, Chef and Vagrant, use
+an internal Ruby DSL, they not only ensure language consistency
+across the project but also offer the capabilities of a
+fully featured programming language that is exploited with
+the use of variables and utility functions.
+The current version of CWB is available as an open source
+project on Github4, including samples and installation instructions
+for an automated installation using Vagrant.
+3http://rubyonrails.org/
+4https://github.com/sealuzh/cloud-workbench
+241
+3.
+DEMONSTRATION
+During the demonstration we will show how a sample
+benchmark is de ned, scheduled, and executed with Cloud
+WorkBench. We use the CPU test of the SysBench5 tool
+suite that calculates prime numbers up to a con gurable
+maximum workload.
+De ning the Benchmark Cookbook: We will show the
+key extracts of the provisioning code that is captured in a
+Chef cookbook and covers the installation and con guration
+of SysBench. The entire code being responsible for installing
+SysBench is shown in Listing 1. This code snippet exemplies
+the cross-platform capabilities of IaC-based benchmark
+installation. Adding additional platforms is easy and often
+supported by Chef utilities out-of-the-box such as here
+where package "sysbench" is automatically translated to
+the respective package manager command of the underlying
+platform (e.g., apt-get install -y sysbench on Debian or
+yum install -y sysbench on CentOS).
+case node["platform_family"]
+when "debian"
+# Update package index
+include_recipe "apt"
+end
+package "sysbench" do
+action :install
+end
+Listing 1: SysBench Benchmark Installation via Chef
+Specifying Cloud Resources: Once we have shown how
+the SysBench installation is described in a Chef cookbook,
+we switch to the CWB web interface for the cloud VM conguration.
+We will demonstrate how the CWB web interface
+facilitates creating variations of a previously de ned benchmark
+by cloning an existing benchmark de nition.
+Figure 4 shows the cloud VM con guration for the sample
+benchmark which is intended to run in the Amazon
+EC2 cloud. This so called Vagrant le speci es the desired
+cloud resources, references the SysBench Chef cookbook,
+and passes optional benchmark parameters for provisioning.
+The rst section in Figure 4 de nes that the VM to be used
+should be launched in the Amazon EC2 cloud, within a European
+data center, on a micro instance type, and with a
+bare Ubuntu 14.04 VM image.
+Parametrizing the SysBench Provisioning: The second
+section in Figure 4 references the SysBench cookbook
+via add_recipe and takes advantage of the optional benchmark
+con guration parameters. Hereby, within the sysbench
+namespace, it is explicitly speci ed that SysBench
+uses the CPU test mode, sets the workload to 2000 (i.e.,
+calculating calculate prime numbers up to 2000), and runs
+in a single thread. Via the cli_options parameter, arbitrary
+command line arguments that are supported by the
+SysBench tool can be passed as key-value pairs.
+Scheduling the Benchmark: We will demonstrate how
+to create and activate a schedule that periodically triggers
+executions of the SysBench benchmark using the cron expression
+syntax6. In our example, the expression 15 0,12
+* * * triggers a new execution of the benchmark a quarter
+5http://manpages.ubuntu.com/manpages/utopic/man1/
+sysbench.1.html
+6http://linux.die.net/man/5/crontab
+Figure 4: Cloud VM Con guration for SysBench
+past midnight and lunchtime, every day of the month, every
+month of the year, and every day of the week.
+Executing the Benchmark: We will manually start the
+execution of the previously adapted benchmark and demonstrate
+how CWB supports the experimenter in tracking the
+current status of the benchmark execution. Figure 5 gives
+an overview over a successfully nished execution of the SysBench
+benchmark. The top bar summarizes the current status
+of the execution (i.e., nished), the duration of the actual
+benchmark (i.e., less than a minute), and the duration of the
+entire execution (i.e., 3 minutes) including preparation and
+termination. Preparation includes the VM startup time and
+time to provision (i.e., install and con gure) the benchmark,
+and termination includes post-processing and submission of
+benchmark results. The timeline underneath the top bar visualizes
+the key events of an execution in a comprehensible
+manner.
+Showing the Results: Finally, the resulting metric that
+was generated in the previous execution will be shown. For
+further analysis of the results, the metrics associated to a
+benchmark de nition can be downloaded as a CSV le.
+The demonstration is available as a screencast on Youtube7.
+4.
+ACKNOWLEDGMENTS
+The research leading to these results has received funding
+from the European Community's Seventh Framework Programme
+(FP7/2007-2013) under grant agreement no. 610802
+(CloudWave).
+5.
+REFERENCES
+[1] M. Cunha, N. Mendonca, and A. Sampaio. A
+Declarative Environment for Automatic Performance
+Evaluation in IaaS Clouds. In 6th IEEE International
+Conference on Cloud Computing (CLOUD), 2013.
+[2] B. Farley, A. Juels, V. Varadarajan, T. Ristenpart,
+K. D. Bowers, and M. M. Swift. More for Your Money:
+7http://youtu.be/0yGFGvHvobk
+242
+Figure 5: Finished SysBench Benchmark Execution
+Exploiting Performance Heterogeneity in Public
+Clouds. In Proceedings of the 3rd ACM Symposium on
+Cloud Computing (SoCC'12), 2012.
+[3] L. Gillam, B. Li, J. O'Loughlin, and A. Tomar. Fair
+Benchmarking for Cloud Computing Systems. Journal
+of Cloud Computing: Advances, Systems and
+Applications, 2013.
+[4] M. Huttermann. DevOps for Developers. Apress, 2012.
+[5] D. Jayasinghe, J. Kimball, S. Choudhary, T. Zhu, and
+C. Pu. An Automated Approach to Create, Store, and
+Analyze large-scale Experimental Data in Clouds. In
+14th IEEE International Conference on Information
+Reuse and Integration (IRI), 2013.
+[6] P. Leitner and J. Cito. Patterns in the Chaos - a Study
+of Performance Variation and Predictability in Public
+IaaS Clouds. CoRR, abs/1411.2429, 2014.
+[7] P. Mell and T. Grance. The NIST De nition of Cloud
+Computing. Technical Report 800-145, National
+Institute of Standards and Technology (NIST), 2011.
+[8] J. Scheuner, P. Leitner, J. Cito, and H. Gall. Cloud
+WorkBench - Infrastructure-as-Code Based Cloud
+Benchmarking. In Proceedings of the 6th IEEE
+International Conference on Cloud Computing
+Technology and Science (CloudCom'14), 2014.
+[9] M. Silva, M. Hines, D. Gallo, Q. Liu, K. D. Ryu, and
+D. Da Silva. CloudBench: Experiment Automation for
+Cloud Environments. In IEEE International Conference
+on Cloud Engineering (IC2E), 2013.
