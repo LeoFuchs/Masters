@@ -1,0 +1,1345 @@
+Energy-Based Attack Detection in Networked Control
+Systems
+Emeka Eyisi
+United Technologies Research Center
+East Hartford, CT, USA
+eyisiep@utrc.utc.com
+ABSTRACT
+The increased prevalence of attacks on Cyber-Physical Systems
+(CPS) as well as the safety-critical nature of these systems, has
+resulted in increased concerns regarding the security of CPS. In
+an effort towards the security of CPS, we consider the detection
+of attacks based on the fundamental notion of a system's energy.
+We propose a discrete-time Energy-Based Attack Detection mechanism
+for networked cyber-physical systems that are dissipative or
+passive in nature. We present analytical results to show that the detection
+mechanism is effective in detecting a class of attack models
+in networked control systems (NCS). Finally, using simulations we
+illustrate the effectiveness of the proposed approach in detecting
+attacks.
+Categories and Subject Descriptors
+C.2.0 [Computer-Communication Networks]: General-Security
+and protection (e.g., firewalls); H.1.1 [Models and Principles]:
+Systems and Information Theory-General Systems Theory
+General Terms
+Algorithms; Design; Security; Theory
+Keywords
+Energy-based detection; Networked Control Systems; Attacks
+1.
+INTRODUCTION
+The increased autonomy of CPS, together with the introduction
+of communication networks, has increased the security vulnerabilities
+of CPS infrastructure to malicious cyber attacks. Within the
+past few years, there has been a surge in attacks on CPS infrastructures.
+This increased prevalence of attacks has resulted in increased
+concerns regarding the security of these systems. Due to the safetycritical
+nature of CPS, failure or disruption of normal operation
+can potentially lead to serious harm to the physical system under
+control and to the people and other infrastructures that depend on
+Permission to make digital or hard copies of all or part of this work for personal or
+classroom use is granted without fee provided that copies are not made or distributed
+for profit or commercial advantage and that copies bear this notice and the full citation
+on the first page. Copyrights for components of this work owned by others than
+ACM must be honored. Abstracting with credit is permitted. To copy otherwise, or republish,
+to post on servers or to redistribute to lists, requires prior specific permission
+and/or a fee. Request permissions from permissions@acm.org.
+HiCoNS'14, April 15-17, 2014, Berlin, Germany.
+Copyright 2014 ACM 978-1-4503-2652-0/14/04 ...$15.00.
+http://dx.doi.org/10.1145/2566468.2566472 .
+115
+Xenofon Koutsoukos
+Institute for Software Integrated Systems
+EECS Department
+Vanderbilt University
+Nashville, TN, USA
+xenofon.koutsoukos@vanderbilt.edu
+it. Hence, securing these systems in order to ensure resilient operation
+is of utmost importance. Some of the well-known examples
+of attacks on CPS include the W32.Stuxnet worm attack that
+maliciously infected an Iranian Nuclear facility, taking control and
+heavily disrupting its normal operation according to the attacker's
+design [6], the cyber attacks on power transmission networks operated
+by Supervisory Control and Data Acquisition (SCADA) Systems
+[12], as well as attacks that infiltrated critical systems including
+medical devices [13] and waste water treatment plants [1].
+In securing CPS infrastructures, the reliable detection of attacks
+is very important and also fundamental to the design of compensation
+and reconfiguration mechanisms for mitigating the impact of
+attacks. The presence of the network increases the complexity of
+the detection of attacks. Hence, effective and yet efficient novel
+approaches are needed to enable the early detection of attacks in
+CPS. A majority of the existing detection approaches are typically
+from the cyber-security community. As highlighted in [3], the traditional
+approach often used in information/cyber-security neglects
+the knowledge of the physical process under control in the detection
+of attacks. Contrary to the traditional cyber-security approach,
+newer approaches in the CPS community, instead of creating models
+of network traffic or software behavior, leverage the knowledge
+of the physical process in designing effective mechanisms in order
+to facilitate the detection of attacks. The idea is that by understanding
+the interactions of the control system with the physical world,
+it would be possible to develop systematic frameworks to detect
+attacks and secure CPS in general.
+In this work, we utilize the energy of physical systems in order
+to define precise detectability conditions for certain attack models
+and vulnerabilities. The concept of energy is very important in
+the behavior of dynamical systems. Compared to traditional detection
+approaches such as observer-based detection [14], there are
+only a handful of work whereby the concept of energy or passivity
+is used in model-based detection. In [7], the authors proposed a
+fault detection and isolation method for port-Hamiltonian systems
+to detect variations in the parameters of system components. The
+work in [4] proposed an energy balance scheme for fault detection
+for continuous-time passive systems. The author performed fault
+detection by checking when the energy balance is perturbed indicating
+the presence of faults. An energy balance fault detection approach
+was also applied for sensor fault detection in steel galvanizing
+process [16]. In [18], a passivity-based fault detection method
+was introduced based on evaluating the traditional passivity-based
+inequality. In this work, a fault is said to have occurred whenever
+the inequality is not satisfied. Most of these works in energy-based
+detection have been focused on reliability as it pertains to the protection
+of physical components against faults. Additionally, existing
+work does not consider the introduction of a communication
+network and do not address the detection of intentional malicious
+cyber attacks against CPS.
+Using the intuitive notion of energy, we propose an attack detection
+mechanism for CPS. The proposed approach is complementary
+to other detection mechanisms such as observer-based detection.
+The underlying idea is that the presence of attacks disturbs the energy
+balance of the physical system by dissipating or injecting additional
+energy. We define the notion of detectability of an attack
+by its effect on system's energy. The proposed approach provides
+the additional benefit of detecting when and to what magnitude a
+system's energy property is impacted due to the occurrence of an
+attack. In particular, we focus on dissipative CPS, which include
+a large class of existing systems. We present the use of energybalance
+in the detection of attacks in NCS. We present a general
+characterization of attacks on the energy of a dynamical system.
+In addition, we demonstrate the impact of specific attack models
+on the stability guarantees of NCS. Finally, we demonstrate our
+approach using a case study on the velocity tracking control of a
+single joint of a robotic arm over a network.
+The rest of the paper is organized as follows: Section 2 presents
+a brief background and underlying definitions used in paper. Section
+3 presents the networked control system model, the attack
+models and formally states the problem that is addressed in this
+paper. The energy-based attack detection approach, the analytical
+results on the detection mechanism and the characterization of passive
+and non-passive attacks are presented in Section 4. Section 5
+presents an example case study using simulations to evaluate the
+proposed approach. The paper is concluded in Section 6.
+2.
+BACKGROUND
+We define some fundamental concepts which are important in
+the description of the proposed approach.
+DEFINITION 1. A dynamic Linear Time-invariant (LTI) system,
+H, is minimal if it is both controllable and observable.
+The notion of dissipativity and passivity of a system presented in
+this work follow the behavior-based approach given by Willems
+in [17] which involves associating the system to a non-negative definite
+storage function V (x) and a supply function, W . We provide
+the following definition of dissipativity.
+DEFINITION 2. [2] [9] A discrete-time system, H, is said to
+be dissipative with respect to the supply function W (u(k), y(k)) if
+there exists a positive definite function V (xk) or Vk, called storage
+function, satisfying V (0) = 0 such that ∀x0 ∈ X, ∀k ≥ k0, and
+all u ∈ Rn and with, Vk = 12 xkT P xk
+N−1
+k=0
+Vk+1 − V0 ≤
+W (u(k), y(k))
+DEFINITION 3. [10] [17] A dynamic system, H, is said to be
+QSR-dissipative if it is dissipative with respect to the supply rate,W
+given as
+W (u, y) = yT Qy + 2yT Su + uT Ru
+where Q, S, R are matrices of appropriate dimensions with Q and
+R symmetric. By choosing different values for Q, S, R, special cases
+of dissipativeness can be derived [8]. Special cases of QSR dissipative
+systems are as follows. If the system H is QSR-dissipative
+then it is
+1. Passive if Q=0, S= 12 I, R = 0
+2. Strictly input passive (SIP) if Q = 0, S = 12 I, R = −δI
+3. Strictly output passive (SOP) if Q = − I, S= 12 I, R = 0
+4. Very strictly passive (VSP) if Q=− I, S = 0, R=−δI
+(1)
+(2)
+where and δ are positive scalars.
+LEMMA 1. [8][Generalized Positive Real Lemma] Let G(z)
+be a transfer function description and M (z) = R + GH (z)S +
+ST G(z)+GH (z)QG(z), with GH (z) denoting the hermitian transpose
+of G(z). Let H be a minimal realization of G(z). Then ∀z s.t.
+z ≥ 1, M (z) ≥ 0 if and only if there exist a real symmetric
+positive definite matrix P and real matrices L and W such that
+AT P A − P = CT QC − LT L
+AT P B = CT QD + CT S − LW
+(3)
+(4)
+BT P B = R + DT S + ST D + DT QD + CT S − W T W (5)
+3.
+SYSTEM MODEL AND PROBLEM
+In this section, we describe the components of networked control
+system and the attack models considered in this work. Subsequently,
+we formulate the attack detection problem and describe the
+underlying assumptions. The notations used in the following sections
+are standard. Let Rn denote the Euclidean space of dimension
+n, I denotes the identity matrix of appropriate dimensions. For a
+matrix P ∈ Rnxn, its transpose is denoted by P T . For a symmetric
+matrix, P , where P = P T , P > 0 denotes it is positive definite.
+3.1
+Networked Control System Model
+We consider a networked control system as depicted in Figure 1.
+The main components of the NCS are the physical plant, the controller,
+the wave transformation (a static local controller), and the
+communication network. The data exchange between the plant and
+the controller is done over a communication network.
+116
+Figure 1: Networked Control System
+(a) Physical Plant Model: We model the physical plant as a discrete
+linear time-invariant system. This version of the plant neglects
+system nonlinearities and presence of noise in the dynamics
+and measurement signals. We consider the physical plant which
+can be represented in the state space form as follows:
+Hp :
+xk+1 = Axk + Buk
+yk = Cxk + Duk
+(6)
+where xk ∈ X represents the state variables, uk ∈ U represents the
+control inputs to the plant and yk ∈ Y represents the plant outputs
+obtained by sensors at sampling instant k ∈ Z.
+important to understand the impact of an attack on each component
+on the correct operation of the overall NCS.
+(1) Min/Max attacks on exchanged wave variables: For attacks on
+the wave variable, Vrk , sent from the plant we have,
+Similar attacks can be launched against the wave variable, Urk , sent
+from the controller.
+(2) Min/Max attacks on sensors and actuators: For attacks on the
+sensor signal, yk, we have,
+V˜rmk in =
+V˜rmk ax =
+y˜kmin =
+y˜kmax =
+Vrk
+Vrmin
+Vrk
+Vrmax
+∀k ∈/ Ta
+∀k ∈ Ta
+∀k ∈/ Ta
+∀k ∈ Ta
+yk
+ymin
+yk
+ymax
+∀k ∈/ Ta
+∀k ∈ Ta
+∀k ∈/ Ta
+∀k ∈ Ta
+(b) Controller Model: The controller modifies the behavior of the
+physical plant through the application of a control input command
+in order to achieve a desired objective or satisfy a performance requirement.
+The controller can be represented in discrete-time statespace
+form as follows:
+Hc :
+zk+1 = Aczk + Bcek
+yck = Cczk + Dcek
+(7)
+where zk ∈ Rq represents the controller states, yck is the control
+command, ek = rk − uck is the error between the reference, rk
+and the received plant output, uck , with the matrices Ac, Bc, Cc
+and Dc of appropriate dimensions. It is assumed that the controller
+is designed under the nominal conditions, i.e. without attacks, to
+achieve the desired performance objective.
+(c) Wave Transformation: In order to preserve the power content
+of information exchanged over a network, the sensor and control
+signals are transformed into wave variables which are then sent
+over the network. From Figure 1, the wave transformation is denoted
+by the blocks, b. The wave variables pair (Urk , Vrk ) on the
+plant side as well as the pair (Ulk , Vlk ) on the controller side of the
+network can be described by the following expressions:
+1
+2b
+1
+2b
+1
+2b
+1
+2b
+Urk = √
+(yk + buk)
+Vrk = √
+(yk − buk)
+Ulk = √
+(uck + byck )
+Vlk = √
+(uck − byck )
+(8)
+(9)
+(10)
+(11)
+where b ∈ R0+. From Figure 1, one can observe that under ideal
+network conditions, Vlk = Vrk and Urk = Ulk .
+3.2
+Attack Model
+Figure 1 depicts the feasible cyber-attacks as a result of the vulnerabilities
+of the networked control system. While the attacks
+denoted as A1-A4 model attacks on the information exchanged
+over the communication network, the attacks denoted as A5 and
+A6 models attacks on sensors and actuators respectively. Similar
+well-known attack types have be proposed in [15] [11]. For each
+attack type, Ak, let Ta = ks, ..., ke denote the attack duration with
+the attack starting from ks and ending at ke. We consider two main
+classes of attacks, integrity attacks and denial-of-service attacks.
+These attack types are described as follows:
+(a) Integrity attacks: In an integrity attack, an adversary deceives
+a compromised component of the NCS into believing that a received
+false data is valid or true. The underlying assumption is
+that all attacks lie within a predetermined range since attacks leading
+to signals that exceed such a range can be easily detected. The
+integrity attacks represented as A1, A3, A5 and A6 in Figure 1 can
+be further categorized into the following:
+(i) Min/Max attacks: These attacks involve the adversary modifying
+the content of compromised signals to their respective minimum or
+maximum values. We model min/max attacks on the exchanged
+wave variables as well as the min/max attacks on the sensors and
+actuators. The attacks on the exchanged variables essentially exploit
+the vulnerabilities as a result of the communication while the
+attacks on the sensors and actuators exploit the vulnerabilities of
+the computing interfaces to these components which may or may
+not be colocated. We consider them separately since each component's
+interaction with the overall NCS is different and hence it is
+(12)
+(13)
+(14)
+(15)
+(16)
+(17)
+Similar attacks could be launched against the actuator signal, uk.
+(ii) Additive attacks: This attack involves introducing an additional
+offset/bias, α = 0 to the actual exchanged information. We model
+additive attacks on the exchanged wave variables as well as additive
+attacks on the sensors and actuators.
+(1) Additive attacks on exchanged wave variables: For attacks on
+the wave variable, Vrk , sent from the plant we have,
+(2) Additive attacks on sensors and actuators: For attacks on the
+sensor signal, yk, we have,
+V˜rak =
+y˜ka =
+⎧ Vrk
+⎪
+⎪⎨⎪ Vrk + αk
+Vrmin
+⎪⎪
+⎪⎩ Vrmax
+∀k ∈/ Ta
+∀k ∈ Ta
+∀k ∈ Ta
+⎧ yk
+⎪
+⎪⎪⎨ yk + αk
+ymin
+⎪
+⎪⎪⎩ ymax
+∀k ∈/ Ta
+∀k ∈ Ta
+∀k ∈ Ta
+and
+and
+and
+∀k ∈ Ta
+and
+and
+Vrk + αk ∈ V
+Vrk + αk < Vrmin
+Vrk + αk > Vrmax
+∀k ∈ Ta
+and
+yk + αk ∈ Y
+yk + αk < ymin
+yk + αk > ymax
+117
+(iii) Min/Max energy attacks: Considering that the proposed approach
+is based on energy, an attacker's objective could be to apply
+the largest impact damage on the system based on the knowledge of
+the system's energy. We model two types of energy-based attacks
+based on their intended impact on the system.
+(1) Max energy attack: In this case, we model attacks that attempt
+to dissipate maximum amount of energy i.e. the energy of the system
+becomes positive. This type of attack can be seen as an attacker's
+attempt to degrade system performance without destabilizing
+the system in regards to energy. In this attack type, for each
+time step, the attacker chooses a value for the compromised wave
+variable such that the total dissipated energy is maximized without
+exceeding the predetermined limits of the wave variable. The max
+energy attack can be captured as follows:
+maximize
+Vrk
+subject to
+ET
+Vrk ∈ [Vrmin , Vrmax ]
+(2) Min Energy Attack: Similar, to the max energy attack, in this
+case we model attacks that attempts to inject the largest amount of
+energy which from the system's perspective portrays the system as
+generating additional energy i.e. the energy of the system becomes
+negative. This attack type can be seen as an attacker's attempt to
+both degrade the performance of the system and potentially destabilize
+the system. In the model of this attack, at each time step the
+attacker chooses the compromised wave variable such that the energy
+is minimized without exceeding the predetermined limits of
+the wave variable. The min energy attack can be captured as follows:
+minimize
+Vrk
+subject to
+ET
+Vrk ∈ [Vrmin , Vrmax ]
+(b) Denial-of-Service (DoS) attacks: DoS attacks, denoted as A2
+and A4 in Figure 1, prevent signals from reaching the intended destination.
+In NCS, it involves the disruption of the availability of
+information exchanged between the plant and the controller. DoS
+attacks are typically carried out by jamming the communication
+channel, changing the routing protocol or saturating the receiver
+with useless signals. The attacker's main objective is usually to degrade
+the performance of the NCS as well as to potentially destabilize
+the physical system. The DoS attack can be modeled as a form
+of the additive attack as follows:
+V˜rDk oS = Vrk + αVrk
+α = 0
+α = −1
+∀k ∈/ Ta
+∀k ∈ Ta
+(18)
+3.3
+Problem Statement
+Consider the networked control system as shown in Figure 1, under
+possible cyber attacks as indicated by the attacks A1-A6 due to
+the vulnerabilities of NCS. We define what is meant by an energybased
+monitor and detectability of attacks in this framework.
+DEFINITION 4. An energy-based monitor is a deterministic algorithm,
+Φ : Λ → Ψ, with knowledge of the plant dynamics and
+access to discrete-time measurements and control inputs. The output
+of a monitor is Ψ = {ψ1, ψ2}, with ψ1 ∈ {T rue, F alse}, and
+ψ2 ∈ {Passive, Non-Passive}
+DEFINITION 5. An attack is detectable if in the presence of the
+attack, Ak, ψ1 =True and ψ2 = Passive or Non-Passive.
+The following problem is of interest:
+{1. Detection Problem} Design an algorithm, Φ, for an energybased
+monitor which can quantify or estimate the energy of the
+system, ET , such that in the presence of an attack and with the
+knowledge of the plant, the controller and exchanged wave variables
+the following holds:
+Ψ = {ψ1, ψ2} =
+{True, Passive}
+{True, Non-Passive}
+∀ET > 0
+∀ET < 0}
+(19)
+In the following sections, we propose a solution to the above problem.
+We assume the following about the NCS.
+Assumption 1: The plant and controller are dissipative by design,
+both with a sampling period, Ts. The assumption of dissipativity
+for both the plant and controller is to ensure stability guarantees in
+the nominal case.
+Assumption 2: The components of the NCS including the physical
+plant, the sensor, actuator, controller and attack monitor are timesynchronized.
+This ensures that all the components of the NCS are
+progressing in lock step in regards to time.
+Assumption 3: Whenever the input buffers are empty, null packets
+are processed. This assumption is used to preserve passivity
+118
+in the nominal sense in order to avert the typical hold-last sample
+approach which is known to be non-passive. Other approaches for
+handling missed packets can be sought in this case as well with no
+loss of generality.
+Assumption 4: It is assumed that the controller and monitoring
+system for the plant are co-located together. The idea is that the
+controller is assumed to be trustworthy while the plant's trustworthiness
+is not known or guaranteed. In the case that the trustworthiness
+of the controller is not known or guaranteed, an additional
+monitor can be co-located with the plant.
+Assumption 5: The attacker has knowledge of the plant and controller.
+In this assumption, we consider that the attacker is smart in
+the sense that he/she can attempt to use knowledge of the system to
+introduce attacks that cannot be easily detected with a simple bad
+data detector.
+Assumption 6: For our initial analysis, we assume an ideal communication
+network, hence do not consider the usual communication
+network effects such as time-delays and packet losses but
+rather we focus on malicious attacks on the cyber-physical infrastructure.
+In this regard, we assume that any anomaly in the behavior
+of the overall system is due to an attack. This assumption will be
+relaxed later to include network effects in our approach.
+4.
+ENERGY-BASED ATTACK DETECTION
+In this section, we derive the energy balance for the networked
+control system in terms of the input-output wave variables, Urk
+and Vrk . Next, we provide a generalized characterization of attacks
+based on the derived energy balance. We then evaluate the impact
+of the attack models presented in Section 3.2. Finally, we consider
+the case where the states of the system are not measurable, in which
+case we introduce the use of an observer to estimate the states.
+4.1
+Discrete-Time Energy Balance
+We present the energy-based attack detection mechanism for the
+networked control system in Figure 1. We first present the derivation
+of general energy balance in terms of the plant's input, uk and
+output, yk, and then we refine the derivation to represent the energy
+balance system in terms of the wave variables exchanged over the
+network.
+PROPOSITION 1. Consider the discrete-time physical plant, Hp,
+with a minimal realization (controllable and observable) defined in
+(6). If Hp is QSR dissipative then it satisfies the energy balance,
+ET given by
+ET = Esu − Est − Ed = 0
+(20)
+where Esu is the supplied energy, Est is the stored energy and Ed
+is the dissipated energy.
+PROOF. Recall the storage function, Vk, defined as 12 xkT P xk.
+The change in the storage function, ΔV is given by
+ΔV = Vk+1 − Vk = 2 xk+1P xk+1 − 12 xkT P xk
+1 T
+substituting xk+1 from (6), we have
+ΔV =
+((xkT AT + ukT BT )P (Axk + Buk) − xkT P xk)
+=
+(xkT (AT P A − P )xk + xkT AT P Buk + ukT BT P Axk
++ ukT BT P Buk)
+(21)
+1
+2
+1
+2
+ΔV =
+1 (xkT (CT QC − LLT )xk
+2
++ xkT (CT QD + CT S − LW )uk
++ ukT (DT QC + ST C − W T LT )xk
++ ukT (R + DT S + ST D + DT QD − W T W )uk) (22)
+After some manipulation and simplification, we have
+From (6), noting that yk = Cxk + Duk, we can now write
+1
+ΔV = ((Cxk + Duk)T Q(Cxk + Duk)
+2
++ 2(Cxk + Duk)T Suk + ukT Ruk)
+1
+− 2 (xkT LLT xk + xkT LW uk + ukT W T LT xk
++ ukT W T W uk)
+ΔV = 1 (ykT Qyk + 2ykT Suk + ukT Ruk)
+2
+1
+− 2 (xkT LLT xk + xkT LW uk + ukT W T LT xk
++ ukT W T W uk)
+Summing over the time interval from k = 0 to k = N with a
+sampling time of Ts. The total energy equation becomes
+(xkT LLT xk + xkT LW uk + ukT W T LT xk
+(ykT Qyk + 2ykT Suk + ukT Ruk) − Ts(Vk+1 − Vk0 )
++UrTk W T W Urk ) = 0
+with
+Ts
+N
+2 i=0
+where
+After some manipulations and simplification, the plant dynamics
+can be expressed in terms of the input wave variable, Urk and output
+wave variable, Vrk . The resulting system, Hpwv can be described
+as
+Hpwv :
+xk+1 = A¯xk + B¯Urk
+Vrk = C¯xk + D¯ Urk
+B
+A¯ = A − B(D + I)−1C; B¯ = √ (I − (D + I)−1(D − I))
+2
+C¯ = √2(D + I)−1C; D¯ = (D + I)−1(D − I)
+Recall the total energy expression given in (23), by substitution, the
+energy balance in the wave domain becomes
+N
+Ts
+− 2 i=0
+(VrTk Q¯Vrk + 2VrTk S¯Urk + UrTk R¯Urk ) − Ts(Vk+1 − V0)
+(xkT LLT xk + xkT LW Urk + UrTk W T LT xk
+From the Generalized KYP lemma described in lemma 1, we can
+substitute (3), (4) and (5) into equation (21), then we have
+PROOF. From equations (9) and (10), and also assuming b= 1,
+solving for the plant output, yk and input, uk, we have
+1
+yk = √ (Urk + Vrk )
+2
+1
+uk = √ (Urk − Vrk )
+2
+N
+Ts
+2 k=0
+N
+Ts
+− 2 k=0
+where
++ ukT W T W uk) = 0
+Esu =
+Ed =
+N
+N
+Ts
+Ts
+2 k=0
+2 k=0
+Est = Ts(Vk+1 − Vk0 )
+(ykT Qyk + 2ykT Suk + ukT Ruk)
+(xkT LLT xk + xkT LW uk + ukT W T LT xk
++ ukT W T W uk)
+Hence,
+ET = Esu − Est − Ed = 0
+The system under consideration is a networked system and the
+components of the system communicate over a packet-switched
+network. Hence, it is appropriate to directly relate the energy based
+equation to the transmitted and received components over the network.
+We now provide the energy balance in terms of the exchanged
+wave variables.
+PROPOSITION 2. Given the system Hp with the energy balance
+as defined in (23) and the wave transformation provided in (8)-(11).
+The resulting energy balance of the system in wave domain is
+ETwv = Esuwv − Estwv − Edwv = 0
+(24)
+where ETwv is the total of the system, Esuwv is the supplied energy,
+Estwv is the stored energy and Edwv is the dissipated energy.
+(25)
+(26)
+(27)
+(28)
+(29)
+)
+)
+(23)
+Q¯ = ( Q − 2S + R ); S¯ = ( Q − R ); R¯ = ( Q + 2S + R );
+2 2 2
+W T LT = (
+W T W = (
+LW
+LW = ( √2 LLT
+= (LLT − L√W2C¯ − C¯W√T2LT + C¯T W T W C¯)
+LW D¯ C¯T W T W C¯T W T W D¯
+√2 − 2 + 2 )
+W T LT D¯ T W T LT W T W C¯
+√2 − √2 − 2 + 2
+W T W − W T W D¯ − D¯ W T W + D¯ T W T W D¯
+2
+D¯ T W T W C¯
+With
+Esuwv =
+(VrTk Q¯Vrk + 2VrTk S¯Urk + UrTk R¯Urk )
+N
+Ts
+2 i=0
+N
+Ts
+2 i=0
+Edwv =
+(xkT LLT xk + xkT LW Urk + UrTk W T LT xk
+Estwv = Ts(Vk+1 − V0)
++UrTk W T W Urk )
+119
+Hence, ETwv = Esuwv − Estwv − Edwv = 0
+4.2 Energy Balance in the Presence of Attacks
+In this section, we provide a generalized characterization of the
+total energy in the presence of attacks.
+THEOREM 1. Consider the networked control system depicted
+in Figure 1, under cyber-attack, Ak, where by the attacker can remove
+or modify the exchanged wave variables Urk and Vrk . Since
+the plant is assumed to be linear and time-invariant, the modified
+variables due to an attack can be modeled as
+Urk = Urk + Uak ; V˜rk = Vrk + Vak ; x˜k = xk + xak
+˜
+(30)
+The total energy of the plant, E˜Twv , in the presence of attack is
+E˜Twv = ETa = 0 (31)
+PROOF. Based on the attack-modified input-output relations, the
+energy for the system becomes
+˜
+ET =
+(V˜rTk Q¯V˜rk + 2V˜rTk S¯U˜rk + U˜rTk R¯U˜rk )
+(x˜kLL¯T x˜k + x˜kL¯W U˜rk + U˜rk W T¯LT x˜k
++ U˜rk W T¯W U˜rk )
+1 1
+− Ts( 2 x˜k+1P x˜k+1 − 2 x˜0P x˜0)
+Next, we simplify the above total energy based on the individual
+energy components which include supplied, stored and dissipated
+energies. For the new supplied energy we have,
+E˜su =
+(V˜rTk Q¯V˜rk + 2V˜rTk S¯U˜rk + U˜rTk R¯U˜rk )
+(33)
+substituting (30) in (33), we have
+E˜su =
+((Vrk + Vak )T Q¯(Vrk + Vak )
++ 2(Vrk + Vak )T S¯(Urk + Uak )
++ (Urk + Uak )T R¯(Urk + Uak ))
+(VrTk Q¯Vrk + 2VrTk S¯Urk + UrTk R¯Urk )
+(VaTk Q¯Vak + 2VrTk Q¯Vak + 2VrTk S¯Uak )
+(2VaTk S¯Urk + 2VaTk S¯Uak + 2UrTk R¯Uak
++ UaTk R¯Uak )
+From (34) above, it can be seen that,
+Next, the new stored energy component becomes,
+E˜su = Esuwv + Esua
+E˜st = Ts( 2 x˜k+1P x˜k+1 − 12 x˜0T P x˜0)
+1 T
+substituting (30) in (36), we have
+1
+E˜st = Ts( 2 (xk+1 + xak+1 )T P (xk+1 + xak+1 )
+1
+− 2 (x0 + xa0 )T P (x0 + xa0 ))
+= Ts ((xkT+1P xk+1 − x0T P x0)
+2
+(34)
+(35)
+(36)
++ (xaTk+1 P xak+1 − xaT0 P xa0 + 2xkT+1P xak+1 − x0T P xa0 ))
+(37)
+Ts
+2
+Ts
+− 2
+N
+k=0
+N
+k=0
+Ts
+2
+N
+k=0
+Ts
+2
+Ts
+2
+Ts
+2
+Ts
+2
+N
+k=0
+N
+k=0
+N
+k=0
+N
+k=0
+=
++
++
+(38)
+(39)
+(40)
+(41)
+(42)
+(43)
+(44)
+From (37) above, it can be seen that,
+E˜st = Estwv + Esta
+Finally, the new dissipated energy component becomes
+˜
+Ed =
+Ts
+2
+N
+k=0
++ U˜rkW T¯W U˜rk)
+substituting (30) in (39), we have
+˜
+Ed =
+Ts
+2
+N
+k=0
+(x˜kLL¯T x˜k + x˜kT L¯W U˜rk + U˜rkW T¯LT x˜k
+(xkT LL¯T xk + xkT LL¯T xak + xaTk LL¯T xk
++ xaTk LL¯T xak + xkT L¯W Urk + xkT L¯W Uak + xaTk L¯W Urk
++ xaTk L¯W Uak + UrTkW T¯LT xk + UrTkW T¯LT xak
++ UaTk W T¯LT xk + UaTk W T¯LT xak + UrkW T¯W Urk
++ UrkW T¯W Uak + Uak W T¯W Urk + Uak W T¯W Uak )
+˜
+Ed = Edwv + Eda
+Hence, from (35), (38) and (41), the total energy, E˜T in the presence
+of attack(s), then becomes
+ET = E˜su − E˜st − Ed
+˜ ˜
+= Esuwv + Esua − Estwv − Esta − Edwv − Eda
+= ETwv + ETa
+From (24), we have
+˜
+ET = ETwv + ETa = ETa
+(32)
+From (40) above, it can be seen that,
+120
+COROLLARY 1. In the absence of any detectable attack, Ak,
+the total energy of the system, E˜Twv is
+˜
+ETwv = ETwv = 0
+PROOF. This result follows directly from the system total energy
+property described in Theorem 2 and the results in Theorem 1
+in the presence attacks.
+REMARK 1. The detection algorithm for the monitor is evaluated
+based on the information received at the controller. Considering
+the fact that the controller is considered trustworthy, the effects
+of attacks on the wave variable, Ulk which is received as Urk by the
+plant will be reflected on wave variable Vlk , which is Vrk sent from
+the plant side of the network. Recall the expression in (9) relating
+the actuator signal and sensor signal , to the wave variable,
+1
+2b
+Vrk = √
+(yk − buk)
+It is straight forward to see that attacks on either the sensor or
+actuator will be reflected on the wave variable Vrk , which is subsequently
+received at the controller as Vlk .
+COROLLARY 2. An attack, Ak, is characterized as a passive
+attack if the presence of the attack results in E˜Twv > 0.
+From the definition of passivity in (2), E˜Twv > 0 implies that the
+supplied energy for the attack system is larger than the dissipated
+and stored energies.
+COROLLARY 3. An attack, Ak, is characterized as a non-passive
+attack if the presence of the attack results in E˜Twv < 0.
+This essentially implies that the supplied energy of the attacked
+system is less than the dissipated and store energies. Therefore,
+the system generates additional internal energy which results in a
+non-passive behavior. This implies that the overall stability of the
+networked control system is no longer guaranteed.
+The energy-based attack detector can be summarized by Algorithm
+1. Figure 2 also shows the block diagram for the energy
+based monitor. The inputs to the algorithm, also denoted in Figure
+2, are the wave variables, Vrk and Urk and the plant's state xk.
+The output of the algorithm is Ψ, which provides information on
+whether an attack has occurred and the impact of the attack on the
+overall system. The blocks supplied energy, stored energy and dissipated
+energy in Figure 2 corresponds to the computation of the
+supplied energy, stored energy and dissipated energy respectively
+as indicated by lines 1-4 in Algorithm 1. Figure 2 shows the block
+Algorithm 1: Energy-Based Attack Detection
+Input: Vrk ,Urk ,xk
+Output: Ψ
+1 Compute the supplied energy, Esuwv
+2 Compute the stored energy, Estwv
+3 Compute the dissipated energy, Edwv
+4 Compute the total energy, ETk = Esuwv − Estwv − Edwv
+5 if ETk = 0 then
+6 ψ1 =True
+7 if ETk > 0 then
+8 ψ2 =Passive
+9
+10
+11 else
+12
+else
+ψ1 =False
+13 Ψ ={ψ1,ψ2}
+14 return Ψ
+ψ2 =Non-Passive
+diagram for the designed energy based monitor for attacks in the
+case of measurable plant states.
+Figure 2: Energy-Based Monitor
+REMARK 2. Thus far, the characterization of attacks are based
+on the notion that in the absence of attacks, the nominal energy
+balance of the monitored system should be zero. In a more realistic
+setting, this assumption can be relaxed in order to integrate the potential
+effects of the network communication as a result of delays or
+packet loss. In the presence of network effects and possibly other
+system uncertainties, instead of the energy balance being zero, a
+121
+notion of a maximal value of energy due to network effects and system
+uncertainties are considered. Based on this notion, a threshold
+boundary, Eth, is defined. The characterization of attacks are then
+evaluated based on the impact of the attacks that results in computed
+energy that lies outside the boundary. This maximal energy
+value can be obtained empirically through simulations and by imposing
+worst-case network conditions for the NCS.
+4.3
+Characterization of Attack Models
+In order to illustrate the impact of attack models on the physical
+system, we evaluate the effect of classical attacks on the total
+energy of the system. For brevity, we focus on the attacks A1 and
+A2, although similar approach can be used to evaluate the effects
+of attacks A3-A6. Also, due to space limitations we consider the
+cases where the dissipative plant is passive. The proofs for the presented
+results as well as the case for strictly-output passive plant is
+provided in [5].
+Assuming there are no attacks on Urk , the impact of the attacks on
+Vrk is reflected on only the supplied energy resulting in the component,
+˜
+ETwv = ETwva = Esuwva
+(2VrTk Q¯Vak + VaTk Q¯Vak + 2VaTk S¯Urk ) (45)
+=
+Ts
+2
+N
+k=0
+PROPOSITION 3. Consider the passivity-based network control
+system depicted in Figure 1, under a max integrity attack, Ak, if the
+system dynamics Hp is passive, then
+Ak :
+Ak :
+N
+k=0
+N
+k=0
+⎧
+⎨⎪⎪ Passive if
+N
+k=0
+⎪⎪⎩ Non-Passive if
+VrTmax Vrmax <
+VrTmax Vrmax >
+⎧
+⎪⎪⎨ Passive if
+N
+k=0
+⎪⎩⎪ Non-Passive if
+VrTmin Vrmin <
+VrTmin Vrmin >
+N
+k=0
+N
+k=0
+VrTk Vrk
+N
+k=0
+VrTk Vrk
+VrTk Vrk
+N
+k=0
+VrTk Vrk
+PROPOSITION 4. Consider the passivity-based network control
+system depicted in Figure 1, under a min integrity attack, Ak, if the
+system dynamics Hp is passive, then
+PROPOSITION 5. Consider the passivity-based network control
+system depicted in Figure 1, under an additive integrity attack, Ak,
+if the system dynamics Hp is passive, then
+Ak :
+⎧
+⎪⎪⎨ Passive if
+⎪⎩⎪ Non-Passive if
+N
+k=0
+N
+k=0
+2VrTk αk < 2VrTk
+αk > N
+k=0
+αkT αk
+N
+k=0
+αkT αk
+PROPOSITION 6. Consider the passivity-based network control
+system depicted in Figure 1, under a denial-of-service attack, Ak,
+if the system dynamics Hp is passive, then
+Ak : Passive with Esuwva =
+Ts
+2
+N
+k=0
+VrTk Vrk > 0∀Vrk = 0
+2
+REMARK 3. The result obtained for the characterization of DoS
+attacks is similar to the analysis of packet losses due to unreliability
+of network in the literature. While packet losses are due to
+unreliable network, DoS is as a result of intentional and malicious
+attacks by an adversary.
+(46)
+(47)
+(48)
+(49)
+4.4
+The case of unmeasurable states
+In the case unmeasurable plant states, a Luenberger observer of
+the form in (50) is introduced to reconstruct an estimate of the plant
+states.
+Hobs :
+xˆk+1 = Axˆk + BUrk − L(Vrk − Cxˆk − DUrk )
+ˆ
+Vrk = Cxˆk + DUrk
+(50)
+where L is the observer gain. Recall that the plant system is assumed
+to be observable. This means there exists an observability
+matrix L such that the estimated state xˆk of the Luenberger observer
+asymptotically converges to the true state xk.
+PROPOSITION 7. Given the system Hp with the energy balance
+described in Theorem 2. In the case whereby the states are unmeasurable
+assuming a Luenberger observer, Hobsv as given in (50) is
+integrated to estimate the states, xˆk. Then, the resulting equivalent
+total energy of the system in wave domain, in the absence of attacks
+can be described by
+ETwv = ETwvo = −Estoe − Edoe
+(51)
+Due to limited space, the proof is presented in [5].
+Similar to Algorithm 1, in the case of unmeasurable states, the
+energy-based detection with the integration of an observer can be
+summarized by Algorithm 2 below.
+Algorithm 2: Energy-Based Attack Detection in the case of
+unmeasurable states
+Input: Vrk ,Urk
+Output: Ψ
+1 Estimate the states, xˆk
+2 Compute the supplied energy, Esuwvo
+3 Compute the stored energy, Estwvo
+4 Compute the dissipated energy, Edwvo
+5 Compute the total energy,
+ETwvo = Esuwvo − Estwvo − Edwvo
+6 if ETwvo = 0 then
+7 ψ1 =True
+8 if Twvo > 0 then
+9 ψ2 =Passive
+ψ2 =Non-Passive
+10
+11
+12 else
+13
+else
+14 Ψ ={ψ1,ψ2}
+15 return Ψ
+ψ1 =False
+5.
+EVALUATION
+In this section, we evaluate the proposed energy-based detection
+mechanism using simulations. The system under consideration is a
+control system composed of a plant and controller that exchange information
+over a network in order to cooperatively achieve a specified
+objective.
+5.1
+Simulation Setup
+The case study involves the velocity control of a single joint
+robotic arm over a communication network. It is assumed that the
+only information the networked controller receives from the plant
+is the wave variable, Vrk , which becomes Vlk at the controller side
+122
+of the network. Hence the detection mechanism with an integrated
+observer, as described in Section 4.4, is used in this evaluation. The
+NCS is considered to passive by design.
+The simulation of the NCS is performed in Matlab/Simulink.
+The plant, controller, energy-based monitor, scattering transformation,
+attack models and communication are implemented using a
+combination of Matlab scripts and blocks from the Simulink library.
+The dynamics of the plant is described by the discretetime
+state-space representation as defined in (6) with a sampling
+time of Ts = 0.01s. The parameters for the plant are A=0.9952,
+B=0.0625, C=0.1214, D=0.0251. The controller for the robot is
+a Proportional-Integral (PI) controller and similar to the plant is
+represented by the discrete time state space representation defined
+in (7) with the sampling time Ts = 0.01s. The parameters for
+the controller are Ac =1, Bc =0.0625, Cc =0.1, Dc =0.6385.
+The main objective of the controller is to modify the behavior of
+the plant in order to track a reference velocity trajectory, rk over a
+communication network.
+5.2
+Scenarios
+First, we present the control of the plant in the nominal case
+when there are no attacks. We also present the effects of the network
+on the system's energy. Next, we evaluate the behavior of
+the system under attack and the ability of the proposed approach to
+detect the attacks. In the experiments with attacks, the simulated
+attacks are injected from the duration, t = 15s to t = 20s. Due
+to space limitations, we only present results for some of the attack
+models, results for other cases are presented in [5].
+(1) Nominal Case: In this scenario, the NCS operates nominally
+while achieving the tracking objective. Figure 3a depicts the reference
+velocity of 0.15rad/s as well as the plant velocity clearly
+showing that the plant is able to track the velocity as desired. Figure
+3b shows the energy balance of the monitored plant computed
+based on the approach described in Section 4.2. In order to illustrate
+the effect of communication network on the energy-balance,
+we also co-located the energy-based detector at the plant side of
+the network to essentially perform the same total energy computation.
+The only difference being the delay experience by the monitor
+co-located with the controller. From Figure 3b, the energy-balance
+computed by the local monitor is essentially zero as expected but
+the balance computed by the networked monitor has an offset as a
+result of the communication network. Hence, this offset value or a
+more conservative value can be used to characterize the threshold
+energy, Eth, which will be non-zero due to network effects.
+(2) Integrity Attacks
+(a) Min Attack on Vrk: In this scenario, we assume the NCS channel
+from the plant to the controller, transmitting Vrk, is compromised
+and during the attack duration, the attacker replaces the true
+or actual signal exchanged with the value of Vrmin . Figure 4a
+shows that the presence of the attack results in the degraded reference
+tracking performance. Figure 4b depicts the total energy computation
+clearly indicating the presence of the attack. Additionally,
+one can observe that the min integrity attack can be characterize as
+a passive attack as it leads to increase in the computed total energy
+which indicates the dissipation of energy. Based on the computed
+energy, passivity of the overall NCS is still guaranteed.
+(b) Max Energy Attack on Vrk: In this scenario, we again assume
+the NCS channel from the plant to the controller, transmitting Vrk,
+is compromised and during the attack duration, the attacker replaces
+the true or actual signal exchanged with the value of Vra
+that maximizes the energy dissipated at that time step. Figure 5a
+shows that the presence of the attack results in the degraded reference
+tracking performance. Figure 4b depicts the total energy comReference
+and Plant Velocity Plots (Nominal)
+0.2
+0.18
+0.16
+0.14
+)
+/sd0.12
+a
+r
+t(y 0.1
+i
+c
+leo0.08
+V0.06
+0.04 Reference Velocity
+0.02 Plant Velocity
+00 5 10 15 20 Tim2e5(s) 30 35 40 45 50
+(a) Velocity Plot.
+System Energy (Nominal)
+8x 10−5
+6
+4
+2
+y
+g
+re 0
+n
+E−2
+−4
+−6 MMoonniittoorr ((LNoectwalo)rked)
+−80 5 10 15 20 Tim2e5(s) 30 35 40 45 50
+(b) Energy Balance Plot.
+Figure 3: Nominal Case.
+Reference and Plant Velocity Plots (Min Attack on Vrk)
+Reference Velocity
+Plant Velocity
+00 5 10 15 20 Tim2e5(s) 30 35 40 45 50
+(a) Velocity Plot.
+System Energy (Min Attack on Vrk)
+Monitor (Local)
+Monitor (Networked)
+0.35
+0.3
+0.25
+/)
+s
+rad 0.2
+ilt(co0.15
+y
+eV
+0.1
+0.05
+0.04
+0.035
+0.03
+0.025
+yg 0.02
+r
+e
+nE 0.015
+0.01
+0.005
+0
+−0.0050 5 10 15 20 Tim2e5(s) 30 35 40 45 50
+(b) Energy Balance Plot.
+Figure 4: Min Attack on Vrk.
+putation clearly indicating the presence of the attack. Additionally,
+one can observe that as expected the max energy attack results in
+an increase in the computed total energy. Based on the computed
+energy, passivity of the overall NCS is still guaranteed.
+(c) Max Attack on the Sensor, yk: In this scenario, we assume the
+sensor signal from the plant, yk, is compromised and during the
+123
+0.2
+)
+/sd0.15
+a
+it(r
+y
+c
+leo 0.1
+V
+0.05
+0.035
+0.03
+0.025
+0.02
+y
+reg 0.015
+n
+E
+0.01
+0.005
+0
+0.25 Reference and Plant Velocity Plots (Max Energy Attack on Vrk)
+Reference Velocity
+Plant Velocity
+00 5 10 15 20 Tim2e5(s) 30 35 40 45 50
+(a) Velocity Plot.
+System Energy (Max Energy Attack on Vrk)
+Monitor (Local)
+Monitor (Networked)
+−0.0050 5 10 15 20 Tim2e5(s) 30 35 40 45 50
+(b) Energy Balance Plot.
+Figure 5: Max Energy Attack on Vrk.
+attack duration, the attacker replaces the true or actual signal exchanged
+with the value of ymax. Figure 6a shows that the presence
+of the attack results in the degraded reference tracking performance.
+Figure 6b depicts the total energy computation clearly
+indicating the presence of the attack. From the energy plots, one
+can observe that as expected the max integrity attack on the sensor
+perturbs both the local and networked energy monitors, clearly
+indicating that the attack is perpetuated locally. From Figure 6b,
+the max attack on the actuator results in a decrease in the system
+energy indicating the injection of excess energy and hence can be
+characterize as a non-passive attack. Based on the computed energy,
+the injected max attack on the sensor leads to the violation of
+passivity of the overall NCS, in addition to the observed significant
+degradation in performance.
+(3) Denial-of-service attack on Vrk: In this scenario, we introduce
+a denial-of-service attack on the NCS. During the attack duration,
+the attacker erases or discard the information exchanged over the
+network based on a simulated Bernoulli random variable, the probability
+of erasure for this evaluation was set at 0.2. Figure 7 shows
+that the presence of the attack clearly degrades the tracking performance.
+From Figure 7, one can observe that the denial-of-service
+attack can be characterized as passive attack as it leads to a positive
+total computed energy and this is in line with the results in Section
+4.3 defining DoS attacks as always passive. Hence, passivity is
+always maintained but the performance in tracking is deteriorated.
+6. CONCLUSION
+Due to increased attacks on CPS, there is an increased effort towards
+approaches to detect and secure CPS from cyber attacks. We
+present an energy-based attack detector for a class of CPS that are
+considered dissipative. We provided analytical results to show the
+detector can successfully detect attacks. Using well-known attack
+models we characterize attacks that can be considered either passive
+or non-passive based on their impact on the evaluated system
+0.2 Reference and Plant Velocity Plots (Max Attack on Sensor)
+Reference Velocity
+Plant Velocity
+−0.250 5 10 15 20 Tim2e5(s) 30 35 40 45 50
+(a) Velocity Plot.
+System Energy (Max Attack on Sensor)
+0.15
+0.1
+)s 0.05
+/
+(rad 0
+y
+t
+ic−0.05
+o
+l
+eV −0.1
+−0.15
+−0.2
+0.02
+0
+−0.02
+−0.04
+y−0.06
+g
+r
+e
+nE−0.08
+−0.1
+−0.12
+−0.14
+y
+g
+re 2
+n
+E
+4
+3
+1
+0
+Monitor (Local)
+Monitor (Networked)
+−0.160 5 10 15 20 Tim2e5(s) 30 35 40 45 50
+(b) Energy Balance Plot.
+Figure 6: Max Attack on Sensor, yk.
+Reference and Plant Velocity Plots (DoS Attack on Vrk)
+0.2
+0.18
+0.16
+0.14
+)
+/sd0.12
+a
+r
+t(y 0.1
+i
+c
+leo0.08
+V0.06
+0.04 Reference Velocity
+0.02 Plant Velocity
+00 5 10 15 20 Tim2e5(s) 30 35 40 45 50
+(a) Velocity Plot.
+5x 10−3
+System Energy (DoS Attack on Vrk)
+Monitor (Local)
+Monitor (Networked)
+−10 5 10 15 20 Tim2e5(s) 30 35 40 45 50
+(b) Energy Balance Plot.
+Figure 7: DoS Attack on Vrk.
+energy. We quantitatively evaluate the performance of the proposed
+mechanism using simulations and experiments on a networked single
+joint robotic arm with the introduction of artificially simulated
+attacks. The results show that the proposed detection mechanism
+is effective in detecting attacks based on the energy balance of a
+system.
+124
+7.
+ACKNOWLEDGMENTS
+This work is supported in part by the National Science Foundation
+(CNS-1238959, CNS-1035655) and NIST (70NANB13H169).
+8.
+REFERENCES
+[1] M. Abrams and J. Weiss. Malicious control system cyber
+security attack case study: maroochy water services. 2008.
+[2] C. I. Byrnes and W. Lin. Losslessness, feedback equivalence,
+and the global stabilization of discrete-time nonlinear
+systems. IEEE Trans. on Aut. Control,, 39(1):83-98, 1994.
+[3] A. A. Cárdenas, S. Amin, and S. Sastry. Research challenges
+for the security of control systems. In Proc. of the 3rd Conf.
+on Hot topics in security, pages 1-6, 2008.
+[4] W. Chen, S. Ding, A. Q. Khan, and M. Abid. Energy based
+fault detection for dissipative systems. In Conf. on Control
+and Fault-Tolerant Systems, pages 517-521, 2010.
+[5] E. Eyisi and X. Koutsoukos. Energy-Based Attack Detection
+in Networked Control Systems. Technical Report
+ISIS-13-107.
+[6] N. Falliere, L. Murchu, and C. E. W32.stuxnet dossier. 2011.
+[7] C. Fantuzzi and C. Secchi. Energetic approach to parametric
+fault detection and isolation. In American Control Conf.,
+volume 6, pages 5034-5039, 2004.
+[8] G. C. Goodwin and K. S. Sin. Adaptive filtering prediction
+and control. Courier Dover Publications, 2013.
+[9] W. M. Haddad and V. Chellaboina. Nonlinear dynamical
+systems and control: a Lyapunov-based approach. Princeton
+University Press, 2011.
+[10] D. Hill and P. Moylan. The stability of nonlinear dissipative
+systems. IEEE Trans. on Aut. Control, 21(5):708-711, 1976.
+[11] Y.-L. Huang, A. A. Cárdenas, S. Amin, Z.-S. Lin, H.-Y. Tsai,
+and S. Sastry. Understanding the physical and economic
+consequences of attacks on control systems. Int. J. of Critical
+Infrastructure Protection, 2(3):73-83, 2009.
+[12] T. W. S. Journal. Electricity grid in u.s. penetrated by spies.
+A1, April 2009.
+[13] C. Li, A. Raghunathan, and N. Jha. Hijacking an insulin
+pump: Security attacks and defenses for a diabetes therapy
+system. In Int. Conf. In e-Health Networking Applications
+and Services, pages 150 -156, June 2011.
+[14] R. Patton and J. Chen. Observer-based fault detection and
+isolation: Robustness and applications. Control Engineering
+Practice, 5(5):671 - 682, 1997.
+[15] A. Teixeira, D. Pérez, H. Sandberg, and K. H. Johansson.
+Attack models and scenarios for networked control systems.
+In Proc. of the 1st Int. Conf. on High Confidence Net. Sys.,
+pages 55-64, 2012.
+[16] D. Theilliol, H. Noura, D. Sauter, and F. Hamelin. Sensor
+fault diagnosis based on energy balance evaluation:
+Application to a metal processing. ISA Trans.,
+45(4):603-610, 2006.
+[17] J. C. Willems. Dissipative dynamical systems part ii: Linear
+systems with quadratic supply rates. Arch. for Rat.
+Mechanics and Analysis, 45(5):352-393, 1972.
+[18] H. Yang, V. Cocquempot, and B. Jiang. Fault tolerance
+analysis for switched systems via global passivity. IEEE
+Trans. on Cir. and Sys. II: Express Briefs, 55(12):1279-1283,
+2008.

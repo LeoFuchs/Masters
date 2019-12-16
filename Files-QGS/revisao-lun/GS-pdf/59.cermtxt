@@ -1,0 +1,769 @@
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 10, OCTOBER 2015
+2831
+Jamming Attacks on Remote State Estimation in Cyber-Physical
+Systems: A Game-Theoretic Approach
+Yuzhe Li, Ling Shi, Peng Cheng, Jiming Chen, and Daniel E. Quevedo
+Abstract-We consider security issues in remote state estimation
+of Cyber-Physical Systems (CPS). A sensor node communicates
+with a remote estimator through a wireless channel which may be
+jammed by an external attacker. With energy constraints for both
+the sensor and the attacker, the interactive decision making process
+of when to send and when to attack is studied. We formulate
+a game-theoretic framework and prove that the optimal strategies
+for both sides constitute a Nash equilibrium of a zero-sum
+game. To tackle the computation complexity issues, we present a
+constraint-relaxed problem and provide corresponding solutions
+using Markov chain theory.
+Index Terms-Cyber-physical systems (CPS), DoS jamming
+attack, game theory, Markov chain, remote state estimation.
+I. INTRODUCTION
+Cyber-Physical Systems (CPS) are systems with a close integration
+of sensing, control, communication, computation and physical process.
+CPS usually consist of a group of networked agents, including sensors,
+actuators, control processing units, and communication devices [1]
+(see Fig. 1). CPS have a wide spectrum of applications in areas such
+as aerospace, smart grids, civil infrastructure, and transportation.
+The increasing connection of CPS to many safety-critical applications
+brings a high risk of cyber-attacks by adversaries around the
+globe. As the operation and communication of CPS are mainly through
+a shared network, such systems are quite vulnerable to cyber security
+threats. Any severe attack on large CPS, such as the power grids of
+the nation, may have significant impact on the environment, national
+economy, national security or may even lead to the loss of human life
+[2]. Therefore, designing CPS taking into account security issues is
+of fundamental importance to ensure the safe operation of CPS. Not
+surprisingly, security issue in CPS has been a hot research area in
+recent years.
+Cardenas et al. [3] studied two possible types of attacks on CPS: Denial
+of Service (DoS) attacks and deception attacks. These correspond
+to the traditional security goals availability and integrity, respectively.
+The DoS attack blocks the exchange of information including sensor
+measurement data or control inputs between each part of the CPS,
+while the integrity attack focuses on the integrity of the data by
+modifying the data packets. In the present note, we mainly focus on
+Manuscript received February 17, 2014; revised July 25, 2014, November 2,
+2014, and January 8, 2015; accepted February 9, 2015. Date of publication
+July 29, 2015; date of current version September 23, 2015. This work was
+supported by a Hong Kong RGC GRF funding 618612 and by NSFC under
+grant U1401253. Recommended by Associate Editor H. S. Chang.
+Y. Li and L. Shi are with the Electronic and Computer Engineering Department,
+Hong Kong University of Science and Technology, Clear Water Bay,
+Kowloon, Hong Kong (e-mail: yliah@ust.hk; eesling@ust.hk).
+P. Cheng and J. Chen are with the Institute of Industrial Process Control, Department
+of Control Science and Engineering, Zhejiang University, Hangzhou
+310027, China (e-mail: pcheng@iipc.zju.edu.cn; jmchen@iipc.zju.edu.cn).
+D. E. Quevedo is with the School of Electronic Engineering and Computer
+Science, The University of Newcastle, Callaghan, NSW 2308, Australia (e-mail:
+dquevedo@ieee.org).
+Digital Object Identifier 10.1109/TAC.2015.2461851
+Fig. 1. Architecture of Cyber-Physical Systems.
+DoS attacks as these are the most reachable attack patterns in a shared
+network.
+Though some fundamental frameworks have been proposed in the
+previous literature, such as [4]-[6], these works have focused only on
+one side, i.e., either the attacker or the defender. However, if attackers
+have knowledge of system parameters, then both parties (defender and
+attacker) may involve in an interactive decision making process. To
+study such a situation, one requires a more comprehensive description
+about CPS security. The game-theoretic approach provides such a
+framework to handle these interactive decision issues (see [7]-[10]).
+In [11] a zero-sum game on multiple-input multiple-output (MIMO)
+Gaussian Rayleigh-fading channels is studied where both the jammer
+and the encoder are subject to power constraints. Gupta et al. [12]
+considered a dynamic game between a controller for a discrete-time
+LTI plant and an attacker who can jam the communication between
+the controller and the plant; the equilibrium control and jamming
+strategies for both players are provided. Agah et al. in [13] formulated
+a cooperative game between sensor nodes in mobile wireless sensor
+networks and showed that through cooperation between two nodes the
+data communication between them can be made more reliable.
+The work [14] studies a setup wherein the communication channels
+for transmitting system state information from a sensor to a remote
+controller can be partly jammed. Multiple channels can be chosen to
+avoid the attack. In that work, the payoff function of the stochastic
+game is in a quadratic form consisting of a weighted sum of the norms
+of the system state and an action vector with discount factors. The
+above objective (also used in [12]), and the assumption of availability
+of noiseless sensor measurements, however, are only of limited use
+for remote estimation scenarios. A preliminary version of parts of the
+present manuscript ([15]) investigated a jamming game where the data
+packet from the sensor always arrives at the remote estimator successfully
+without attack, and drops under attack. In the current work, we
+consider a more practical communication model which embeds [15]
+as a special case. Furthermore, as the computation complexity issue
+for finding the optimal solution is significant in [15], we propose a
+constraint-relaxed problem formulation and provide a corresponding
+closed-form expression which significantly reduces the calculation.
+The main contributions of the present note can be summarized as
+follows:
+1) We develop an integrated game-theoretic framework to investigate
+the interactive decision-making process between a sensor
+0018-9286 © 2015 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+2832
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 10, OCTOBER 2015
+Fig. 2. CPS architecture studied: The communication channel is jammed by
+a malicious attacker. This affects the remote estimation performance.
+node and an attacker who can launch DoS attacks. Our approach
+uses a novel payoff function and strategies set, which take into
+account the energy constraints on both sides.
+2) We prove that the optimal strategies for both sides constitute a
+Nash equilibrium. For the case where the sensor and the attacker
+have on-line information about the previous transmission outcomes,
+we provide an algorithm (Algorithm 1) which performs
+the game dynamically.
+3) We use Markov chain theory to address computation issues and
+solve an alternative relaxed problem.
+The remainder of the note is organized as follows. Section II
+presents the system model and states the main problem of interest.
+Section III presents some game theory preliminaries and studies the
+optimal strategies for both sides. Section IV provides the dynamic
+updating algorithm. Section V proposes a constraint-relaxed problem
+formulation which reduces the computation complexity. Section VI
+draws conclusions.
+Notations: Z denotes the set of all integers and N the positive
+integers. R is the set of real numbers. Rn is the n-dimensional
+Euclidean space. Sn+ (and Sn++) is the set of n by n positive semidefinite
+matrices (and positive definite matrices). When X ∈ Sn+ (and
+Sn++), we write X 0 (and X > 0). X Y if X − Y ∈ Sn+. Tr(·)
+is the trace of a matrix. The superscript stands for transposition. For
+functions f, f1, f2 with appropriate domains, f1f2(x) stands for the
+function composition f1(f2(x)), and f n(x) =Δ f (f n−1(x)), where
+n ∈ N and with f 0(x) =Δ x. δij is discrete-time Dirac delta function,
+i.e., δij equals to 1 when i = j and 0 otherwise. The notation P[·] refers
+to probability and E[·] to expectation. T ! stands for the factorial of T .
+We write CTM for MT = T !/(M !(T − M )!).
+Consider a general discrete linear time-invariant (LTI) process of
+II. PROBLEM SETUP
+xk+1 = Axk + wk
+yk = Cxk + vk
+where k ∈ N, xk ∈ Rnx is the process state vector at time k, yk ∈
+Rny is the measurement taken by the sensor, wk ∈ Rnx and vk ∈ Rny
+are zero-mean i.i.d. Gaussian noises with E[wkwj ] = δkj Q (Q 0),
+E[vkvj ] = δkj R (R > 0), E[wkvj ] = 0 ∀j, k ∈ N. The pair (A, C)
+is assumed to be observable and (A, Q1/2) is controllable.
+A. Local State Estimation
+Our interest lies in security of remote state estimation, as depicted
+in Fig. 2. In CPS, sensors are often equipped with on-board processors
+[16]. Their capabilities can be used to improve system performance
+significantly. At each time k, the sensor first locally estimates the state
+xk based on all the measurements it collects up to time k and then
+transmits its local estimate to the remote estimator. Let xˆsk and Pks be
+defined as the sensor's local Minimum Mean-Squared Error (MMSE)
+estimate of the state xk and the corresponding error covariance. They
+are given by
+xˆsk = E[xk|y1, y2, . . . , yk]
+Pˆks = E (xk − xˆsk) (xk − xˆk) |y1, y2, . . . , yk
+s
+and can be calculated by a standard Kalman filter.
+For notational ease, we introduce the functions h, g˜ : Sn+ → Sn+ as
+h(X) =Δ AXA + Q
+g˜(X) =Δ X − XC [CXC + R]−1CX.
+It is well-known that under suitable conditions the estimation error
+covariance of the Kalman filter converges to a unique value from
+any initial condition, thus the local estimation error covariance P s
+k
+will converge to a steady-state. Without loss of generality (similar
+assumptions can be found in [15], [17]), we assume that the Kalman
+filter at the sensor side has entered the steady state and simplify our
+subsequent discussion by setting
+Pks = P ,
+k
+1
+where P is the steady-state error covariance given in [18], which is the
+unique positive semi-definite solution of g˜ ◦ h(X) = X.
+B. Communication Channel
+Typical DoS attacks can jam the communication between components
+in CPS and degrade the overall system performance [4]-[6]. In
+our current work, the attacker is assumed to be capable to conduct
+DoS attack on the server to jam the communication channel between
+the sensor and the remote estimator, which may worsen the system
+performance. (See Fig. 2).
+In practice, for both sensors and attackers, energy constraint is a
+natural concern, which affects the remote estimation performance and
+attacking policies. To encompass energy limitations, we will assume
+that, within a given time horizon T , the sensor can send the data packet
+at most M T times to the remote estimator, while the attacker can
+launch jamming attack at most N T times.
+The sensor's data-sending strategy is denoted as
+Δ
+θS = {γ1, γ2, . . . , γT }
+where γk = 1 means that the sensor sends a data packet at time k,
+otherwise γk = 0. Consequently, we have the following constraint:
+T
+k=1
+T
+k=1
+γk
+M.
+λk
+N.
+(1)
+(2)
+(3)
+(4)
+(5)
+(6)
+Similarly, the attacker's strategy is denoted as
+Δ
+θA = {λ1, λ2, . . . , λT }
+where λk = 1 means that the attacker launches a DoS attack at time k,
+otherwise λk = 0. The associated constraint is
+In practical communication systems, packet dropouts may occur due
+to different reasons, including signal degradation, channel fading and
+channel congestion. We assume the dropout probability of data packet
+from the sensor arrives at the remote estimator is β1 in the absence
+of attack, and is β2(> β1) under the DoS attack. As noted above the
+strategies of the sensor and the attacker at time k are assumed to be γk
+and λk, respectively. Thus, the conditional probability of the remote
+estimator receiving the data packet from the sensor, denoted as pk, is
+given by
+pk = γkλk(1 − β2) + γk(1 − λk)(1 − β1).
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 10, OCTOBER 2015
+2833
+Remark 2.1: In [15], we studied the case where the data packet
+from the sensor will always arrive at the remote estimator successfully
+without an attack and drops under an attack. This is embedded in our
+current model as a special case when β1 = 0 and β2 = 1, in which
+case, (6) reduces to pk = γk(1 − λk).
+C. Estimation Process
+State estimation with dropouts has been well studied in recent
+literature on networked estimation [19], [20]. To quantify estimation
+performance, we introduce xˆk and Pk which represent the remote
+estimator's MMSE state estimate (see Fig. 2) and the corresponding
+error covariance. The estimate xˆk is calculated following a procedure
+similar to that adopted in [17]: once the sensor's local estimate packet
+arrives, the estimator synchronizes its own estimate with the sensor's;
+otherwise, the estimator just predicts xk based on its previous optimal
+estimate
+As a result, the state estimation error covariance Pk obeys recursion
+xˆk =
+xˆsk, if xˆsk arrives
+Axˆk−1, otherwise.
+Pk =
+P , if xˆsk arrives
+h(Pk−1), otherwise.
+We assume that the remote estimator knows the system parameters
+A, C, Q, R. Thus based on (6) and (8), the expected state estimation
+error covariance can be easily written in a recursive way as
+E[Pk] = pkP + (1 − pk)h (E[Pk−1]) .
+D. Main Problem
+To quantify the estimation quality over a finite time-horizon T ∈ N,
+we introduce the cost function Jα(T ) as
+Jα(T ) =Δ α
+1
+T
+T
+k=1
+Tr (E[Pk]) + (1 − α)Tr (E[PT ])
+where α = 1 or 0, corresponding to the overall performance and
+terminal performance, respectively.
+The goal of the decision maker at the sensor's side is to minimize
+Jα(T ), while the attacker tries to maximize the cost. Since the
+objective of the sensor is the opposite to the one of the attacker, for
+convenience, we define the objective functions of the attacker and the
+sensor
+and
+JA(θA) =Δ Jα(T )
+Δ
+JS (θS ) = −JA(θA) = −Jα(T )
+where θA and θS are defined in (4) and (2). Thus, the goal of both sides
+is to maximize their respective objective functions.
+We are interested in finding the optimal strategies for each side,
+subject to the energy constraints (3) and (5). Since more energy is
+always beneficial for improving performance, it is not difficult to show
+that the optimal strategies for each side remain the same if (3) and
+(5) are changed to kT=1 γk = M and kT=1 λk = N , respectively
+(similar transformation can be found in [21]). Therefore, we consider
+the following optimization problem:
+Problem 2.2: For the sensor
+max
+θS
+s.t.
+T
+k=1
+JS (θS )
+γk = M
+(7)
+(8)
+(9)
+(10)
+(11)
+Δ
+where θS = {γ1, γ2, . . . , γT }. For the attacker
+max
+θA
+s.t.
+T
+k=1
+JA(θA)
+λk = N
+Δ
+where θA = {λ1, λ2, . . . , λT }.
+III. GAME-THEORETIC FRAMEWORK
+In this section, we will model the decision-making process of the
+sensor and the attacker in a game-theoretic framework. Based on the
+objective functions of both sides, i.e., (10) and (11), the sensor and
+the attacker are regarded as the two players of a zero-sum game. The
+details of this game are discussed below.
+A. Nash Equilibrium
+In our work, for the case with energy constraint for both sides,
+i.e., M < T and N < T , the tools provided in the existing literature
+which focus on only one side with energy constraint cannot be used.
+Since both sides have many different strategies and have to take
+the opponent's strategy into consideration, we shall investigate the
+problem from a game-theoretic point of view adopting the following
+definitions:
+• Player: Two players: the sensor and the attacker.
+• Action: θS and θA for the sensor and the attacker, respectively.
+• Payoff: JS (θS ) and JA(θA) for the sensor and the attacker,
+respectively.
+If in a game, each player has chosen a strategy and no player can
+benefit by changing his own strategy while the other players keep
+theirs unchanged, then the current strategy profile, i.e., the current set
+of strategy choices, constitutes a Nash equilibrium (defined in [22]).
+Nash defined a mixed strategy Nash Equilibrium for any game with a
+finite set of strategies and proved that at least one mixed strategy Nash
+Equilibrium must exist in such a game in [23].
+Theorem 3.1: For any game with a finite set of strategies, there
+exists at least one mixed strategy Nash Equilibrium in the game.
+Proof: Proved in [23].
+B. Existence of the Nash Equilibrium
+To analyze the situation where both the sensor and the attacker
+have limited energy, we first note that the number of all the pure
+strategies (i.e., deterministic strategies) for the sensor is K = CTM =
+MT . For future reference, those pure strategies are denoted as
+θpure(1), θSpure(2), . . . , θSpure(K). Though the number of pure strateS
+gies is finite, there are infinitely many mixed strategies for each side.
+Mixed strategies for the sensor can be written as: θmixed(π1, π2, . . . ,
+S
+θpure(k) with probability πk}, k = 1, 2, . . . , K, where
+πK ) = { S
+kK=1 πk = 1, πk ∈ [0, 1]. Note that different combinations of {πk}
+constitute different mixed strategies. For the attacker, we use a similar
+k = 1, 2, . .A. , L, where L = CTN = NTθp,ure(kLk=) 1wμikth=pr1o,bμabkil∈ity[0μ, k1}].,
+notation: θmixed(μ1, μ2, . . . , μL) = { A
+We now introduce the following result which together with
+Theorem 3.1 shows that a Nash equilibrium exists for the considered
+two-player zero-sum game between the sensor and the attacker.
+Proposition 3.2: The optimal strategies for the sensor and the
+attacker constitute a Nash equilibrium of this two player's game.
+Proof: The optimal strategies for each side are denoted as θS and
+θA, respectively. Given the optimal strategy θA chosen by the attacker,
+the optimal strategy θS for the sensor is the one that maximizes JS (θ),
+i.e., JS (θS |given θA) JS (θS |given θA), ∀θS .
+2834
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 10, OCTOBER 2015
+For the attacker, we have a similar conclusion. Since the objective
+functions JS (θ) and JA(θ) can be regarded as each side's payoff
+function, respectively, from the definition in [22], θS and θA constitute
+a Nash equilibrium.
+Remark 3.3: Note that θS and θA are mixed strategies, which are
+only an assignment of probability to each pure strategy, thus although
+there is common knowledge of θS and θA, both sides still do not know
+the exact following action taken by their opponent. This is indeed the
+reason why both sides can reach the Nash equilibrium.
+C. Finding the Nash Equilibrium
+We devote this subsection to finding the Nash equilibrium of the
+game. From Theorem 3.1, there exists at least one Nash equilibrium.
+θA =Δ {μ1, μ2, . . . , μL} is assumed to be an equilibrium mixed strategy
+of the attacker.
+Given θA, we can easily calculate the objective function
+Δ
+JS (θSpure(k)) = Mk for each θpure(k) based on the recursion introS
+duced in (8) and (9). Thus we can write the objective function of the
+mixed strategy θSmixed of the sensor as
+JS θmixed
+S
+=
+K
+k=1
+πkMk,
+K
+k=1
+πk = 1.
+Based on the definition of Nash equilibrium, given θA, the equilibrium
+strategy of the sensor θS = {π1 , π2 , . . . , πK } is the one that
+maximizes JS (θSmixed) under the constraint kK=1 πk = 1. Thus θS
+can be calculated easily using the Lagrange multipliers method [24].
+This gives θS = {π1 , π2 , . . . , πK }, where πk is a function of θA, i.e.,
+μ1, μ2, . . . , μL. Then, for the attacker, we can run the same procedure
+and solve for θA = {μ1, μ2, . . . , μL}, where μk is a function of θS ,
+i.e., π1 , π2 , . . . , πK . By combining the two solutions to obtain both
+μk and πk, one can then derive the optimal solutions for both sides.
+IV. DYNAMIC UPDATE BASED ON ONLINE INFORMATION
+In the game investigated in the previous section, though randomly
+chosen, the decisions of both sides are made before time k = 0
+and thus can be regarded as an off-line schedule. In some practical
+situations, both sides may be able to monitor the status of the network
+environment. For example, after the attacker launches a jamming
+attack, the network server may be able to record the abnormality and
+inform the sensor about the attack [25]. The attacker can also detect
+whether the data packet is sent or not based on the network status.
+Thus, though each side is not sure what strategy will be taken by their
+opponent in the future, they can still detect (in a causal manner) the
+opponent's action and therefore narrow the scope of their opponent's
+action sets. In the present section we will study such scenarios.
+As both sides can detect their opponent's past actions, at each time
+step after each observation, a new game with new constraints will arise.
+Let θS (T , M, N, Φ0) and θA(T , M, N, Φ0) denote the optimal mixed
+strategies for the sensor and the attacker, respectively, in the game with
+parameters T , M, N, Φ0, where T is the time-horizon, M, N are the
+energy constraints, and Φ0 = P is the expected initial state estimate
+error covariance. θS (T , M, N, Φ0) and θA(T , M, N, Φ0) provide the
+action sequences for the whole time-horizon, but both sides only
+employ the actions for the first time step of the new game. After
+both sides move to the next step, the information, e.g., transmission
+outcomes, time-horizon and energy constraints, is updated, and thus a
+new game with new constraints will arise.
+To update the whole decision-making process, a recursive algorithm
+(Algorithm 1) can be used. Following this algorithm, both sides
+are involved in a series of games with varying time horizon, energy
+constraints and initial states.
+Algorithm 1 Updating algorithm for both sides
+1: Process begins;
+2: Φ0 = P ;
+3: for k = 1 : T do
+4: Solve for θS (T , M, N, Φ0) and θA(T , M, N, Φ0);
+5: Employ the actions of θS (T , M, N, Φ0) and θA(T , M, N,
+Φ0) designed for the first time step for the new game as the
+action of the current time step k;
+6: Observe the actions taken by both sides at time k;
+7: if γk = 1 then
+8: M = M − 1;
+9: else
+10: M = M ;
+11: end if
+12: if λk = 1 then
+13: N = N − 1;
+14: else
+15: N = N ;
+16: end if
+17: T = T − 1;
+18: Φ0 = E[Pk];
+19: end for
+Example 4.1: Consider a time-horizon T = 3 and the constraint
+for the sensor M = 1. After time k = 1, the attacker is assumed
+to observe that the sensor sent the data packet (γ1 = 1). Since the
+mixed strategy for the sensor is chosen from {1, 0, 0}, {0, 1, 0}, and
+{0, 0, 1}, the attacker can deduce that the sensor's sending scheme
+is {1,0,0}. Then the attacker can make adjustments to his strategy
+and thus distribute the remaining energy more efficiently. A similar
+mechanism also applies to the sensor.
+V. RELAXATION: AVERAGE ENERGY CONSTRAINTS
+In this section, we will modify the constraints in Problem 2.2
+and study an alternative problem formulation which can reduce the
+computational complexity significantly.
+A. Constraint-Relaxed Problem Formulation
+When using total energy constraints as considered in Problem 2.2,
+during the calculation of the optimal mixed strategy for each side,
+typically we need to consider CTN × CTM different combinations of the
+pure strategies from both sides to obtain closed-form expressions of
+the objective functions. Thus the order of computational complexity is
+O((T !)2), where T is the time-horizon. Thus, complexity issues must
+be taken into account when dealing with the general case in practice.
+In the sequel, we will consider expected (average) energy constraints.
+Thus, the constraints in Problem 2.2 are relaxed to
+and
+k=1
+T
+T
+k=1
+E[γk] = M
+E[λk] = N.
+Remark 5.1: This type of constraint relaxation is attractive in some
+practical applications, where instead of only one time game, the
+estimation-jamming process will repeat many times under a total energy
+constraint. In view of a long time-horizon, the expected (average)
+If the sensor data packet arrives at the remote estimator, we have
+Pk = P . Based on (13), this gives
+Tk(i1, 1) = P[z1,k|zi1,k−1]
+= P[Pk = P |zi1,k−1]
+= p˜k,
+∀ 1
+i1
+T + 1
+where p˜k is defined in (12). On the other hand, if the packet is dropped
+(even if the channel is not attacked), then Pk = h(Pk−1), and we have
+Tk(i1, i1 + 1) = P[zi1+1,k|zi1,k−1]
+= P [Pk = h(Pk−1)|zi1,k−1]
+= q˜k,
+∀ 1
+i1
+T
+where q˜k = 1 − p˜k is the corresponding packet jamming probability.
+Other entries of Tk are 0, since the corresponding state transitions
+are not possible. This gives
+⎡ p˜k
+p˜k
+Tk = ⎢ .
+⎢ .
+⎣ .
+p˜k
+T +1
+i=1
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 10, OCTOBER 2015
+2835
+Thus, the process is described by T transition matrices
+{Tk}k=1,2,...,T and each element can be easily computed as follows.
+The above result significantly alleviates the computation issues.
+Once we have the probability matrix Π, we can easily obtain the
+Fig. 3. Markov chain model of the estimation error covariance.
+energy constraint on each short period is equivalent to the total energy
+constraint, thus is more flexible and practical.
+Under the relaxed constraints, the pure strategies combinations are
+reduced from CTM × CTN to 2T × 2T , and the order of computation
+complexity is changed from O((T !)2) to O(4T ). When considering
+the optimal mixed strategy, all the 2T possible pure strategies are now
+feasible. Thus we can simplify the computation complexity even more
+and can express the mixed strategy of both sides in a more explicit way.
+The sensor's data-sending mixed strategy now can be defined as
+θ˜mixed =Δ {γ˜1, γ˜2, . . . , γ˜T }
+S
+where γ˜k ∈ [0, 1] is defined as the probability of the sensor sending
+data packet at time k
+Similarly, the attacker's strategy can be expressed as
+γ˜k = P[γk = 1].
+θ˜mixed =Δ {λ˜1, λ˜2, . . . , λ˜T }.
+A
+Then at each time instant k, similar to (6), the probability of
+the sensor data packet arriving successfully at the remote estimator,
+denoted as p˜k, can be written as
+p˜k = γ˜kλ˜k(1 − β2) + γ˜k(1 − λ˜k)(1 − β1).
+Therefore, the constraints of the new problem become
+M and kT=1 λ˜k = N .
+Interestingly, with average energy constraints, a closed-form expression
+for the objective functions JS (θ˜Smixed) and JA(θ˜Amixed) can be
+derived, by studying an underlying Markov chain, as discussed next.
+T
+k=1 γ˜k =
+B. Markov Chain Model
+Based on the updating procedure of the error covariance Pk in (8)
+and the steady state assumption (1), it is easy to see that at any time
+instant k2 k1, the error covariance at the remote estimator side can
+be written via iterated map as Pk2 = hk2−k1 (P ), where k1 is the latest
+time when the sensor data packet arrives successfully.
+Definition 5.2: During the time-horizon T , if at time k, the state
+error covariance at the remote estimator Pk = hi−1(P ), for some i =
+1, 2, . . . , T + 1, then the state of the remote estimator is denoted as
+Sk =Δ zi,k.
+The state sets for time k is defined as
+Zk = {Sk|Sk = zi,k,
+1
+i
+T + 1},
+k = 1, 2, . . . , T .
+For convenience, as we already assumed that the remote estimator's
+error covariance is P before the process starts, i.e., P0 = P , Z0 =
+{z1,0} is the initialization state set before the process begins.
+Due to the updating equation in (7), at any time k + 1, the state
+Sk+1 is only related to the previous state Sk. Thus the stochastic
+process {Sk}, k = 1, 2, . . . , T , constitutes a Markov chain [26] (see
+Fig. 3). If Tk denotes the transition matrix from state set Zk−1 to Zk,
+then each entry of Tk can be expressed as
+Tk(i1, i2) = P[zi2,k|zi1,k−1].
+(13)
+πi,k = 1,
+k = 1, 2, . . . , T .
+As we assumed P0 = P , at time k = 1, it follows that:
+π1,1 = P[P1 = P ] = p˜1
+π2,1 = P P1 = h(P ) = P [P1 = h(P0)] = q˜1
+and
+πi,1 = 0;
+∀i = 3, 4, . . . , T + 1.
+To calculate an explicit form of Π, we first recall the definition of
+the transition matrix Tk in (13), from which the following relationship
+between Tk and Π can be established:
+Π[k]T = Π[k − 1]TTk
+where Π[k], k = 1, . . . , T is the k-th column of Π.
+As we have already shown that Π[1] = [p˜1, q˜1, 0, 0, . . . , 0]T , following
+the recursion in (15), through some basic calculations, we can
+obtain the exact form of Π as a T + 1 by T matrix:
+⎡ p˜1
+q˜1
+⎢⎢ 0
+Π = ⎢⎢ 0
+⎢ .
+⎢ .
+⎣ .
+0
+p˜2
+p˜1q˜2
+q˜1q˜2
+0
+.
+.
+.
+0
+p˜3
+p˜2q˜3
+p˜1q˜2q˜3
+q˜1q˜2q˜3
+.
+.
+.
+0
+· · ·
+· · ·
+· · ·
+· · ·
+. . .
+0
+p˜T ⎤
+p˜T −1q˜T
+⎥
+p˜T −2q˜T −1q˜T ⎥
+p˜T −3q˜T −2q˜T −1q˜T ⎥⎥ .
+... ⎥⎦⎥
+q˜1q˜2q˜3 . . . q˜T
+(15)
+(16)
+where the missing entries are 0.
+We define πi,k as the probability of state zi,k occurring at time k
+(12)
+then we can construct the probability matrix Π = [πi,k](T +1)×T .
+From the definition of πi,k, it is straightforward to show
+q˜k
+q˜k
+⎤
+. . .
+⎥
+⎥
+⎦
+q˜k (T +1)×(T +1)
+πi,k = P[Sk = zi,k]
+(14)
+2836
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 10, OCTOBER 2015
+closed-form expected error covariance for each time slot. In fact from
+(14), the definition of πi,k, we have
+T +1
+i=1
+E[Pk] =
+πi,khi−1(P ).
+Consequently, we can readily write JS (θ˜Smixed) and JA(θ˜Amixed) in
+a closed-form. Thus, following a similar procedure as in Section III-C,
+by using Lagrange multipliers, one can obtain the optimal solutions θ˜S
+and θ˜A.
+C. Comparison and Analysis
+We will compare the constraint-relaxed problem formulation in
+Section V with the original one (Problem 2.2) using some examples.
+Under the original energy constraints in Problem 2.2, when T
+increases, as the combinations number is CTM × CTN to 2T × 2T
+with computation complexity O((T !)2), the calculation will become
+impractical. For example, when T = 10 and M = N = 5, one needs
+to consider C150 × C150 = 252 × 252 = 63504 different combinations
+of the pure strategies from both sides to obtain the closed-form expression
+of the objective functions. Under the constraint-relaxed problem
+formulation, however, computation complexity can be significantly
+reduced. This is due to the fact that the probability matrix can be
+obtained in a quite systematic way as shown in (16).
+Now we use a simple example to illustrate the constraint-relaxed
+problem formulation where T = 2, M = 1, N = 1, α = 1. The system
+parameters A, C, Q, R and the steady-state error covariance P ,
+are all scalars. Then one has the optimal solution
+γ˜1 = γ˜2 = 12
+λ˜1 = λ˜2 = 12
+i.e., the optimal strategy for the sensor under the relaxed constraints,
+is to send data packet with probability 0.5 at both time slots. One can
+interpret it as a mixed strategy which randomly chooses the pure strategies
+{0, 0}, {0, 1}, {1, 0}, {1, 1}, with the same probability 0.25. As a
+comparison, the optimal mixed strategies for the original Problem 2.2
+are to randomly choose the pure strategies {0, 1} and {1, 0}, each with
+probability 0.5.
+When T > 2, the optimal strategy depends on the system parameters.
+For example, a process with parameters A = 1.2, C = 0.7,
+Q = R = 0.8, β1 = 0, β2 = 1, T = 2, M = N = 1 is considered.
+The optimal solution turns out to be μ1 = 0.2748, μ2 = 0.4504, μ3 =
+0.2748 and π1 = 0.3626, π2 = 0.2748, π3 = 0.3626.
+VI. CONCLUSION
+We have studied a CPS scenario where a malicious agent carries out
+jamming attacks on the communication channel between a sensor and
+a remote estimator. We first considered a situation where the sensor
+and the attacker fix their strategies a priori. For the case where the
+sensor and the attacker have on-line information about the previous
+transmission outcomes and the occurrence of attacks, we provided an
+algorithm which performs the game dynamically. We also introduced
+an alternative problem formulation which considers average energy
+constraints. By using a Markov chain model, we obtained a closedform
+expression for the objective function. The associated optimization
+problem requires significantly less computation.
+Possible extensions include studying the multi-sensor case with
+interferences between each sensor and attack from the attacker, and
+other types of attack including deception attack, which focuses on the
+integrity of the data by modifying the data packets.
+ACKNOWLEDGMENT
+The authors would like to thank the associate editor and the anonymous
+reviewers for their comments and suggestions which have helped
+to improve the presentation of the paper.
+REFERENCES
+[1] Y. Mo and B. Sinopoli, “Integrity attacks on cyber-physical systems,” in
+Proc. 1st Int. Conf. High Confidence Networked Syst., 2012, pp. 47-54.
+[2] Y. Mo, T. Kim, K. Brancik, D. Dickinson, H. Lee, A. Perrig, and
+B. Sinopoli, “Cyber-physical security of a smart grid infrastructure,” Proc.
+IEEE, vol. 100, no. 1, pp. 195-209, 2012.
+[3] A. Cardenas, S. Amin, and S. Sastry, “Secure control: Towards survivable
+cyber-physical systems,” in Proc. 28th Int. Conf. Distrib. Comp. Syst.
+Workshops, 2008, pp. 495-500.
+[4] S. Amin, A. Cardenas, and S. Sastry, “Safe and secure networked
+control systems under denial-of-service attacks,” Hybrid Syst.: Computat.
+Control, pp. 31-45, 2009.
+[5] M. Zuba, Z. Shi, Z. Peng, and J. Cui, “Launching denial-of-service
+jamming attacks in underwater sensor networks,” in Proc. 6th ACM Int.
+Workshop Underwater Netw., 2011, p. 12.
+[6] G. Carl, G. Kesidis, R. Brooks, and S. Rai, “Denial-of-service attackdetection
+techniques,” IEEE Internet Comput., vol. 10, no. 1, pp. 82-89,
+2006.
+[7] T. Alpcan and T. Bas¸ar, Network Security: A Decision and GameTheoretic
+Approach. Cambridge, U.K.: Cambridge Univ. Press, 2010.
+[8] T. Bas¸ar and G. J. Olsder, Dynamic Noncooperative Game Theory,
+vol. 200. Philadelphia, PA, USA: SIAM, 1995.
+[9] S. Bhattacharya and T. Bas¸ar, “Game-theoretic analysis of an aerial jamming
+attack on a uav communication network,” in Proc. IEEE Amer.
+Control Conf. (ACC'10), 2010, pp. 818-823.
+[10] S. Roy, C. Ellis, S. Shiva, D. Dasgupta, V. Shandilya, and Q. Wu, “A
+survey of game theory as applied to network security,” in Proc. IEEE 43rd
+Hawaii Int. Conf. Syst. Sci. (HICSS), 2010, pp. 1-10.
+[11] A. Kashyap, T. Bas¸ar, and R. Srikant, “Correlated jamming on MIMO
+gaussian fading channels,” IEEE Trans. Inform. Theory, vol. 50, no. 9,
+pp. 2119-2123, 2004.
+[12] A. Gupta, C. Langbort, and T. Bas¸ar, “Optimal control in the presence
+of an intelligent jammer with limited actions,” in Proc. 49th IEEE Conf.
+Decision Control (CDC), 2010, pp. 1096-1101.
+[13] A. Agah, S. Das, and K. Basu, “A game theory based approach for security
+in wireless sensor networks,” in Proc. IEEE Int. Conf. Perform., Comp.,
+Commun., 2004, pp. 259-263.
+[14] H. Li, L. Lai, and R. C. Qiu, “A denial-of-service jamming game for
+remote state monitoring in smart grid,” in Proc. IEEE 45th Annu. Conf.
+Inform. Sci. Syst. (CISS), 2011, pp. 1-6.
+[15] Y. Li, L. Shi, P. Cheng, J. Chen, and D. E. Quevedo, “Jamming attack on
+cyber-physical systems: A game-theoretic approach,” in Proc. IEEE 3rd
+Annu. Int. Conf. Cyber Technol. Autom. Control Intell. Syst. (CYBER),
+2013, pp. 252-257.
+[16] P. Hovareshti, V. Gupta, and J. Baras, “Sensor scheduling using smart
+sensors,” in Proc. 46th IEEE Conf. Decision Control, 2007, pp. 494-499.
+[17] L. Shi, M. Epstein, and R. Murray, “Kalman filtering over a packetdropping
+network: A probabilistic perspective,” IEEE Trans. Autom.
+Control, vol. 55, no. 3, pp. 594-604, Mar. 2010.
+[18] B. Anderson and J. Moore, Optimal Filtering. Englewood Cliffs, NJ,
+USA: Prentice Hall, 1990.
+[19] L. Shi and L. Xie, “Optimal sensor power scheduling for state estimation
+of Gauss-Markov systems over a packet-dropping network,” IEEE Trans.
+Signal Process., vol. 60, no. 5, pp. 2701-2705, 2012.
+[20] B. Sinopoli, L. Schenato, M. Franceschetti, K. Poolla, M. Jordan, and
+S. Sastry, “Kalman filtering with intermittent observations,” IEEE Trans.
+Autom. Control, vol. 49, no. 9, pp. 1453-1464, 2004.
+[21] L. Shi, P. Cheng, and J. Chen, “Sensor data scheduling for optimal state
+estimation with communication energy constraint,” Automatica, vol. 47,
+no. 8, pp. 1693-1698, 2011.
+[22] R. Gibbons, A Primer in Game Theory. Hemel Hempstead, U.K.:
+Harvester Wheatsheaf, 1992.
+[23] J. Nash, “Non-cooperative games,” Annals Math., vol. 54, no. 2, pp. 286295,
+1951.
+[24] M. Hazewinkel, Encyclopaedia of Mathematics: Supplement, vol. 3.
+New York, NY, USA: Springer-Verlag, 2002.
+[25] L. Heberlein, G. Dias, K. Levitt, B. Mukherjee, J. Wood, and D. Wolber,
+“A network security monitor,” in Proc. IEEE Comp. Soc. Symp. Res.
+Security Privacy, 1990, pp. 296-304.
+[26] P. Brémaud, Markov Chains. New York, NY, USA: Springer-Verlag,
+1999.

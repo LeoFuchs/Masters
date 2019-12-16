@@ -1,0 +1,900 @@
+2015 IEEE 54th Annual Conference on Decision and Control (CDC)
+December 15-18, 2015. Osaka, Japan
+Detecting Integrity Attacks on Control Systems using a Moving Target
+Approach
+Sean Weerakkody
+Bruno Sinopoli
+Abstract- Maintaining the security of control systems in
+the presence of integrity attacks is a significant challenge.
+In literature, several possible attacks against control systems
+have been formulated including replay, false data injection, and
+zero dynamics attacks. The detection and prevention of these
+attacks require the defender to possess a particular subset of
+trusted communication channels. Alternatively, these attacks
+can be prevented by keeping the system model secret from
+the adversary. In this paper, we consider an adversary who
+has the ability to modify and read all sensor and actuator
+channels. To thwart this adversary, we introduce external states
+dependent on the state of the control system, with linear timevarying
+dynamics unknown to the adversary. We also include
+sensors to measure these states. The presence of unknown timevarying
+dynamics is leveraged to detect an adversary who
+simultaneously aims to identify the system and inject stealthy
+outputs. Potential attack strategies and bounds on the attacker's
+performance are provided.
+I. INTRODUCTION
+Cyber-Physical Systems (CPSs), referring to the tight
+interconnection of sensing, communication, and control in
+physical spaces, are becoming widespread in today's society.
+Indeed, these systems will serve a significant role in
+several applications including transportation, water distribution,
+medical technologies, manufacturing, and of course
+the smart grid. Due to the proliferation of CPSs in critical
+infrastructures, their safety and security are of paramount
+importance. There have already been several powerful attacks
+against CPSs. One major example is Stuxnet, which
+targeted Supervisory Control and Data Acquisition Systems
+(SCADA) at uranium enrichment facilities in Iran [1], [2].
+Here, the adversary was able to appropriate controllers running
+centrifuges at the plant, and avoid detection by replaying
+previous measurements to the system operator. An additional
+example is the Maroochy Shire incident where a disgruntled
+employee performed an attack on a SCADA based sewage
+control system [3].
+Previous work [4] has suggested that existing tools in
+cyber security are insufficient to address attacks on CPSs
+due to the underlying physical system. Two main classes of
+attacks defined by [4] are denial of service attacks where an
+S. Weerakkody and B. Sinopoli are with the Department of Electrical
+and Computer Engineering, Carnegie Mellon University, Pittsburgh,
+PA, USA 15213. Email: sweerakk@andrew.cmu.edu,
+brunos@ece.cmu.edu
+S. Weerakkody is supported in part by the Department of Defense (DoD)
+through the National Defense Science & Engineering Graduate Fellowship
+(NDSEG) Program. The work by S. Weerakkody, and B. Sinopoli
+is supported by NSF grant CNS-1329936 CPS: Synergy: Collaborative
+Research: Event-Based Information Acquisition, Learning, and Control in
+High-Dimensional Cyber-Physical Systems
+978-1-4799-7886-1/15/$31.00 ©2015 IEEE
+5820
+attacker restricts the flow of information between the plant
+and control center and integrity attacks where an adversary
+can alter control inputs and sensor outputs. An intelligent
+adversary can potentially cause physical damage to a system
+while manipulating sensor measurements to avoid detection.
+As such, integrity attacks are the main focus of this paper.
+Several integrity attacks have been investigated in the
+literature. For instance, [5], [6] analyze zero dynamic attacks
+where an adversary injects inputs into both the actuators
+and sensors so as to bias the state without inserting a net
+bias on the sensor measurements. False data injection attacks
+on measurements, where an adversary alters a subset of
+sensor measurements to induce destabilizing control inputs
+from the defender have also been studied. Liu et. al. [7]
+first studied false data injection attacks in the context of
+electricity grids. Furthermore, in [8], the authors consider
+false data injection in control systems, providing sufficient
+and necessary conditions for an attacker to destabilize a
+system while introducing a bounded error on the outputs.
+Finally, replay attacks where an adversary repeats a sequence
+of past measurements are analyzed in [9], [10].
+The detection and prevention of integrity attacks on control
+systems against adversaries who are aware of the system
+model rely on the presence of one or more secure communication
+channels between the system operator and the plant.
+For instance, [6] provides sufficient and necessary conditions
+for zero dynamic attacks based on the actuators and sensors
+in possession of the adversary. If the adversary has access
+to all sensors and actuators a trivial zero dynamics attack
+is to subtract ones influence from the true measurements.
+To prevent false data injection attacks in control systems, a
+particular subset of measurements must be secure from the
+adversary [8]. Moreover, [11] proposes assigning security
+indices to each sensor to quantify the effort required for an
+adversary to introduce a successful false data injection attack.
+Physical watermarking, used to detect replay attacks in [9],
+[10] and robust attacks defined in [12] rely on the ability to
+inject secret noisy inputs into the control system. [13] which
+considers the problem of robust estimation and control in
+the presence of integrity attacks, relies on the assumption
+that the attacker is only able to manipulate less than half the
+sensors.
+In this paper, we consider the scenario where an adversary
+has access to all communication channels. Thus, to prevent
+an attack, an adversary must not be aware of the full
+system model. [14] considers the problem of altering system
+matrices to avoid zero dynamic attacks. However, in practice
+an adversary can use his access to both inputs and outputs
+to identify the system. Moreover, a malicious insider such
+as the attacker in the Maroochy Shire incident is likely to
+be aware of the system model. Consequently, we propose
+introducing extraneous states correlated to the ordinary states
+of the system so that modification of the original states will
+impact the extraneous states. The extraneous states will have
+linear time-varying dynamics known to the system operator
+and hidden from the adversary. The dynamics act as a moving
+target, changing fast enough so the adversary does not have
+adequate opportunity to identify the extraneous system. In
+this scenario, we propose attacks for the adversary and obtain
+detection bounds.
+The rest of the paper is organized as follows. In Section
+II, we introduce our system model and control strategy.
+In Section III, we propose the moving target approach to
+detect integrity attacks on control systems. In Section IV, we
+summarize the attacker's capabilities and propose two attack
+models. In Section V, we analyze bounds on the attacker's
+performance. Section VI concludes the paper.
+II. SYSTEM MODEL
+In this section, we introduce the model for our system.
+In particular, we assume our cyber-physical system can be
+modeled as a discrete time control system where
+xk+1 = Axk + Buk + wk;
+yk = Cxk + vk:
+Here xk 2 Rn is the state vector at time k and uk 2 Rp
+is a collection of control inputs. A suite of sensors are used
+to monitor the state. Here yk 2 Rm is a vector of sensor
+measurements taken at time k. wk is the independent and
+identically distributed (IID) process noise with probability
+distribution given by N (0; Q) where Q 0. Meanwhile,
+vk is the IID measurement noise with distribution given by
+vk N (0; R) where R 0. We assume1 that (A; C) is
+detectable. Additionally, (A; B) and (A; Q 2 ) are assumed
+to be stabilizable.
+The set of measurements yk are sent to the SCADA
+center in order to compute the optimal control input. For our
+purposes, we assume that the operator wishes to minimize a
+quadratic function of the states and inputs as follows
+J = lim
+T !1 T + 1
+E
+1
+" T #
+X xkT W xk + ukT U uk ;
+k=0
+where W 2 Rn n; U 2 Rp p are positive definite matrices
+defining the relative cost of each state and input. The optimal
+control input for the given cost function is a combination of
+a Kalman filter and a linear state feedback controller [15].
+The Kalman filter computes the minimum mean squared
+error state estimate x^rkjk 1 given the previous set of measurements
+up to yk denoted by y1:k. We assume that the system
+has been running for a long time so that the Kalman filter
+1The superscript r is used to distinguish the ordinary state estimate from
+the state estimate obtained through the moving target model.
+(4)
+(5)
+(6)
+(8)
+(12)
+(13)
+(14)
+(15)
+has converged to a fixed gain linear estimator.
+x^k+1jk = Ax^rkjk + Buk;
+r
+x^rkjk = (I KC)x^rkjk 1 + Kyk;
+K = P CT (CP CT + R) 1;
+P = AP AT + Q
+AP CT (CP CT + R) 1CP AT : (7)
+The optimal control input with respect to (3) is given by
+uk = Lx^rkjk; L =
+and S satisfies the following Riccati equation
+(BT SB + U ) 1BT SA;
+S = AT SA + W
+AT SB(BT SB + U ) 1BT SA: (9)
+A bad data detector can be utilized to determine whether a
+malicious attack is occurring. Typically the bad data detector
+can be written as a threshold-based detector where
+gk(Ik) H?1 k: (10)
+H0
+Here, Ik is the information available to the defender. The
+null hypothesis H0 is that the system is operating normally
+while the alternate hypothesis H1 is that the system is under
+attack. A more specific detector will be discussed later in the
+article. We furthermore define the probability of detection k
+and false alarm as
+k = Pr (gk (Ik) > kjH1) ; = Pr (gk (Ik) < kjH1) :
+(11)
+Observe that is independent of k since the system is
+stationary. Regardless of the information available to a system
+operator, an attacker with knowledge of the input to
+output model, as well as the ability to manipulate sensor
+measurements and control inputs can generate undetectable
+attacks. [16].
+For instance, an adversary can simply subtract the influence
+he inserts through the control inputs from the system
+outputs as follows
+xk+1 = Axk + B(uk + uka) + wk;
+yk = Cxk + vk ska;
+where ska is given by
+xk+1 = Axka + Buka;
+a
+ska = Cxka:
+(1)
+(2)
+(3)
+5821
+In this case, the attack has zero net effect on the outputs and
+as a result k = .
+III. THE MOVING TARGET
+As discussed in the previous section, an adversary who
+is both aware of the system model and has access to all
+channels can generate undetectable attacks. In this work, we
+propose introducing linear time-varying dynamics, unknown
+to the adversary, but known to the defender, into the system.
+The defender can leverage his knowledge of the system
+to detect integrity attacks by the adversary. Moreover, by
+introducing time-varying dynamics, the defender limits the
+adversary's ability to identify the system using his access to
+measurements and inputs. The time-varying dynamics act as
+a moving target.
+A. Extended Model
+We extend the state xk to include extraneous states x~k 2
+Rn~ as follows
+where
+x~k+1
+xk+1
+x~k
+= Ak xk
++ Bkuk +
+Ak ,
+A1;k
+0
+A2;k ;
+A
+Bk ,
+w~k ;
+wk
+Bk :
+B
+(16)
+(17)
+(18)
+Moreover, we introduce additional sensors y~k 2 Rm~ to
+measure the extraneous states.
+y~k
+yk
+= Ck xx~kk + vv~kk ; Ck ,
+Ck
+0
+C0 :
+The matrices are assumed to be IID random variables which
+are independent of the sensor and process noise with distribution
+A1;k; A2;k; Bk; Ck+1
+Furthermore, we also assume that
+fA1;k;A2;k;Bk;Ck+1 (A1; A2; B; C):
+(19)
+w~k
+wk
+~
+Q
+Q~1T2
+v~k
+vk
+N (0; Q) ;
+N (0; R) ;
+(20)
+where
+Q =
+Q~12
+Q
+0;
+R =
+~
+R
+R~1T2
+R~12
+R
+0:
+(21)
+Remark 1: While we assume the structure of the system
+introduced above with IID matrices A1;k; A2;k; Bk; Ck+1,
+the moving target design can still be effective in other
+scenarios. For instance, the dynamics need not be linear
+as long as the defender can accurately model the system.
+Moreover, the system parameters do not have to evolve at
+each time step though the longer the target remains in place,
+the easier it is for the adversary to identify the system.
+In addition, the matrices A1;k, A2;k; or Bk may be zero
+matrices. However, at least one of A2;k; or Bk must be
+nonzero to ensure x~k is not decoupled from xk.
+Remark 2: The defender must be able to introduce extraneous
+states with time-varying dynamics correlated to
+the original state of the system. The extraneous states are
+application dependent and are to be decided by the system
+operator. Nonetheless, the system operator can leverage
+existing waste products of the system, for instance the heat
+dissipated by a reaction or process. The dynamics can be
+made time-varying by changing conditions at the plant.
+Alternatively, the defender can introduce dynamics into the
+system. For instance, the defender can introduce RLC circuits
+which measure the states. Time varying dynamics can be
+incorporated by including variable resistors or capacitors. By
+varying the components of the circuit according to some IID
+distribution at each time step, the defender can generate IID
+system matrices.
+Remark 3: In the above formulation we assume that the
+defender is aware of the real time system matrices although
+they are random. In general, this information should not
+be sent over the network since doing so amounts to the
+existence of a secure communication channel. The secure
+communication channel could be leveraged to detect an
+attack without considering a moving target approach, for
+instance through physical watermarking [12]. Alternatively,
+we can generate pseudo random system matrices using a seed
+for a random number generator. In this case, the seed will
+act as the secret for the system.
+B. Estimation and Detection
+The presence of additional sensors allows us to improve
+our estimate of the state. In particular, we can incorporate
+an additional Kalman filter to estimate the state as follows.
+x~^k+1jk
+x^k+1jk
+= Ak (I
++ BkLx^rkjk;
+KkCk)
+Kk = PkCk CkPkCkT + R
+T
+Pk+1 = Ak (Pk
+KkCkPk) AkT + Q:
+x~^kjk 1
+x^kjk 1
+1
+;
+y~k
++ Kk yk
+(22)
+(23)
+(24)
+Observe that we use the state estimate x^rkjk to compute the
+input uk as opposed to an estimate derived from (22). While
+this increases the cost J of control since an optimal state
+estimate is not used for state feedback, this prevents the
+attacker from using information from the input to learn about
+the system model. In fact, we have the following result.
+Theorem 1: The input uk = Lx^rkjk is independent from
+the system matrices A1;k 1; A2;k 1; Bk; Ck for all k.
+Proof: The input uk is given by
+l(x^r0j0; x0; P; A; B; C; Q; R; w0 : : : wk 1; v1 : : : vk); (25)
+where l is some deterministic function of variables which by
+assumption are independent from A1;k 1; A2;k 1; Bk; Ck for
+all k. As a result,
+fuk (ukjA1;0:k 1; A2;0:k 1; B0:k 1; C1:k) = fuk (uk); (26)
+and the result holds.
+We assume that a residue based detector is incorporated
+where the residue zk is given by
+zk ,
+y~k
+yk
+x~^kjk 1
+Ck x^kjk 1
+N 0; CkPkCkT + R : (27)
+We can leverage knowledge of the distribution of zk under
+normal operation to design a detector. In particular we
+consider 2 detector where gk in (10) is given by
+gk(zk) = zkT (Pk) 1zk;
+(28)
+where Pk = CkPkCk + R. Under normal operation gk has
+a 2 distribution. In general, the window for the detector
+can be extended to consider past measurements. In Figure 1,
+we include a diagram of the moving target system operating
+normally.
+5822
+Fig. 1. Diagram of system under normal operation
+IV. ATTACK MODEL
+In this section we describe a near omniscient attacker
+in terms of his capabilities, access to information, and
+potential strategies. On one hand, the adversary may acquire
+his knowledge and resources through a highly sophisticated
+attack strategy as done in Stuxnet. On the other hand, an adversary
+can obtain his resources through insider information
+and access as done in the Maroochy Shire incident.
+A. Attack Capabilities
+1) The attacker can insert arbitrary inputs into the system
+and can arbitrarily alter the sensor measurements. As a result,
+when under attack, the system has dynamics given by
+x~k+1
+xk+1
+x~k
+= Ak xk
++ Bk(uk + uka) +
+w~k ;
+wk
+yy~kkaa =
+yy~kk + ss~kkaa :
+(29)
+(30)
+where uka is the attacker's control input and s~ka and ska are
+the biases injected on the extraneous sensors and ordinary
+sensors respectively.
+2) The attacker can read the true outputs of the system
+y~k; yk and the inputs being sent by the defender to the plant
+uk for all time k.
+Remark 4: The attacker essentially performs a man in
+the middle attack between the plant and system operator so
+that he can manipulate and read all communication channels
+arbitrarily. A malicious insider can do this by breaking encryption
+schemes. Furthermore, physical attacks can be used
+to change sensor measurements. For instance, locally heating
+or cooling a temperature sensor would change the sensor
+measurements without violating the integrity or authenticity
+of data from a cyber perspective.
+3) The attacker has full knowledge of the system model
+S , fA; B; C; Q; R; K; L; Q; Rg. Moreover the adversary
+knows the probability density function (pdf) of random
+matrices A1;k; A2;k; Bk; Ck+1.
+Remark 5: While conservative, the adversary can obtain
+his knowledge of the system model by observing the communication
+channels for an extended period of time and
+5823
+performing system identification. Moreover, observe that
+since the attacker is aware of the original system model and
+all outputs, he can asymptotically predict the state estimate
+x^rkRjkemifatrhke 6m: aTtrhixe (Aatt+ackBeLr)c(aIn lKevCer)agise shtaibslepr[o9b].abilistic
+knowledge of the system model as well as the true outputs of
+the system to generate stealthy attack inputs ska; s~ka. In particular,
+the adversary can attempt to simultaneously identify
+the moving target and generate convincing counterfeit sensor
+outputs.
+Based on the above definitions we can define the private
+information available to the attacker and defender at time k
+Ik ; IkD and the public information IkP available to both as
+A
+IkA , fy~j ; yj ; s~ja; sja; uja 1g
+8 j
+IkD , fA1;j 1; A2;j 1; Bj 1; Cj g
+k;
+8 j;
+IkP , fS; f (A1; A2; B; C); uj 1; y~ja; yjag
+8 j
+(31)
+(32)
+k: (33)
+In Figure 2, we include a diagram of the system under attack.
+Fig. 2. Diagram of system under attack
+B. Attack Strategy
+In this subsection we propose two main attack strategies.
+Without loss of generality we assume any injection attack
+begins at k = 0.
+1) Attack 1: Subtract Influence: In the first attack strategy
+the attacker aims to estimate his influence on the control
+system and subtract it. Define xk , [x~kT xkT ]T ; yk ,
+[y~kT ykT ]T ; ska , [s~ka T ska T ]T . We observe that the attacker's
+influence on the system is given by the output yka of the
+following linear time-varying system.
+xk+1 = Akxka + Bkuk;
+a a
+yka = Ckxk;
+a
+with initial state x0a = 0. In this attack, the adversary aims
+to compute an estimate of yka, ideally obtaining
+ska =
+E[ yk jIk [ IkP ]:
+a a
+Remark 7: Observe that the adversary can exactly subtract
+his influence from measurements yk due to his knowledge of
+the system model. However, the adversary should be unable
+to subtract his bias from the extraneous sensors y~k.
+(34)
+(35)
+Optimal Theoretical Estimation Define wk , [w~kT wT ]T ,
+k
+vk , [v~kT vkT ]T , and yka , [y~kaT ykaT ]T . The adversary's
+observations can be formulated through the following linear
+time-varying system,
+xk+1
+a
+xk+1
+=
+Ak
+0
+0
+Ak
+xxkka + B0k
+Bk
+Bk
+uukka + w0k ;
+yk = Ck 0 xxkka + vk: (37)
+To estimate yka at time k, assume the adversary has access
+to the following distribution f (xk; xka; CkjIkA[P ) where
+IkA[P = Ik [ IkP Then we have
+A
+ska =
+Z Z Z
+xk xka Ck
+Ckxkaf (xk; xka; CkjIkA[P )dxkdxkadCk:
+(38)
+We show that the pdf can be recursively computed at each
+step. Letting k+1 = fxk+1; xka+1; Ck+1g we have
+f ( k+1jIkA+[1P ) = f ( k+1jIkA[P ; yka+1; yk+1; ska+1; uka; uk);
+= f ( k+1jIkA[P ; yk+1; uka; uk);
+=
+f (yk+1jIkA[P ; k+1)f ( k+1jIkA[P ; uk; uka) :
+f (yk+1jIkA[P ; uk; uka)
+The second equality follows from the conditional independence
+of k+1 and yk+1; ska+1 given yk+1. The last equality
+a
+follows from Bayes rule and the conditional independence of
+yk+1 and uk; uka given k+1. We note that this distribution
+can be theoretically computed given the attacker's information.
+That is we know that,
+f (yk+1jIkA[P ; k+1)
+N (Ck+1xk+1; R) :
+(40)
+Moreover, k+1 and yk+1 are deterministic functions of k,
+uk, uka and random variables A1;k, A2;k, Bk, Ck+1, wk,
+vk+1 which are independent of IkA[P . Thus, the associated
+density functions can be computed from f ( kjIkA[P ).
+Remark 8: If the attacker subtracts his influence, he might
+be susceptible to a growing cancellation error if he attempts
+to excite the system's unstable dynamics. Instead of subtracting
+his influence the attacker can instead directly estimate
+what the defender expects to see as summarized in the next
+section.
+2) Attack 2: Estimate Expected Measurement: In the next
+strategy, the adversary aims to track the system operator's
+state estimate. Using the system operator's state estimate, the
+adversary attempts to generate stealthy outputs. Let x^k =
+[cx~^akTnjkbe1fx^okTrjmku1la]Tte.dTahsefoaltltoawckser's observations and strategy
+(36)
+(39)
+xk+1
+x^k+1
+=
++
+Ak
+0
+Bk
+Bk
+Ak(I
+Bk
+0
+0
+0
+AkKk
+KkCk)
+2uk3
+4uka5 ;
+yka
+xk
+^
+xk
++ w0k ;
+The use of the preceding attack design is motivated by the
+ensuing result which states that the chosen attack vector
+minimizes the expected value of our threshold detector.
+Theorem 2: Consider (10) with gk given by (28). Then
+E[Ckx^kjIkA[P ]
+yk = arg msainE[gkjIkA[P ]:
+k
+(43)
+k
+Proof: Let k = fxk; x^k; Ck; Pkg. Observe that
+Z
+E[gkjIkA[P ] =
+zkT (CkPkCkT + R) 1zkf ( kjIkA[P )d k:
+(44)
+Taking the gradient with respect to ska and setting the
+equation equal to 0 gives
+Z
+(CkPkCkT + R) 1(yk + ska
+Ckx^k)f ( kjIkA[P )d k = 0:
+k
+Solving gives
+Z
+k
+ska =
+yk +
+Ckx^kf ( kjIkA[P )d k;
+and the result holds.
+To determine ska at time k assume the adversary has access
+to the following distribution f ( kjIkA[P ). As done before,
+the attacker can theoretically compute ska by taking the
+conditional expectation. Additionally, we can show that (39)
+holds for the case of attack 2. Moreover, by similar analysis
+as in attack 1, we can demonstrate the density functions
+in (39) can theoretically be computed. The main difference
+here is that the adversary must also estimate Pk. Note that
+in practice the proposed attacks are difficult to execute for
+an adversary since it is likely a challenge to compute the
+necessary distribution functions and expected values. As a
+result, in the next section we aim to provide bounds on the
+attacker's estimation performance in terms of mean square
+error matrices.
+V. BOUNDS ON ATTACKER'S PERFORMANCE
+A. Bounds on Attacker's State Estimation
+In this section we attempt to characterize lower bounds
+on the error matrices associated with the states k defined
+in attack strategy 1 and 2. From there, we can attempt to
+characterize how well the adversary can design ska to fool
+the bad data detector.
+We leverage conditional posterior Cramer-Rao lower
+bounds for Bayesian sequences derived by [17]. The authors
+here make use of the Bayesian Cramer-Rao lower bound
+or Van Trees bound derived in [18] which states that for
+observations y and states the mean squared error matrix is
+bounded by the Fisher information as follows
+Ef( ;y) h[ ^(y)
+][ ^(y)
+]T i
+I 1;
+(45)
+(46)
+(47)
+(48)
+(41)
+where the Fisher information matrix I is given by
+I = Ef( ;y) h 4 logf ( ; y)i :
+yk = Ck
+0
+xk +vk;
+^
+xk
+ska = E[Ckx^kjIkA[P ] yk: (42)
+Note that
+4yxg(x; y) , OxOyT g(x; y):
+5824
+In [17], this result is extended to nonlinear Bayesian sequences
+with dynamics given by
+k+1 = Fk( k; !k); yk = Gk( k; vk);
+(49)
+where !k and vk are independent process and sensor noise
+respectively. In our case, we slightly adapt these results to
+account for the fact there is feedback in our system so that
+k+1 = Fk( k; y1:k; !k);
+yk = Gk( k; vk):
+(50)
+The inputs uk, uka and ska are incorporated into the definition
+of Fk, while uncertainty in the model (A1;k; A2;k; Bk; Ck+1)
+can be incorporated in the process noise !k. It can shown
+that the following posterior Cramer-Rao lower bound holds
+(51)
+(52)
+(53)
+(54)
+T
+Efkc+1 e0:k+1e0:k+1jy1:k
+I 1( 0:k+1jy1:k);
+where
+I( 0:k+1jy1:k) , Efkc+1
+e0:k+1 , 0:k+1
+c
+fk+1 , f ( 0:k+1; yk+1jy1:k);
+h
+^0:k+1(yk+1jy1:k);
+c i
+0:k+1 log fk+1jy1:k :
+4 0:k+1
+We observe that (51) gives us an expected lower bound for
+the error matrix associated with the entire state history 0:k+1
+with knowledge of measurements y1:k. This expectation is
+taken over the state history as well the measurement yk+1 so
+that ^0:k+1 is a function of the measurement yk+1. Observe
+that unlike the traditional Cramer-Rao bound which is limited
+to unbiased estimators, the Bayesian Cramer-Rao bound here
+considers both biased and unbiased estimators ^.
+While the lower bound given here applies to the entire
+state history 0:k+1, in practice we care about estimating a
+lower bound on the current state k+1. Nonetheless, it can
+be easily shown that
+T
+Efkc+1 ek+1ek+1jy1:k
+I 1( k+1jy1:k);
+(55)
+where I 1( k+1jy1:k) is the dim( k) dim( k) lower
+right submatrix of I 1( 0:k+1jy1:k). In practice, computing
+I 1( k+1jy1:k) from I 1( 0:k+1jy1:k) is impractical since
+it requires computing and taking the inverse of a Fisher
+information matrix which grows in dimension at each time
+step. As a result, we would like a recursion to compute
+I 1( k+1jy1:k). From [17] we have the following result,
+I( k+1jy1:k) = Dk22
+Dk21 Dk11 + IA( kjy1:k)
+1 Dk12;
+(56)
+where
+Dk11 = Efkc+1
+Dk12 = Efkc+1
+Dk22 = Efkc+1
+In addition,
+h
+h
+h
+i
+4 kk log f ( k+1j k; y1:k) ;
+k+1 log f ( k+1j k; y1:k)i = (Dk21)T ;
+4 k
+i
+k+1 log f ( k+1j k; y1:k)f (yk+1j k+1) :
+4 k+1
+IA( kjy1:k) = Ek22
+Ek21 Ek11
+1 Ek12;
+(57)
+5825
+where
+Ek11 = Ef( 0:kjy1:k)
+Ek12 = Ef( 0:kjy1:k)
+Ek22 = Ef( 0:kjy1:k)
+IA( kjy1:k)
+where
+Sk11 = Ef( 0:kjy1:k)
+Sk12 = Ef( 0:kjy1:k)
+Sk22 = Ef( 0:kjy1:k)
+h
+h
+h
+h
+h
+h
+i
+0:k 1 log f ( 0:kjy1:k) ;
+4 0:k 1
+i
+4 0k:k 1 log f ( 0:kjy1:k) = (Ek21)T ;
+i
+4 kk log f ( 0:kjy1:k) :
+i
+k 1 log f ( kj k 1; y1:k 1) ;
+4 k 1
+i
+4 kk 1 log f ( kj k 1; y1:k 1) ;
+i
+4 kk log f ( kj k 1; y1:k 1)f (ykj k) :
+We observe that it is still difficult to obtain matrices
+Ek11; Ek12; Ek21; Ek22 so [17] introduces the following approximate
+recursion
+S22
+k
+S12 T Sk11 + IA( k 1jy1:k 1)
+k
+1 Sk12;
+(58)
+We observe that in practice it may still be difficult to
+compute the exact expectations because high dimensional
+integration is generally involved. Nonetheless, particle filters
+as described in [19] can be used to approximate these
+expectations. Alternative approximations for the conditional
+posterior Cramer-Rao lower bound can be found in [20].
+Unconditional bounds can be found in [21].
+B. Bounds on Detection
+The algorithm described allows us to compute an approximate
+lower bound on the mean square error matrix of
+the attacker's state k for a given set of inputs uka; ska and
+observation history y1:k. In the case of attack strategy 2, this
+allows us to obtain a lower bound on the value of gk(zk) as
+follows.
+Theorem 3: Consider attack strategy 2. For time k + 1,
+redefine Fk and fkc+1 so Ck+1 is known to the adversary
+(corresponding to reducing the variance of the process noise
+!k). Let x^ek+1(yk+1) be an estimate of x^k+1 given y1:k and
+e^k+1 = x^k+1 x^ek+1(yk+1). Suppose a lower bound Z on
+the error matrix of x^k+1 is obtained so that
+T
+Efkc+1 e^k+1e^k+1
+Z:
+Then we have
+min Ef [gk+1(zk+1)]
+x^ek+1
+tr(Ck+1ZCkT+1Pk+11);
+where f = f (x^k+1; Ck+1; IkA+[1P =IkA[P jIkA[P ).
+Proof: Let Ik+A1[P = IkA+[1P =IkA[P . We observe the
+following result.
+min Ef [gk+1]
+x^ek+1
+min Ef(x^k+1;Ik+A1[P jIkA[P ;Ck+1)[gk+1];
+x^ek+1
+= min Efkc+1 [zkT+1Pk+11zk+1];
+x^ek+1
+= min tr(Efkc+1 [zk+1zkT+1]Pk+11);
+x^ek+1
+= tr(Ck+1Efkc+1 [e^k+1e^kT+1]CkT+1Pk+11);
+tr(Ck+1ZCkT+1Pk+11);
+(59)
+(60)
+(61)
+(62)
+where e^k+1 is the minimizer of (61). The first inequality
+follows from the monotonicity of gk+1 in the error matrix
+of Ck+1x^k+1 and the fact that the error matrix is reduced by
+providing more information, Ck+1. The first equality follows
+from the definition of fkc+1 which is a density function
+conditioned on y1:k. Additional information in IkA[P is
+included in fkc+1 through the definitions of Fk and Gk. The
+second and third equalities follow from the linearity of the
+expectation. The final inequality follows from (59).
+Remark 9: In general, the adversary's ability to estimate
+k is dependent on the inputs ua; sa. For instance, the more
+k k
+the adversary biases the state away from its expected region
+of operation, the more challenging it is to perform estimation.
+Thus, if the system operator wishes to analyze how well an
+adversary can generate stealthy outputs, he must consider a
+particular sequence of attack inputs ua; sa.
+k k
+Remark 10: In practice, it may be difficult to perform
+performance analysis when assuming Pk is an unknown
+state. However, one can still obtain a lower bound on the
+error matrix by assuming that the adversary has an oracle
+which allows him to know Pk, Kk, I KkCk. This likely
+makes the computational analysis of attack strategy 2 easier.
+VI. CONCLUSION
+In this paper, we have considered attacks on control
+systems where an adversary has access to all channels in
+a communication network. In order to counter such an
+adversary, we propose introducing time-varying dynamics
+into the system which are unknown to the adversary and
+can in turn be leveraged to detect attacks. Future work will
+consider sufficient conditions for the design of these matrices
+to prevent zero-dynamic attacks and the analysis of optimal
+identification techniques for the adversary.
+REFERENCES
+[1] T. M. Chen, “Stuxnet, the real start of cyber warfare? [editor's note],”
+IEEE Network, vol. 24, no. 6, pp. 2-3, 2010.
+[2] R. Langner, “To kill a centrifuge: A technical analysis of what
+Stuxnet's creators tried to achieve,” Langner Communications, Tech.
+Rep., November 2013. [Online]. Available: www.langner.com/en/wpcontent/uploads/2013/11/To-kill-a-centrifuge.pdf
+[3] J. Slay and M. Miller, “Lessons learned from the Maroochy water
+breach,” in Critical Infrastructure Protection. Springer US, 2008,
+pp. 73-82.
+[4] A. A. Ca´rdenas, S. Amin, and S. S. Sastry, “Secure Control: Towards
+Survivable Cyber-Physical Systems,” in Distributed Computing Systems
+Workshops, 2008. ICDCS '08. 28th International Conference on
+DOI - 10.1109/ICDCS.Workshops.2008.40. IEEE, 2008, pp. 495-500.
+[5] A. Teixeira, D. Perez, H. Sandberg, and K. H. Johannson, “Attack
+models and scenarios for networked control systems,” in Proceedings
+of the 1st international conference on High Confidence Networked
+Systems, Beijing, China, 2012, pp. 55-64.
+[6] F. Pasqualetti, F. Dorfler, and F. Bullo, “Attack detection and identification
+in cyber-physical systems,” IEEE Transactions on Automatic
+Control, vol. 58, no. 11, pp. 2715-2729, 2013.
+[7] Y. Liu, M. Reiter, and P. Ning, “False data injection attacks against
+state estimation in electric power grids,” in Proceedings of the 16th
+ACM conference on computer and communications security, Chicago,
+IL, 2009.
+[8] Y. Mo and B. Sinopoli, “False data injection attacks in cyber physical
+systems,” in First Workshop on Secure Control Systems, Stockholm,
+Sweden, April 2010.
+[9] Y. Mo, R. Chabukswar, and B. Sinopoli, “Detecting integrity attacks on
+SCADA systems,” IEEE Transactions on Control Systems Technology,
+vol. 22, no. 4, pp. 1396-1407, 2014.
+[10] Y. Mo, S. Weerakkody, and B. Sinopoli, “Physical authentication
+of control systems: designing watermarked control inputs to detect
+counterfeit sensor outputs,” IEEE Control Systems Magazine, vol. 35,
+no. 1, pp. 93 - 109, 2015.
+[11] H. Sandberg, A. Teixeira, and K. H. Johansson, “On security indices
+for state estimators in power networks,” in First Workshop on Secure
+Control Systems, Stockholm, Sweden, 2010.
+[12] S. Weerakkody, Y. Mo, and B. Sinopoli, “Detecting integrity attacks
+on control systems using robust physical watermarking,” in 53rd IEEE
+Conference on Decision and Control, Los Angeles, California, 2014,
+pp. 3757-3764.
+[13] H. Fawzi, P. Tabuada, and S. Diggavi, “Secure estimation and control
+for cyber-physical systems under adversarial attacks,” IEEE Transactions
+on Automatic Control, vol. 59, no. 6, pp. 1454-1467, 2014.
+[14] A. Teixeira, I. Shames, H. Sandberg, and K. H. Johansson, “Revealing
+stealthy attacks in control systems,” in 50th Annual Allerton Conference
+on Communication, Control, and Computing, Monticello, Illinois,
+2012, pp. 1806-1813.
+[15] P. Kumar and P. Varaiya, Stochastic Systems: Estimation, Identification,
+and Adaptive Control. Prentice Hall, 1986.
+[16] R. Smith, “A decoupled feedback structure for covertly appropriating
+network control systems,” in IFAC World Congress, Milan, Italy, 2011,
+pp. 90-95.
+[17] L. Zuo, R. Niu, and P. K. Varshney, “Conditional posterior Cramer Rao
+lower bounds for nonlinear sequential Bayesian estimation,” IEEE
+Transactions on Signal Processing, vol. 59, no. 1, pp. 1-14, 2011.
+[18] H. L. Van Trees, Detection Estimation and Modulation Theory. New
+York: Wiley, 1968, vol. 1.
+[19] M. S. Arulampalam, S. Maskell, N. Gordon, and T. Clapp, “A
+tutorial on particle filters for online nonlinear/non-Gaussian Bayesian
+tracking,” IEEE Transactions on Signal Processing, vol. 50, no. 2, pp.
+174-188, 2002.
+[20] Y. Zheng, O. Ozdemir, R. Niu, and P. K. Varshney, “New conditional
+posterior Cramer - Rao lower bounds for nonlinear sequential Bayesian
+estimation,” IEEE Transactions on Signal Processing, vol. 60, no. 10,
+pp. 5549-5556, 2012.
+[21] P. Tichavsky, C. H. Muravchik, and A. Nehorai, “Posterior Cramer Rao
+bounds for discrete-time nonlinear filtering,” IEEE Transactions
+on Signal Processing, vol. 48, no. 2, pp. 1386-1395, 1998.
+5826

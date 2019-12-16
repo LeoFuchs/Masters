@@ -1,0 +1,738 @@
+49th IEEE Conference on Decision and Control
+December 15-17, 2010
+Hilton Atlanta Hotel, Atlanta, GA, USA
+The Wireless Control Network: Monitoring for Malicious Behavior
+Shreyas Sundaram, Miroslav Pajic, Christoforos N. Hadjicostis, Rahul Mangharam, and George J. Pappas
+Abstract- We consider the problem of stabilizing a plant
+with a network of resource constrained wireless nodes. In
+a companion paper, we developed a protocol where each
+node repeatedly transmits an appropriate (stabilizing) linear
+combination of the values in its neighborhood. In this paper,
+we design an Intrusion Detection System (IDS) for this control
+scheme, which observes the transmissions of certain nodes and
+uses that information to (a) recover the plant outputs (for datalogging
+and diagnostic purposes) and (b) identify malicious
+behavior by any of the wireless nodes in the network. We show
+that if the connectivity of the network is sufficiently high, the
+IDS only needs to observe a subset of the nodes in the network
+in order to achieve this objective. Our approach provides a
+characterization of the set of nodes that should be observed, a
+systematic procedure for the IDS to use to identify the malicious
+nodes and recover the outputs of the plant, and an upper bound
+on the delay required to obtain the necessary information.
+I. INTRODUCTION
+The advent of low-cost and reliable wireless networks
+holds great promise for large, spatially distributed industrial
+control systems. The topic of control over networks (wireless
+or otherwise) has been intensively studied by researchers
+over the past decade, leading to design procedures for
+controllers that are tolerant to network imperfections such
+as packet dropouts and transmission delays [1], [2], [3].
+In the companion paper [4], we introduced the Wireless
+Control Network (WCN), where the network itself acts
+as the controller (instead of having a specially designated
+node performing this task). Specifically, we considered a
+wireless network consisting of simple nodes that are able
+to exchange information only with their direct neighbors.
+We devised a protocol where each node transmits, at each
+time-step, a single value that is a linear combination of
+the values in its neighborhood. This scheme causes the
+wireless network to behave as a linear system with sparsity
+constraints on the system matrices (corresponding to the
+topology of the network). We provided a numerical design
+procedure (based on linear matrix inequalities) to determine
+the appropriate linear combinations for each node to use
+in order to stabilize the plant. As discussed in [4], this
+scheme has several benefits, including simple scheduling,
+This research has been supported by NSF CNS-0931239, DARPA
+MuSyC, and an NSERC Discovery Grant.
+S. Sundaram is with the Department of Electrical and Computer
+Engineering, University of Waterloo, Waterloo, ON, N2L 3G1. Email:
+ssundara@uwaterloo.ca. M. Pajic, R. Mangharam and G. J. Pappas
+are with the Department of Electrical and Systems Engineering, University
+of Pennsylvania, Philadelphia, PA, USA 19014. Email: {pajic,
+rahulm, pappasg}@seas.upenn.edu. C. N. Hadjicostis is with the
+Department of Electrical and Computer Engineering, University of Cyprus.
+Email: chadjic@ucy.ac.cy.
+978-1-4244-7746-3/10/$26.00 ©2010 IEEE
+5979
+low computational requirements, and the ability to handle
+geographically dispersed sensing and actuation points.
+Recently, the need for a rigorous theory of security in
+industrial control systems has started to gain attention [5],
+[6], [7], [8]. In domains such as chemical process industries,
+aviation and critical infrastructure, attacks on the control
+systems could have disastrous consequences. The report [9]
+makes several key recommendations for designing secure
+control systems, including the need to maintain accurate
+logs of plant behavior, and to analyze this information to
+quickly detect and isolate anomalies. In traditional (data)
+networks, this is performed with an Intrusion Detection
+System (IDS), which raises an alarm if the observed traffic
+flow in the network deviates from expected patterns [10]. The
+paper [11] suggests an IDS for wireless networks in process
+control industries, capturing (at a policy level) attacks such
+as jamming, denial of service attacks, and corruptions in the
+formatting of data transmitted by certain nodes.
+A more dangerous (and difficult to detect) attack in control
+networks is that of data modification, where malicious nodes
+subtly change the contents of messages that they are passing
+through the network, but otherwise follow the normal rules
+of transmission. In this paper, we describe how to design
+an IDS to detect data modification attacks in the control
+scheme proposed in [4]. The IDS will be responsible for
+observing the transmissions of certain nodes in the network
+in order to (a) recover the outputs of the plant (e.g., for
+data-logging purposes), and (b) identify data modification
+attacks; the overall architecture of the plant, control network
+and IDS is shown in Fig. 1. We show that the wireless control
+scheme from [4] allows malicious behavior to be identified
+by examining the transmissions of only a subset of the nodes
+in the network, provided that the network topology satisfies
+certain conditions. We provide an explicit characterization of
+the subset of nodes that needs to be monitored, along with
+a procedure for the IDS to follow in order to extract the
+required information from the transmissions of these nodes.
+y[k]
+Plant
+u[k]
+v1
+v4
+v7
+v2
+v5
+v8
+v3
+v6
+v9
+Monitored nodes
+IDS
+Plant outputs y[k]
+and
+identities of
+malicious nodes
+Fig. 1. Architecture of the wireless control network with an IDS.
+II. NOTATION AND BACKGROUND ON GRAPH THEORY
+We use ei to denote the column vector (of appropriate
+size) with a 1 in its i-th position and 0's elsewhere, and 1 to
+denote the column vector (of appropriate size) consisting of
+all 1's. The symbol IN denotes the N × N identity matrix,
+and A′ indicates the transpose of matrix A. The cardinality
+of a set S is denoted by |S|, and for two sets S and R, we
+use S \ R to denote the set of elements in S that are not in
+R. The set of nonnegative integers is denoted by N.
+A graph is an ordered pair G = {V , E }, where V =
+{v1, v2, . . . , vN } is a set of vertices (or nodes), and E is
+a set of ordered pairs of different vertices, called directed
+edges. The vertices in the set Nvi = {vj |(vj , vi) ∈ E }
+are the neighbors of vertex vi. A subgraph of G is a graph
+H = {V¯, E¯}, with V¯ ⊆ V and E¯ ⊆ E (where all edges in E¯
+are between vertices in V¯).
+A path P from vertex vi0 to vertex vit is a sequence of
+vertices vi0 vi1 · · ·vit such that (vij , vij+1 ) ∈ E for 0 ≤ j ≤
+t − 1. The nonnegative integer t is the length of the path. We
+will call a graph disconnected if there exists at least one pair
+of vertices vi, vj ∈ V such that there is no path from vj to
+vi. The connectivity of the graph is the smallest number of
+vertices that must be removed to disconnect the graph, and
+is denoted by κ. A set of paths P1, P2, . . . , Pr are vertex
+disjoint if no vertex appears in more than one path. Given
+two subsets V1, V2 ⊂ V , an r-linking from V1 to V2 is a set
+of r vertex disjoint paths, each with start vertex in V1 and
+end vertex in V2. Note that if V1 and V2 are not disjoint, we
+will take their common vertices to be vertex disjoint paths
+between V1 and V2 of length zero.
+Lemma 1 ([12]): Let G = {V , E } have connectivity κ,
+and let V1 and V2 be subsets of V , each of size at least κ.
+Then there is a κ-linking from V1 to V2 (and vice versa).
+III. THE WIRELESS CONTROL NETWORK
+Consider a plant of the form:
+x[k + 1] = Ax[k] + Bu[k],
+y[k] = Cx[k],
+(1)
+with A ∈ Rn×n, B ∈ Rn×m and C ∈ Rp×n. The
+output vector y[k] = y1[k] y2[k] . . . yp[k] ′ contains
+measurements of the plant state vector x[k] provided
+by the sensors s1, . . . , sp. The input vector u[k] =
+u1[k] u2[k] . . . um[k] ′ corresponds to the signals applied
+to the plant by actuators a1, . . . , am.
+The plant is to be controlled using a wireless network
+consisting of a set of nodes that interact with each other
+and with the sensors and actuators installed on the plant.
+The network is described by a graph G = {V , E }, where
+V = {v1, v2, . . . , vN } is the set of N nodes and E ⊆ V × V
+represents the radio connectivity (communication topology)
+in the network (i.e., edge (vj , vi) ∈ E if node vi can receive
+information directly from node vj ). In addition, we define
+VS ⊂ V as the set of nodes that can receive information
+directly from at least one sensor, and VA ⊂ V as the
+set of nodes whose transmissions can be heard by at least
+one actuator. We will refer to VS as the source nodes
+5980
+in the network. We will also assume that there are some
+malicious nodes in the network, given by the set F ⊂ V .
+These malicious nodes will transmit false values (perhaps
+by conspiring with each other) in an attempt to damage the
+system in some way. Note that the set F is unknown a priori.
+We will find it convenient to consider a new graph G¯ that
+captures how the plant outputs enter into the wireless control
+network. This graph is obtained by taking the network graph
+G and adding p new vertices S = {s1, s2, . . . , sp}, which
+correspond to the sensors on the plant. Define the edge set
+EI =
+(sl, vj )
+sl ∈ S, vj ∈ VS ,
+sl's value is available to node vj
+.
+We then obtain G¯ = {V ∪ S, E ∪ EI }.
+The proposed control scheme (introduced in [4]) consists
+of having each node in the network update its value to be a
+linear combination of its previous value and the values of its
+neighbors. In addition, each source node will include a linear
+combination of the sensor measurements (i.e., plant outputs)
+that it receives at each time-step. Finally, the malicious
+nodes will update their values arbitrarily at each time-step.
+Mathematically, if we let zi[k] denote node vi's value at
+time-step k, we obtain the update equations:1
+zi[k + 1] =
+ wiizi[k] + Pvj∈Nvi wij zj[k]
+ + Psj ∈Nvi hij yj [k] if vi ∈ VS \ F ,
+
+ wiizi[k] + Pvj∈Nvi wij zj[k]
++ Psj ∈Nvi hij yj [k] + fi[k] if vi ∈ VS ∩ F ,
+
+
+ wiizi[k] + Pvj∈Nvi wij zj[k] + fi[k]
+
+ wiizi[k] + Pvj∈Nvi wij zj[k]
+if vi ∈ F \ VS ,
+if vi ∈/ VS ∪ F .
+The scalars wij and hij specify the linear combinations
+that are computed by each node in the network. The
+scalar fi[k] is an (arbitrary) additive error committed by
+node vi at time-step k if it is malicious. If we let F =
+{vj1 , vj2 , . . . , vj|F| } denote the set of malicious nodes, and
+aggregate the values transmitted by all nodes at time-step k
+into the value vector z[k] = z1[k] z2[k] · · · zN [k] ′,
+the transmission strategy for the entire system can be represented
+as
+(2)
+(3)
+z[k + 1] = Wz[k] + H
+|
+EF
+{z
+BF
+}
+y[k]
+f [k] ,
+| v{[zk] }
+for all k ∈ N. In the above equation, EF =
+ej1 ej2 · · · ej|F| , and the vector f [k] contains all of
+the additive errors injected by the malicious nodes at timestep
+k. Furthermore, the (i, j) entry of W satisfies wij = 0
+if vj ∈/ Nvi ∪ {vi}, and the (i, j) entry of H satisfies hij = 0
+if sj ∈/ Nvi . We assume that z[0] (i.e., the initial state of the
+WCN) is known to the IDS.
+At each actuator l ∈ {1, 2, . . . , m}, we apply the input
+ul[k] = glz[k], where gl is a vector that specifies a linear
+combination of the values transmitted by the nodes in VA
+1The neighborhood Nv of a vertex v is with respect to the graph G¯.
+that can be heard by that actuator. Thus, the entire input
+applied to the system can be written as u[k] = Gz[k], where
+the sparsity pattern in G adheres to the network topology.
+When there are no malicious nodes (i.e., F = ∅), the overall
+closed loop system evolves as:
+xz[[kk ++ 11]] =
+A
+HC
+BG
+W
+x[k] , Aˆ
+z[k]
+xz[[kk]] .
+Let Ψs denote the set of all tuples (W, H, G) that satisfy
+the required sparsity patterns and that cause the matrix Aˆ to
+be stable. In [4], a numerical procedure was provided to find
+an element of Ψs (if one exists).
+In this paper, we consider the problem of data collection
+and analysis in this network for the purpose of identifying
+malicious behavior by a nonempty subset F of nodes. Specifically,
+we will describe the design of an IDS whose task is to
+collect data from the network in order to (a) recover the plant
+outputs2 y[k] and (b) detect and isolate anomalous behavior
+in the WCN. Clearly, one trivial option would be for the IDS
+to listen to the transmissions of every node and sensor in the
+network, and double-check that all nodes are computing the
+proper linear combinations at each time-step. However, this
+is not a satisfactory solution, since the entire point of the
+WCN is to avoid the communication infrastructure required
+for a centralized solution of this kind. Instead, we will show
+that it is possible to identify the malicious nodes and obtain
+the plant outputs by monitoring the transmissions of just
+a subset T ⊂ V of the nodes (provided that the network
+topology satisfies certain conditions).
+IV. ANALYSIS ALGORITHM FOR THE INTRUSION
+DETECTION SYSTEM
+For any set T ⊂ V , denote the vector of transmissions of
+the nodes in that set at time-step k by t[k]. We can write
+t[k] = Tz[k] , (4)
+where T is a |T | × N matrix with a single 1 in each
+row capturing the positions of the vector z[k] that are in
+the set T , and zeros elsewhere. We will also find it useful
+to consider a slightly more general version of the system
+model (3). For any subset Q = {vq1 , vq2 , . . . , vq|Q| } ⊂ V
+of nodes, let EQ = eq1 eq2 · · · eq|Q| , and define
+BQ = H EQ (where H is the matrix from (3) specifying
+the linear combinations of the plant outputs that are used by
+the source nodes). Note that BQ has p + |Q| columns. The
+values transmitted by the monitored nodes T over L + 1
+time-steps (for some nonnegative integer L) for the system
+z[k + 1] = Wz[k] + BQv[k], t[k] = Tz[k] (5)
+are given by
+ t[k]   T   v[k] 
+ tt[[kk ++... 21]] = TTWW...2  z[k] + MLQ  vv[[kk ...++ 21]] , (6)
+t[k + L] TWL v[k + L − 1]
+| t[k:{kz+L] }
+|
+{z
+ΘL
+}
+| v[k:k{+zL−1] }
+2This information can be used for plant monitoring and data logging.
+where
+
+MLQ , 
+
+
+
+
+0
+TBQ
+TWBQ
+.
+.
+.
+TWL−1BQ
+0
+0
+TBQ
+.
+.
+.
+TWL−2BQ
+· · ·
+· · ·
+· · ·
+. . .
+· · ·
+0 
+0 
+0 . (7)
+... 
+TBQ
+The following theorem shows that the IDS can recover
+the desired quantities from the transmissions of nodes in
+T , provided that a certain algebraic condition holds. We
+will later relate this algebraic condition to conditions on the
+network topology and choices of the monitored nodes T .
+Theorem 1: Suppose that there exists an integer D such
+that, for all possible sets Q of 2f nodes, the matrix MDQ
+satisfies
+rank MDQ
+= p + |Q| + rank MDQ−1
+.
+(8)
+Then, as long as there are no more than f malicious nodes in
+the network during any set of D contiguous time-steps, the
+IDS can uniquely recover the plant outputs y[k] and identify
+all of the malicious nodes with a delay of D time-steps,
+based on the transmissions of the nodes in T .
+Before proceeding with the proof of the above theorem,
+we provide a more detailed explanation of condition (8).
+Specifically, note from (7) that for any set Q, the last (L − 1)
+block-columns of MLQ have the form h MLQ0−1 i, and thus have
+rank equal to the rank of MLQ−1. Condition (8) is therefore
+equivalent to saying that the first p + |Q| columns of MDQ
+must be linearly independent of each other, and of all other
+columns in MDQ. With this interpretation in hand, we are
+now ready to continue with the proof of Theorem 1.
+Proof: [Theorem 1] Consider time-steps k =
+0, 1, . . . , D, and suppose that the malicious nodes during this
+period are a subset of the set F = {vj1 , vj2 , . . . , vjf }. From
+(3), (4) and (6), the values seen by the IDS over these timesteps
+are given by
+t[0 : D] = ΘDz[0] + MFDv[0 : D − 1] ,
+(9)
+where v[k] = y′[k] f ′[k] ′. Note that the IDS knows the
+quantities t[0 : D] and ΘDz[0], but it does not know the set
+F or the values v[0 : D − 1]. The IDS will try to identify
+these unknown parameters based on the known quantities.
+Let F1, F2, . . . , F(Nf) ⊂ V denote all possible sets of
+F(Nf)
+f nodes, and let MFD1 , MFD2, . . . , MD denote the input
+matrices corresponding to these sets. With these matrices in
+hand, suppose that the IDS finds the first j ∈ {1, 2, . . . , Nf }
+such that the vector t[0 : D]−ΘDz[0] is in the column space
+of the matrix MFDj . This means that the IDS can find a vector
+v¯[0 : D − 1] such that
+MFDj v¯[0 : D − 1] = t[0 : D] − ΘDz[0].
+The vector v¯[0 : D − 1] is the IDS's estimate of the value of
+v[0 : D − 1] (note that the value v¯[k] = y¯′[k] ¯f′[k] ′ contains
+estimates of the plant outputs and the malicious errors
+5981
+at time-step k). Substituting (9) into the above expression
+and rearranging, we have
+MFDv[0 : D − 1] − MFDj v¯[0 : D − 1] = 0 .
+Let {F , Fj} denote the set that is obtained by concatenating
+sets F and Fj (i.e., it is the union of the two sets, with
+duplications allowed). Exploiting the form of matrix MDQ
+shown in (7), the above expression can be written as
+ 0 · · · 0   v˜[0] 
+ TTWBB{F...{F,F,jF}j} ··.··. ··. 00...   vv˜˜[[...12]]  = 0
+TWD−1B{F,Fj} · · · TB{F,Fj} v˜[D − 1]
+|
+}
+M{{Fz,Fj}
+D
+(10)
+where B{F,Fj} =
+H
+EF
+EFj and
+y[k] − y¯[k]
+v˜[k] =  f [k]  .
+−¯f[k]
+Now consider the matrix MFD∪Fj . Since F ∪ Fj has at most
+2f nodes, equation (8) indicates that the first p + |F ∪ Fj |
+columns of the matrix MFD∪Fj are linearly independent of
+each other, and of all other columns of the matrix. Now, note
+{F,Fj} is obtained from matrix MFD∪Fj
+that the matrix MD
+simply by duplicating certain columns (namely, the columns
+corresponding to nodes that appear in both F and Fj ).
+Consider a node vl ∈ F . If vl ∈/ Fj, then the column
+corresponding to vl within the first p + 2f columns of
+M{DF,Fj} will be linearly independent of all other columns
+in M{DF,Fj} (since this column will also appear in the
+first p + |F ∪ Fj | columns of MFD∪Fj ). This means that
+equation (10) can be satisfied only if fl[0] = 0. On the other
+hand, if fl[0] 6= 0, the only way for equation (10) to be
+satisfied is if vl ∈ Fj and f¯l[0] = fl[0]. In other words, if
+equation (8) is satisfied, any malicious node that commits an
+error during the first time-step will appear in set Fj , and its
+additive error can be found by the IDS.
+Next, note from (8) that the first p columns of M{DF,Fj}
+will be linearly independent of each other and of all other
+columns in that matrix (since these columns also appear in
+{F,Fj}). This means that
+MFD∪Fj and are not duplicated in MD
+the only way for equation (10) to be satisfied is if y¯[0] =
+y[0]. Thus, the IDS has also recovered the outputs of the
+plant that were injected into the network at time-step k = 0.
+At this point, the IDS knows y[0] and the identities of
+those nodes in F that committed errors during time-step 0,
+along with the exact values of their additive errors. The IDS
+can then use (3) to obtain the transmitted values of all nodes
+at time-step k = 1 as
+z[1] = Wz[0] + Hy[0] + BFj ¯f[0] .
+Now, using the identity
+t[1 : D + 1] = ΘDz[1] + MFDv[1 : D] ,
+the IDS can repeat the above process to find the values of
+y[1] along with the identities of the nodes that are malicious
+during time-step k = 1. By repeating the above procedure
+for all positive values of k, the IDS can obtain the identities
+of all malicious nodes and the errors that they commit, along
+with the source streams y[k] for all k, simply by listening
+to the transmissions of the nodes in T .
+V. NETWORK TOPOLOGY CONDITIONS FOR
+MISBEHAVIOR IDENTIFICATION AND DATA RECOVERY
+Theorem 1 provides a decoding procedure for the IDS
+provided that condition (8) is true. In this section, we will
+relate this condition to the topology of the network.
+A. System Inversion
+The quantities y[k] and f [k] in (3) are unknown to the IDS,
+and so linear systems of this type are termed linear systems
+with unknown inputs.3 For such systems, it is often of interest
+to “invert” the system in order to reconstruct some or all
+of the unknown inputs, and this problem has been studied
+under the moniker of dynamic system inversion [13]. We
+will now apply some pertinent results on system inversion
+to the problem of detecting and identifying malicious nodes
+in the wireless control network. First, recall that for any set
+Q ⊆ V , the transfer function of the linear system (5) is
+P(z) = T (zI − W)−1 BQ, which is a |T |×(p+|Q|) matrix
+of rational functions of z.
+Definition 1: The system (5) is said to have an L-delay
+inverse if there exists a system with transfer function Pb(z)
+such that Pb (z)P(z) = z−LIp+|Q|. The system is invertible if
+it has an L-delay inverse for some finite L. The least integer
+L for which an L-delay inverse exists is called the inherent
+delay of the system.
+In order for the system to be invertible, its transfer function
+must have rank p + |Q| over the field of rational functions
+in z. The following result from [13] and [14] provides a test
+for invertibility in terms of the matrices W, BQ and T.
+Theorem 2 ([13], [14]): For any nonnegative integer L,
+rank(MLQ) ≤ p + |Q| + rank(MLQ−1)
+(11)
+with equality if and only if the system has an L-delay inverse
+(note that rank(M−Q1) is defined to be zero). If the system is
+invertible, its inherent delay will not exceed L = N − p |Q|
++ 1.
+We will now relate the algebraic test from the above
+theorem to a graph-theoretic test for invertibility.
+B. Structured Systems
+A linear system of the form (5) is said to be structured if
+each entry of the matrices W, BQ and T is either a fixed
+zero or an independent free parameter [15]. Interestingly,
+such systems have certain properties that can be inferred
+purely from the zero/nonzero structure of the system matrices;
+these properties are generic, meaning that they will
+3In our case, the set F (and thus the matrix BF ) is also unknown to
+the IDS, so the system given by (3) and (4) is more general than the linear
+systems with unknown inputs commonly considered in the literature.
+5982
+hold for almost any choice of free parameters (i.e., the set
+of parameters for which the property does not hold has
+Lebesgue measure zero [15]). Of particular relevance to this
+paper is the generic normal rank of the transfer function
+matrix of a structured system, which is the maximum rank
+(over the field of rational functions in z) of the transfer
+function matrix over all possible choices of free parameters.
+To analyze structural properties of linear systems of the
+form (5), one associates a graph H with the structured set
+(W, BQ, T) as follows. The vertex set of H is given by
+V ∪ I ∪ O, where V = {v1, v2, . . . , vN } is the set of state
+vertices, I = {i1, i2, . . . , ip+|Q|} is the set of input vertices,
+and O = {o1, o2, . . . , o|T |} is the set of output vertices. The
+edge set of H is given by Evv ∪ Eiv ∪ Evo, where Evv =
+{(vj , vl) | Wlj 6= 0}, Eiv = {(ij , vl) | BQ,lj 6= 0}, and
+Evo = {(vj , ol) | Tlj 6= 0} (where Wlj indicates entry
+(l, j) of matrix W, and so forth). The following theorem
+characterizes the generic normal rank of the transfer function
+of a structured linear system in terms of the graph H.
+Theorem 3 ([15], [16]): Let the graph of a structured
+linear system be given by H. Then the generic normal rank
+of the transfer function of the system is equal to the maximal
+size of a linking in H from I to O.
+The above result says that if the graph of the structured
+system (5) has p + |Q| vertex disjoint paths from the
+inputs to the outputs, then for almost any choice of free
+parameters in W, BQ and T, the transfer function matrix
+T(zI − W)−1BQ will have full column rank. Based on
+Theorem 2, this will mean that the first p + |Q| columns
+of the matrix MNQ−p−|Q|+1 will be linearly independent of
+all other columns in MNQ−p−|Q|+1.
+We now have a graph-theoretic characterization of the
+invertibility of linear structured systems, and are in place to
+apply this to the problem of identifying malicious behavior
+and recovering the plant outputs in the WCN.
+C. Topological Conditions for Identifying Malicious Nodes
+From Theorem 1 and Theorem 2, the IDS can identify
+up to f malicious nodes if the linear system given by the
+tuple (W, BQ, T) is invertible for every set Q ⊂ V of
+up to 2f nodes. To verify that this property holds, note
+that for any given set Q, the tuple (W, BQ, T) essentially
+defines a structured linear system, with the only exception
+being that the nonzero entries in the matrices EQ (where
+BQ = H EQ ) and T are taken to be “1”, rather than
+free parameters. However, this is of no consequence, since
+each nonzero entry in those matrices appears in a row and
+column by itself, and thus can essentially be “scaled” to a
+free parameter by an appropriate redefinition of the inputs
+and outputs (e.g., see [17]). Thus, we can proceed with
+applying the above results on structured system theory to the
+tuple (W, BQ, T), which brings us to the following result.
+Theorem 4: Let G¯ = {V ∪ S, E ∪ EI } denote the graph of
+the wireless control network G augmented with the sensor
+vertices S and the corresponding edges. Let T ⊂ V denote
+the set of monitored nodes. Suppose that for every possible
+set Q ⊂ V of 2f nodes, the graph G¯ contains a (p + 2f )linking
+from S ∪ Q to T . Then, for almost any element
+(W, H, G) ∈ Ψs (if it is nonempty), there exists an integer
+D ≤ N −p−2f +1 such that the IDS can recover the outputs
+of the plant and identify all malicious nodes with a delay of
+at most D time-steps, as long as there are no more than f
+malicious nodes in any set of D contiguous time-steps.
+Proof: For any set Q ⊂ V of 2f nodes, consider the
+graph4 HQ associated with the structured set (W, BQ, T).
+To obtain this graph, start by taking the graph of the network
+G. To this graph, add p + 2f input vertices (denoted by
+I) which will connect to the nodes in the graph according
+to the structure of the input matrix BQ. Specifically, p of
+these input vertices correspond to the plant sensors S (which
+produce y[k]), and each of these has outgoing edges to the
+nodes in VS (specified by the structure of matrix H). The
+other 2f input vertices each have a single outgoing edge to
+a node in Q (corresponding to the single 1 in each column
+of EQ). Next, add |T | output vertices (denoted by the set
+O), and place a single edge from each node in the set T to
+a node in O, corresponding to the single nonzero entry in
+each row of the matrix T. Furthermore, add a self loop to
+every state vertex corresponding to the nonzero entries on
+the diagonal of the matrix W.
+From the statement of the theorem, note that graph G¯
+contains a linking of size p + 2f from S ∪ Q to T , for any
+set Q of 2f nodes. This linking also exists in the graph HQ,
+since G¯ is a subgraph of HQ.5 This linking can be extended
+to a linking from the entire set I to T in HQ simply by
+including the edges from the set I \ S to the set Q. Finally,
+this linking can be further extended to a linking from I to O
+simply by including the edges from each vertex in T to the
+corresponding output vertex in O. From Theorem 3, we see
+that the system (W, BQ, T) will be invertible for almost
+any choice of matrices W and H (subject to the required
+sparsity patterns). This genericness implies that invertibility
+will hold simultaneously for all of the sets (W, BQ, T) for
+every set Q of 2f nodes with almost any choice of free
+parameters in the matrices W and H. From Theorem 2,
+the first p + |Q| columns of the matrix MNQ−p−2f +1 will be
+linearly independent of each other and of all other columns in
+MNQ−p−2f +1. Thus, condition (8) in Theorem 1 is satisfied,
+and the IDS can uniquely determine the identities of the
+malicious nodes, as well as the values of the plant outputs,
+based on the transmissions of the nodes in T , with a delay
+of at most N − p − 2f + 1 time-steps.
+Finally, we show that there is a tuple (W, H, G) in the set
+Ψs (which contains all stabilizing structured matrices for the
+plant and is assumed to be nonempty) that allows the IDS to
+recover the desired information. This is done by noting that
+the set of matrices for which the system is stable has nonzero
+measure in Rr (where r is the number of free parameters in
+the matrices W and H). More precisely, if λ ∈ Rr denotes
+4The notation HQ is used to denote the fact that this graph is associated
+with the structured set (W, BQ, T), for a particular set Q of 2f nodes.
+5Specifically, it is the graph obtained by dropping the output vertices and
+the 2f input vertices connecting to the set Q in HQ.
+5983
+a numerical vector of free parameters in W and H that
+produces stability (e.g., obtained from the procedure in [4]),
+the closed loop system will remain stable for any parameter
+vectors λ∗ satisfying the component-wise inequalities λ ǫ1
+≤ λ∗ ≤ λ + ǫ1, for sufficiently small ǫ > 0; this is
+because the eigenvalues of a matrix vary continuously with
+the parameters in that matrix. Thus, the set of stabilizing
+parameters has measure at least (2ǫ)r > 0, whereas the set of
+parameters for which the system is not invertible has measure
+zero. Thus, for almost any (W, H, G) ∈ Ψs, the system is
+stable and allows the IDS to recover the plant outputs and
+identify malicious behavior.
+Theorem 4 characterizes the set of nodes T that the IDS
+should observe in order to achieve its objectives. However,
+the fact that the theorem is framed in terms of all possible
+sets Q of 2f nodes makes it somewhat unwieldy. One can
+come up with a more compact condition when the entire
+network is sufficiently well connected, as follows.
+Corollary 1: Suppose that the network G has connectivity
+at least p + 2f , and that each sensor in S connects to at least
+p + 2f source nodes. Let T ⊆ V be any set of at least p + 2f
+nodes. Then, for almost any element (W, H, G) ∈ Ψs (if it
+is nonempty), there exists an integer D ≤ N − p − 2f + 1
+such that the IDS can recover the outputs of the plant and
+identify all malicious nodes with a delay of D time-steps, as
+long as there are no more than f malicious nodes in any set
+of D contiguous time-steps.
+Proof: For any set Q ⊂ V of 2f nodes, note that
+VS \ Q has at least p nodes (since |VS | ≥ p + 2f ). Since
+each sensor in S connects to at least p + 2f source nodes,
+each sensor will connect to at least p nodes in the set VS \ Q.
+By Hall's Theorem (e.g., see [12]), there is a linking of size
+p from S to VS \ Q (this is also called a matching). Let
+¯
+VS ⊂ VS be the set of p source nodes contained in this
+matching, and note that V¯S ∪ Q has p + 2f nodes. Since the
+network has connectivity p + 2f , Lemma 1 shows that there
+is a linking of size p + 2f from V¯S ∪ Q to T . Thus, the
+graph G¯ = {V ∪ S, E ∪ EI } contains a linking of size p + 2f
+from S ∪ Q to T for any set Q of 2f nodes. Theorem 4 is
+thus satisfied, from which the result follows.
+Note that the above corollary indicates that in networks
+with connectivity p + 2f or higher, any set of p + 2f
+nodes can be chosen to be observed by the IDS in order
+to recover the desired information about the system. For
+example, consider the wireless control network shown in
+Fig. 1. The source nodes VS = {v1, v2, v3} have access to
+the plant's (scalar) output y[k] at each time-step. Note that
+the connectivity of the network is κ = 3, and since there
+is a single sensor on the plant (p = 1) that connects to
+three nodes, Corollary 1 indicates that the IDS can detect
+and identify up to f = ⌊ κ −2p ⌋ = 1 malicious node, simply
+by monitoring the transmissions of any p + 2f nodes (e.g.,
+the set T = {v3, v6, v9}).
+Remark 1: The approach presented in this paper can be
+viewed as a form of network coding that has been recently
+proposed by the communications community, where nodes in
+a network transmit linear combinations of incoming packets
+rather than simply routing them (e.g., see [18], [19] and
+the references therein). It was shown in [18], [19] that the
+capacity of the network must be at least p + 2f in order
+to transmit information from p sources to a set of sinks,
+despite the presence of f attackers. Our work shows that this
+bound holds for the WCN proposed in [4] using a purely
+linear system theoretic approach, even though the linear
+combinations have been chosen to obtain stability. Further
+investigation of the applicability of resilient network coding
+to control network design is a ripe avenue for research.
+REFERENCES
+[1] L. Schenato, B. Sinopoli, M. Franceschetti, K. Poolla, and S. S. Sastry,
+“Foundations of control and estimation over lossy networks,” Proc. of
+the IEEE, vol. 95, no. 1, pp. 163-187, Jan. 2007.
+[2] J. P. Hespanha, P. Naghshtabrizi, and Y. Xu, “A survey of recent results
+in networked control systems,” Proc. of the IEEE, vol. 95, no. 1, pp.
+138-162, Jan. 2007.
+[3] V. Gupta, A. F. Dana, J. Hespanha, R. M. Murray, and B. Hassibi,
+“Data transmission over networks for estimation and control,” IEEE
+Transactions on Automatic Control, vol. 54, no. 8, pp. 1807-1819,
+Aug. 2009.
+[4] M. Pajic, S. Sundaram, J. Le Ny, R. Mangharam, and G. J. Pappas,
+“The Wireless Control Network: Synthesis and Robustness,” in Proc.
+of the 49th IEEE Conference on Decision and Control, 2010.
+[5] F. Pasqualetti, A. Bicchi, and F. Bullo, “Distributed intrusion detection
+for secure consensus computations,” in Proc. of the 46th IEEE
+Conference on Decision and Control, 2007, pp. 5594-5599.
+[6] A. Giani, G. Karsai, T. Roosta, A. Shah, B. Sinopoli, and J. Wiley,
+“A testbed for secure and robust SCADA systems,” in Proc. of the
+14th IEEE Real-time and Embedded Technology and Applications
+Symposium, 2008, pp. 1-4.
+[7] S. Sundaram and C. N. Hadjicostis, “Distributed function calculation
+via linear iterations in the presence of malicious agents,” in Proc. of
+the American Control Conference, 2008, pp. 1350-1361.
+[8] S. Amin, A. A. Ca´rdenas, and S. S. Sastry, “Safe and secure networked
+control systems under denial-of-service attacks,” in HSCC '09: Proc.
+of the 12th International Conference on Hybrid Systems: Computation
+and Control. Berlin, Heidelberg: Springer-Verlag, 2009, pp. 31-45.
+[9] K. Stouffer, J. Falco, and K. Scarfone, “Guide to industrial control systems
+(ICS) security,” National Institute of Standards and Technology,
+Tech. Rep. 800-82, Sep. 2008.
+[10] S. Northcutt and J. Novak, Network Intrusion Detection, 3rd ed. New
+Riders Publishing, 2003.
+[11] T. Roosta, D. K. Nilsson, U. Lindqvist, and A. Valdes, “An intrusion
+detection system for wireless process control systems,” in Proc. of
+the 5th IEEE International Conference on Mobile Ad Hoc and Sensor
+Systems, 2008, pp. 866-872.
+[12] D. B. West, Introduction to Graph Theory. Prentice-Hall Inc., Upper
+Saddle River, New Jersey, 2001.
+[13] M. K. Sain and J. L. Massey, “Invertibility of linear time-invariant
+dynamical systems,” IEEE Transactions on Automatic Control, vol.
+AC-14, no. 2, pp. 141-149, Apr. 1969.
+[14] A. S. Willsky, “On the invertibility of linear systems,” IEEE Transactions
+on Automatic Control, vol. 19, no. 2, pp. 272-274, June 1974.
+[15] J.-M. Dion, C. Commault, and J. van der Woude, “Generic properties
+and control of linear structured systems: a survey,” Automatica, vol. 39,
+no. 7, pp. 1125-1144, July 2003.
+[16] J. W. van der Woude, “A graph-theoretic characterization for the rank
+of the transfer matrix of a structured system,” Mathematics of Control,
+Signals and Systems, vol. 4, no. 1, pp. 33-40, Mar. 1991.
+[17] S. Sundaram and C. N. Hadjicostis, “Distributed function calculation
+and consensus using linear iterative strategies,” IEEE Journal on
+Selected Areas in Communications: Special Issue on Control and
+Communications, vol. 26, no. 4, pp. 650-660, May 2008.
+[18] S. Jaggi, M. Langberg, S. Katti, T. Ho, D. Katabi, M. Me´dard, and
+M. Effros, “Resilient network coding in the presence of Byzantine
+adverseries,” IEEE Transactions on Information Theory, vol. 54, no. 6,
+pp. 2596-2603, June 2008.
+[19] R. Koetter and F. R. Kschischang, “Coding for errors and erasures in
+random network coding,” IEEE Transactions on Information Theory,
+vol. 54, no. 8, pp. 3579-3591, Aug. 2008.
+5984

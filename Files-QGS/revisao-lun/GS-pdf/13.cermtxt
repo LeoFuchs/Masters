@@ -1,0 +1,767 @@
+On Analysis And Design Of Stealth-Resilient Control Systems
+Shaunak D. Bopardikar
+Alberto Speranzon
+Abstract-The interest in cyber-physical system security
+has been growing exponentially in the last five years
+as the research community has realized that control loops
+embedded in complex systems can be compromised once
+attackers are capable to breach the cyber intrusion protection
+and detection systems. In this paper, we consider the
+class of attacks known as stealth attacks where the attacker
+can compromise information flow between all remotely
+located components of a closed-loop control system. We
+develop design strategies that can prevent or make stealth
+attacks difficult to be carried out. Our methods enhance a
+legacy system, so that stealth attacks can be detected and
+counteracted at the cost of an increased system complexity.
+I. INTRODUCTION
+Recent years have witnessed a surge in research activity
+in the area of security for cyber-physical systems
+(CPSs). Typically, a CPS comprises of many devices,
+such as sensors, actuators, controllers, monitors, etc.,
+that are both intra-connected to form local networks,
+and inter-connected to IT networks through ethernet
+and/or WiFi. CPSs are used in both, highly critical
+infrastructures such as power networks, water purification
+systems, airplanes, and in less critical infrastructure
+such as heating and lighting systems. Due to standardization,
+the need to lower costs and to have open system
+architectures, some of the core technologies have become
+common to both critical and non-critical systems,
+thereby increasing the risk of leveraging exploits and
+flaws for attacks. An attack on a CPS can have major
+physical consequences, ranging from significant energy
+waste in office buildings when HVAC system is tampered
+with, to catastrophic when instabilities are created
+in the control of nuclear power plants. Reports of attacks
+to CPSs are growing and they can be rather complex
+such as STUXNET [7] or less sophisticated [6], [14],
+but still leading to severe disruption/damages.
+Although IT security has a relatively long history
+and a well established set of methods, tools and softwares
+to secure clients, servers and network devices,
+these typically do not apply in a straightforward manner
+to CPSs, as discussed in [4]. Although CPSs do comprise
+of devices that can have similar functionalities as
+standard PCs [3], patches, encryption and authentication
+methods might not be easily implementable. Indeed,
+these can introduce unwanted delays, require larger
+Shaunak D. Bopardikar (BopardSD@utrc.utc.com) and Alberto
+Speranzon (SperanA@utrc.utc.com) are with United
+Technologies Research Center (UTRC). This work was supported by
+United Technologies Research Center, which is gratefully acknowledged.
+The authors would like to thank Nikola Trcka for critical
+comments on the manuscript.
+978-1-4799-0503-4/13/$31.00 ©2013 IEEE
+48
+computation power than available or even require the
+system to be stopped to apply security fixes. Also, the
+possibility of attacks that do not have a direct counterpart
+in the digital world makes the cyber countermeasure
+rather ineffective, [4].
+In the CPSs security research literature, authors
+have been considering various models of attacks. In [2]
+and [8], the authors have considered false data injections
+on static estimators. This attack is modeled
+as corruption of measurements that are used for state
+estimation. Conditions on the systems properties that
+prevent these attacks are derived. Mo and Sinopoli
+in [10] consider the false data injection attacks on a
+dynamical system for which they show that an attack
+exists if and only if the system dynamics has an unstable
+mode and the associated eigenvector satisfies a technical
+assumption. The same authors, in [9], analyze the
+effect of replay attacks on control systems. In a replay
+attack, the attacker records and plays back the same
+measurements while tampering with the control inputs.
+The authors assume that the measurements recorded are
+relative to the steady state of the system, and inspite of
+using classical failure detectors, it is still possible to
+carry out this attack. An ad-hoc method to increase the
+detectability of the attack is proposed. Smith, in [12],
+first introduced and demonstrated a stealth/covert attack
+on a closed-loop control system. In this scenario, the
+attacker has the capability to manipulate both, the input
+(actuators) and the output (measurements) of a closed
+loop control system so that the it is not possible to detect
+the attack from the output. Texeria et al. in [13] provide
+methods to change the system model so that a class of
+stealthy attacks on the actuators gets revealed. Dan and
+Sandberg in [5] consider stealth attacks on static linear
+systems and provide algorithms to secure measurements
+that require a maximum amount of attacker resources.
+Pasqualetti et al. [11] provide a more general framework
+to analyze several types of attacks on power systems
+and networks. In particular, general conditions for attack
+detection and identifiability for descriptor linear timeinvariant
+systems are considered.
+In this paper, we consider a legacy control system
+modeled as a discrete time linear time-invariant system,
+operating in closed loop. The measurements from the
+system are used by an observer/estimator to compute
+a state estimate that is then used by a controller to
+compute a control action. This is then applied back to
+the plant through actuators. We assume that an attacker
+has the capability to additively modify some/all signals
+in a stealthy fashion. In other words, an attacker seeks
+to inject additive signals to the control input that are coordinated
+with additive signals to the measurements and
+possibly estimates, so that the measurements reaching
+the observer appear uncorrupted.
+We first derive a necessary and sufficient condition
+based on the parameters of the legacy system, to ensure
+that there cannot exist any stealth attack. While similar
+conditions have been known to hold in the cases of
+power systems state identification [1], [2], [5], these
+were shown mainly for the estimation of static states.
+We extend the notion to address a coordinated attack on
+the actuators and the estimates as well. If this condition
+is not satisfied by the legacy system, i.e., if there exists
+a stealth attack, then we provide two techniques that
+enable us to modify the system so that the resulting
+system does not admit any stealth attacks. The first
+technique is based on optimal reconfiguration of the
+system to modify how any external input may affect the
+internal signals such as control inputs, measurements
+and estimates. As a particular case, this algorithm can
+provide a subset of signals that need to be protected
+to avoid stealth attacks. The second technique involves
+design of a secure augmented system, which could
+be implemented in software around the legacy system.
+This method essentially increases the total number of
+measurements of the system that need to be secured, so
+that the overall system admits no stealth attacks. This
+technique is similar in spirit to what proposed by Texeira
+et al. in [13] where the system matrices are modified
+to reveal a class of stealth attacks. In this paper, our
+technique is to design the system so that stealth attacks
+do not exist at all, and thus, extends their work.
+This paper is organized as follows. Section II describes
+how the system and the attack are modeled.
+A necessary and sufficient condition for existence of
+stealth attacks is provided in Section III. Section IV
+describes two techniques that can be used to secure the
+system if it can be subjected to stealth attacks. These
+techniques are illustrated on a numerical example in
+Section V. Finally, Section VI summarizes our conclusions
+and directions for future research.
+II. PROBLEM FORMULATION
+A. System Modeling
+We consider the discrete-time version of a linear
+time invariant dynamical system given by
+xk+1 = Axk + Buk ;
+yk = Cxk + Duk ;
+(1)
+(2)
+where at every discrete time instant k 2 Z 0, the state
+xk 2 Rn and the measurement vector yk 2 Rm. The
+control input uk 2 Rp. For this system, the matrices,
+A 2 Rn n; B 2 Rn p; C 2 Rm n; D 2 Rm p.
+We will assume that the system is stabilizable and
+that the system operates in closed-loop, i.e., the control
+uk is given by a state feedback law,
+uk = Kx^k;
+where the matrix K 2 Rp n is designed in a manner
+that the matrix A + BK is Hurwitz and where x^k is the
+estimate of the state xk. We thus assume that there is an
+observer that estimates the state from the measurements.
+The observer dynamics are given by
+x^k+1 = Ax^k + Buk
+L(yk
+Cx^k
+Duk) ;
+(3)
+where the matrix L 2 Rn m is designed in a manner
+that the matrix A + LC is Hurwitz and with eigenvalues
+smaller (in absolute value) of those of A + BK.
+B. Attack Modeling
+Attacks can occur at different points of the closed
+loop system, depending on the various components.
+In general, various cyber security mechanisms can
+be present in a cyber-physical system to prevent an
+attacker to tamper with the system. Such mechanisms
+can reduce the number of attack points and for each
+attack point, reduce the degree of freedom of an attack,
+namely the components and/or signals that can be
+attacked. For example, using authentication methods
+with different levels of security, certain sensors could
+be less or more difficult to attack. Using different
+encryption methods, signals to and from a controller
+can be less or more difficult to be corrupted, etc. Thus
+given a cyber-physical system, it is possible to rank
+the attacks points from likely to unlikely and for a
+given attack point, determine what could be the attack
+“progression”, i.e., rank the number of devices/signals
+that could be corrupted as a function of time. This
+type of information could be determined from a cyber
+security audit performed by a red team.
+In this paper, we will assume that the software
+modules that implement the control law and the observer
+are secure, i.e., it is unlikely for an attacker to modify
+system parameters and/or control/estimation algorithms.
+Additionally, we can identify various points of attack on
+the system, as shown in Figure 1. We assume that the
+attacker can independently inject additive signals into
+the control, estimation and the measurement vectors.
+The closed loop system in Figure 1 is described by:
+xx^kk++ =
++
+A
+LC
+0
+LF
+BK
+A + BK + LC
+wk +
+BH
+BH
+sk +
+xk
+x^k
++
+0
+LDG + BG
+BE
+LDE
+vk
+yka = [C
+DK] xk
+x^k
++ DKHsk + DEvk + F wk ;
+rk
+(4)
+(5)
+49
+where the attack signals are v 2 Re, w 2 Rf , r 2 Rg
+and s 2 Rh. The matrices E, F , G, H are of compatible
+dimensions and their column dimensions represent the
+degree of freedom of the attacker. For example, if the
+matrix E 2 Rp e with p e, then the attacker has e
+degrees of freedom to affect the p control signals.
+Fig. 1. A general closed loop controlled system with a plant a
+controller and observer. Attacks to the actuators and sensors are shown
+in red and orange, respectively, whereas an attack to the controller and
+observer signals is shown in purple.
+The matrices E, F , G, H serve as a model of the
+cyber infrastructure, and how it introduces correlation
+between the attacker's inputs and their effect on the
+actual physical signals u, y and x^. These matrices could
+simply be the identity of appropriate dimensions, which
+would mean that the attacker can directly corrupt each
+individual component of u, y and x^. Without loss of
+generality, we assume that all four of these matrices
+are full column rank. Otherwise, they only provide
+redundant degrees of freedom to the attacker.
+C. Problem Statement
+We first formalize the notion of stealth attacks
+considered in this paper. Since the system is linear, we
+can assume x0 = x^0 = 0, without any loss of generality.
+Note that for the system (4)-(5) the output is in general
+a function of the attack vectors vk, wk, rk, sk, namely
+we have that yk(vk; wk; rk; sk).
+Definition II.1 (Stealth Attack). Given a linear-time
+invariant system (4)-(5) a stealth attack exists if there
+exist attack vectors vk, wk, rk, sk, not all equal to zero,
+and a time instant T > 0 such that
+yk(vk; wk; rk; sk) = yk(0; 0; 0; 0) ;
+8k 2 f0; 1; : : : ; T g :
+In other words, this means that there exists an action
+of the attacker on the internal signals of the system that
+is never seen by the measurement vector y.
+Specifically, we will address the following problems:
+1)
+2)
+Determine conditions on the system matrices
+so that there does not exist any stealth attack.
+Suppose that a stealth attack exists, design
+techniques to modify the system so that the
+modified system does not admit stealth attacks.
+50
+III.
+ANALYSIS
+Let us define the following matrices:
+A =
+B =
+A
+LC
+BE
+LDE
+BK
+A + BK + LC
+;
+0
+LF
+0
+LDG + BG
+BH
+BH
+0
+;
+C = [C
+DK] ;
+D = [DE
+F
+DKH ] ;
+then the system can be rewritten as
+xk+1 = Axk + Bak
+yka = Cxk + Dak ;
+with xk = (x0k; x^0k)0 is the state vector and ak =
+(vk0; wk0; rk0; s0k)0 is the attack vector.
+We begin with the following necessary and sufficient
+condition for the existence of stealth attack.
+Theorem III.1 (Stealth Attack Existence). There does
+not exist any stealth attack on the system (4)-(5) if and
+only if the matrix D has full column rank.
+Proof: From the definition of stealth attack, we
+have that yka = yk for any k 0. This holds true if
+and only if for any T 0
+(6)
+Da0 = 0 ;
+CBa0 + Da1 = 0 ;
+.
+.
+.
+CAT 1Ba0 +
++ CBaT 1 + DaT = 0 :
+Stacking these into a matrix equation, we obtain
+2
+6
+6
+6
+6
+4
+|
+D
+CB
+CAB
+.
+.
+.
+CAT 1B
+0
+D
+CB
+.
+.
+.
+CAT 1B
+{z
+MT
+. . .
+0
+. . .
+CB
+0 3
+0
+2 a0 3
+7 a1
+0.. 777 646 ... 757 = 0 :
+. 5
+D aT
+}
+| {z }
+AT
+From Definition II.1, for a stealth attack to exist, we
+must have the attack vectors AT satisfying
+MT AT = 0 ;
+for T 0. Therefore, a necessary and sufficient
+condition for a stealth attack to not exist is that the
+matrix MT has full column rank, for all T 0. Given
+the structure of MT , this holds if and only if the
+matrix D is full column rank.
+It is important to note that from the structure of
+the matrix D = [DE F 0 DKH ] it is always
+possible for an attacker to generate a stealth attack,
+as the matrix D is not full column rank. This is
+because of the zero matrix, corresponding to the r
+signal. Thus, the attacker, through the signal r, can
+attack the system without changing the output. This
+means that we either need to assume that the cyber layer
+enhances the protection of the control input computed
+by the controller which is communicated to the observer
+using an encrypted channel, or the data exchange occurs
+through memory, e.g., if the two software components
+(controller and observer) are co-located.
+Remark III.1 (“Fat” D matrix). Since it is possible
+for an attacker to potentially have access to all measurements,
+control inputs and estimates, we could have
+e + f + h > m, in which case, the matrix D will be fat.
+For such cases, an attacker has a lot more freedom to
+inject a stealth attack, as shown in Section V.
+Remark III.2 (Relation with Geometric Control Literature).
+Akin to the analysis of stealth attacks considered
+in [13], one can characterize a class of stealthy
+attacks on the system (6) using geometric control theoretic
+techniques. Consider the following attack vector
+ak 2 N (D) \ V, where V is the largest (A; Im(B))
+controlled-invariant subspace in N (C), i.e., the null
+space of C. Clearly, when D is full column rank, N (D)
+is empty, and so the above class of attacks does not exist.
+IV. TECHNIQUES TO PREVENT STEALTH ATTACK
+In this section, we describe how Theorem III.1 can
+be used as a design tool to secure a dynamical system
+against stealth attacks. We propose two approaches in
+which the system (6) may be secured against stealth
+attacks. The first method involves optimal allocation of
+countermeasures to secure selected signals, so that the
+resulting system does not admit any stealth attack. The
+second method involves augmenting the measurement
+vector with additional secure measurements so that the
+overall system does not admit any stealth attack.
+A. Optimal Allocation of Countermeasures
+In this approach, we assume that the matrices
+E; F; G; H can be reconfigured independently. In other
+words, each entry of the vector u can be forced to equal
+zero. However, this can be achieved with a certain cost.
+Let ci denote the cost of securing against i-th attack
+parameter, for each i 2 f1; : : : ; e + f + g + hg. Theorem
+III.1 tells us that if the rank of the matrix X := D
+is , then it suffices to secure e+f +g+h parameters
+so that the net cost is minimum. Equivalently, it suffices
+to find columns which are linearly independent and
+can be left unsecured, such that the sum of the costs
+of securing them is a maximum. More formally, let
+2 R(e+f+g+h) denote a 0; 1 column selection
+matrix, i.e., each column of is a standard basis vector
+in Re+f+g+h. Then, the goal is to solve the following
+problem.
+max
+c0 1 ;
+(7)
+subject to
+rank(X ) =
+:
+As a first step, since D contains a block of zeros
+corresponding to the G term, it follows that it is
+imperative to secure all columns of G. Therefore, in
+51
+what follows, we will only consider the E; F; H contributions.
+Further, while it appears that this problem is
+difficult to solve, especially due to the non-convex rank
+constraint, we will show there exists a greedy algorithm
+(Algorithm 1) that provides an optimal solution. This
+presentation assumes that without any loss of generality,
+the first columns of X are linearly independent. If not,
+then we can always re-order the columns accordingly.
+Further, for an index set I f1; : : : ; e + f + hg, let
+XI denote the set of columns of X corresponding to
+the index set I.
+Algorithm 1 Greedy Securing
+1: Opt = f1; 2; : : : ; g
+2: = [c1 c2 : : : c ]
+3: for i = + 1; : : : ; e + f do
+4: E = RowEchelon([XOpt Xi])
+5: = [ ci]
+6: Let B denote the non-zero indices of E +1
+7: Let cmin := minf Bg; := arg minf Bg
+8: if +1 > cmin then
+9: Set B( ) = +1
+10: Set Opt(B( )) = i
+11: end if
+12: Set = 1:
+13: end for
+Intuitively, this algorithm begins with an initial set of
+linearly independent columns of X. Then, it compares
+for each new column, whether it would be advantageous
+to include it within the existing set (in terms of increasing
+the total cost), or not. If the cost of the column
+exceeds the existing minimum, then we swap it with the
+column which has the minimum cost, include the new
+column in the set, and remove the existing minimum.
+The following statement can be established.
+Theorem IV.1 (Optimality of Algorithm 1). Given the
+optimization problem (7), then following holds:
+1)
+2)
+Algorithm 1 yields an optimal solution;
+Algorithm 1 has a computational complexity of
+O((e + f + h)m3), where e + f + h is the total
+number of independent attack parameters, and
+m is the number of measurements.
+Proof: Suppose that Algorithm 1 returns a solution
+Opt which is not optimal. Let an optimal solution be
+given by S. Without any loss of generality, assume that
+Opt \ S = ;, because if it is not so, then we can
+remove the common elements and consider only the
+non-common ones from S in the rest of this proof. Since
+XOpt is full column rank by design, for each s 2 S,
+there exists an s 2 Opt such that s 2 B; cs = minf Bg
+for i = s in the for loop of Algorithm 1. Then, there
+are two possibilities:
+1)
+If cs > cs: Then, s 2= Opt due to steps 8 to
+10 of Algorithm 1, which is a contradiction.
+2)
+If cs cs: Since XS must be full column
+rank due to Theorem III.1, for every s 2 S, we
+conclude that cs is less than or equal to that of
+a unique column s of Opt. This implies that
+the total cost of Opt is at least equal to the
+total cost of S, which is a contradiction, since
+S is assumed to be optimal and Opt is not.
+This establishes the optimality of Algorithm 1. On the
+computational complexity, the row echelon computation
+is of O( 3). The minimization step is of O( log( )).
+This implies an overall complexity of O((e + f + h) 3).
+Finally, the result follows since m.
+This approach is based on the fact that we can modify
+E; F; G; H, i.e., the manner in which any attacker
+input can affect the control, estimate and measurements.
+Systems for which this is infeasible or too expensive
+may be secured by an alternate approach described next.
+B. Design of Augmented System
+The second approach to securing a system is via
+the design an augmented system which expands the
+total number of measurements, by means of additional
+secured variables which measure directly the control input.
+We introduce the following secured measurements,
+ykc = Ccx^k + CcHsk;
+ykp = Dpuka = DpKx^k + DpEvk ;
+yko = DoKx^k + DoGrk + DoKHsk ;
+where the set of measurements yp are implemented at
+the plant side, yc are implemented on the controller side,
+and yo are implemented on the observer side. This set
+may be implemented as software modules within the
+three main components shown in Figure 1. We assume
+that this data is communicated between components
+over encrypted links so that it is difficult for the attacker
+to tamper with the system.
+The above system along with (6) can be written in
+the standard matrix form with
+2C DK 3 2 DE F 0
+C := 46 00 DCpcK57 ; D := 46D0pE 00 00
+0 DoK 0 0 DoG
+DKH 3
+0
+7 ;
+CcH 5
+DoKH
+where the matrices to be designed are Dp
+Rm~ p; Cc 2 Rm~ c n; Do 2 Rm~ o p.
+2
+A simple design is described in the following result.
+Theorem IV.2 (Augmented System). The augmented
+system designed with Dp = Ey, Cc = Hy, Do = Gy
+where, the y represents the Moore-Penrose pseudoinverse,
+is stealth-resilient.
+Proof: With this choice, the overall system has
+2 DE
+D = 6Ie e
+40h e
+0g e
+F
+0e f
+0h f
+0g f
+0
+0e g
+0h g
+Ig g
+DKH 3
+0e h 7 ;
+Ih h 5
+GyKH
+which is full column rank, since F is assumed to be
+full column rank. Therefore, applying Theorem III.1 to
+the overall augmented system, the claim follows.
+Remark IV.1 (Stealth Compensation). Both techniques
+proposed in this section lead to a modification of the
+legacy control system, which may be used to design a
+compensator for any (stealth) attack on the system in
+the following manner. Consider the residual t := yta.
+Under no stealth attack, this residual is identically equal
+to 0. However, under attack, the residual will be nonzero.
+Since the modified system satisfies the conditions
+in Theorem III.1, we can write
+u^t = Dymod;t t:
+which is the best (in the sense of least-squares) estimate
+for the vector of control attack u, and Dmod;t is the
+modified system matrix. We can now compensate for
+the stealth attack as follows, since for every k 0,
+xk+1 = Axk + Buk
+BDymod;k k:
+Note that the estimator for uk is only the least squares
+solution, and will not guarantee that it cancels the effect
+of the stealth attack completely.
+V.
+NUMERICAL EXAMPLE: INPUT OUTPUT ATTACK
+In this section, we numerically demonstrate our
+results. For simplicity, we consider the case when G = 0
+and H = 0. This is the case when only the actuators
+and the measurements are compromised. For this case,
+we considered the following system parameters:
+2 0:2080
+0:0504
+A = 64 0:1818
+0:2994
+22:2102
+0:9427
+B = 642:1138
+3:9333
+C =
+D =
+E =
+F = I2 2 :
+0:7268
+2:2553
+0:2588
+1:1028
+0:2540
+1:3672
+0:0705
+0:6673
+0:0357
+0:0013
+2:0235
+0:4696
+1:4192
+0:3943
+1:7720
+0:0266
+1:9708
+0:3149
+2:4125
+1:2000
+0:3765
+0:0770
+0:8382
+0:3647
+0:30483
+0:0620
+7 ;
+0:30385
+0:8916
+0:4755
+0:0677
+2:3942
+0:8134
+0:52733
+0:8228
+7 ;
+2:72865
+0:6077
+0:3285
+0:9488
+0:5364
+1:2590 ;
+0:1163
+0:6507
+1:0170
+0:2378
+1:4613
+1:0313 ;
+0:5178 0
+1:5906
+;
+The matrix D = [DE F ] is clearly not full column
+rank, and therefore, there exists a stealth attack on this
+system. The effect of one such stealth attack can be
+visualized in the top two subfigures of Figure 2. The
+states xi should have been equal to zero, but they show
+large deviations from zero, while the output remains at
+zero value. Note that the state evolution can be made
+arbitrarily large in magnitude by simply multiplying the
+value of the attack signal with a higher number.
+52
+PoweredbyTCPDF(w w.tcpdf.org)
+Fig. 2. Simulation results. The top two subfigures show the effect of
+a stealthy attack on the original system. The bottom subfigures shows
+how the augmented system can detect the attack.
+A. Optimal Securing Approach
+The rank of D = [DE F ] is 2, which implies
+that we must secure at least 4 2 = 2 degrees
+of freedom of the attacker to prevent stealth attacks.
+For this approach, we assumed the following costs for
+securing the actuators/sensors,
+c = [0:3354
+0:6797
+0:1366
+0:7212] ;
+where the first two entries are the costs of securing
+the columns of E (actuator side), while the last two
+are the costs of securing the columns of F (sensor
+side). Applying Algorithm 1, we obtain that the second
+columns of E and F may be left unsecured. The optimal
+cost of securing the system is 0:4720 units. The third
+subfigure of Figure 2 shows the effect of the same
+stealth attack on the optimally secured system.
+B. Augmented System Approach
+The original system has only 2 measurements, while
+the attacker has 4 degrees of freedom. Therefore, the
+augmented system must introduce at least 2 secure
+measurements to ensure that there exists no stealth
+attack. The output of the two augmented measurements
+is shown in the bottom subfigure of Figure 2. The
+stealthy attack for the original system thus gets detected
+by the augmented system outputs.
+In summary, the first technique requires securing the
+system against 2 degrees of freedom of the attacker,
+while the second technique requires us to secure 2 additional
+outputs. Either technique is clearly an advantage
+over the obvious solution for this problem, which is to
+secure all attacker degrees of freedom equal to 4.
+VI.
+CONCLUSIONS
+We addressed the problem of securing a legacy
+closed-loop cyber-physical control system against
+stealth attacks on the communication between system
+53
+components. We first identified a condition on the system
+parameters that ensures that no stealth attacks exist.
+Then, we designed two techniques to secure the system
+based on either reconfiguring the system to modify the
+effect of an attack, or by deploying additional virtual but
+secure measurements. We demonstrated the techniques
+on a special case of input-output attacks numerically.
+In future, we plan to extend our techniques to distributed
+networked control systems. We would also like
+to develop techniques which are based on a characterization
+of level of security against performance degradation
+of the system, instead of a worst-case approach.
+REFERENCES
+[1] S. Bi and Y. J. Zhang. Defending mechanisms against falsedata
+injection attacks in the power system state estimation. In
+IEEE International Workshop on Smart Grid Communications
+and Networks, Houston, USA, 2011.
+[2] R. B. Bobba, K. M. Rogers, Q. Wang, H. Khurana, K. Nahrstedt,
+and T. J. Overbye. Detecting false data injection attacks
+on DC state estimation. In Preprints of the First Workshop on
+Secure Control Systems, CPSWEEK, 2010.
+[3] A. Cardenas, S. Amin, and S. S. Sastry. Research challenges
+for the security of control systems. In Proceedings of the 3rd
+conference on hot topics in security (HOTSEC'08), 2008.
+[4] A. Cardenas, S. Amin, B. Sinopoli, A. Giani, A. Perrig, and
+S. S. Sastry. Challenges for securing cyber physical systems.
+In Workshop on Future Directions in Cyber-physical Systems
+Security, DHS, 2009.
+[5] G. Dan and H. Sandberg. Stealth attacks and protection
+schemes for state estimators in power systems. In IEEE Int.
+Conf. on Smart Grid Communications, 2010.
+[6] F. Washkuch Jr. 'Dr. Chaos' gets seven more years in jail,
+2005. Available online at:
+http://www.scmagazine.com/dr-chaos-gets-seven-more-yearsin-jail/article/32757/.
+[7] J. Leyden. Stuxnet 'a game changer for malware defence',
+2010. Available online at:
+http://www.theregister.co.uk/2010/10/09/stuxnet enisa response/.
+[8] Y. Liu, M. K. Reiter, and P. Ning. False data injection attacks
+against state estimation in electric power grids. In ACM
+conference on Computer and communications security, 2009.
+[9] Y. Mo and B. Sinopoli. Secure control against replay attacks. In
+Forty-Seventh Annual Allerton Conference on Communication,
+Control, and Computing - Allerton House, 2009.
+[10] Y. Mo and B. Sinopoli. False data injection attacks in control
+systems. In First Workshop on Secure Control Systems, CPS
+Week, 2010.
+[11] F. Pasqualetti, F. Dorfler, and F. Bullo. Attack detection and
+identification in cyber-physical systems. IEEE Transaction on
+Automatic and Control, 2012. Conditionally accepted.
+[12] R. Smith. A decoupled feedback structure for covertly appropriating
+networked control systems. In 18th International
+Federation of Automatic Control World Congress, 2011.
+[13] A. Teixeira, I. Shames, H. Sandberg, and K. H. Johansson.
+Revealing stealthy attacks in control systems. In 50th Annual
+Allerton Conf. on Communication, Control and Comp., 2012.
+[14] T. Wilson. Teenage hacker takes over Polish tram system,
+2012. Available online at:
+http://www.darkreading.com/security/perimetersecurity/208803765/teenage-hacker-takes-over-polish-tram-
+system.html.

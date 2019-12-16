@@ -1,0 +1,1079 @@
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 5, SEPTEMBER 2015
+2189
+Cyber Security Analysis of Power Networks
+by Hypergraph Cut Algorithms
+Yutaro Yamaguchi, Anna Ogawa, Akiko Takeda, and Satoru Iwata
+Abstract-This paper presents exact solution methods for analyzing
+vulnerability of electric power networks to a certain kind
+of undetectable attacks known as false data injection attacks. We
+show that the problems of finding the minimum number of measurement
+points to be attacked undetectably reduce to minimum
+cut problems on hypergraphs, which admit efficient combinatorial
+algorithms. Experimental results indicate that our exact
+solution methods run as fast as the previous methods, most of
+which provide only approximate solutions. We also present an
+algorithm for enumerating all small cuts in a hypergraph, which
+can be used for finding vulnerable sets of measurement points.
+Index Terms-False data injection, hypergraph, minimum cut,
+power network, security index, state estimation.
+I. INTRODUCTION
+M power networks is becoming more crucial due to their
+AINTAINING the security and reliability of electric
+increasing scale and complexity. One needs to monitor the
+condition of a power network based on measurement of
+meters placed at important area of the power network through
+e.g., supervisory control and data acquisition (SCADA)
+system. The system uses state estimation, the process of estimating
+current states of the power system based on the meter
+measurement, in order to control power network components
+such as the operation of power generators.
+Recently, various researchers have studied the cyber security
+of SCADA systems. Conventional techniques for detecting bad
+data (e.g., including inadvertent measurement errors) utilize
+the squares of differences between the observed measurements
+and their corresponding estimates. Those techniques
+are based on the assumption that the difference becomes significant
+when bad measurements happen [5], and are useful
+also in a situation when some attackers inject malicious measurement
+values. However, Liu et al. [6] pointed out that if
+attackers know the configuration of the power system, they can
+Manuscript received May 14, 2014; revised August 17, 2014 and
+November 27, 2014; accepted December 28, 2014. Date of publication
+February 12, 2015; date of current version August 19, 2015. This work was
+supported by the Japan Science and Technology Agency (JST) Core Research
+for Evolutional Science and Technology (CREST). The work of Y. Yamaguchi
+was supported by the Japan Society for the Promotion of Science Fellowship
+for Young Scientists. Paper no. TSG-00432-2014.
+Y. Yamaguchi, A. Takeda, and S. Iwata are with the Department of
+Mathematical Informatics, University of Tokyo, Tokyo 113-8656, Japan
+(e-mail: yutaro_yamaguchi@mist.i.u-tokyo.ac.jp).
+A. Ogawa is with the Department of Mathematical Informatics, University
+of Tokyo, Tokyo 113-8656, Japan, and also with the Department of
+Administration Engineering, Keio University, Yokohama 223-8522, Japan.
+Color versions of one or more of the figures in this paper are available
+online at http://ieeexplore.ieee.org.
+Digital Object Identifier 10.1109/TSG.2015.2394791
+introduce a new class of attacks, false data injection attacks,
+to make malicious injection undetectable because the additive
+measurement values do not affect the difference. This
+means that an attacker can inject malicious values that will
+mislead the state estimation process without being detected by
+difference-based techniques for bad measurement detection. It
+should be mentioned that there is another approach to bad measurement
+detection, e.g., using a discrete-time hidden Markov
+process [18]. For related works in that direction, we refer the
+readers to [18], which also discussed much of the literature.
+The attacker would be interested in finding sparse malicious
+values (i.e., sparse attacks) because each attack on a measurement
+point involves risk to be prevented. Sparse attacks
+reveal vulnerable sets of meters to be attacked in the system.
+Liu et al. [6] showed a cardinality minimization formulation to
+find a sparsest attack and solved it approximately by matching
+pursuit method [7]. Sandberg et al. [13] formulated a similar
+optimization problem for finding a sparsest attack including
+a given measurement point and defined the optimal value as
+the security index of the point. After Sandberg et al. [13] proposed
+a simple heuristics to find a suboptimal solution for
+the problem, Hendrickx et al. [2] and Sou et al. [14], [15]
+provided efficient solution methods as follows. It was shown
+in [14] that the problem reduces to a minimum cost nodebipartition
+problem, which is approximately solved by finding
+a minimum s-t cut in the given network. Under a certain strong
+assumption, it further reduces to a cardinality minimization
+problem whose constraint matrix is totally unimodular [15].
+While 1-relaxation can indeed solve the cardinality minimization
+problem, the assumption restricts the applicability of the
+model. As an improved result of [14], Hendrickx et al. [2]
+gave a reduction of the security index computation to finding
+a minimum s-t cut in an auxiliary directed graph, which can
+be done in polynomial time.
+In this paper, we present a new approach to cyber security
+analysis using hypergraphs. A hypergraph is a generalization
+of a graph consisting of nodes and hyperedges. Each hyperedge
+connects an unrestricted number of nodes while each
+edge in a graph connects just two nodes. Our main contributions
+are summarized below. The viewpoint of hypergraphs
+makes it possible, in particular, to find sparse attacks directly
+as shown in 2) and 3).
+1) We show that computing the security index for a given
+measurement point reduces to finding a minimum s-t cut
+in a hypergraph, which can be done efficiently by finding
+a maximum s-t flow through the hypergraph. This
+problem in fact can be reduced to finding a minimum
+1949-3053 c 2015 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+2190
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 5, SEPTEMBER 2015
+s-t cut in a directed graph, which is almost the same Note that the row and column sets are A ∪ V and V,
+as that suggested in [2]. Our reduction to hypergraphs, respectively.
+however, gives a simpler description with smaller num- For a vector θ ∈ RV that represents the states of all nodes,
+ber of nodes, which leads to improved running time in the measurement values at all measurement points are reprepractice.
+sented as z = Hθ ∈ RA∪V . A nonzero vector z ∈ RA∪V
+2) We show that a sparsest attack can be directly obtained is called undetectable if there exists θ ∈ RV such that
+by finding a minimum cut in a hypergraph. It should be z = H θ . It is shown in [6] that an undetectable additive
+noted that one can find a sparsest attack in polynomial measurement value z does not affect the difference between
+time by applying the security index computation sug- the observed measurement values and their corresponding estigested
+in [2] to all measurement points. Our method mates and no alarm is triggered in the end. Nobody can detect
+is faster because it only requires one minimum cut only by the measurement values whether the system is attacked
+computation. or not. Such a new class of attacks is known as false data
+3) We devise a new algorithm for enumerating all small injection attacks [6].
+cuts in a hypergraph whose capacities are within a pre- The support supp( z) := {k | k ∈ A ∪ V, ( z)k = 0} of
+specified constant factor of the minimum cut capacity, an undetectable attack z is called an attackable set. Let x 0
+building on the work of Nagamochi et al. [9]. This algo- denote the size of the support of a vector x. The sparsest attack
+rithm can be used to analyze possible sparse attacks in problem is to find an undetectable attack with the minimum
+power network systems. support size, that is
+The rest of this paper is organized as follows. Section II
+is devoted to problem formulations and fundamental proper- mθ∈iRnV { H θ 0 | H θ = 0}. (2)
+ties of the sparsest attacks and security index. In Section III,
+we show that these problems can be reduced to hypergraph
+cut problems, which admit efficient combinatorial algorithms.
+The performance of our solution methods is analyzed through
+experiments in Section IV. Finally, in Section V, we consider
+all possible sparse attacks not necessarily the sparsest,
+and present a new algorithm for enumerating small cuts in a
+hypergraph which can be used to find all significant sparse
+attacks.
+The attacker would be interested in finding a sparsest attack,
+which is obtained from an optimal solution of the sparsest
+attack problem, because each attack on a measurement point
+involves risk to be found. Therefore, a minimum attackable
+set indicates one of the most vulnerable sets of measurement
+points to be attacked in the system.
+Let k ∈ A ∪ V be a measurement point. Suppose that k is
+attacked in an undetectable attack z, i.e., k ∈ supp( z). The
+minimum size of an attackable set that contains k is called
+the security index [14] of k. The security index problem is to
+compute the security index of a given measurement point k
+for a given measurement matrix H, i.e., to compute
+II. CYBER SECURITY ANALYSIS PROBLEMS
+A. Sparsest Attacks and Security Index
+mθ∈iRnV { H θ 0 | Hk θ = 0}
+(3)
+where Hk denotes the row vector of H indexed by k.
+Let us denote by G = (V, E) the underlying graph of G,
+i.e., G is an undirected graph with edge set E = {ea := {u, v} |
+a = uv ∈ A or a = vu ∈ A} being a multiset. For each node
+v ∈ V, we denote by G(v) the set of nodes adjacent to v
+in G and by δG(v) the set of edges incident to v in G , i.e.,
+G(v) := {u | {u, v} ∈ E} and δG(v) := {e | v ∈ e ∈ E}.
+For each arc a ∈ A, let Da denote the corresponding
+diagonal entry of D. Then, each entry of the measurement
+matrix H is given as follows. For each arc a = uv ∈ A,
+we have Hau = Da, Hav = −Da, and Haw = 0 for
+every w ∈ V \ {u, v}. For each node v ∈ V, we have
+Hvv = a{Da | ea ∈ δG(v)}. For each pair of distinct nodes
+u, v ∈ V, we have Hvu = − a{Da | ea = {u, v} ∈ E}.
+Observation 1: For any vector θ ∈ RV , X := supp(H θ )
+satisfies the following properties.
+1) For each a = uv ∈ A, we have a ∈ X if and only if
+( θ )u = ( θ )v.
+2) For each node v ∈ V, we have v ∈ X if and only if
+a{( θ )vDa | ea ∈ δG(v)} = u∈ G(v) a{( θ )uDa |
+u ∈ ea ∈ δG(v)}.
+Let G = (V, A) be a directed graph, which represents a
+network system such as an electric power network. The node
+set V is of cardinality n and the arc set A of cardinality m.
+We assume that G is connected, and hence n = O(m). We
+denote by BG the incidence matrix of G. The row and column
+sets of BG are indexed by V and A, respectively. For each arc
+a = uv ∈ A from u to v, the (u, a)-entry is 1, (v, a)-entry
+is −1, and (w, a)-entries are 0 for all w ∈ V \ {u, v}.
+In this paper, we consider the dc power flow model (see [1]
+for the detail), which was considered in [2], [6], and [13]-[15].
+Each node has a hidden state (voltage phase angle), and each
+arc or node has a measurement point. The operator of the
+system gets a measurement value (active power flow on an arc
+or injection into a node) in each measurement point, which is
+determined from the states as follows.
+Definition 1 (Measurement Matrix): Let D be an m × m
+positive diagonal matrix whose diagonal entry is in proportion1
+to the inverse of the reactance of each arc. The measurement
+matrix H is an (m + n) × n matrix defined by
+H :=
+DBG
+BGDBG
+.
+(1)
+1The factor is the square of the effective voltage, which is assumed to be
+the same constant (usually regarded as one unit) for all nodes.
+YAMAGUCHI et al.: CYBER SECURITY ANALYSIS OF POWER NETWORKS BY HYPERGRAPH CUT ALGORITHMS
+2191
+Fig. 1. Example of elementary attacks. The number above each node is the
+entry of the characteristic vector χU. The nodes and arcs in X = supp(HχU)
+(i.e., to be attacked) are emphasized with thick lines.
+B. Elementary Attacks
+Sou et al. [14] pointed out a nice property of the security
+index problem. The following lemma, extracting the core
+of the property, leads to reduction of the above two problems
+to hypergraph cut problems, which will be shown later
+in Section III-B. Let us denote by χU ∈ RV the characteristic
+vector of a subset U ⊆ V, i.e., χU(u) = 1 (∀u ∈ U) and
+χU(v) = 0 (∀v ∈ V \ U).
+Lemma 1: For any θ ∈ RV with H θ = 0 and any α ∈ R
+with minv∈V ( θ )v < α ≤ maxv∈V ( θ )v, U := {v ∈ V |
+( θ )v ≥ α} satisfies 0 < HχU 0 ≤ H θ 0.
+Remark 1: This lemma can be seen in the same way as the
+proof of [14, Proposition 1], and here, we omit the proof.
+Lemma 1 claims that each minimum attackable set has
+some corresponding assignments of 0 or 1 to each node
+(i.e., bipartitions of the node set), though the corresponding
+attackable set itself does not coincide with the original one in
+general. Hence, the sparsest attack problem (2) and the security
+index problem (3) are interpreted as node-bipartition problems
+since these problems are interested only in the sparsest attacks.
+Let us call an undetectable attack z an elementary attack
+if z = HχU for some proper nonempty subset U of V. The
+following observation is easily seen from Observation 1.
+Observation 2: For any U ⊆ V, X := supp (HχU) satisfies
+the following properties (cf. Fig. 1).
+1) For each arc a = uv ∈ A, we have a ∈ X if and only if
+|U ∩ {u, v}| = 1.
+2) For each node v ∈ V, we have v ∈ X if and only if
+|U ∩ {u, v}| = 1 for some neighbor u ∈ G(v).
+III. REDUCTION TO MINIMUM CUTS IN HYPERGRAPHS
+A. Preliminaries for Hypergraphs
+A pair H = (V, E ) of a finite set V and a family E ⊆ 2V
+of subsets of V is called a hypergraph. Each element v ∈ V is
+called a node, and each element e ∈ E is called a hyperedge.
+Note that each hyperedge e ∈ E is a subset of V, and that if
+every hyperedge is of size 2, then the hypergraph is just an
+undirected graph which contains no self-loop. To measure the
+size of H, we use E := e∈E |e| as well as |V|.
+Let H = (V, E ) be a hypergraph, and c : E → R≥0 a
+nonnegative function on the hyperedges. We call the pair
+N = (H, c) a hypernetwork. A proper nonempty subset
+U of V is called a cut in H (or in N ). The capacity of a
+cut U is defined by
+κN (U) :=
+c(e)
+e∈δH(U)
+where δH(U) := {e ∈ E | e ∩ U = ∅ = e \ U} denotes the set
+of hyperedges in H across U and V \ U. For each node v ∈ V,
+Fig. 2. Example of computing the size of X := supp(HχU) as the capacity
+κN (U) in the auxiliary hypernetwork N . The number above each node is
+the entry of the characteristic vector χU. The nodes and arcs in X (i.e., to be
+attacked), and the hyperedges cut by U are emphasized.
+we simply denote κN ({v}) by κN (v). The hypergraph minimum
+cut problem is to find a cut in a given hypernetwork N
+with the minimum capacity. Let λ(N ) denote the minimum
+capacity.
+Based on the concept of MA-ordering, introduced
+by Nagamochi and Ibaraki [8] for graphs,
+Klimmek and Wagner [4] presented a simple algorithm
+for finding a minimum cut in hypernetwork N in
+O(|V| · E + |V|2 log |V|) time.
+For two distinct nodes s, t ∈ V, a cut U is called an s-t
+cut if s ∈ U and t ∈ U. The hypergraph minimum s-t cut
+problem is to find an s-t cut in a given hypernetwork N with
+the minimum capacity for given distinct nodes s, t ∈ V.
+The hypergraph minimum s-t cut problem can be reduced,
+in general, to the minimum s-t cut problem on directed
+graphs [16], which is a fundamental graph optimization problem
+solved by maximum flow algorithms. In particular, if the
+capacity of every hyperedge is equal to one, we can apply a
+simple algorithm due to Pistorius and Minoux [12]. Its running
+time is bounded by O(C · E ), where C is the maximum
+flow value, which is equal to the minimum s-t cut capacity.
+B. Reduction From Cyber Security Analysis Problems
+Recall that, in the sparsest attack problem (2) and the security
+index problem (3), it suffices to consider the elementary
+attacks. In other words, we have to consider only the values of
+f (U) :=
+HχU 0 = |supp (HχU)|
+over all proper nonempty subset U of V, i.e., over all cuts U
+in G (recall that G = (V, E) denotes the underlying graph
+of the input graph G). Moreover, by Observation 2, it can be
+rewritten as
+f (U) = κG(U) + |V(δG(U))|
+where κG denotes κN for N = (G , 1) and 1 denotes the all
+one vector. Define E := E ∪ { G(v) ∪ {v} | v ∈ V} and N :=
+((V, E ), 1) (recall that G(v) denotes the set of nodes adjacent
+to v in G ). Then, for each cut U in N , we have f (U) = κN (U)
+(cf. Fig. 2) since, for each additional hyperedge ev := G(v) ∪
+{v}, we have ∅ = ev ∩ U = ev if and only if |U ∩ e| = 1 for
+some e ∈ δG(v).
+The sparsest attack problem immediately reduces to the
+hypergraph minimum cut problem by the above construction
+of N . Moreover, the security index problem reduces to the
+hypergraph minimum s-t cut problem as follows. For an arc
+uv ∈ A, then let s := u and t := v. For a node v ∈ V, then
+solve the security index problem of arcs uv ∈ A or vu ∈ A for
+all neighbors u ∈ G(v), and take the minimum among the
+obtained security indices.
+2192
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 5, SEPTEMBER 2015
+Since each edge in E (obtained from A) is of size 2 and protected so that they cannot be attacked. These situations can
+each additional hyperedge ev in E \ E is of size | G(v)| + 1, be represented by using a sufficiently large value M ∈ R. Let
+we have P ⊆ A ∪ V be the set of arcs and nodes with no measurement
+point, and Q ⊆ A ∪ V the set of measurement points which
+E = 2 + (| G(v)| + 1) ≤ 2|A| + (|δG(v)| + 1) are protected. Then, by defining the cost to attack each k ∈ P
+a∈A v∈V v∈V as 0 and to attack each k ∈ Q as M, these situations reduce to
+where δG(v) denotes the set of edges in E incident to v. the generalized cost setting.
+Note that v∈V |δG(v)| counts each edge in E exactly Let c : A ∪ V → R≥0 be a cost function, which repretwice,
+and hence the value is equal to 2|A|. Thus, we have sents the cost to attack each measurement point. The attack
+E ≤ 4|A| + |V| = O(m) (recall that we naturally assume on k ∈ A ∪ V takes the cost c(k), and the goal is to find a
+that G is connected, which leads to n = O(m), where n = |V| sparsest attack or to compute the security index of a given
+and m = |A|). measurement point in terms of the total cost, i.e., the objecUsing
+the algorithm of Klimmek and Wagner [4] for finding tive function H θ 0 to be minimized over θ ∈ RV is
+a minimum cut in a hypergraph (see the Appendix), we obtain replaced by k∈supp(H θ) c(k). We then construct a hyperthe
+following result. The computational time bound of our network N = (H, c ) from N = (H, 1) by replacing its
+method is essentially better than that of computing the security capacity function 1 with a nonnegative function c : E → R≥0
+indices of all arcs by the existing exact method [2], which defined as follows: c (ea) := c(a) for each arc a ∈ A and
+is O(nm2). c (ev) := c(v) for each node v ∈ V (recall that ea ∈ E ⊆ E
+Theorem 1: Given a measurement matrix H, one can find denotes the undirected edge corresponding to a, and that
+a sparsest attack z ∈ RA∪V in O(nm + n2 log n) time. ev = G(v) ∪ {v} ∈ E \ E). This modification leads to a reducRemark
+2: Hendrickx et al. [2] claimed that the security tion of finding a sparsest (minimum cost) elementary attack
+index problem can be solved by finding a minimum s-t cut in to finding a minimum cut in N .
+an auxiliary directed graph G˜. Based on this fact, one may con- Finally, we give a sufficient condition for a sparsest elesider
+that the sparsest attack problem can be solved by finding mentary attack to be the sparsest also among all undetectable
+a minimum cut in G˜, but this is not true for the following rea- attacks in this generalized setting. If c(v) ≤ c(a) holds for
+son. The auxiliary graph G˜ has three times more nodes than every pair of a node v ∈ V and an incident edge ea ∈ δG(v),
+the input graph G. Because of the additional nodes, G˜ always then an analogous claim to Lemma 1 holds (it is not difficult
+contains a cut with capacity 1 which does not correspond to to see that the same proof goes on with respect to the new
+any elementary attack. Such a cut is always a minimum cut objective function with the cost function c). Under this condiin
+G˜, while every cut in G˜ that corresponds to some elemen- tion, Theorem 1 holds as it does. Furthermore, Theorem 2 also
+tary attack is with capacity at least three since the attackable carries over this setting with the aid of an advanced maximum
+set of each elementary attack contains at least one arc and flow algorithm [11].
+both of its ends.
+Recall that we have |V| = n and E = O(m), and we can
+assume the maximum value of an s-t flow in N to be O(n) IV. EXPERIMENTS
+for any distinct s, t ∈ V as follows. Since the underlying graph We compare our new methods, hyp. global min. cut
+has at most constant number of parallel edges at each pair of for the sparsest attack problem (2) and hyp. min. s-t cut
+two nodes in practice, the maximum value of an s-t flow in for the security index problem (3), with several existing
+G is O(n) (which is obviously at most κG(s), i.e., the num- methods.
+ber of arcs incident to s). Moreover, the number of additional 1) min. s-t cut exact [2]: Find a minimum s-t cut in
+hyperedges is n. an auxiliary directed graph, which leads to the security
+Thus the computational time can be bounded as follows. index.
+Theorem 2: Given a measurement matrix H and a measure- 2) min. s-t cut relax [14]: Find a minimum s-t cut in
+ment point k ∈ A ∪ V, one can compute the security index of the original graph to give an upper bound on the security
+k in O(nm) time if k is an arc, and in O(nm| G(v)|) if k is a index.
+node v ∈ V. 3) L1-relax (LP) [15]: Solve an LP with the 1-norm
+Our reduction works well in a more general setting: when objective instead of the 0-norm in (3).
+measurement points have different costs to be attacked and 4) L0-exact (MIP): Solve (3) as a mixed integer prothe
+sparsity of each undetectable attack is evaluated by the gramming problem.
+total cost. This is a natural generalization as discussed also We applied these methods to ten power network instances:
+in [2]. Even in such a situation, a sparsest elementary attack one real-world data set (case 6) in eastern Japan obtained
+can be found by finding a minimum cut in a modified from [10] and nine data sets obtained from [17] (cases 1-5 are
+auxiliary hypernetwork discussed below. Moreover, under a standard IEEE benchmarks, and cases 7-10 are real-world data
+certain condition, it is also the sparsest among all undetectable in Poland). We executed hyp. min. s-t cut, min. s-t
+attacks. cut exact, min. s-t cut relax, and L1-relax (LP)
+It should be noted that this setting includes the follow- for all arcs. We also applied L0-exact (MIP) to all arcs for
+ing situations: when some arcs and nodes do not have their cases 1-6, and to 30 arcs which are randomly chosen
+measurement points, and when some measurement points are for cases 7-10. All computations were done using Python
+YAMAGUCHI et al.: CYBER SECURITY ANALYSIS OF POWER NETWORKS BY HYPERGRAPH CUT ALGORITHMS
+2193
+TABLE I
+ACCURACY OF THE TWO RELAXATION METHODS. THE FIRST ROW “ERROR” IN EACH METHOD REPRESENTS THE RATIO OF
+FAILURE IN OBTAINING THE EXACT SECURITY INDEX. THE SECOND ROW “APPROX.” SHOWS THE GEOMETRIC MEAN OF
+THE RATIOS BETWEEN UPPER BOUNDS OBTAINED BY EACH RELAXATION METHOD AND EXACT SECURITY INDICES
+Fig. 3. Experimental results on the running time of the six methods applied to
+nine benchmarks. Each bar represents the mean running time of each method,
+and the segment on each bar corresponds to the number of arcs, so that its
+top represents the total computational time required to find a sparsest attack
+by computing the security indices for all arcs (or the estimated computational
+time for the application of L0-exact (MIP) to cases 7-10).
+(and internally C++) on a Mac desktop with 3.1 GHz Intel
+CPU Core i7 and 16 GB of memory. CPLEX was used for
+L1-relax (LP) and L0-exact (MIP).
+Fig. 3 illustrates the experimental result on the running
+time of each method. For the security index problem,
+hyp. min. s-t cut as well as min. s-t cut exact
+and min. s-t cut relax runs substantially faster
+than L1-relax (LP) and L0-exact (MIP). Furthermore,
+our hyp. min. s-t cut is faster than min. s-t cut
+exact [2] for all instances (about 1.74 times faster on the
+geometric average). Recall that the sparsest attack problem can
+be solved by computing the security indices for all measurement
+points and adopting the minimum among them. A single
+execution of hyp. global min. cut is much faster than
+this approach.
+Table I shows the accuracy of the two relaxation methods.
+As shown in Fig. 3, min. s-t cut relax is the fastest
+among the five methods for the security index computation.
+In Table I, this method appears to perform better than
+L1-relax (LP), but yet it sometimes fails in obtaining an
+optimal solution.
+Fig. 4. Example of the representation of an undetectable attack as the nonnegative
+linear combination of elementary attacks (note that HχU0 = H1 = 0).
+The nodes and arcs to be attacked are emphasized with thick lines. We assume
+that the positive diagonal matrix D is equal to the identity matrix.
+V. ENUMERATION OF SPARSE ATTACKS
+A. Significance of Elementary Attacks
+Elementary attacks (see Section II-B) play an important role
+also in considering sparse undetectable attacks that are not
+necessarily the sparsest.
+Recall that Lemma 1 does not depend on the threshold
+α, i.e., for any undetectable attack z = H θ and
+any α with minv∈V ( θ )v < α ≤ maxv∈V ( θ )v, U(α) :=
+{v ∈ V | ( θ )v ≥ α} satisfies HχU(α) 0 ≤ z 0. It is
+easy to see that, for any α1, α2 ∈ R with α1 ≤ α2, we
+have U(α1) ⊇ U(α2). Hence, by changing α in the domain
+[ minv∈V ( θ )v, maxv∈V ( θ )v ], we get a nested family V =
+U0 U1 · · · Ur = ∅ such that 0 < HχUj 0 ≤ z 0
+for each Uj with 1 ≤ j ≤ r (note that HχU0 = H1 = 0), where
+r + 1 is the number of different entries of θ .
+For each j = 0, 1, . . . , r, let αj be the (j + 1)th smallest
+entry of θ . Then, as seen in Fig. 4, θ is written as
+θ = α0χU0 +
+(αj − αj−1)χUj .
+Note that χU0 = χV = 1 and recall that H1 = 0
+(see Observation 2). Hence, we have
+z = H θ =
+(αj − αj−1)HχUj .
+The above discussion implies that any undetectable attack
+z can be written as the nonnegative linear combination of
+r
+j=1
+r
+j=1
+2194
+Zβ ⊆
+⎧
+⎨
+elementary attacks HχU with 0 < HχU 0 ≤ z 0. In
+other words, for any positive integer β and the set Zβ of all
+undetectable attacks z with z 0 ≤ β, we have
+αUHχU
+αU ≥ 0 (∅ = U
+αU = 0 if HχU 0 > β
+⎫
+V) and⎬ .
+⎩ U : ∅=U V ⎭
+Based on this fact, what is important for finding sparse
+undetectable attacks is to find all sparse elementary attacks.
+The problem of enumerating all sparse elementary attacks is
+to find all elementary attacks z with z 0 ≤ β for a given
+measurement matrix and a positive integer β. By the same
+argument as Section III-B, this problem can be interpreted as
+to enumerate all small cuts in a given hypergraph. We propose
+a combinatorial algorithm for this problem, whose overview
+is shown in the next section.
+B. Overview of Enumerating Small Cuts in a Hypergraph
+Our goal is to find all cuts U in a given hypernetwork
+N with κN (U) ≤ kλ(N ), called k-small cuts, for a given
+real k ≥ 1 (recall that λ(N ) denotes the minimum capacity
+of a cut in N ). Based on the idea of the algorithm of
+Nagamochi et al. [9] for enumerating all small cuts in an undirected
+graph, we devise a new algorithm for enumerating all
+small cuts in an undirected hypergraph.
+Let β := kλ(N ). The overview of the algorithm is as
+follows. Construct a sequence N = Nn, Nn−1, . . . , N1 of
+hypernetworks by isolating and removing a node in each
+step so that N1 consists of a single node, and for each
+i = 2, 3, . . . , n, λ(Ni) ≤ λ(Ni−1) and κNi (U) ≥ κNi−1 (U) for
+every cut U in Ni−1. After the construction, repeat checking
+the capacity κNi (U) of each cut U in Ni−1 with κNi−1 (U) ≤ β
+and the capacity κNi ({vi}), where vi is the vertex removed from
+Ni, i.e., {vi} = V(Ni) \ V(Ni−1), and maintain the set of all
+cuts U in Ni with κNi (U) ≤ β. This can be done, since the
+cuts U and V(Ni) \ U has the same capacity in Ni and hence
+it suffices to check one of each two such cuts.
+The key idea of our extension is to separate the operation
+called edge-splitting, which is used to isolate a node in the
+original algorithm [9], into two types of operations, which we
+call 1-hyperedge-splitting and 2-hyperedge-splitting.
+Finally, we should mention the running time bound of our
+algorithm. For each i = 1, 2, . . . , n, let hk(N , i) denote the
+number of cuts with capacity at most β = kλ(N ) in Ni,
+which is constructed through the algorithm, and let hk(N ) :=
+maxi hk(N , i). One can see that the number of k-small cuts
+in a hypernetwork N is O(nkM) (i.e., hk(N , n) = O(nkM)),
+where M denotes the maximum size of a hyperedge in N , as
+a straightforward extension of Karger's bound [3] for an undirected
+graph. Our hyperedge-splitting, however, may increase
+M in constructing Ni (i = n − 1, n − 2, . . . , 1), which makes
+it difficult to get a simple bound on hk(N ).
+Theorem 3: Given a hypernetwork N = (H = (V, E ), c)
+and a real k ≥ 1, one can enumerate all cuts U in N
+with κN (U) ≤ kλ(N ) in O(|V| · E 2 + (hk(N ) + |V|2) ·
+E log |V|) time.
+Remark 3: If N consists of only one hyperedge containing
+all nodes, then every cut has the same capacity, which is the
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 5, SEPTEMBER 2015
+minimum. This means that a hypergraph (or a directed graph)
+may have exponentially many minimum cuts, and hence there
+is no polynomial-time algorithm to enumerate all small cuts in
+general. However, it is worth considering whether there exists
+such an algorithm when the size of hyperedges is bounded by
+a constant.
+In the following sections, we present our algorithm with
+introducing some concepts and lemmas, which are described
+analogously to [9]. For full proofs of the lemmas and
+Theorem 3, see the Appendix.
+C. Computing r-Connectivity
+For a hypernetwork N = (H = (V, E ), c), choose a
+node r ∈ V as a designated node. A cut U ⊂ V is
+called r-proper if U is a cut in H − {r}, i.e., r ∈ U and
+U = V − r. The r-connectivity λr(N ) is defined as the minimum
+capacity of an r-proper cut in N . Hence, we have
+λ(N ) = min{λr(N ), κN ({r})}, since for each cut U that is
+not r-proper except for {r}, the complement V \ U is r-proper
+and has the same capacity as U. An r-proper cut U is called
+r-tight if κN (U) = λr(N ).
+Our algorithm often requires an r-tight cut, which can
+be found by a single application of the algorithm of
+Klimmek and Wagner [4] for finding a minimum cut in a
+hypergraph. This fact leads to the following lemma.
+Lemma 2: For any hypernetwork N = (H = (V, E ), c)
+with a designated node r ∈ V, the r-connectivity λr(N ) and an
+r-tight cut can be computed in O(|V| · E + |V|2 log |V|) time.
+D. Weighted Hyperedge-Splitting
+In this section, we introduce two types of procedures called
+hyperedge-splitting, which are used for isolating a designated
+node. Let N = (H = (V, E ), c) be a hypernetwork and r ∈ V a
+designated node. Here we assume that H is a complete hypergraph,
+whose hyperedge set E is {e ⊆ V | |e| ≥ 2}. This setting
+does not lose the generality since we can deal with each hyperedge
+e ∈ E as if it did not exist by defining c(e) = 0. Let us
+define δN (U) := {e ∈ δH(U) | c(e) > 0} for each U ⊆ V and
+N (v) := {u ∈ V − v | u ∈ e ∈ δN (v)} for each v ∈ V.
+First, given a hyperedge e1 ∈ δN (r) and a nonnegative
+real α ≤ αmax := c(e1)/2, we construct a hypernetwork
+N = (H, c ) as follows:
+c (e1) := c(e1) − 2α, c (e ) := c(e ) + 2α,
+c (e) := c(e) (∀e ∈ E \ {e1, e }),
+where e = e1 − r, and if |e | = 1 (i.e., |e1| = 2) then there
+is no update for e . We say that N is obtained from N by
+1-hyperedge-splitting e1 of weight α, and denote the resulting
+hypernetwork N by N /(e1, α).
+Second, given two hyperedges e1, e2 ∈ δN (r) with
+e1 ∩ e2 = {r} and a nonnegative real α ≤ αmax :=
+min{c(e1), c(e2)}, we construct a hypernetwork N = (H, c )
+as follows:
+c (e1) := c(e1) − α, c (e2) := c(e2) − α, c (e ) := c(e ) + α,
+c (e) := c(e) (∀e ∈ E \ {e1, e2, e }),
+YAMAGUCHI et al.: CYBER SECURITY ANALYSIS OF POWER NETWORKS BY HYPERGRAPH CUT ALGORITHMS
+2195
+where e = e1 e2 := (e1 \ e2) ∪ (e2 \ e1) = e1 ∪ e2 − r. We say
+that N is obtained from N by 2-hyperedge-splitting e1 and
+e2 of weight α, and denote the resulting hypernetwork N by
+N /(e1, e2, α).
+Observation 3: After hyperedge-splitting (e1, α) or
+(e1, e2, α) (in the case of 1-hyperedge-splitting, ignore the
+second case), for any cut U with r ∈ U in H, we have
+⎪⎪⎪⎧ κN (U) − 2α
+κN (U) = ⎨ κN (U) − α
+⎪
+⎪⎪⎩ κN (U)
+(e ⊆ U)
+e1 ∩ U = ∅ = e2 ∩ U
+and e \ U = ∅
+(otherwise).
+(4)
+This observation implies that the capacity of each r-proper
+cut does not increase by any hyperedge-splitting. Hence, we
+have λr(N ) ≤ λr(N ) for any α ≤ αmax. Let αr(e1; N ) and
+αr(e1, e2; N ) denote the maximum α such that α ≤ αmax and
+λr(N ) = λr(N ), i.e., any r-tight cut in N remains r-tight
+in N /(e1, α) and N /(e1, e2, α) if 0 ≤ α ≤ αr(e1; N ) and
+0 ≤ α ≤ αr(e1, e2; N ), respectively.
+The following lemma claims that the values of αr(e1; N )
+and αr(e1, e2; N ) and a critical r-proper cut can be computed
+efficiently. This is based on Observation 3, which implies that
+there are at most two types of r-proper cuts whose capacities
+decrease by a hyperedge-splitting. Hence, it suffices to find an
+r-tight cut in at most two hypernetworks obtained from N by
+hyperedge-splitting of at most two distinct weight.
+Lemma 3: Let N = (H = (V, E ), c) be a hypernetwork
+with a designated node r ∈ V. Then, for any hyperedge
+e1 ∈ δN (r) (or any two hyperedges e1, e2 ∈ δN (r) with
+e1 ∩ e2 = {r}).
+1) αr(e1; N ) (or αr(e1, e2; N )) can be computed in
+O(|V| · E + |V|2 log |V|) time.
+2) If c (e1) > 0 (or c (e1) > 0 and c (e2) > 0), where
+c is the capacity function of N := N /(e1, αr(e1; N ))
+(or N := N /(e1, e2, αr(e1, e2; N ))), then N has an
+r-tight cut T such that e ⊆ T (or e1 ∩ T = ∅ = e2 ∩ T).
+Which can be found in O(|V| · E + |V|2 log |V|) time.
+The next lemma shows an important property of r-tight cuts,
+which is used in the algorithm to isolate a designated node
+r ∈ V shown in the next section. The proof is simply done by
+contradiction.
+Lemma 4: For any hypernetwork N = (H = (V, E ), c)
+with a designated node r ∈ V with N (r) = ∅ and any r-tight
+cuts T and T in N , we have the following properties.
+1) N (r) \ T = ∅.
+2) If there exists a hyperedge e ∈ δN (r) such that
+e ∩ T = ∅, e \ T = {r}, and e ⊆ T + r, then T T.
+3) If there exist two hyperedges e1, e2 ∈ δN (r) such that
+e1 ∩ e2 = {r}, e1 ⊆ T + r, e2 ∩ T = ∅, e1 ∩ T = ∅, and
+e2 ∩ T = ∅, then T T.
+E. Algorithm to Isolate a Node
+Our algorithm to isolate a designated node r ∈ V is shown as
+Algorithm 1. The idea is simple: to repeat hyperedge-splitting
+while there exists a hyperedge e ∈ δN ∗ (r) incident to r in the
+temporary hypernetwork N ∗. A more detailed explanation of
+Algorithm 1 is described later.
+Algorithm 1 Node Isolation Technique
+Input: A hypernetwork N = (H = (V, E ), c) and r ∈ V.
+Output: A hypernetwork Nr = ((V − r, E ), c ) with the
+conditions (i) and (ii) in Lemma 5 and a set Qr of the
+information of all hyperedge-splittings performed.
+1: N ∗ ← N , T∗ ← ∅, Qr ← ∅.
+2: while |δN ∗ (r)| > 1 do
+3: if T∗ ∩ N ∗ (r) = ∅ then
+4: T∗ ← {u} for some u ∈ N ∗ (r).
+5: end if
+6: if ∃e ∈ δN ∗ (r) s.t. e ∩ T∗ = ∅ and e \ T∗ = {r} then
+7: Take such e, and compute α := αr(e; N ∗).
+8: αmax ← c(e)/2.
+9: N ∗ ← N ∗/(e, α) (1-hyperedge-splitting), and
+Qr ← Qr ∪ {(e, α)}.
+10: else
+11: Take e1, e2 ∈ δN ∗ (r) s.t. e1 ⊆ T∗ +r and e2 ∩T∗ = ∅,
+and compute α := αr(e1, e2; N ∗).
+12: αmax ← min{c(e1), c(e2)}.
+13: N ∗ ← N ∗/(e1, e2, α) (2-hyperedge-splitting), and
+Qr ← Qr ∪ {(e1, e2, α)}.
+14: end if
+15: if α < αmax then
+16: For the r-tight cut T in N ∗ found by hyperedgesplitting
+(Lemma 3-(ii)), let T∗ ← T.
+17: end if
+18: end while
+19: N ∗ ← N ∗/(e, c(e)/2) (1-hyperedge-splitting), and
+Qr ← Qr ∪ {(e, c(e)/2)} for unique e ∈ δN ∗ (r) if exists.
+20: Return Nr := N ∗ − r and Qr.
+The following lemma guarantees the correctness and efficiency
+of Algorithm 1. It is rather easy to see that the algorithm
+returns a desired hypernetwork when it halts, since it just performs
+hyperedge-splitting without destroying any r-tight cut.
+The running time bound is much more difficult to see, which
+is based on the facts that each hyperedge in δN (r) is in one of
+the four irreversible states, and that each hyperedge-splitting
+changes the state of at least one hyperedge in δN (r).
+Lemma 5: Algorithm 1 correctly isolates r ∈ V in a
+hypernetwork N = (H = (V, E ), c), i.e., it returns a hypernetwork
+Nr = ((V − r, E ), c ) with the following conditions
+1) and 2), after at most 3|δN (r)| hyperedge-splittings, and runs
+in O |δN (r)| · (|V| · E + |V|2 log |V|) time.
+1) κNr (U) ≤ κN (U) for every cut U in Nr.
+2) λ(Nr) = λr(N ) ≥ λ(N ).
+In this algorithm, the variable T∗ indicates an r-tight cut
+in N ∗ unless just after line 4 is performed, and it monotonically
+expands in line 16 [by Lemma 4-2), 3)] until line 4
+is performed next. The monotonicity of T∗ plays an important
+role on the irreversibility of the state of each hyperedge
+in δN (r), which leads to the upper-bound on the number
+of performances of hyperedge-splittings in Lemma 5. The
+condition at line 6 is to guarantee this monotonicity of T∗.
+If there exists a 1-hyperedge-splitting that does not violate
+the monotonicity of T∗, then the algorithm performs such a
+1-hyperedge-splitting (lines 7-9), and otherwise it performs
+2196
+Algorithm 2 Hypergraph Small Cut Enumeration
+Input: A hypernetwork N = (H = (V, E ), c) and k ≥ 1.
+Output: The set Ck(N ) of all k-small cuts in N .
+1: Compute λ(N ), and set Nn ← N and β ← kλ(N ).
+2: for i = n, n − 1, . . . , 2 do
+3: Take vi ∈ arg minv∈V(Ni) |δNi (v)|.
+4: Isolate vi in Ni by Algorithm 1, and Ni−1 ← Nvi .
+5: end for
+6: r ← v1 (reference node), and Cr≤β (N1) ← ∅.
+7: for j = 2, 3, . . . , n do
+8: κNj (vj) ← 2 {α | (e, α) ∈ Qvj or(e1, e2, α) ∈ Qvj }.
+9: for each U ∈ Cr≤β (Nj−1) do
+10: κNj (U) ← κNj−1 (U) + fj(U) and
+κNj (U + vj) ← κNj−1 (U) + gj(U)
+where fj and gj are defined naturally from (4).
+end for
+11:
+12:
+C+vj [Cr≤β (Nj−1)] ← Cr≤β (Nj−1) ∪ {U + vj | U ∈
+Cr≤β (Nj−1)} ∪ {{vj}}.
+13: Cr≤β (Nj) ← {U ∈ C+vj [Cr≤β (Nj−1)] | κNj (U) ≤ β}.
+14: end for
+15: Return Ck(N ) := Cr≤β (Nn).
+such a 2-hyperedge-splitting (lines 11-13). It is not trivial that
+such a 2-hyperedge-splitting can be performed, but it can be
+done in fact unless T∗ ∩ N (r) = ∅ (the condition in line 3
+to initialize T∗).
+Line 19 is performed only when |δN ∗ (r)| = 1. We describe
+this separately, since the condition in line 6 may not be satisfied
+in this situation but the 1-hyperedge-splitting (e, c(e)/2)
+(e ∈ δN ∗ (r)) can be performed.
+F. Enumerating All Small Cuts
+Our algorithm to find all small cuts in a hypernetwork is
+shown as Algorithm 2. The basic idea is the same as the algorithm
+of Nagamochi et al. [9], and the overview is briefly
+described in Section V-B.
+In lines 2-5, the algorithm constructs a sequence of
+hypernetworks Ni−1 (i = n, n − 1, . . . , 2) by isolating
+(applying Algorithm 1 to) a node vi ∈ V(Ni) with |δNi (vi)|
+minimum and removing vi. Let v1 denote the node that remains
+in N1. After that, in lines 7-14, it enumerates all cuts U
+in Nj with κNj (U) ≤ β = kλ(N ) for j = 2, 3, . . . , n.
+Note that, for the enumeration, it suffices to consider cuts U
+in Nj with v1 ∈ U since U and V(Nj) \ U has the same
+capacity in Nj. Hence, we maintain the set Cr≤β (Nj) of all
+such cuts (U with κNj (U) ≤ β and v1 ∈ U) by using the
+information Qvj of hyperedge-splittings performed in line 4
+(Algorithm 1).
+VI. CONCLUSION
+We have presented two exact and efficient solution methods
+for cyber security analysis problems of power networks using
+hypergraphs. One is to compute the security index of a specified
+arc or node, and the other is to find a sparsest attack in
+the whole network. We have also pointed out the significance
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 5, SEPTEMBER 2015
+Algorithm 3 Hypergraph Minimum Cut Algorithm
+Input: A hypernetwork N = (H = (V, E ), c).
+Output: A cut U with κN (U) minimum.
+1: K ← +∞, U ← ∅, N ← N (N = (H = (V , E ), c )).
+2: while |V | ≥ 2 do
+3: W ← ∅.
+4: while W = V do
+5: W ← W + v, where v ∈ V \ W is taken so that
+{c (e) | e ∈ δN ({v}, W)} is maximized.
+6: if |V \ W| = 1 then
+7: s ← v.
+8: end if
+9: if W = V then
+10: t ← v.
+11: end if
+12: end while
+13: if κN ({t}) < K then
+14: U ← {v ∈ V | v was merged into t}, and
+K ← κN ({t}).
+15: end if
+16: Update N by merging s and t into a single node.
+17: end while
+18: Return U.
+of sparse elementary attacks, and presented an algorithm to
+enumerate sparse elementary attacks by enumerating small
+cuts in a hypergraph, which extends such an algorithm for an
+undirected graph. Some theoretical and experimental analyses
+of our generalized algorithm are left as future works.
+APPENDIX
+A. Hypergraph Minimum Cut Algorithm
+Here we describe the algorithm of Klimmek and Wagner [4]
+for finding a minimum cut in a hypergraph in order to
+use for proofs below. Define δN (U, W) := {e ∈ E |
+e ∩ U = ∅ = e ∩ W and c(e) > 0} for a hypernetwork
+N = ((V, E ), c).
+The idea is simple: to find a minimum s-t cut in the temporary
+hypernetwork N for some pair of s, t ∈ V , and to update
+N by merging s and t into a single node, repeatedly. Since
+the merging does not change the capacity of any cut in N
+that does not separate s and t, a minimum cut among the cuts
+found above is also a minimum cut in the original hypernetwork.
+The following lemma guarantees that the cut {t} in N ,
+whose capacity is checked in line 13, is indeed a minimum
+s-t cut after line 12 if we choose s and t along lines 3-11.
+Lemma 6 (Klimmek and Wagner [4]): After line 12 in
+Algorithm 3, the cut {t} in the temporary hypernetwork N
+has the minimum capacity among all s-t cuts in N .
+B. Proofs
+Proof of Lemma 2: We use the algorithm of
+Klimmek and Wagner [4] for finding a minimum cut in a
+hypergraph shown as Algorithm 3 in the previous section.
+After line 12 in Algorithm 3, the cut {t} is guaranteed to
+YAMAGUCHI et al.: CYBER SECURITY ANALYSIS OF POWER NETWORKS BY HYPERGRAPH CUT ALGORITHMS
+2197
+be a minimum s-t cut by Lemma 6. If we always take the
+designated node r as the first v in line 5 (note that the first
+v is arbitrary since δN ({v}, ∅) = ∅ for every v ∈ V ), then
+r remains in N until the final iteration. We show that, if
+we replace line 2 by “while |V| > 2 do” and line 3 by
+“W ← {r},” then the modified algorithm returns an r-tight
+cut in N .
+Since the cut {t} is a minimum s-t cut after line 12, the
+modified algorithm returns a cut U in N with the minimum
+capacity such that U is an s-t cut after line 12 for some iteration
+step (note that some nodes in U was merged into single
+nodes in line 16). The hypernetwork N has exactly two nodes
+including r when the modified algorithm halts. Hence, for any
+r-proper cut U in N , we have |U ∩ {s, t}| = 1 in some iteration
+step, and for any cut U in N with |U ∩ {s, t}| = 1
+in some iteration step, one of U and V \ U (with the same
+capacity) is r-proper. Thus, we have proven that the modified
+algorithm returns an r-tight cut in N , since each cut U in
+N remains with the same capacity after merging s and t if
+|U ∩ {s, t}| = 1.
+Proof of Lemma 3: Apply Lemma 2 to N and N˜ :=
+N /(e1, αmax) (or N˜ := N /(e1, e2, αmax)). If λr(N ) = λr(N˜ ),
+then the desired value in (i) is obviously equal to αmax and
+we have c (e1) = 0 (or c (e1) = 0 or c (e2) = 0) in N = N˜ .
+Otherwise, we obtain an r-tight cut T˜ in N˜ that may not be
+r-tight in N .
+By Observation 3, the capacity of each cut decreases
+almost uniformly after a hyperedge-splitting. In the case of
+a 1-hyperedge-splitting of weight α, since the difference is
+always 2α if decreases, it is easily seen that
+α(e1; N ) = αmax λr(N
+) − λr N˜
+2
+holds and T˜ is also r-tight in N . This T˜ must include
+e = e1 − r by (4).
+In the case of a 2-hyperedge-splitting of weight α, though
+there are two possible differences α and 2α, the same idea
+works well. Let
+⎧
+α˜ := ⎨⎪⎪ αmax λr(N
+) − λr N˜
+2
+⎪⎪⎩ αmax λr(N
+) − λr N˜
+e1 e2 ⊆ T˜
+(otherwise)
+(5)
+and apply Lemma 2 to Nˆ := N /(e1, e2, α˜ ). If λr(N ) =
+λr(Nˆ ), then we have α(e1, e2; N ) = α˜ and T˜ is also r-tight
+in N = Nˆ . This T˜ must satisfy e1 ∩ T˜ = ∅ = e2 ∩ T˜ by (4)
+(note that e = e1 e2 ⊆ T˜ implies this condition).
+Otherwise, we obtain an r-tight cut Tˆ in Nˆ that is not r-tight
+both in N and in N˜ . In this case, we have κN (T˜ ) − κNˆ (T˜ ) =
+a2nα˜y, rκ-Npr(oTˆp)er−cuκtNˆU(Tˆ w)it=h κα˜ ,ˆ (aUn)d <κNλr((UN) )−,sκinNˆce(Uth)e=posα˜sibfoler
+differences of the cut capacNities are only 0, α˜ , and 2α˜ . Hence,
+we have α(e1, e2; N ) = αmax − λr(N ) − λr(Nˆ ) , and Tˆ
+is also r-tight in N = N /(e1, e2, α(e1, e2; N )) and satisfies
+e1 ∩ Tˆ = ∅ = e2 ∩ Tˆ .
+Proof of Lemma 4:
+1) Suppose to the contrary that some r-tight cut T V − r
+contains all neighbors of r in N (r), i.e., there is no
+hyperedge with positive capacity across {r} and V \ T.
+Then, for the r-proper cut R := V \ (T + r), we have
+κN (T) = κN (R) + κN ({r}) > λr(N ) = κN (T), a
+contradiction.
+2) Suppose to the contrary that some hyperedge e ∈ δN (r)
+and two r-tight cuts T and T with e∩T = ∅, e\T = {r}
+and e ⊆ T + r violate the property, i.e., T \ T = ∅ or
+T = T . Then, T and T are crossing (all of T ∩ T ,
+T \ T , T \ T, and V \ (T ∪ T ) are nonempty), and hence
+we have
+κN (T) + κN T
+≥ κN T \ T + κN T \ T + c(e)
+> 2λr(N ) = κN (T) + κN T
+a contradiction, where the first inequality is easily
+checked by enumerating hyperedges that contribute to
+the cut capacities.
+3) Suppose to the contrary that some hyperedges
+e1, e2 ∈ δN (r) and two r-tight cuts T and T with
+e1 ∩ e2 = {r}, e1 ⊆ T + r, e2 ∩ T = ∅, e1 ∩ T = ∅,
+and e2 ∩ T = ∅ violate the property, i.e., T \ T = ∅ or
+T = T . Then, T and T are crossing, and hence by the
+similar observation as the proof of 2), we have
+κN (T) + κN T
+≥ κN T \ T + κN T \ T + c(e1)
+> 2λr(N ) = κN (T) + κN T
+a contradiction.
+Proof of Lemma 5: First of all, we show that the output
+Nr satisfies the two conditions when Algorithm 1 halts. The
+condition 1) holds by Observation 3, since the algorithm just
+performs hyperedge-splittings repeatedly. Each hyperedgesplitting
+is performed so that it does not destroy any r-tight cut
+in the temporary hypernetwork N ∗ (i.e., the capacity of each
+r-tight cut does not change and all r-tight cuts remain r-tight)
+in the while loop (lines 2-18), and hence it suffices to check
+line 19. Suppose that the r-connectivity λr(N ∗) decreases by
+1-hyperedge-splitting e of weight c(e)/2 under the condition
+that δN ∗ (r) = {e}. Then, by Observation 3, we must have e ⊆
+T + r for some r-tight cut T in N := N ∗/(e, αr(e; c(e)/2))
+with κN (T) < λr(N ∗). Since αr(e; N ∗) < c(e)/2, the
+hyperedge e ∈ δN ∗ (r) remains in N ∗/(e, αr(e; N ∗)), which
+contradicts Lemma 4-1).
+Next, we confirm that line 11 can be performed if the condition
+in line 6 is not satisfied. Since at least one hyperedge
+e1 ∈ δN ∗ (r) is across {r} and T∗ just before line 6, it suffices
+to show that there exists a hyperedge e2 ∈ δN ∗ (r) with
+e2 ∩ T∗ = ∅. If line 4 has been performed in the current iteration,
+then it immediately follows from |δN ∗ (r)| > 1 and the
+inexistency of e satisfying the condition in line 6. During the
+algorithm, each hyperedge e ∈ δH(r) is in one of the four possible
+states: (S1) e ∈ δN ∗ (r) and e ∩ T∗ = ∅, (S2) e ∈ δN ∗ (r),
+e ∩ T∗ = ∅ and e \ T∗ = {r}, (S3) e ∈ δN ∗ (r) and e ⊆ T∗ + r,
+and (S4) e ∈ δN ∗ (r), i.e., the capacity of e in N ∗ is 0. By
+Lemma 4-1), there exists e ∈ δH(r) in the state (S1) or (S2).
+Since the condition in line 6 is equivalent to the existence of a
+2198
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 5, SEPTEMBER 2015
+hyperedge in the state (S2), e is in (S1). Hence, we can choose
+such e as e2, and thus line 11 can be performed.
+We start to prove the bound on the number of
+hyperedge-splittings performed in Algorithm 1, using the
+states (S1)-(S4) defined above. In the rest of this proof, we
+show the following two statements: 1) these states are irreversible,
+i.e., the state index is monotone nondecreasing for
+each hyperedge throughout the algorithm and 2) after each
+hyperedge-splitting in line 9 or 13, for at least one hyperedge,
+the state index increases. Note that, since the capacity
+of every edge e ∈ δH(r) monotonically decreases during the
+algorithm, we need not to consider any transition from the
+state (S4).
+To see these statements (a) and (b), we first show that T ∗
+monotonically increases unless line 4 is executed. This follows
+from Lemma 4-2), 3). If |T ∗| > 1, then T ∗ was updated
+in line 16 in the previous iteration, and hence T ∗ is r-tight.
+Then, by applying Lemma 4-2), 3) to T and T ∗ just before
+line 16 in the current iteration, we confirm T ∗ T . Moreover,
+by Lemma 4-2), 3), each expansion of T ∗ involves increasing
+the state index of one of the selected hyperedges for
+the hyperedge-splitting in the current iteration as follows. In
+the case of 1-hyperedge-splitting (e, α) in line 9, e is in the
+state (S2) before line 9 by the condition in line 6, in (S4)
+after line 9 if α = αmax. and otherwise in (S3) after line 16
+by Lemma 4-2). In the case of 2-hyperedge-splitting (e1, e2, α)
+in line 13, e2 is in the state (S1) before line 13 by the condition
+in line 11, in (S4) after line 13 if α = c(e2), and otherwise
+in (S2) or (S3) after line 16 by Lemma 4-3).
+Finally, we consider update of T ∗ in line 4. If the condition
+in line 3 is satisfied, i.e., T ∗ ∩ δN ∗ (r) = ∅, then every e ∈
+δH(r) is in the state (S1) or (S4). Hence, each update of T ∗
+in line 4 changes the state of some e ∈ δH(r) in the state
+(S1) into (S2) and does not change the state of any e ∈ δH(r)
+in the state (S4).
+Proof of Theorem 3: The proof is almost the same
+as [9, Section 6]. One of the main differences appears in line
+10 of Algorithm 2, in which it computes the cut capacities
+κNj (U) and κNj (U + vj) for a small cut U in Nj−1 with
+κNj−1 (U) ≤ β. It is easily seen from (4) that fj and gj defined
+as follows work well:
+fj(U) := 2
+{α | (e, α) ∈ Qvj with e ⊆ U + vj}
+{α | (e1, e2, α) ∈ Qvj with e1 e2 ⊆ U}
+(e1, e2, α) ∈ Qvj with (e1 e2) \ U = ∅
+and e1 ∩ U = ∅ = e2 ∩ U
+gj(U) := 2
+{α | (e, α) ∈ Qvj with e ∩ U = ∅}
++ 2
++
++ 2
++
+α
+α
+{α | (e1, e2, α) ∈ Qvj with (e1 e2) ∩ U = ∅}
+(e1, e2, α) ∈ Qvj with (e1 e2) ∩ U = ∅
+and e1 \ U = {vj} = e2 \ U
+.
+The other main difference appears in the part of bounding
+the computational time of lines 2-5. Note that, for
+each i = n, n − 1, . . . , 2, the algorithm chooses vi ∈ Vi
+in line 3 so that |δNi (vi)| is minimized, which implies
+E i ( E
+i
++ |V | log |V |)
+= O ( E · |V | · ( E
++ |V | log |V |)).
+For each j = 2, 3, . . . , n, the construction of the set
+Cr≤β (Nj) of all cuts U in Nj with κNj (U) ≤ β and v1 ∈ U
+in lines 8-13 can be done in O(|Cr≤β (Nj−1)| · |Qvj |) time.
+Recall that hk(N ) = maxi hk(N , i) = maxi |Cr≤β (Ni)|. We
+have |Qvi | = O(|δNi (vi)|) by Lemma 5, and hence the
+computational time of lines 7-14 is bounded by
+|δNi (vi)| ≤ E /i. This fact leads to the following bound on
+the computational time of lines 2-5:
+O
+n
+i=1
+n
+i=1
+O |Cr≤β (Ni)| · |Qvi | =
+n
+O
+hk(N ) E
+i
+i=1
+= O(hk(N ) · E log |V |).
+Considering the above bound together with the computational
+time bound of lines 2-5 shown in the previous section,
+we finally obtain the total computational time bound shown in
+Theorem 3.
+REFERENCES
+[1] A. Abur, Power System State Estimation: Theory and Implementation.
+Boca Raton, FL, USA: CRC Press, 2004.
+[2] J. M. Hendrickx, K. M. Johansson, R. M. Jungers, H. Sandberg, and
+K. C. Sou, “Efficient computations of a security index for false data
+attacks in power networks,” IEEE Trans. Auto. Cont., vol. 59, no. 12,
+pp. 3194-3208, Aug. 2014
+[3] D. R. Karger, “Random sampling in cut, flow, and network design
+problems,” Math. Oper. Res., vol. 24, no. 2, pp. 383-413, 1999.
+[4] R. Klimmek and F. Wagner, “A simple hypergraph min cut algorithm,”
+Internal Rep. B 96-02, Bericht FU Berlin Fachbereich Mathematik und
+Informatik, Freie Universität Berlin, 1996.
+[5] J.-M. Lin and H.-Y. Pan, “A static state estimation approach including
+bad data detection and identification in power systems,” in Proc. IEEE
+Power Eng. Soc. Gen. Meeting, Tampa, FL, USA, Jun. 2007, pp. 1-7.
+[6] Y. Liu, P. Ning, and M. K. Reiter, “False data injection attacks against
+state estimation in electric power grids,” in Proc. 16th ACM Conf.
+Comput. Commun. Security, Chicago, IL, USA, Nov. 2009, pp. 21-32.
+[7] S. G. Mallat and Z. Zhang, “Matching pursuits with time-frequency dictionaries,”
+IEEE Trans. Signal Process., vol. 41, no. 12, pp. 3397-3415,
+Dec. 1993.
+[8] H. Nagamochi and T. Ibaraki, “Computing edge-connectivity in multigraphs
+and capacitated graphs,” SIAM J. Discrete Math., vol. 5, no. 1,
+pp. 54-66, Feb. 1992.
+[9] H. Nagamochi, K. Nishimura, and T. Ibaraki, “Computing all small
+cuts in an undirected network,” SIAM J. Discrete Math., vol. 10, no. 3,
+pp. 469-481, Aug. 1997.
+[10] M. Nagata et al., “Phase-model analysis of supply stability in power grid
+of Eastern Japan,” in Proc. Int. Symp. Nonlinear Theory Appl., 2013,
+pp. 69-72.
+[11] J. B. Orlin, “Max flows in O(nm) time, or better,” in Proc. 45th Annu.
+ACM Symp. Theory Comput., 2013, pp. 765-774.
+[12] J. Pistorius and M. Minoux, “An improved direct labeling method for the
+max-flow min-cut computation in large hypergraphs and applications,”
+Int. Trans. Oper. Res., vol. 10, no. 1, pp. 1-11, 2003.
+[13] H. Sandberg, A. Teixeira, and K. H. Johansson, “On security
+indices for state estimators in power networks,” in Proc. 1st
+Workshop Secure Control Syst. (CPSWEEK), Stockholm, Sweden,
+2010. [Online]. Available: https://www.truststc.org/conferences/
+10/CPSWeek/program.htm
+[14] K. C. Sou, H. Sandberg, and K. H. Johansson, “Electric power network
+security analysis via minimum cut relaxation,” in Proc. 50th IEEE
+Conf. Decis. Control Eur. Control Conf. (CDC-ECC), Orlando, FL, USA,
+Dec. 2011, pp. 4054-4059.
+YAMAGUCHI et al.: CYBER SECURITY ANALYSIS OF POWER NETWORKS BY HYPERGRAPH CUT ALGORITHMS
+2199
+[15] K. C. Sou, H. Sandberg, and K. H. Johansson, “On the exact solution to
+a smart grid cyber-security analysis problem,” IEEE Trans. Smart Grid,
+vol. 4, no. 2, pp. 856-865, Jun. 2013.
+[16] H. H. Yang and D. F. Wong, “Efficient network flow based min-cut balanced
+partitioning,” IEEE Trans. Comput.-Aided Design Integr. Circuits
+Syst., vol. 15, no. 12, pp. 1533-1540, Dec. 1996.
+[17] R. D. Zimmerman, C. E. Murillo-Sánchez, and R. J. Thomas,
+“MATPOWER: Steady-state operations, planning, and analysis tools
+for power systems research and education,” IEEE Trans. Power Syst.,
+vol. 26, no. 1, pp. 12-19, Feb. 2011.
+[18] S. Zonouz et al., “SCPST: Security-oriented cyber-physical state estimation
+for power grid critical infrastructures,” IEEE Trans. Smart Grid,
+vol. 3, no. 4, pp. 1790-1799, Dec. 2012.
+Akiko Takeda received the B.E. and M.E. degrees
+in administration engineering from Keio University,
+Yokohama, Japan, in 1996 and 1998, respectively,
+and the Dr.Sc. degree in information science from
+the Tokyo Institute of Technology, Tokyo, Japan,
+in 2001.
+She is currently an Associate Professor with the
+Department of Mathematical Informatics, University
+of Tokyo, Tokyo. Her current research interests
+include solution methods for decision making problems
+under uncertainty and nonconvex optimization
+problems, which appear in financial engineering, machine learning, and energy
+systems.
+Yutaro Yamaguchi received the M.Sc. degree
+in mathematical sciences from Kyoto University,
+Kyoto, Japan, in 2013. He is currently pursuing the
+Ph.D. degree from the Department of Mathematical
+Informatics, University of Tokyo, Tokyo, Japan.
+His current research interests include combinatorial
+optimization and graph theory.
+Anna Ogawa received the B.E. degree in
+administration engineering from Keio University,
+Yokohama, Japan, in 2013, where she is currently
+pursuing the Master's degree.
+Her current research interests include machine
+learning and its application to renewable energy
+systems.
+Satoru Iwata received the B.E. and M.E. degrees
+in mathematical engineering from the University of
+Tokyo, Tokyo, Japan, in 1991 and 1993, respectively,
+and the Dr.Sc. degree in mathematical sciences from
+Kyoto University, Kyoto, Japan, in 1996.
+He is currently a Professor with the Department
+of Mathematical Informatics, University of Tokyo.
+His current research interests include combinatorial
+optimization, matroid theory, and their applications
+in systems analysis and control.
+Prof. Iwata was the recipient of the Delbert
+Ray Fulkerson Prize in 2003 for his joint work on submodular function
+minimization.

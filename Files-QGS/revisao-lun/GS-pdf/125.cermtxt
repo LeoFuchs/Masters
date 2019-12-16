@@ -1,0 +1,1338 @@
+Secure and Resilient Control Design for Cloud Enabled
+Networked Control Systems
+Zhiheng Xu and Quanyan Zhu
+Department of Electrical and Computer Engineering, Polytechnic School of Engineering
+New York University, Brooklyn, 11201, USA. E-mail: zx383, qz494@nyu.edu.
+ABSTRACT
+Cloud computing enables resource-constrained Networked Control
+Systems (NCSs) to outsource heavy computations to a cloud
+server with massive computational resources. However, Cloudenabled
+NCSs (CE-NCSs) introduce new challenges arising from
+the trustworthiness of the cloud and the cyber-physical connections
+between the control system and the cloud. To address these concerns,
+this paper presents a secure and resilient mechanism, which
+employs customized cryptographic tools to encrypt the data of a
+control problem and develops verification methods to guarantee the
+integrity of the computational results from the cloud. In addition,
+our design enables a Switching Mode Mechanism (SMM) to provide
+resiliency to the NCSs when the system successively fails to
+receive correct control inputs from the cloud. We demonstrate that
+the mechanism can achieve the data confidentiality and integrity,
+guarantee the stability, and enhance the resiliency. Finally, an Unmanned
+Aerial Vehicle (UAV) example is used to corroborate these
+properties.
+Categories and Subject Descriptors
+K.6.5 [MANAGEMENT OF COMPUTING AND INFORMATION
+SYSTEMS]: Security and Protection-unauthorized access;
+C.3 [SPECIAL-PURPOSE AND APPLICATION-BASED SYSTEMS]:
+Process control systems
+Keywords
+Cloud-enabled networked control system, cyber-physical system,
+security, resiliency
+1.
+INTRODUCTION
+Feedback control systems are ubiquitous in modern critical infrastructures
+(e.g, power grids and transportation) as well as in civil
+lives (e.g., elevators and robots). In the classical design of control
+systems, all system components, including sensors, controller, actuator,
+and plant, are embedded in a local unit. This practice leads
+to a high cost of installation, communication constraints, and lack
+Permission to make digital or hard copies of all or part of this work for personal or
+classroom use is granted without fee provided that copies are not made or distributed
+for profit or commercial advantage and that copies bear this notice and the full citation
+on the first page. Copyrights for components of this work owned by others than
+ACM must be honored. Abstracting with credit is permitted. To copy otherwise, or republish,
+to post on servers or to redistribute to lists, requires prior specific permission
+and/or a fee. Request permissions from Permissions@acm.org.
+CPS-SPC'15, October 16, 2015, Denver, Colorado, USA.
+c 2015 ACM. ISBN 978-1-4503-3827-1/15/10 ...$15.00.
+DOI: http://dx.doi.org/10.1145/2808705.2808708.
+of flexibility. The advent of Information and Communication technologies
+(ICTs) greatly facilitates the integration of advanced technologies
+into control systems. Feedback loops are integrated with
+wireless communications between different system components as
+a Networked Control System (NCS), which enables a broad range
+of modern control system applications, such as remote surgery [23],
+Unmanned Aerial Vehicles (UAVs) [25], and smart grids [8].
+With an increasing amount of information gathered from networked
+sensors and a large scale of the system, an NCS requires a
+significant amount of computational resources to achieve the control
+objectives. As a result, resource-constrained control systems
+restrain their control performance using a conventional design. For
+example, in the case of nano and micro robots, the size of physical
+part of the robots is often limited. This property constrains
+the resources of the hardware equipped in these robots, making it
+impractical for the robots to handle complicated sensing information,
+such as video and image information. The recent developFigure
+1: An example of the Cloud-enabled NCSs: An unmanned
+helicopter conducts a search mission and outsources
+its computations to a cloud.
+ments of Cloud Computing Technologies (CCTs) makes it possible
+to resolve resource-constrained issues of NCSs. CCTs provide
+massive computing resources as well as storage resources to NCSs,
+and extensively enhance their performance by migrating local computations
+to a cloud. The integration of CCTs with NCSs leads to
+Cloud-enabled Networked Control Systems (CE-NCSs), bringing
+the following revolutionary features to control systems: large-scale
+real-time data processing [4], massive paralleled computation and
+signal processing [2], and resource sharing. Another advantage of
+outsourcing complicated computations to a cloud is that the control
+system can reduce its energy cost, enabling the system to conduct
+a mission in a longer duration [27].
+Fig. 1 illustrates an example of UAV that conducts a searching
+mission. As the UAV is resource-constrained, it can improve its
+performance by outsourcing the computations of the searching and
+control problems to the cloud. One real application of CE-NCSs
+is the Google self-driving car [13]. The self-driving car, connected
+to satellites to collect and update the maps and images, can upload
+the sensing information to a cloud to achieve accurate positioning.
+Another example is the cloud-based formation control [27].
+The authors have demonstrated that the integrated robotic system
+with a cloud simplifies the hardware of the robots as the robots outsource
+heavy computations to a cloud. In [24], Pandey et al. have
+developed a dynamic mechanism to integrate resource-constrained
+networked robots with cloud, and Autonomous Underwater Vehicles
+(AUVs) are used as an example to demonstrate the benefits of
+collaboration between the AUVs and cloud resources.
+1.1
+Security Challenges and Solutions
+Despite the advantages of CE-NCSs, new security challenges
+arise from both the cyber and the physical parts of CE-NCSs. The
+first challenge is the confidentiality and integrity of the data transmitted
+between a cloud and NCSs. One the one hand, outsourcing
+computations to a cloud may expose the private information
+(e.g., parameters of system model and sensor information) of the
+control system to cyber attackers [29]. On the other hand, cyber
+adversaries can modify the data between the cloud and the control
+system to disrupt data integrity. The second one comes from
+the control system, which requires feedback control inputs at every
+sampling time to guarantee stability. The lack of control inputs can
+lead to instability of NCSs. The third one is efficiency. The amount
+of local computation, including encryption, decryption and verification,
+performed by the control system, should be less than that of
+solving the original control problems [18].
+To address these challenges, we propose a secure and resilient
+control design for CE-NCSs. In our design, the NCSs encrypt the
+data prior to the computation in the cloud, and verify the solutions
+from the cloud. In standard encryptions (e.g., symmetric or asymmetric
+encryption), senders and receivers share a public key to encrypt
+or decrypt the exchanging data [26]. Sharing a public key
+makes these encryptions infeasible in CE-NCSs because exchanging
+the key is costly, and exposing the key to an unreliable cloud
+can be vulnerable. In the proposed encryption, however, only the
+controllers of NCSs process the encryption and decryption, which
+avoids exchanging the key between the NCSs and the cloud. To
+guarantee the stability, and enhance its resilience to cyber attacks,
+we design a Switch Mode Mechanism (SMM) with three working
+modes: Cloud Mode, Buffer Mode, and Safe Mode. The controller
+of the CE-NCSs can switch between these modes when unanticipated
+events occur.
+To verify our mechanism and algorithm, we use a UAV control
+system as an example to corroborate the analytical results in different
+attack models. The result demonstrates that without verifying
+the solution, the adversary deviates the UAV by sending a wrong
+solution. In addition, without SMM, the attackers can disrupt the
+UAV by sending sequential wrong solutions. After that, we show
+that the proposed mechanism can protect the UAV from those attacks.
+1.2
+Related Works
+NCSs have been well investigated for the past two decades. Many
+techniques, such as distributed Model Predictive Control (MPC)
+[20], event-trigger control [16], and H1 robust control [19], have
+been used to address the control challenges in NCSs. This work
+deals with the emerging control issues in CE-NCSs. We can apply
+the current methods to formulate control problems for CE-NCS,
+but these methods are not sufficient to meet the security issues in
+CE-NCSs.
+Our work is also related to cloud robotics and automation [13],
+which investigates object recognition, robot navigation and path
+planning. These are practical examples of CE-NCSs. Many other
+people also develop applications by using the architecture of CENCSs
+to enhance efficiency, e.g., cloud-based transportation system
+[9] and cloud-based grasping system [11]. Nevertheless, very
+little work has been done to provide the fundamental understanding
+of CE-NCSs. In addition, the security challenges are often ignored.
+Another related body of work is cloud outsourcing computation.
+Recent years, we have witnessed a significant growth in this
+field. Recent works have developed secure protocols for outsourcing
+scientific computations, such as linear programming problems
+[29], large matrix inversion problems [18], large matrix determinant
+problems [17]. They develop cryptographic mechanisms to
+achieve confidentiality and integrity in the outsourcing computation.
+However, CE-NCSs have unique cyber-physical features, because
+their physical control components are tightly integrated with
+other counterparts. The protocols designed for outsourcing computation
+are not sufficient to address these features. Wang et al. have
+developed a matrix-disguising method to achieve data privacy in
+outsourcing computations of a quadratic programming problem to
+unreliable parties [30]. Our work in addition verifies the solution
+from the cloud to achieve data integrity.
+Many methods have been designed to deal with cyber-physical
+security issues. One important approach is to apply game theoretic
+tools. Game theory has shown promise in a wide range of security
+issues as it can capture and model the strategic interactions
+between the attackers and defenders [22]. In [32], Zhu et al. apply
+a game-theoretical framework to improve the resilience of NCSs in
+the face of attacks. The framework constructs two game models
+to capture the cyber-physical nature of NCSs. The physical-layer
+game framework models the interactions between the physical system
+and disturbance, while the cyber-layer game framework capture
+the interactions between an attacker and a defender.
+Table 1: Related work and the scope of their solutions
+References Applications Cyber Applications
+of Cloud Security of NCSs
+Liu et al. [20],
+Lehmann et al. [16],
+Li and Shi [19].
+Kehoe et al. [13, 12],
+Chen et al. [7].
+Lei et al. [18, 17],
+Wang and Ren [29],
+Wang and Li [30].
+No
+Yes
+Yes
+No
+No
+Yes
+Yes
+Yes
+No
+In Table I, we summarize the existing literatures and the scope
+of their solutions. Due to the unique cyber-physical property, the
+existing approaches cannot be directly applied to tackle the security
+issues in CE-NCSs. We need to take into account both control and
+security issues, and design security mechanism in a holistic fashion.
+1.3
+Main Contributions
+As CE-NCSs lie at the intersection of cyber and control systems,
+this paper develops a secure mechanism by using both cryptographic
+and control tools. The unique physical nature of control
+systems differentiate our work from other secure protocols for
+cloud outsourcing computation. We summarize our contributions
+as follows:
+a) We first apply Model Predictive Control (MPC) to formulate
+a control problem for NCSs. By developing cryptographic
+mechanisms, we encrypt the quadratic problem associated
+with MPC prior to the computations in the cloud,
+and propose an efficient method to verify its solutions from
+the cloud. We show that no false solutions can succeed in the
+verification with a non-negligible probability.
+b) Secondly, to guarantee stability and enhance resiliency, we
+design a switching mechanism SMM using an event-triggered
+MPC scheme and H1-optimal control. Under this mechanism,
+the NCSs switch to a Buffer Mode when control inputs
+are unavailable from the cloud for a short duration, or switch
+to a Safe Mode when control inputs are unavailable for a long
+duration. We demonstrate that the SMM guarantees the stability
+of CE-NCSs.
+c) Finally, both analytical and experimental results show that
+our mechanism can boost efficiency for NCSs. The experimental
+results also corroborate that the SMM can guarantee
+stability for CE-NCSs when control inputs are unavailable
+for either a short or long period of time.
+1.4
+Organization
+The rest of the paper is organized as follows: Section 2 presents
+the problem formulation, three cloud attack models, the design
+goals, and the framework of the proposed mechanism. In Section 3,
+we develop specific strategies and techniques to achieve data confidentiality
+and integrity. In Section 4, we propose a switching mechanism
+to deal with availability issues. Both theoretical analysis and
+experiment results are presented in Section 5. Finally, Section 6
+concludes this paper.
+2.
+PROBLEM STATEMENTS
+Each CE-NCS has two layers: cyber layer and physical layer.
+The cyber layer consists of wireless communications and a cloud,
+while the physical layer incorporates a plant, actuators, and sensors,
+and a controller. The integration of the controller with the cloud
+constitutes a cloud-based controller. Fig. 2 illustrates a feedback
+architecture of a CE-NCS. The controller of a CE-NCS is structurally
+different from other general NCSs. Instead of solving an
+off-line control problem, the controller of a CE-NCS formulates a
+dynamic optimization problem based on the sensor data, and outsources
+the computations of the control decisions to a cloud. After
+receiving the solutions from the cloud, the controller sends them to
+the actuators of the physical system.
+To describe in detail the architecture of a CE-NCS, we first introduce
+the physical layer control problem. In this work, we present a
+discrete-time linear system to capture the dynamics of the physical
+plant and use Model Predictive Control (MPC) framework to design
+optimal control to stabilize the system. The computations of
+the MPC control inputs are outsourced to the cloud, which can be
+subject to adversarial attacks. To this end, the second part of this
+section presents three attack models on the CE-NCS, and outline
+the design goals and framework of the proposed mechanism.
+2.1
+System Dynamics and MPC Algorithm
+MPC has been widely used in many domains of industries and
+civil applications, such as process control of chemical plants and
+oil refineries, energy systems in building, and autonomous vehicles
+[1, 31]. MPC is a model-based control strategy that uses a system
+model to predict the future behaviors of the system to establish
+appropriate control inputs [28]. To achieve prediction, MPC strategy
+provides a moving finite-horizon problem based on the system
+model, and control inputs can be computed by solving this problem
+at each sampling instant. One advantage of MPC is that it
+Figure 2: Architecture of a CE-NCS: The integrated system
+consists of a plant, sensors, actuators, and a cloud-based controller.
+The cloud-based controller is composed of a local controller,
+a wireless network, and a cloud. The network is deployed
+to transmit data of computations to the cloud and the
+control solutions from the cloud. The controller aims to stabilize
+the plant and achieve system objectives.
+allows the system to operate constraints on control inputs or system
+states [15], while it is difficult for the other control strategies,
+e.g., Linear Quadratic Regulator (LQR) and H1-optimal control,
+to handle constraints. The second advantage is that MPC enables an
+on-line design, which can deal with disturbance in real time, while
+LQR and H1-optimal control are off-line designs. In addition,
+H1-optimal control considers the worst-case disturbance, leading
+to more conservative and expansive control inputs. A main challenge
+of MPC is that the controller needs to solve a optimization
+problem at each sampling time, resulting in a higher computational
+complexity. This motivates us to introduce a CE-NCS framework
+to outsource the computations of the MPC problem to the cloud.
+To apply MPC, we use a discrete-time linear system model to
+describe the system dynamics of a control system, given by
+x(k + 1) = Ax(k) + Bu(k);
+(1)
+where x(k) 2 Rn 1 is the state vector of the NCS, x(0) = x0 2
+Rn 1 is the given initial state value, u(k) 2 Rl 1 is the control
+input, A 2 Rn n and B 2 Rn l are constant matrices.
+At each sampling time k, a finite-horizon MPC problem P is a
+minimization problem, which is given as follows:
+P :
+min J (x(k); U (k))
+U(k)
+N 1
+= X
+=0
+kx^(k + jk)k2 +
+ku^(k + jk)k2 ;
+(2)
+subject to
+x^(k +
++ 1jk) = Ax^(k + jk) + Bu^(k + jk);
+x^(kjk) = x(k); u^(k + jk) 2 U ;
+U (k) = [u^T (kjk); u^T (k + 1jk); : : : ; u^T (k + N
+1jk)]T ;
+where J : Rn 1 RlN 1 ! R is the objective function, is a
+tuning parameter for the desired control performance, and U (k) 2
+RlN 1 is the solution sequence of the problem P. x^(k + jk)
+denotes an estimate value of x(k + ), based on the feedback state
+x(k). Through out this paper, k k represents the Euclidean norm.
+Due to the existence of noise and disturbances, an error between
+x^(k + jk) and x(k) always exists. For this reason, the NCS solves
+the problem P for each k, and only takes the first element u^(kjk)
+of U (k) as the control input at time k.
+2.2
+The Standard form of Quadratic Problem
+It is convenient to transform P into a standard quadratic form.
+To do this, we rewrite (2) into a matrix form,
+X^ =
+x(k) + HU (k);
+where
+2 A 3 2
+6 A2 7 6
+= 664 ... 775; H = 664
+AN
+B 0
+AB B
+... ...
+AN 1B AN 2B
+0 3
+0 7
+. . . ... 775;
+B
+X^ = [x^T (k + 1jk); x^T (k + 2jk) ; x^T (k + N jk)]T ;
+2 RnN n; H 2 RnN lN ; X^ 2 RnN 1:
+Then, with (3) and (4), the optimization problem (2) becomes
+min
+U(k)
+J (x(k); U (k)) = X^ T X^ +
+U (k)T U (k)
+= ( x(k) + HU (k))T ( x(k) + HU (k))
++ U (k)T U (k):
+QP : min
+U(k)
+Since the constraints are often given in the algebraic forms of inequalities
+and equalities, we can transform the constraints u^(k +
+jk) 2 U into the following inequality and equality constraints,
+M U (k) c; EU (k) = d; where M 2 Rm lN , E 2 Rp lN ,
+c 2 Rm 1, and d 2 Rp 1 are constant matrices and vectors. Then,
+we define
+Q = HT H + I; bT = 2xT (k) T H;
+where I is an lN lN identity matrix, the size of Q is lN lN , and
+the length of vector b is lN . By eliminating the terms independent
+of the U (k), we transform P into a standard quadratic form:
+J (x(k); U (k)) = U T (k)QU (k) + bT U (k)
+s.t.
+M U (k)
+c; EU (k) = d:
+The QP can thus be defined by the tuple,
+, fQ; M ; E; b; c; dg:
+2.3
+Cloud Attack Models
+The security threats mainly come from the cloud and the networked
+communications between the cloud and control system. To
+capture the possible behaviors of adversaries, we present three attack
+models:
+a) Ciphered-only attack: The attacker observes the encrypted
+information between the cloud and the control system, and
+attempts to determine the original information. For example,
+the attacker can simply record all the information it can access
+in the cloud, and use this to learn the sensor values and
+control inputs that should remain private [18].
+b) Message modification attack: The attacker may either intrude
+the cloud or use spoofing techniques [14] to modify the
+solution that is sent to the control system. The fake solution
+can mislead or disrupt the control system, leading to catastrophical
+consequences.
+(3)
+(4)
+(5)
+(6)
+c) Availability attack: The attacker blocks the communication
+between the cloud and the control systems so that the control
+systems cannot receive correct solutions from the cloud for
+either a short or long duration. As control systems require
+the feedback control inputs to stabilize themselves, this type
+of attack can lead to instability of the systems.
+2.4
+Design Goal
+Based on the three attack models, we present five design goals
+for the proposed mechanism:
+Confidentiality: No sensitive information in the original control
+problems can be obtained by the cloud server or adversaries
+during the computation of the problem.
+Correctness: Any cloud server that faithfully runs an application
+should generate an output that can be decrypted to a
+correct solution for the control system.
+Integrity: The correct results from a faithful cloud should
+be verified successfully by using a proof from the cloud. No
+false result can succeed in the verification.
+Efficiency: The local computation (e.g., encryption, verification,
+and decryption) processed by the control system should
+be less heavy and cheaper than that of solving the original
+problem.
+Resiliency: The control system can maintain stability when
+no verifiable solution are available from the cloud. The control
+system can recovery online after an availability attack.
+2.5
+The Framework of the proposed mechanism
+Due to the design goals, we present the framework of the proposed
+mechanism as follows:
+i) KeyGen(1 ) ! fKg: This algorithm randomly generates
+a key K with a random security parameter ;
+ii) ProbEnc(K; ) ! f K g: This algorithm encrypts
+into K with the secret key K;
+iii) ProbDec(y; K) ! fU g: If v = 1, the control system
+runs this algorithm to decrypt y to obtain the solution U
+using the key K;
+iv) ProbSolve( K ) ! fy; g: This algorithm solves the problem
+K to produce an output y and a proof .;
+v) ResVer( K ; y; ) ! f vg: This algorithm verify y via
+the proof . The algorithm outputs v = 0 if the verification
+fails, and outputs v = 1 otherwise;
+vi) SwitchChec(x) ! f sg. If v = 0, the control system
+runs this algorithm to check a switching condition. It outputs
+s = 1 if the switching condition is satisfied, and outputs
+s = 0 otherwise.
+In this framework, the cloud processes the algorithm ProbSolve,
+while the control system processes KeyGen, ProbEnc, ResVer,
+ProbDec and SwitchChec.
+REMARK 1. One significant difference between this framework
+and other encryption methods, such as symmetric and asymmetric
+encryption, is that the proposed encryption only needs the controllers
+to process the encryption and decryption, whereas other
+encryptions require the NCS and cloud to share a public key [26].
+Figure 3: The proposed CE-NCS mechanism interacts between
+NCS and the cloud.
+This property removes the expensive public key exchange in standard
+encryption, avoids exposing the secret key to unreliable cloud,
+and also provides additional layer of defense if standard encryption
+infrastructure is built in for the cloud.
+Fig. 3 illustrates the structure of framework. At every sampling
+time k, the control system first formulates a control problem ,
+encrypts it with a key K to obtain K , and sends it to the cloud.
+The cloud runs ProbSolve to solve K , and returns a solution y
+together with a proof . The NCS verifies y with . If the verification
+succeeds, the algorithm ResVer output v = 1, and the
+NCS decrypts y to obtain the control input U (k). If the verification
+fails ( v = 0), then the NCS switches to a Buffer Mode, and
+checks a switching condition s to determine whether the NCS
+needs to switch to a Safe Mode. These modes will be designed
+later in Section 4.
+3.
+CONFIDENTIALITY AND INTEGRITY
+The first two attack models, ciphertext-only attack and message
+modification attack, are related to data confidentiality and integrity.
+To protect the CE-NCS from these attacks, we introduce a matrixdisguising
+method to encrypt the QP problem and design an efficient
+way to verify its solution from the cloud. The encryption,
+decryption, and verification are processed in the control systems.
+3.1
+Encryption Methods
+The first part of the mechanism is to encrypt the constraints of
+QP. Let G 2 Rp p and F 2 Rm p be random non-singular
+matrices. We perform the following transformation,
+M U (k) c;
+EU (k) = d;
+)
+(M + F E)U (k)
+GEU (k) = Gd:
+c + F d;
+Secondly, we encrypt the decision variable U (k). Let P 2 RlN lN
+be a random non-singular matrix, i.e., P 1 exists, and g 2 RlN 1
+be a random non-zero vector. Then, we transform U (k) into y(k)
+by using a one-to-one mapping y(k) , P 1(U (k) g), and y(k)
+has the same size as U (k).
+Using the key K , (G; F; P; g), QP can be transformed into
+the following encrypted problem QPK by
+QPK : min
+y(k)
+JK (y(k)) = yT (k)Q~y(k) + ~bT y(k)
+s.t.
+M~ y(k)
+c~; E~y(k) = d~;
+where Q~, M~ , E~, ~b, c~, and d~are matrices and vectors of appropriate
+dimensions given as follows:
+8 Q~ , P T QP ;
+>
+>> M~ , (M + F E)P ;
+>
+>
+>< E~ , GEP ;
+> ~b , (2gT QP + bT P )T ;
+>>>> c~ , c + F d (M + F E)g;
+>: d~ , G(d Eg):
+We define QP K by the tuple K , (Q~; M~ ; E~; ~b; c~; d~), which
+has the same size as defined by (6).
+THEOREM 1. If y is the solution for QPK , then U (k) = P y(k)+
+g must be the solution for QP .
+PROOF. Suppose U (k) = P y(k) + g is not the optimal solution
+for QP, but y is the solution for QPK . Then, a U (k) exists
+such that
+J (U (k)) < J (U (k); x(k));
+where J (U (k)) is a shorthand notation of J (U (k); x(k)) when
+x(k) is fixed. Eq. (8) implies that a y = P 1(U (k) g)
+satisfies that
+J~(y (k)) = J (U (k)) < J (U (k)) = J~(y(k)):
+Therefore, y (k) is the solution of QPK , which contradicts our
+assumption that y(k) is the solution. This completes the proof.
+The algorithms KeyGen, ProbEnc, and ProbDec are presented
+as follow:
+Algorithm 1: KeyGen(1 ) ! fKg
+1. The input security parameter
+specifies a key space
+K
+2. Randomly select a key K = (G; F ; P ; g) in the key
+space K
+3. Later, use the key K = (G; F ; P ; g) to encrypt the
+problem.
+(7)
+(8)
+(9)
+Algorithm 2: ProbEnc(K;
+) ! f
+K g
+1. On the input K, compute (7) to get
+K = (Q~; M~ ; E~; ~b; c~; d~)
+2. Later,
+K will be sent to the cloud
+Algorithm 3: ProbDec(y; K) ! fU g
+1. On the input (y; K), compute U = P y + g
+2. Send U to the actuator of the system.
+The time consuming part in these two algorithm is the matrix multiplication,
+whose time complexity is O(n3).
+3.2
+Verification Methods
+Due to the message modification attack, we need to verify the
+solution y from the cloud to achieve data integrity. To reduce the
+complexity of the verification, we find an easily verifiable sufficient
+and necessary condition for the solution.
+Let DK be the dual problem of QPK , and dK ( ; ) be the value
+of DK , where and are the dual decision variables. Since the
+Slater's condition is satisfied, so the strong duality of QPK holds,
+i.e., dK ( ; ) = JK (y), when and are solutions to DK , and
+y is a solution to QPK [5]. Then, the cloud can solve QPK using
+the Karush-Kuhn-Tucker (KKT) condition [5], which states that y
+is a solution to QPK if and only if y, , and satisfy
+E~y
+@JK
+@y
+0;
+d~ = 0; M~ y
+T (M~ y
+c~
+0;
+c~) = 0;
+= 2Q~y + ~b + M~ T
++ E~T
+= 0:
+(10)
+(11)
+(12)
+Based on the above results, we design a proof , ( ; ) to be
+sent to the control system together with the solution y. The control
+system can verify y using (10)-(12).
+A direct verification using (12) can be inefficient when N is
+large, because the computation required to check a lN 1 vector
+@JK =@y can be costly. To improve the efficiency, we can randomly
+check the elements in @JK =@y. To this end, we define an lN 1
+random vector r = fr1; : : : ; rlN g, where ri Bernoulli(1=2),
+i.e.,
+Pr[ri = 0] = Pr[ri = 1] =
+; for i = 1; : : : ; lN:
+1
+2
+Using (12), we arrive at
+rT
+2Q~y + ~b + M~ T
++ E~T
+= 0:
+(13)
+Hence, instead of checking (12) directly, we can check (13), which
+is a scalar equality. This verification can be performed q times by
+generating the random vector r q times.
+THEOREM 2. The proposed mechanism ensures that a false solution
+cannot succeed in the verification mechanism with a probability
+greater than (1=2)q.
+PROOF. We define that
+, 2Q~y + ~b + M~ T
++ E~T ; v , rT ;
+where 2 RlN 1. If the solution y is not correct, then at least
+one element of is nonzero. Suppose that j 6= 0 where j 2
+f1; ; lN g. According to (14), we obtain
+lN
+v = X
+i=1
+iri = rj j + s;
+where s = PlN
+i=1 iri
+rj j . Using Bayes' rule, we obtain
+Note that
+P r[v = 0] = P r[v = 0js = 0]P r[s = 0]
++ P r[v = 0js 6= 0]P r[s 6= 0]
+P r[v = 0js = 0] = P r[rj = 0] = 1=2;
+P r[v = 0js 6= 0] P r[rj = 1] = 1=2:
+(14)
+(15)
+Combining (14) and (15), we arrive at
+P r[v = 0]
+(1=2)P r[s = 0] + (1=2)P r[s 6= 0] = 1=2:
+Accordingly, if we verify (13) for q times, then error probability is
+given by
+Pe
+P r[v = 0]
+q
+(1=2)q:
+This completes the proof.
+REMARK 2. Theorem 2 indicates that we can achieve different
+security levels by choosing the parameter q. In general, we choose
+q much smaller than lN so that the verification can be more efficient
+than directly checking (12). However, a small q will lead
+to a low security level. Therefore, there is a fundamental tradeoff
+between efficiency and security level.
+The cloud processes the algorithm ProbSolve to generate a solution
+y and a proof . The algorithm is given as follow.
+Algorithm 4: ProbSolve(
+K ) ! f(y; )g
+1. The cloud use
+K to formulate the dual problem DK .
+2. Solve the dual problem to get
+= ( ; ).
+3. Based on the dual solutions ( ; ), solve the primal
+problem QPK to get y.
+4. Later, send y and
+= ( ; ) to the control system.
+The time complexity of this algorithm is greater than O(n3) as it
+solves a quadratic programming problem [21].
+The following algorithm ResVer is used to verify the results.
+ResVer will output a flag v to identify the verification result. The
+time complexity of this algorithm is O(n2) as it runs matrix-vector
+multiplication.
+Algorithm 5: ResVer(
+K ; y; ) ! f vg.
+1. Check (10) and (11), if one of them is not satisfied, then
+stop here and return v = 0.
+2. for i = 1 : q, (q is the running times of the random
+check from step 3 to step 5)
+3. Selects a lN
+1 random vector 0/1 r and check (13)
+4. if (13) is not satisfied, stop here and return
+v = 0.
+5. end for
+6. The solution is correct and return
+v = 1;
+4.
+AVAILABILITY ISSUES
+The third attack, availability attack, highlights the cyber-physical
+nature of CE-NCSs and can cause a serious problem for the stability
+of CE-NCSs as the control system requires feedback control inputs
+at every sampling time to stabilize itself. It can be easily implemented
+by an attacker who continuously sends erroneous control
+solutions from the cloud to the NCS. This time-critical property
+makes NCSs vulnerable to this type of threat.
+To this end, we design a Switching Mode Mechanism (SMM) as
+part of our control design to guarantee the stability of NCSs and
+enhance their resilience to this attack even when no control inputs
+are available from the cloud either in a short or long duration. In
+addition, SMM allows the NCS to maintain a certain level of control
+performance, and recover on-line when an attacker succeeds in
+the attack.
+4.1
+Switching Mode Mechanism
+In the SMM, we design three modes for the NCSs: Cloud Mode
+Nc, Buffer Mode Nb, and Safe Mode Ns. Fig. 4 illustrates how
+the SMM works for the CE-NCS. v 2 f0; 1g is the output of
+the verification: v = 1 means that the verification is successful,
+while v = 0 means otherwise. s 2 f0; 1g is the output of a
+switching condition, and s = 1 means that a switching condition
+is satisfied, while s = 0 means otherwise. Each working mode is
+described as follows:
+1. Cloud Mode Nc: In Nc, the NCS uses a cloud-based controller,
+which outsources the computation of QP K to the
+cloud. When v = 1, the NCS stays in the Nc.
+2. Buffer Mode Nb: In Nb, the NCS uses the control inputs
+generated in the previous stage. For instance, if the NCS
+receives the last control input at time k, and no inputs are
+available from k + 1 to k + , then at time k + , the NCS
+uses control inputs u^(k + jk) generated at time k when
+s = 0.
+3. Safe Mode Ns: In Ns, the NCS uses a local controller to stabilize
+itself. For example, if the NCS stays in Buffer Mode,
+and a switching condition is satisfied ( s = 1) at time k + ,
+indicating that the control inputs u^(k + jk) cannot guarantee
+the stability for the NCS, then NCS switches to Ns. This
+switching condition will be designed later in Section 4.2.
+Figure 4: The Switching Mode Mechanism: (1) Cloud Mode
+Nc: if v = 1, the NCS stays in this mode; if v = 0, the NCS
+switches to Buffer mode. (2) Buffer Mode Nb: if v = 1 and
+s = 0, then system switches back to the Cloud Mode. (3) Safe
+Mode Ns: if s = 1, then the NCS switches to the Safe Mode,
+and never switch back.
+Here, we do not allow the NCS to switch back from the Safe Mode
+to the Cloud Mode. This is due to the fact that “switching back"
+may result in unanticipated oscillations, which can lead to a new
+threat.
+4.2
+The Buffer Mode and the Switching Condition
+The design goal of the Buffer Mode is to guarantee the stability
+of the NCSs when the availability attack happens for a sufficiently
+short period of time. One simple way to tackle this problem is to
+use the remaining control inputs fu^(k + 1jk); : : : ; u^(k + jk)g
+generated at time k, when the attack occurs from k + 1 to k +
+. However, this solution is not ideal, since in real applications,
+disturbances and noises are ubiquitous in NCSs, and we cannot
+ensure that these control inputs can still stabilize the NCSs.
+One sophisticated way to make use of the remaining control inputs
+is to apply an event-triggered MPC scheme [16], and find a
+switching condition, as illustrated in Fig. 3, that can stabilize the
+system through switching between Nc and Nb. In addition, to capture
+the effect of disturbances, a modified model is given as follows:
+x(k + 1) = Ax(k) + Bu(k) + Dw(k);
+(16)
+where w(k) 2 Rn 1 is a disturbance vector bounded by jjw(k)jj
+w, and D 2 Rn n is a constant matrix.
+Based on (16) and the event-triggered MPC scheme, the following
+theorem presents a switching condition for the SMM.
+THEOREM 3. Let k be the last sampling time that the NCS receives
+a correct solution from the cloud. At the time k + (1
+N 1), the NCS cannot be guaranteed stability using the input
+u^(k + jk) if
+N 1
+s : X kAiDk2! >
+i=0
+h(x(k +
+1); u^(k +
+1jk)); (17)
+where h(x; u) = kxk2 + kuk2, and 2 (0; 1), is a tuning
+parameter. Otherwise, u^(k + jk) can be used to stabilize the
+system, when no inputs are available from the cloud.
+REMARK 3. The proof of Theorem 3 is presented in Appendix
+A. The idea of proving the stability of a control system is to use Lyapunov
+theory to demonstrate that the system energy is decreasing
+in time k when using the designed control inputs. To describe the
+system energy, we need to find an appropriate Lyapunov function.
+The details are given in the proof.
+REMARK 4. Since A, D, !, and are given, the NCS only
+needs to compute h(x(k + 1jk); u^(k + 1jk)) to check (17).
+Therefore, the computations of checking this switching condition is
+not heavy for the control system.
+The algorithm SwitchChec is used to check the switching condition
+(17) and decrypt the results from the cloud. In this algorithm,
+the time-consuming part is the matrix-vector multiplication in the
+decryption and the computation of switching condition. Therefore,
+the time complexity of this algorithm is O(n2).
+Algorithm 6: SwitchChec(x) ! f sg
+1. if v = 0, check the switching condition (17).
+if (17) is satisfied, output
+compute the control input us.
+else Output s = 0. Use the remaining control
+inputs u^(k + jk).
+s = 1. Use (19) to
+end if
+2. end if
+4.3
+The Local Controller for the Safe Mode
+If (17) holds, the NCS switches to the Safe Mode Ns to use
+a local controller. Since the NCSs have no other information in
+Ns, we use a perfect-state-feedback H1-optimal controller, which
+deals with the worst-case disturbance, through an off-line design.
+Let k + be the time that the switching condition (17) holds
+( s = 1), and the NCS switches to Ns, where k is the last sampling
+time that the NCS receives a correct y from the cloud. We
+denote xs(k^), us(k^) and ws(k^) as the state values, the control inputs,
+and the disturbances in Ns, respectively, where k^ k + .
+The system model in Ns is given by
+xs(k^ + 1) = Axs(k^) + Bus(k^) + Dws(k^);
+zs(k^) = Cxs(k^);
+where zs 2 Rn is the system output, C = I 2 Rn n is an
+identity matrix, and the initial condition of the state is xs(k + ) =
+x(k + ), which is the last state in Nb.
+The goal of the H1-optimal controller is to find an optimal control
+policy us (k^) = (x(k^)) such that
+sup kzsk
+ws kwsk
+;
+(18)
+where > 0 is a given constant.
+We assume that the pair (A; B) is stabilizable. As stated in [3],
+with a given parameter > 0, the H1-optimal controller for the
+infinite-horizon case is given by
+us (k^) =
+(xs(k^)) = Ksxs(k^);
+(19)
+where Ks = BT (I + (BBT 2DDT ) ) 1A; and
+satisfies the following discrete-time algebraic Riccati equation,
+= Qx + AT
+(I + (BBT
+2DDT ) ) 1A;
+where Qx = CT C. The existence condition of the controller (19)
+is given by
+2I
+DT
+D > 0:
+(20)
+If we can find the smallest satisfying (20), then for all ,
+the NCS can be guaranteed bounded-input bounded-state (BIBS)
+stable [3].
+The control gain Ks is computed off-line based on the knowledge
+of A, B, D, and . Therefore, the NCSs only need to compute
+(19) in Ns. The H1-optimal controller is more costly in comparison
+to MPC because it deals with the worst-case disturbance
+ws , which leads to more conservative and expensive control inputs.
+Hence, the H1 controller is suitable for the Safe Mode Ns,
+when the cloud is not available.
+5.
+ANALYSIS AND EXPERIMENTS
+In this section, we present theoretical analysis for the security
+and efficiency of the mechanism in Fig. 3. Then, we use a UAV
+as an example to demonstrate that the mechanism can enhance its
+efficiency and guarantee the stability for CE-NCSs.
+5.1
+Theoretical Analysis
+1. Security analysis: In the first attack model, ciphertext-only
+attack, since we encrypt the problem with a randomly generated
+key K , the knowledge of the encrypted information K brings no
+benefit to the attacker in guessing the original information . Secondly,
+in the message modification attack, the verification ensures
+that no such attack can succeed with a non-negligible probability.
+Hence, the proposed mechanism can achieve data confidentiality
+and integrity for CE-NCSs.
+2. Efficiency analysis: The overhead on the control system
+comes from the computations of the encryption, decryption, and
+verification. The most time-consuming operations are matrix multiplications.
+The worst time complexity of the proposed mechanism
+is O(n3), while the time complexity of solving the original
+problem QP is O(n ) for > 3 [21]. Therefore, the proposed
+mechanism can increase the efficiency for the control system.
+5.2
+Experimental Results
+The framework of CE-NCSs plays an important roles in applications
+of robotic and cyber-physical systems. For example, the
+Amazon drones for package delivery can be designed based on the
+proposed framework to achieve better performances. Here, in this
+subsection, we use UAVs as an example in our experiments. The
+computations of the UAV and the cloud are performed on the different
+blocks in the Simulink of MATLAB 2014b, running on the
+workstation with an Intel Core i7-4770 processor and a 12-G RAM.
+The UAV is a small-scale unmanned helicopter, whose dynamic
+model is linearized at its equilibrium point (hovering point), and
+the state x of the UAV is defined as
+x =
+px; py; pz; vx; vy; vz; ; ; ; pa; qa; ra; as; bs ;
+where (px; py; pz) are the position on (X; Y; Z)-axis of the northeast-down
+(NED) frame, (vx; vy; vz) are the velocity on (X; Y; Z)axis
+of the body frame, ( ; ; ) are Euler angles, (pa; qa; ra) are
+roll, pitch, and yaw angular rates, (as; bs) are the longitudinal and
+lateral flapping angle of the main rotor. The elements of matrices
+A and B in (1) are given in [6].
+1. Efficiency Tests: The length of the horizon window N determines
+the size of matrix Q, which is related to the complexity
+of QP, and hence, we increase N from 10 to 500 to observe the
+relationship between N and computational time. The verification
+parameter q is 20. Table I summarizes the experimental results,
+where each entry in the table is the average computational time of
+10 identical feedback control experiments. In Table I, the computational
+time to solve QP, torig, is given in the third column. The
+time to solve QPK , tcloud, is given in the fifth column. The time of
+the cryptographic overhead, tcry, including the key generation, encryption,
+decryption, and verification, is given in the fourth column.
+From the results, tcry is mush less than torig, that is, outsourcing
+computations to a cloud can enhance efficiency of the UAV. In addition,
+the cloud efficiency, calculated as torig=tcloud, is given in
+the seventh column. Normally, the encryption should not increase
+the time to solve the quadratic problem. Thus, the cloud efficiency
+should be close to 1.
+Figure 5: No Attack: The UAV tracks the trajectory smoothly
+when no attack occurs.
+Figure 6: Case 1: No Verification for the solutions.
+2. Stability and Resiliency Tests: The next numerical experiment
+is used to test the stability and resiliency of the CE-NCS in the
+message modification attack and availability attack. The control
+objective of the UAV is to track an ascending helix trajectory under
+a disturbance w(k) bounded by 0.5. We set the parameter in
+(17) as 0.8. We first show that when no attack occurs, the UAV succeeds
+in tracking the desired trajectory, and the result is illustrated
+#
+1
+2
+3
+4
+5
+Benchmark
+Length
+N = 10
+N = 50
+N = 100
+N = 300
+N = 500
+torig(sec)
+0.006757
+0.147428
+0.254544
+0.634718
+1.066516
+tcry(sec)
+0.000159
+0.003251
+0.008299
+0.014426
+0.028876
+Original Problem
+Cryptographic Overhead
+Encrypted Problem
+Figure 7: Case 2: Availability Attack of a Short Duration without
+SMM.
+Figure 8: Case 3: Availability Attack of a Short Duration with
+SMM.
+Figure 9: Case 4: Availability Attack of a Long Duration with
+SMM.
+tcloud(sec)
+0.007001
+0.164543
+0.269742
+0.768352
+1.609127
+Cloud Efficiency
+torig=tcloud(sec)
+0.965153
+0.895984
+0.943657
+0.826088
+0.664027
+in Fig. 5, where the red solid curve is the reference trajectory, and
+the blue dash curve is the real trajectory. Then, we conduct other
+the experiments in four cases to verify our mechanism:
+Case 1 (No Verification): verification algorithms in Section
+3.2 are ignored for the solutions. The UAV receives a wrong
+solution from the cloud at time k = 60.
+Case 2 (Availability attack of a short duration without SMM):
+the control inputs from k = 60 to k = 65 are not available
+due to the attack. The UAV without SMM have no control
+inputs, i.e., u(k) = 0, in this duration.
+Case 3 (Availability attack of a short duration with SMM):
+the control inputs from k = 60 to k = 65 are unavailable
+due to the attack.
+Case 4 (Availability attack of a long duration with SMM):
+the control inputs are unavailable from k = 60 to the end of
+the experiment.
+Fig. 6-9 illustrate experimental results for the four cases. In Fig.
+6, we can see that without verification, one wrong solution from
+the cloud deviates the UAV from the reference trajectory. Fig. 7
+demonstrates that, without SMM, the UAV deviates from the reference
+trajectory in a short-duration availability attack, even though
+it rejects the wrong solutions via verification. Fig. 8 and 9 show
+that the proposed SMM mechanism guarantees that the UAV tracks
+reference trajectory successfully, despite the unavailability of the
+control inputs from the cloud for either a long or a short duration.
+To better understand when the UAV switches from the cloud
+mode to other modes and the effect of on the switching condition
+(17), we present the tracking errors in Fig. 10 and 11 under
+different scenarios. Fig. 10 illustrates the tracking errors in a shortduration
+attack with = 0:8. The UAV switches to the buffer
+mode Nb at time k = 60, and switches back to the cloud mode Nc
+at time k = 66. Fig. 11 shows the tracking errors in long-duration
+attacks with = 0:6 and 0:8. When = 0:6, the UAV switches
+to the buffer mode Nb at time k = 60, and switches to the safe
+mode Ns at time k = 68. When = 0:8, the UAV switches to
+the buffer mode Nb at time k = 60, and switches to the safe mode
+Ns at time k = 70. It is clear that the smaller the is, the more
+quickly the system switches to the safe mode, allowing the system
+to recover faster. However, when is small, the switching mechanism
+is more sensitive to disturbance !, i.e., the system may switch
+to the safe mode inaccurately due to a large disturbance while no
+attack occurs.
+We also quantify the loss of performance when attacks occur by
+calculating the area between the tracking errors of the no-attack
+case and attack case. Fig. 12 shows the loss of performance in
+different scenarios. These results also demonstrate that a smaller
+leads to a lower loss of performance.
+The experimental results above highlight that traditional cryptographical
+tools are not sufficient to meet the security requirements
+of the CE-NCS due to its cyber-physical nature. Encryption and
+Figure 10: The tracking errors in a short-duration attack with
+= 0:8.
+Figure 11: The tracking errors in a long-duration attack with
+= 0:8 and 0:6.
+Figure 12: The loss of performance in different cases.
+verification of traditional cryptography can protect the data confidentiality
+and integrity, but they fail to tackle the stability issue of
+CE-NCSs. Therefore, we incorporate control tools into our mechanism
+to solve this problem. Our results demonstrate that the proposed
+mechanism can not only achieve data confidentiality and integrity,
+but also guarantee the stability and enhance the resiliency
+of the CE-NCS.
+6.
+CONCLUSIONS
+In this paper, we have designed security and resiliency mechanisms
+for CE-NCSs with the presence of adversaries. We have
+formulated a cloud-enabled model predictive control problem for
+NCSs, and presented three attack models. To achieve confidentiality
+and integrity, we have developed efficient methods to encrypt
+the problem and verify the solution from the cloud. To protect
+the system from the availability attack, a switching mechanism has
+been designed to ensure the stability and resiliency despite the unavailability
+of control inputs from the cloud. In the end, a UAV
+example has been used to demonstrate that the proposed mechanisms
+can significantly protect CE-NCSs from cyber threats and
+enhance resiliency in an efficient way. A future work of interest is
+to apply the mechanism to multi-agent NCSs, which will bring new
+challenges in resource sharing and availability.
+7. REFERENCES
+[1] M. Arnold and G. Andersson. Model predictive control of
+energy storage including uncertain forecasts. In Power
+Systems Computation Conference (PSCC), Stockholm,
+Sweden, 2011.
+[2] R. Arumugam, V. Enti, L. Bingbing, W. Xiaojun,
+K. Baskaran, F. Kong, A. Kumar, K. Meng, and G.Kit.
+Davinci: A cloud computing framework for service robots.
+In IEEE Int. Conf. on Robotics and Automation (ICRA),
+pages 3084-3089, 2010.
+[3] T. Bas¸ar and P. Bernhard. H-infinity optimal control and
+related minimax design problems: a dynamic game
+approach. Springer, 2008.
+[4] D. Berenson, P. Abbeel, and K. Goldberg. A robot path
+planning framework that learns from experience. In IEEE
+Int. Conf. on Robotics and Automation (ICRA), pages
+3671-3678, 2012.
+[5] S. Boyd and L. Vandenberghe. Convex optimization.
+Cambridge university press, 2009.
+[6] G. Cai, B. M. Chen, X. Dong, and T. H. Lee. Design and
+implementation of a robust and nonlinear flight control
+system for an unmanned helicopter. Mechatronics,
+21(5):803-820, 2011.
+[7] Y. Chen, Z. Du, and M. García-Acosta. Robot as a service in
+cloud computing. In Service Oriented System Engineering
+(SOSE), 2010 Fifth IEEE International Symposium on, pages
+151-158. IEEE, 2010.
+[8] V. C. Gungor, D. Sahin, T. Kocak, S. Ergut, C. Buccella,
+C. Cecati, and G. P. Hancke. Smart grid technologies:
+Communication technologies and standards. IEEE
+transactions on Industrial informatics, 7(4):529-539, 2011.
+[9] T. Hunter, T. Moldovan, M. Zaharia, S. Merzgui, J. Ma, M. J.
+Franklin, P. Abbeel, and A. M. Bayen. Scaling the mobile
+millennium system in the cloud. In Proceedings of the 2nd
+ACM Symposium on Cloud Computing, page 28, 2011.
+[10] Z.-P. Jiang and Y. Wang. Input-to-state stability for
+discrete-time nonlinear systems. Automatica, 37(6):857-869,
+2001.
+[11] B. Kehoe, D. Berenson, and K. Goldberg. Toward
+cloud-based grasping with uncertainty in shape: Estimating
+lower bounds on achieving force closure with zero-slip push
+grasps. In IEEE International Conference on Robotics and
+Automation (ICRA), pages 576-583, 2012.
+[12] B. Kehoe, A. Matsukawa, S. Candido, J. Kuffner, and
+K. Goldberg. Cloud-based robot grasping with the google
+object recognition engine. In Robotics and Automation
+(ICRA), 2013 IEEE International Conference on, pages
+4263-4270. IEEE, 2013.
+[13] B. Kehoe, S. Patil, P. Abbeel, and K. Goldberg. A survey of
+research on cloud robotics and automation. IEEE
+Transaction on Automation Science and Engineering, 2015.
+[14] A. J. Kerns, D. P. Shepard, J. A. Bhatti, and T. E.
+Humphreys. Unmanned aircraft capture and control via gps
+spoofing. Journal of Field Robotics, 31(4):617-636, 2014.
+[15] J.-S. Kim, T.-W. Yoon, A. Jadbabaie, and C. De Persis.
+Input-to-state stabilizing mpc for neutrally stable linear
+systems subject to input constraints. In 43rd IEEE
+Conference on Decision and Control (CDC), volume 5,
+pages 5041-5046, 2004.
+[16] D. Lehmann, E. Henriksson, and K. H. Johansson.
+Event-triggered model predictive control of discrete-time
+linear systems subject to disturbances. In European Control
+Conference (ECC), pages 1156-1161, 2013.
+[17] X. Lei, X. Liao, T. Huang, and H. Li. Cloud computing
+service: the case of large matrix determinant computation.
+IEEE Transactions on Services Computing, PP, 2014.
+[18] X. Lei, X. Liao, T. Huang, H. Li, and C. Hu. Outsourcing
+large matrix inversion computation to a public cloud. IEEE
+Transactions on Cloud Computing, 1, 2013.
+[19] H. Li and Y. Shi. Networked min-max model predictive
+control of constrained nonlinear systems with delays and
+packet dropouts. International Journal of Control,
+86(4):610-624, 2013.
+[20] G. Liu, J. Mu, D. Rees, and S. Chai. Design and stability
+analysis of networked control systems with random
+communication time delay using the modified mpc.
+International Journal of Control, 79(4):288-297, 2006.
+[21] D. G. Luenberger and Y. Ye. Linear and nonlinear
+programming, volume 116. Springer, 2008.
+[22] M. H. Manshaei, Q. Zhu, T. Alpcan, T. Bacs¸ar, and J.-P.
+Hubaux. Game theory meets network security and privacy.
+ACM Computing Surveys (CSUR), 45(3):25, 2013.
+[23] C. Meng, T. Wang, W. Chou, S. Luan, Y. Zhang, and Z. Tian.
+Remote surgery case: robot-assisted teleneurosurgery. In
+IEEE Int. Conf. on Robotics and Automation (ICAR), pages
+819-823, 2004.
+[24] P. Pandey, D. Pompili, and J. Yi. Dynamic collaboration
+between networked robots and clouds in
+resource-constrained environments. Automation Science and
+Engineering, IEEE Transactions on, 12(2):471-480, 2015.
+[25] P. Seiler and R. Sengupta. Analysis of communication losses
+in vehicle control problems. In Proceedings of the 2001
+American Control Conference, volume 2, pages 1491-1496,
+2001.
+[26] G. J. Simmons. Symmetric and asymmetric encryption. ACM
+Computing Surveys (CSUR), 11(4):305-330, 1979.
+[27] L. Turnbull and B. Samanta. Cloud robotics: Formation
+control of a multi robot system utilizing cloud infrastructure.
+In Southeastcon, 2013 Proceedings of IEEE, 2013.
+[28] A. N. Venkat, I. Hiskens, J. B. Rawlings, S. J. Wright, et al.
+Distributed mpc strategies with application to power system
+automatic generation control. Control Systems Technology,
+IEEE Transactions on, 16(6):1192-1206, 2008.
+[29] C. Wang, K. Ren, and J. Wang. Secure and practical
+outsourcing of linear programming in cloud computing. In
+2011 Proceedings IEEE INFOCOM, pages 820-828, 2011.
+[30] Y. Wang and Y. Li. An efficient and tunable
+matrix-disguising method toward privacy-preserving
+computation. Security and Communication Networks, 2015.
+[31] M. Zanon, J. V. Frasch, M. Vukov, S. Sager, and M. Diehl.
+Model predictive control of autonomous vehicles. In
+Optimization and Optimal Control in Automotive Systems,
+pages 41-57. Springer, 2014.
+[32] Q. Zhu and T. Basar. Game-theoretic methods for robustness,
+security, and resilience of cyberphysical control systems:
+Games-in-games principle for optimal cross-layer resilient
+control systems. Control Systems, IEEE, 35(1):46-65, 2015.
+APPENDIX
+A.
+PROOF OF THEOREM 3
+To prove Theorem 3, we need the following lemmas.
+LEMMA 1. Given the system dynamics (16) with disturbances,
+the following inequality holds, which is
+kx^(k + jk + 1)
+x^(k + jk)k
+kA
+1Dk!;
+(21)
+where x^(k + jk +1) and x^(k + jk) are the estimate state value at
+time k + based on the feedback information at time k and k + 1,
+respectively.
+PROOF. Note that
+kx^(k + 1jk + 1)
+kx(k + 1)
+x^(k + 1jk)k =
+x^(k + jk)k
+kDk!:
+(22)
+Given (16) and (22), we can get
+jjx^(k + jk + 1)
+= kA[x^(k +
+=
+kA
+= kA
+1D!(k)k
+1jk + 1)
+x^(k + jk)jj
+x^(k +
+kA
+1Dk!:
+1[x^(k + 1jk + 1)
+x^(k + 1jk)]k
+1jk)]k
+This completes the proof of Lemma 1.
+LEMMA 2. (Discrete-time Lyapunov Stability) The system (16)
+is input-to-state stable (ISS) if and only if there exists a Lyapunov
+function V : Rn 7! R+ such that for functions 1, 2, 3 2 K1,
+2 K, V satisfies
+1(jjx(k)jj)
+V (x(k))
+2(jjx(k)jj);
+V (x(k + 1))
+V (x(k))
+3(jjx(k)jj) + (jj!(k)jj):
+REMARK 5. The proof of Lemma 2 is given in [10]. The basic
+idea of Lyapunov theory is to guarantee that the system energy
+keeps decreasing until it goes to 0. To proof the stability of the
+system, we need to find an appropriate Lyapunov function for the
+control system defined by (1).
+To make use of Lemma 2 to prove stability of the system, we define
+the following finite-state cost function as a discrete-time Lyapunov
+function, which is given by
+N 1
+J (k) = X h(x^(k + jk); u^(k + jk))+VN (x^(k +N jk)); (23)
+=0
+where VN (x^(k + N jk)) = kx^(k + N jk)k2 is the terminal cost at
+step k + N .
+We also need the following assumption:
+ASSUMPTION 1. Given the cost function (23), we assume that
+there exists a local controller u(k) = Kf (x(k)) such that
+VN (x(k + 1))
+VN (x(k))
+h(x(k); Kf (x(k))):
+With Lemma 1 and 2 and Assumption 1, the proof of Theorem 3
+is presented as follow:
+Proof of Theorem 3: Suppose that the control system has received
+the solution U (k) from the cloud at time k, but has not received
+U (k +1) at time k +1. If the control system keeps using the
+remaining control signal fu^(k + 1jk); : : : ; u^(k + N 1jk)g, then
+the difference between the real cost J~(k +1jk) using the remaining
+control signal and the previous cost J (k) is
+4J1 := J~(k + 1jk)
+J (k)
+h(x^(kjk); u^(kjk))
+h(x^(k + ijk + 1); u^(k + ijk + 1))
+h(x^(k + ijk); u^(k + ijk))
++ h(x^(k + N jk + 1); Kf (x^(k + N jk + 1)))
++ VN (x^(k + N + 1jk + 1)
+VN (x^(k + N jk):
+and
+VN (x^(k + N jk + 1)
+= kx^(k + N jk + 1)k2
+kx(k + N jk + 1)
+kAN 1Dk2!:
+Using Assumption 1, we get
+VN (x^(k + N jk)
+kx^(k + N jk)k2
+x(k + N jk)k2
+h(x^(k + N jk + 1); Kf (x^(k + N jk + 1))) +
+VN (x^(k + N + 1jk + 1)
+VN (x^(k + N jk + 1)
+(triangle inequality)
+(triangle inequality)
+(25)
+(26)
+0:(27)
+Next, by adding and subtracting VN (x^(k + N jk + 1), we can get
+4J1 =
+h(x^(kjk); u^(kjk))
+h(x^(k + ijk + 1); u^(k + ijk + 1))
+h(x^(k + ijk); u^(k + ijk))
++ h(x^(k + N jk + 1); Kf (x^(k + N jk + 1)))
++ VN (x^(k + N + 1jk + 1)
++ VN (x^(k + N jk + 1)
+VN (x^(k + N jk + 1):
+VN (x^(k + N jk + 1): (24)
+Since the control system uses the remaining control inputs, then we
+have u^(k + ijk + 1) = u^(k + ijk); 8i 2 [1; N 1]. According to
+Lemma 1, we can get
+h(x^(k + ijk + 1); u^(k + ijk + 1))
+h(x^(k + ijk); u^(k + ijk))
+= kx^(k + ijk + 1)k2 + ku^(k + ijk + 1)k2
+kx^(k + ijk)k2
+= kx^(k + ijk + 1)k2
+ku^(k + ijk)k2
+kx^(k + ijk)k2
+kx^(k + ijk + 1)
+x^(k + ijk)k
+kAi 1Dk2!:
+=
+N 1
++ X
+i=1
+N 1
++ X
+i=1
+h(x^(k +
+1); u^(k +
+1jk));
+Substituting (25), (26) and (27) into (24) yields the upper bound for
+4J1, which is
+4J1
+N 1
+h(x^(kjk); u^(kjk) + X jjAiDjj2!;
+i=0
+In addition, if
+N 1
+X kAiDjk2!
+i=0
+h(x(kjk); u^(kjk);
+(28)
+where
+2 (0; 1), we obtain
+4J1
+(
+1)h(x^(kjk); u^(k)) < 0:
+According to Lemma 2, if (28) holds, then using u^(k + 1jk) can
+still guarantee the stability of the control system at time k + 1.
+Likewise, if the control system keeps using u^(k + jk) at time
+k + , we can get
+4J2 := J~(k + 2jk)
+J~(k + 1jk)
+=
+h(x^(k + 1jk); u^(k + 1jk))
+N
++ X h(x^(k + ijk + 2); u^(k + ijk + 2))
+i=2
+h(x^(k + ijk + 1); u^(k + ijk + 1))
++ h(x^(k + N + 1jk + 2); Kf (x^(k + N + 1jk + 2)))
++ VN (x^(k + N + 2jk + 1)
+VN (x^(k + N + 1jk):
+Following the same procedure, as the previous time step, we obtain
+4J2
+N 1
+h(x(k + 1jk); u^(k + 1jk)) + X kAiDk2!:
+Therefore, using u^(k + 1jk) can still guarantee the stability of the
+control system at time k + 2 if
+i=0
+N 1
+X kAiDk2! < h(x^(k + 1); u^(k + 1jk));
+i=0
+where 2 (0; 1).
+By using the same procedure, if the control system keeps using
+u^(k + jk) at time k + , the system is still stable if
+4J = J~(k + jk)
+J~(k +
+1jk)
+0:
+Using the similar steps above, we can obtain that
+N 1
+1jk)) + X kAiDk2!:
+i=0
+4J
+h(x(k +
+1jk); u^(k +
+Therefore, at time t + , if the inequality,
+N 1
+X kAiDk2!
+i=0
+holds, then the stability of the control system can be guaranteed
+using u^(k + jk). In other words, if (17) is satisfied, then the
+control inputs u^(k + jk) cannot guarantee stability of the control
+system. This completes the proof of Theorem 3.

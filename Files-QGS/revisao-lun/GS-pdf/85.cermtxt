@@ -1,0 +1,730 @@
+The Whole Picture - Sense, Communicate, Compute, Control (IEEE SmartGridComm)
+A distributed method for state estimation and false
+data detection in power networks
+Fabio Pasqualetti, Ruggero Carli, and Francesco Bullo
+Abstract-This work presents a distributed method for control
+centers to monitor the operating condition of a power network.
+Specifically we consider (static) state estimation problems, in
+which the state vector consists of the voltage magnitude and
+angle at all network buses. We consider the state to be linearly
+related to network measurements, which include power flows,
+current injections, and voltages phasors at some buses. We
+admit the presence of several cooperating control centers, and
+we design two distributed methods for them to compute the
+minimum variance estimate of the state given the network
+measurements. The two distributed methods rely on different
+modes of cooperation among control centers: in the first method
+an incremental mode of cooperation is assumed, whereas, in the
+second method, a diffusive interaction is implemented. These
+estimation methods, which are proved to converge in finite time,
+are further exploited to develop a distributed algorithm to detect
+corrupted data among network measurements.
+I. INTRODUCTION
+Power systems are operated by system operators from the
+area control center. The main goal of the system operator
+is to maintain the network in a secure operating condition,
+in which all the loads are supplied power by the generators
+without violating the operational limits on the transmission
+lines. In order to accomplish this goal, the network model and
+the phasor voltages at every system bus need to be determined,
+and preventive actions have to be taken if the system is in an
+insecure state. For the determination of the operating state,
+remote terminal units and measuring devices are deployed in
+the network to gather measurements. These devices are then
+connected via a local area network to a SCADA (Supervisory
+Control and Data Acquisition) terminal, which supports the
+communication of the collected measurements to a control
+center. At the control center, the measurement data is used
+for control and optimization functions, such as contingency
+analysis, load forecasting, optimal power flow computation,
+and reactive power dispatch [1]. Various sources of uncertainties,
+e.g., measurement and communication noise, lead
+to inaccuracies in the received data, which may affect the
+performance of the control and optimization algorithms, and,
+ultimately, the stability of the power plant. This concern was
+first recognized and addressed in [2] by introducing the idea
+of (static) state estimation in power systems.
+This material is based in part upon work supported by ICB ARO grant
+DAAD19-03-D-0004 and NSF CNS-0834446, and in part upon the EC
+Contract IST 224428 ”CHAT”.
+Fabio Pasqualetti and Francesco Bullo are with the Center for Control,
+Dynamical Systems and Computation, University of California, Santa Barbara
+ffabiopas, bullog@engineering.ucsb.edu
+Ruggero Carli is with the Department of Information Engineering, University
+of Padova carlirug@dei.unipd.it
+Power network state estimators are broadly used to obtain an
+optimal estimate from redundant noisy measurements, and to
+estimate the state of a network branch which, for economical
+or computational reasons, is not directly monitored. For the
+power systems state estimation problem, several centralized
+and parallel solutions have been developed in the last decades,
+e.g., see [3]. Being an online function, computational issues,
+storage requirements, and numerical robustness of the solution
+algorithm need to be taken into account. Within this regard,
+distributed algorithms based on network partitioning techniques
+are to be preferred over centralized ones. In [4], [5] the
+idea is explored of using a global control center to coordinate
+estimates obtained locally by several local control centers.
+In this work, we improve the results along these directions,
+by proposing a fully decentralized and distributed estimation
+algorithm, which, by only assuming local knowledge of the
+network structure by the local control centers, allows them to
+obtain in finite-time an optimal estimate of the network state.
+Our methods also differ from the algorithms proposed in [6],
+[7]. Indeed, the convergence of these latter algorithms is only
+asymptotic, and it depends upon the communication topology.
+As a matter of fact, for many communication topologies, such
+as Cayley graphs and random geometric graphs, the convergence
+rate is very slow and scales badly with the network
+dimension. This aspect is undesirable because a delayed state
+estimation could lead the power plant to instability.
+Because of the increasing reliance of nowadays power
+systems on communication networks, the possibility of cyberattacks
+to networked systems is an actual threat [8], [9]. For
+instance, an attacker can compromise a network system by corrupting
+the measurements directed to the control center, with
+the goal of inducing errors in the state estimation mechanism
+[10]. This important type of attack is often referred in the
+power systems literature to as false data injection attack. The
+presence of false data is classically checked by analyzing the
+statistical properties of the estimation residual z Hx^, where z
+is the measurements vector, x^ is a state estimate, and H is the
+state to measurements matrix. For an attack to be successful,
+the residual needs to remain within a certain confidence level,
+and one approach to circumvent false data injection attacks is
+to increase the number of measurements so as to obtain a more
+accurate confidence bound. Clearly, by increasing the number
+of measurements, the data to be transmitted to the control
+center increases, and the dimension of the estimation problem
+grows. By means of our estimation method, we address the
+above dimensionality problem by distributing the false data
+detection problem among several control centers.
+978-1-4577-1702-4/11/$26.00 ©2011 IEEE
+469
+The contributions of this work are twofold. First, we adopt
+the static state network estimation model, in which the state
+vector is linearly related to the network measurements (see
+Section II). We develop a method for a group of connected
+control centers to compute an optimal estimate of the system
+state via distributed computation (see Section III-A and
+Section III-B). Our estimation method is iterative, and it is
+shown to converge in a finite number of steps. Furthermore, it
+requires only local information for its implementation, because
+each control center uses only the measurements coming from
+a local neighborhood of the whole network. Second, we
+describe a finite-time algorithm to detect corrupted data in
+the network measurements via distributed computation (see
+Section III-C). Our detection method is based upon our state
+estimation algorithm, and it inherits its convergence properties.
+Additionally, we characterize a class of corrupted vectors that
+are guaranteed to be detected by our procedure. Finally, we
+show the effectiveness of our procedures on the IEEE 118 bus
+system (see Section IV).
+II. PROBLEM DEFINITION AND PRELIMINARY NOTIONS
+The state of a power network at a certain time instant
+consists of the voltage angles and magnitudes at all system
+buses. The (static) state estimation problem introduced in
+the seminal work by Schweppe [2] refers to the procedure
+of estimating the state of a power network given a set of
+measurements of the network variables, such as, for instance,
+voltages, currents, and power flows along the transmission
+lines. To be more precise, let x 2 Rn and z 2 Rp be,
+respectively, the state and measurements vector. Then we have
+z = h(x) + ;
+where h( ) is a nonlinear measurement function, and is a
+zero mean random vector satisfying E[ T] = = T > 0.
+An optimal estimate of the network state coincides with the
+most likely vector x^ that solves equation (1). It should be observed
+that the network state could be obtained by measuring
+directly the voltage phasors by means of phasor measurement
+devices.1 Such an approach, however, would be economically
+expensive, and it would be very vulnerable to communication
+failures [1]. In this work, we adopt the approximated
+estimation model presented in [11], which follows from the
+linearization around the origin of equation (1). In particular,
+letting H 2 Rp n, E[v] = 0, and E[vvT] = = T > 0, the
+state estimation problem becomes
+z = Hx + v:
+Observe that, because of the interconnection structure of a
+power network, the measurement matrix H is sparse. Let
+Ker(H) denote the null space defined by the matrix H. Let
+Ker(H) = f0g, and recall from [12] that the vector
+xwls = (HT
+1H) 1HT
+1z
+(1)
+(2)
+(3)
+is such that it minimizes the weighted variance of the estimation
+error, i.e., xwls = arg minx^(z Hx^)T 1(z Hx^).
+The centralized computation of the minimum variance estimate
+(3) assumes the complete knowledge of the matrices H
+and , and it requires the inversion of the matrix HT 1H.
+For a large power network, such computation imposes a
+limitation on the dimension of the matrix H, and hence on the
+number of measurements that can be efficiently processed to
+obtain a real-time state estimate. A possible solution to address
+this complexity problem is to distribute the computation of xwls
+among geographically deployed control centers (monitors), in
+a way that each monitor is responsible for a subpart of the
+whole network. To be more precise, let the matrices H and
+, and the vector z be partitioned as
+2 H1 3
+H = 6664 H...2 7757 ;
+Hm
+2 1 3
+= 6664 ...2 7757 ;
+m
+2 z1 3
+z = 6664 z...2 7757 ;
+zm
+(4)
+where, for i 2 f1; : : : ; mg, mi 2 N, Hi 2 Rmi n, i 2
+Rmi n, zi 2 Rmi , and Pm
+i=1 mi = p. Let G = (V; E ) be a
+connected graph in which each vertex i 2 V = f1; : : : ; mg
+denotes a monitor. Assume that each monitor i knows the
+matrices Hi, i, and the vector zi, and that two neighboring
+monitors are allowed to cooperate by exchanging information.
+Notice that, if the full matrices H and are nowhere available,
+and if they cannot be used for the computation of xwls, then,
+with no cooperation among the monitors, the vector xwls
+cannot be computed by any of the monitor. Hence we consider
+the following problem.
+Problem 1 (Distributed state estimation) Design an algorithm
+for the monitors to compute the minimum variance
+estimate of the network state via distributed computation.
+Given the distributed nature of a power system and the
+increasing reliance on local area networks to transmit data to
+a control center, there exists the possibility for an attacker to
+compromise the network functionality by corrupting the measurements
+vector. When a malignant agent corrupts some of
+the measurements, the state to measurements relation becomes
+z = Hx + v + w;
+where the vector w 2 Rp is chosen by the attacker, and, hence,
+it is unknown and unmeasurable by any of the monitoring
+stations. We refer to the vector w to as false data. From the
+above equation, it should be observed that there exist vectors
+w that cannot be detected through the measurements z. For
+instance, if the bad data vector is intentionally chosen such
+that w 2 Im(H), then the attack cannot be detected through
+the measurements z. Indeed, denoting with y the pseudoinverse
+operation, the vector x + Hyw is a valid network state.
+Problem 2 (Distributed detection) Design an algorithm for
+1Phasor measurement units are devices that synchronize by using GPS the monitors to detect the presence of (detectable) false data
+signals, and that allow for a direct measurement of voltage and current phasors. in the network measurements via distributed computation.
+470
+Algorithm 1: Incremental minimum norm solution (i-th
+monitor)
+Input : Hi,zi;
+Require : [z1T : : : zmT]T 2 Im([H1T : : : HmT]T);
+1 if i = 1 then x^0 := 0, K0 := In;
+2 else receive x^i and Ki 1 from monitor i 1;
+3 x^i := x^i 1 + Ki 1(HiKi 1)y(zi Hix^i 1);
+4 Ki := Basis(Ki 1 Ker(HiKi 1));
+5 if i < m then transmit x^i and Ki 1 to monitor i + 1;
+6 else return x^m;
+We remark that, although we focus on power networks, the
+methods described in the following sections are general and
+have applicability beyond the considered scenario.
+III. OPTIMAL STATE ESTIMATION AND FALSE DATA
+DETECTION VIA DISTRIBUTED COMPUTATION
+The objective of this section is the design of distributed
+methods to compute an optimal state estimate from measurements.
+With respect to a centralized method, in which a
+powerful central processor is in charge of processing all the
+data, our procedures require the computing units to have access
+to only a subset of the measurements and are shown to reduce
+significantly the computational burden.
+For a distributed method to be implemented, the interaction
+structure among the computing units needs to be defined.
+Here we consider two modes of cooperations among the
+computing units, and, precisely, the incremental and the diffusive
+interaction. In an incremental mode of cooperation,
+information flows in a sequential manner from one node to
+the adjacent one. This setting, which usually requires the least
+amount of communications [13], induces a cyclic interaction
+graph among the processors. In an diffusive strategy, instead,
+each node exchange information with all (or a subset of) its
+neighbors as defined by an interaction graph. In this case,
+the amount of communication and computation is higher than
+in the incremental case, but each node possesses a good
+estimate before the termination of the algorithm, since it
+improves its estimate at each communication round. This
+section is divided into three parts. In Section III-A, we develop
+a distributed incremental method to solve a minimum variance
+estimation problem. In Section III-B we derive a diffusive
+strategy which is amenable to asynchronous implementation.
+Finally, in Section III-C we propose a distributed algorithm
+for the detection of false data among the measurements.
+A. Incremental state estimation via distributed computation
+We start by introducing a distributed incremental procedure
+to compute the minimum norm solution to a set of liner
+equations. This procedure constitutes the key ingredient of the
+incremental method we later propose to solve the minimum
+variance estimation problem.
+Let H 2 Rp m, and let z 2 Im(H), where Im(H)
+denotes the range space spanned by the matrix H. Consider
+471
+the system of linear equations z = Hx, and recall that the
+unique minimum norm solution to z = Hx coincides with
+the vector x^ such that z = Hx^ and kx^k2 is minimum. It can
+be shown that kx^k2 being minimum corresponds to x^ being
+orthogonal to the null space Ker(H) of H [12]. Let H and
+z be partitioned in m blocks as in (4), and let G = (V; E )
+be a directed graph such that V = f1; : : : ; mg corresponds to
+the set of monitors, and, denoting with (i; j) the directed edge
+from j to i, E = f(i+1; i) : i = 1; : : : ; m 1g[f(1; m)g. Our
+incremental procedure to compute the minimum norm solution
+to z = Hx^ is in Algorithm 1, where, given a subspace V, we
+write Basis(V) to denote any full rank matrix whose columns
+span the subspace V.
+The next theorem states the convergence properties of the
+Incremental minimum norm solution algorithm.
+Theorem III.1 (Convergence of Algorithm 1) Let z = Hx,
+where H and z are partitioned in m row-blocks as in (4). In
+Algorithm 1, the m-th monitor returns the vector x^ such that
+z = Hx^ and x^ ? Ker(H).2
+We now focus on the computation of the weighted least
+squares solution to a set of linear equations. Let v be an
+unknown and unmeasurable random vector, with E(v) = 0
+and E(vvT) = = T > 0. Consider the system of equations
+z = Hx + v;
+and assume Ker(H) = 0. Notice that, because of the noise
+vector v, Algorithm 1 cannot be directly employed to compute
+the vector xwls defined in (3). It is possible, however, to
+recast the weighted least squares estimation problem to be
+solvable with Algorithm 1. Note that, because the matrix is
+symmetric and positive definite, there exists3 a full row rank
+matrix B such that = BBT. Then, equation (5) can be
+rewritten as
+z = H
+"B
+x
+v ;
+where " > 0, E[v] = 0 and E[vvT] = " 2I. Observe that, because
+B has full row rank, the system (6) is underdetermined,
+i.e., z 2 Im([H "B]) and Ker([H "B]) 6= 0. Let
+x^(")
+^ = H
+v
+"B y z:
+The following theorem characterizes the relation between the
+minimum variance estimation xwls and x^(").
+Theorem III.2 (Convergence with ") Consider the system of
+linear equations z = Hx + v. Let E(v) = 0 and E(vvT) =
+= BBT > 0, for a full row rank matrix B. Let
+C = "(I
+E = I
+HHy)B;
+CyC;
+D = "E[I + "2EBT(HHT)yBE] 1BT(HHT)y(I
+"BCy):
+2A proof of the results contained in this paper can be found at
+http://arxiv.org/abs/1103.0579.
+3Choose for instance B = W 1=2, where W is a basis of eigenvectors of
+and is the corresponding diagonal matrix of the eigenvalues.
+(5)
+(6)
+(7)
+Then
+xwls = lim x^(")
+"!0+
+where x(") = Hy "HyB(Cy + D) z. Moreover, for a
+fixed value of ", we have
+xwls
+x^(") = "HyBDz:
+For the system of equations (5), the estimate x^(")
+can be computed by means of Algorithm 1 with input
+[H1 "Bi]; : : : ; [Hm "Bm] and z1; : : : ; zm, where, being BBT
+is the noise covariance matrix, we have
+2 H1 3
+H = 6664 H...2 7757 ;
+Hm
+2 B1 3
+B = 6664 B...2 7757 ;
+Bm
+2 z1 3
+z = 6664 z...2 7757 ;
+zm
+(8)
+and, for i 2 f1; : : : ; mg, mi 2 N, Hi 2 Rmi n, Bi 2 Rmi n,
+zi 2 Rmi , and " > 0.
+To conclude this section, we characterize the estimation
+residual z Hx^. This quantity will play a important role for
+the synthesis of a distributed bad data detection algorithm.
+Corollary III.1 (Estimation residual) Consider the system
+z = Hx + v, and let E[vvT] = = T > 0. Then4
+"l!im0+ kz
+Hx^(")k
+where W = (HT
+1H) 1HT
+k(I
+1.
+HW )kkvk;
+B. Diffusive state estimation via distributed computation
+The implementation of the incremental state estimation
+algorithm described in Section III-A requires a certain degree
+of coordination among the control centers. For instance, an
+ordering of the monitors is necessary, such that the i-th
+monitor transmits its estimate to the (i + 1)-th monitor. This
+requirement imposes a constraint on the monitors interconnection
+structure, which may be undesirable, and, potentially, less
+robust to link failures. In this section, we overcome this limitation
+by presenting a diffusive implementation of Algorithm
+1, which only requires the monitors interconnection structure
+to be connected.5 To be more precise, let V = f1; : : : ; mg
+be the set of monitors, and let G = (V; E) be the undirected
+graph describing the monitors interconnection structure, where
+E V V , and (i; j) 2 E if and only if the monitors i and
+j are connected. The neighbor set of node i is defined as
+Ni = fj 2 V : (i; j) 2 Eg. We assume that G is connected,
+and we let the distance between two vertices be the minimum
+number of edges in a path connecting them. Finally, the
+diameter of a graph G, in short diam(G), equals the greatest
+distance between any pair of vertices. Our diffusive procedure
+is described in Algorithm 2, where the matrices Hi and "Bi
+4Given a vector v and a matrix H, we denote by kvk any vector norm,
+and by kHk the corresponding induced matrix norm.
+5An undirected graph is said to be connected if there exists a path between
+any two vertices [14].
+Algorithm 2: Diffusive state estimation (i-th monitor)
+Input : Hi, "Bi, zi;
+1 x^i := [Hi "Bi]yzi;
+2 Ki := Basis(Ker([Hi "Bi]));
+3 while Ki 6= 0 do
+4 for j 2 Ni do
+5 receive x^j and Kj ;
+6 x^i := x^i + [Ki 0][ Ki Kj ]y(x^i x^j );
+7 Ki := Basis(Im(Ki) \ Im(Kj ));
+8
+transmit x^i and Ki;
+are as defined in equation (8). During the h-th iteration of
+the algorithm, monitor i, with i 2 f1; : : : ; N g, performs the
+following three actions in order:
+(i) transmits its current estimates x^i and Ki to all its
+neighbors;
+(ii) receives the estimates x^j from neighbors Ni; and
+(iii) updates x^i and Ki as in the for loop of Algorithm 2.
+We next show the convergence of Algorithm 2 to the
+minimum variance estimate.
+Theorem III.3 (Convergence of Algorithm 2) Consider
+the system of linear equations z = Hx + v, where E[v] = 0
+and E[vvT] = BBT. Let H, B and z be partitioned as in
+(8), and let " > 0. Let the monitors communication graph be
+connected, let d be its diameter, and let the monitors execute
+the Diffusive state estimation algorithm. Then, each monitor
+computes the estimate x^(") of x in at most d steps.
+As a consequence of Theorem III.2, in the limit for " to
+zero, Algorithm 2 returns the minimum variance estimate of
+the state vector, being therefore the diffusive counterpart of
+Algorithm 1. A detailed comparison between incremental and
+diffusive methods is beyond the purpose of this work, and we
+refer the interested reader to [6], [7] and the references therein
+for a thorough discussion.
+C. Detection of false data via distributed computation
+In the previous sections we have shown how to compute
+an optimal estimate of the system state via distributed computation.
+We focus now on the problem of detecting the
+presence of false data among the measurements in a distributed
+manner. When the measurements are corrupted, the state to
+measurements relation becomes
+z = Hx + v + w;
+where w is the false data vector. Following Corollary III.1, the
+vector w is detectable if it affects significantly the estimation
+residual, i.e., if
+lim kz
+"!0
+Hx^(")k > ;
+where threshold depends upon the magnitude of the noise
+v. Notice that, because the false data can be injected at any
+472
+1
+2
+3
+4
+5
+Algorithm 3: False data detection (i-th monitor)
+Input : Hi, "Bi, ;
+while True do
+collect measurements zi(t);
+estimate network state x^(t) via Algorithm 1 or 2;
+if kzi(t) Hix^(t)k1 > then
+False data detected;
+time by a malignant agent, the detection algorithm needs to
+be executed over time by the control centers. Let z(t) be
+the measurements vector at a given time instant t, and let
+E[z(t1)zT(t2)] = 0 for all t1 6= t2. Based on this considerations,
+our distributed detection procedure is in Algorithm 3,
+where the matrices Hi and "Bi are as defined in equation (8),
+and is a predefined threshold. It should be noticed that, since
+our estimation algorithms recover the precision of a centralized
+method, our detection algorithm is optimal in the sense that it
+has the same performance of a centralized detection method.
+In Algorithm 3, the value of the threshold determines
+the false alarm and the misdetection rate. Clearly, if
+k(I H W )kkv(t)k and " is sufficiently small, then no false
+alarm is triggered, at the expenses of the misdetection rate. By
+decreasing the value of the sensitivity to failures increases
+together with the false alarm rate. Notice that, if the magnitude
+of the noise signals is bounded by , then a reasonable choice
+of the threshold is = k(I H W )k1, where the use of
+the infinity norm in Algorithm 3 is also convenient for the
+implementation. Indeed, once the estimation x^(t) has been
+computed, the condition kzi(t) Hix^(t)k1 > can be
+checked by each leader without any further communication.
+A related example is presented in the next section.
+IV. AN ILLUSTRATIVE EXAMPLE
+The IEEE 118 bus system represents a portion of the
+American Electric Power System as of December, 1962. This
+test case system is composed of 118 buses, 186 branches, 54
+generators, and 99 loads. Following [11], the voltage angles
+bus and the power injections Pbus at the network buses are
+related through the linear relation
+Pbus = Hbus bus;
+where the matrix Hbus depends upon the network interconnection
+structure and the network admittance matrix. Let
+z = Pbus v be the measurements vector, where E[v] = 0
+and E[vvT] = 2I , 2 R. Then, following the notation in
+Theorem III.2, the minimum variance estimate of bus can be
+recovered as
+lim [Hbus " I ]yz:
+"!0+
+In Fig. 1 we show that, as " decreases, the estimation vector
+computed according to Theorem III.2 converges to the minimum
+variance estimate of bus.
+In order to demonstrate the advantage of our decentralized
+estimation algorithm, we assume the presence of 5 control
+2
+2
+s
+l
+w
+,
+s
+u
+b
+θ 1
+)ε
+(
+s
+u
+b
+θ
+00
+0.2 ε
+0.1
+0.3
+0.4
+0.5
+Fig. 1. The normalized Euclidean norm of the error vector bus(") bus,wls
+is plotted as a function of the parameter ", where bus(") is the estimation
+vector computed according to Theorem III.2, and bus,wls is the minimum
+variance estimate of bus. As " decreases, the vector bus(") converges to the
+minimum variance estimate bus,wls.
+Area 1
+Area 3 G
+G
+G
+G G
+G
+G
+G
+G
+G
+G
+G
+G
+G
+G
+Area 2
+G
+G
+G
+G
+G
+G
+G
+Area 4
+G G
+G G
+G
+G
+Area 5
+G
+G
+G
+G
+G
+G
+G
+G
+G
+G
+G
+G
+G G
+G
+G
+G
+G
+G
+G
+G
+G G G
+G G
+Fig. 2. The IEEE 118 bus system has been divided into 5 areas. Each area
+is monitored and operated by a control center. The control centers cooperate
+to estimate the state and to assess the functionality of the whole network.
+centers in the IEEE 118 network, each one responsible for a
+subpart of the entire network. The situation is depicted in Fig.
+2. Assume that each control center measures the real power
+injected at the buses in its area, and let zi = Pbus,i vi,
+with E[vi] = 0 and E[viviT] = i2I , be the measurements
+vector of the i-th area. Finally, assume that the i-th control
+center knows the matrix Hbus,i such that zi = Hbus,i bus + vi.
+Then, as discussed in Section III, the control center can
+compute an optimal estimate of bus by means of Algorithm
+1 or 2. Let ni be the number of measurements of the i-th
+area, and let N = Pi5=1 ni. Notice that, with respect to a
+centralized computation of the minimum variance estimate of
+the state vector, our estimation procedure obtains the same
+estimation accuracy while requiring a smaller computation
+burden and memory requirement. Indeed, the i-th monitor
+uses ni measurements instead of N . Let N be the maximum
+number of measurements that, due to hardware or numerical
+constraints, a control center can efficiently handle for the state
+estimation problem. In Fig. 3, we increase the number of
+measurements taken by a control center, so that ni N , and
+473
+0.05
+20.04
+r
+o
+r
+r
+e0.03
+0.021
+2
+3 4
+n◦ of measurements (×N)
+5
+Fig. 3. For a fixed value of ", the plot shows the norm of the error
+with respect to the true state vector of the estimate obtained by means of
+Algorithm 1 (solid) and of the centralized minimum variance estimation with
+N measurements (dashed). The x axis denotes the number of measurements
+used for the distributed estimation. Because of the presence of several control
+centers, the distributed algorithm is more accurate while maintaining the same
+(or smaller) computational complexity of the centralized estimation.
+we show how the accuracy of the state estimate increases with
+respect to a single control center with N measurements.
+To conclude this section, we consider a security application.
+Assume that each control center measures the real
+power injection as well the current magnitude at some of
+the buses of its area. By doing so, a sufficient redundancy
+in the measurements is obtained for the detection to be
+feasible [1]. Suppose that the measurements of the power
+injection at the first bus of the first area is corrupted by a
+malignant agent. To be more precise, let the measurements
+vector of the first area be zi = zi + e1wi, where e1 is
+the first canonical vector, and wi is a random variable. For
+the simulation we choose wi to be uniformly distributed in
+the interval [0; wmax], where wmax corresponds approximately
+to the 10% of the nominal real injection value. In order to
+detect the presence of false data among the measurements,
+the control centers implement Algorithm 3, where, being
+Hbus the measurements matrix, and , the noise standard
+deviation and covariance matrix, the threshold value is
+chosen as 2 kI Hbus(HbTus 1Hbus) 1HbTus 1k1.6 The
+residual functions kzi Hix^k1 are reported in Fig. 4. Observe
+that, since the first residual is greater than the threshold , the
+control centers successfully detect the false data. Regarding the
+identification of the corrupted measurements, we remark that
+a regional identification may be possible by simply analyzing
+the residual functions. In this example, for instance, since
+the residuals f2; : : : ; 5g are below the threshold value, the
+corrupted data is likely to be among the measurements of the
+first area. This important aspect is left, however, as the subject
+of future research.
+V. CONCLUSION
+Two algorithms have been presented to solve the static state
+estimation problem in a power network via distributed computation.
+Our first algorithm is incremental, and it converges
+in a number of steps equal to the number of units involved in
+the computation. Our second algorithm is diffuse: it requires
+6For a Gaussian distribution with mean and variance 2, about 95% of
+the realizations are contained in the interval [ 2 ; + 2 ].
+0.5 Residual 1
+0.5 Residual 2
+0.5 Residual 3
+0
+5
+10 15 20
+Time
+0.5 Residual 4
+0
+0
+5
+10 15 20
+Time
+5
+10 15 20
+Time
+0.5 Residual 5
+0
+5
+10 15 20
+Time
+0
+5
+10 15 20
+Time
+Fig. 4. Residual functions computed by the 5 control centers. Since the
+first residual is greater than the threshold value, the presence of false data is
+correctly detected by the first control center. A form of regional identification
+is possible by simple identifying the residuals above the security threshold.
+a larger number of operations compared to our first algorithm,
+but (i) it allows for an asynchronous update of the estimate by
+the computing units, and (ii) it does not impose any particular
+interconnection structure among the computing units. Based on
+these estimation procedures, a distributed algorithm to detect
+false data among the network measurements is also proposed.
+REFERENCES
+[1] A. Abur and A. G. Exposito, Power System State Estimation: Theory
+and Implementation. CRC Press, 2004.
+[2] F. C. Schweppe and J. Wildes, “Power system static-state estimation,
+Part I: Exact model,” IEEE Transactions on Power Apparatus and
+Systems, vol. 89, no. 1, pp. 120-125, 1970.
+[3] A. Monticelli, State Estimation in Electric Power Systems: A Generalized
+Approach. Springer, 1999.
+[4] L. Zhao and A. Abur, “Multi area state estimation using synchronized
+phasor measurements,” IEEE Transactions on Power Systems, vol. 20,
+no. 2, pp. 611-617, 2005.
+[5] W. Jiang, V. Vittal, and G. T. Heydt, “A distributed state estimator
+utilizing synchronized phasor measurements,” IEEE Transactions on
+Power Systems, vol. 22, no. 2, pp. 563-571, 2007.
+[6] C. G. Lopes and A. H. Sayed, “Incremental adaptive strategies over
+distributed networks,” IEEE Transactions on Signal Processing, vol. 55,
+no. 8, pp. 4064-4077, 2007.
+[7] --, “Diffusion least-mean squares over adaptive networks: Formulation
+and performance analysis,” IEEE Transactions on Signal Processing,
+vol. 56, no. 7, pp. 3122-3136, 2008.
+[8] A. R. Metke and R. L. Ekl, “Security technology for smart grid
+networks,” IEEE Transactions on Smart Grid, vol. 1, no. 1, pp. 99 -107,
+2010.
+[9] M. Amin, “Guaranteeing the security of an increasingly stressed grid,”
+IEEE Smart Grid Newsletter, Feb. 2011.
+[10] Y. Liu, M. K. Reiter, and P. Ning, “False data injection attacks against
+state estimation in electric power grids,” in ACM Conference on Computer
+and Communications Security, Chicago, IL, USA, Nov. 2009, pp.
+21-32.
+[11] F. C. Schweppe and J. Wildes, “Power system static-state estimation,
+Part II: Approximate model,” IEEE Transactions on Power Apparatus
+and Systems, vol. 89, no. 1, pp. 125-130, 1970.
+[12] D. G. Luenberger, Optimization by Vector Space Methods. Wiley, 1969.
+[13] M. G. Rabbat and R. D. Nowak, “Quantized incremental algorithms for
+distributed optimization,” IEEE Journal on Selected Areas in Communications,
+vol. 23, no. 4, pp. 798-808, 2005.
+[14] C. D. Godsil and G. F. Royle, Algebraic Graph Theory, ser. Graduate
+Texts in Mathematics. Springer, 2001, vol. 207.
+474

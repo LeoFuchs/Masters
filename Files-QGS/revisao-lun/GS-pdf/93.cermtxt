@@ -1,0 +1,1293 @@
+Attack Mitigation in Adversarial Platooning Using
+Detection-Based Sliding Mode Control
+Imran Sajjad, Daniel D. Dunn, Rajnikant Sharma, Ryan Gerdes
+Dept. of Electrical and Computer Engineering
+Utah State University
+Logan, UT, USA
+{imran.sajjad, d.dunn}@aggiemail.usu.edu, {rajnikant.sharma, ryan.gerdes}@usu.edu
+ABSTRACT
+In this paper, we consider a mitigation strategy to prevent a
+vehicle controlled by an attacker from causing collisions in
+a vehicular platoon. An adversarial-aware control scheme,
+based on sliding mode control using only local sensor information
+and a decentralized attack detector, is shown to
+signi cantly reduce the number and severity of collisions,
+without the need for inter-vehicle or vehicle-to-infrastructure
+communication. Simulations demonstrate that collisions are
+eliminated (or signi cantly reduced) when the attacker and
+normal vehicles have same capabilities, and collisions are
+reduced even with more powerful attackers.
+Categories and Subject Descriptors
+C.4 [Performance of Systems]: Reliability, availability,
+and serviceability; I.2.8 [Arti cial Intelligence]: Problem
+Solving, Control Methods, and Search|control theory; I.2.9
+[Arti cial Intelligence]: Robotics|autonomous vehicles;
+K.4.1 [Computers and Society]: Public Policy Issues|
+abuse and crime involving computers
+General Terms
+Security, Reliability, Performance
+Keywords
+autonomous and automated vehicles; vehicle platoon; adaptive
+cruise control; cooperative adaptive cruise control; attack
+1. INTRODUCTION
+The automation of highway systems is an area of extensive
+and ongoing research. One method of developing an Automated
+Highway System (AHS) is to utilize vehicle platooning,
+in which vehicles on the highway follow each other with very
+small inter-vehicle separations, sensing the movements of
+other vehicles and reacting automatically according to some
+Permission to make digital or hard copies of all or part of this work for personal or
+classroom use is granted without fee provided that copies are not made or distributed
+for profit or commercial advantage and that copies bear this notice and the full citation
+on the first page. Copyrights for components of this work owned by others than the
+author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or
+republish, to post on servers or to redistribute to lists, requires prior specific permission
+and/or a fee. Request permissions from Permissions@acm.org.
+CPS-SPC'15, October 16, 2015, Denver, Colorado, USA.
+Copyright is held by the owner/author(s). Publication rights licensed to ACM.
+ACM 978-1-4503-3827-1/15/10 ...$15.00.
+DOI: http://dx.doi.org/10.1145/2808705.2808713 .
+prede ned law. Platooning has been shown to have environmental,
+safety, and passenger comfort bene ts [1, 18]. They
+also help to alleviate tra c congestion on highways [17] and
+have shown to be more fuel e cient than manually operated
+vehicles [12].
+The safety and security of these systems is essential. Platooning
+falls under the broad category of cyber-physical
+systems (CPS), where most security-centric work has focused
+on attack detection and not mitigation [8, 13, 14]. For a
+platooning CPS, it has been shown that a single attacker
+can disrupt normal operations simply and easily, and that
+such disruptions can cause catastrophic collisions [4]. Our
+work aims at ensuring that deviations from expected platoon
+behavior do not cause collisions or mitigate collision damage
+as much as possible.
+The main contribution of this paper is a sliding mode
+controller coupled with an attack detection scheme that
+ensures that deviations from desired inter-vehicle separations
+remain low. Compared to existing control laws, our controller
+is able to almost completely eliminate collisions when the
+attacking vehicle is as strong as regular vehicles; even in the
+presence of a more powerful attackers the damage caused
+by collisions is greatly reduced. Our control law and attack
+detection scheme are decentralized and rely on only the local
+sensors the platooned vehicle is already equipped with for
+decision making and reaction purposes.
+The remainder of this paper is organized as follows. In
+Section 2 some platooning preliminaries and a threat model
+are outlined. Our platoon model is presented in Section 3
+and a sliding mode controller is derived around this model in
+Section 4. Simulation and results are presented in 5. Section
+6 concludes this paper.
+1.1
+Related Work
+A large body of work can be found regarding homogeneous
+platoons, where every car follows the same control low. Most
+of this work focuses on the stability and string stability of
+the system [3, 15, 20, 21]. Other work has highlighted some of
+the limitations of the bidirectional structure [2, 10]. Di erent
+inter-vehicle spacing policies have also been considered [20].
+It has been previously shown that for the symmetric bidirectional
+linear controller, the bounds on the front and rear
+errors increase as the number of vehicles increases [2]. Our
+proposed controller can enter into asymmetric states and
+from our analysis, the error bounds are independent of the
+number of vehicles.
+Sliding Mode Control has been used previously in many
+scenarios. Platooning strategies exist where sliding mode
+45
+)
+s
+/m40
+(
+ity 35
+c
+o
+le 30
+v
+0
+0
+5
+10
+15
+time (s)
+(a)
+15
+time (s)
+20
+25
+30
+15
+time (s)
+5
+10
+20
+25
+30
+0
+5
+10
+20
+25
+30
+1,000
+) 800
+m
+(n 600
+o
+t 400
+i
+i
+s
+op 200
+0
+0
+Figure 1: Oscillatory beh(aav)ior brought on by an attacker, resulting in a high(bs)peed crash [4]. Each line
+repre4s5ents the trajectory of a vehicle in a ten vehicle platoon with an attacker at the rear.
+)
+s
+/m40
+( 600
+conttyr3o5l has been used in a homogeneous platoon [6] under are traveling at their desired separations, which is chosen to
+nor mico al operation. Graph theoretic )approaches similar to ours be one car length of separation in our tests.
+havele 3b0een used before in platooni(mng [5, 22], and in general
+v
+opfroubnlceemr0tsaoinftmieuslt[51ip9l]e. veh1ic0le targe1tiiton5 t4r0a0ckin2g0 in the2p5resence30 3.TheRbAidTirIeOctiNonAalLpElatAooNnDstr)Suc6Yt0uSreT(EFMig. 2Oa)VhEasRtVwoI EprWinApart
+from platooning, mucthimwesoo(rsk) has been done in in- ciple bene ts over the unidirecs/tional approach: 1) it o ers
+terconnected dynamic cyber-physiPcal systems. The security the added safety advantage of(ma4v0oiding collisions from the
+and robustness of these syste m(bs) in 2th00e face of an attack or
+rear, and 2) also allows for conedstant spacing between vehifailure
+is crucial and is an active area of research [14]. Graph cles, provided the size of the pela2t0oon is known and used to
+theory, information ow analysis have been used to analyze tune controller gains, without vpSehicle-to-vehicle communicasuch
+systems as well [5, 22]. Much of th0is work is focused on tion [23]. We show that this struct0ure is especially vulnerable
+ensuring suitable operating conditions f0or dynam5ic system1s0, to1a5ttack, b2u0t to reta2i5n its bene t0s we devis5e a schem1e0of 15
+mainly stability, controllability and observability. time (asl)tering the structure during times of attack that ensuretsime (s)
+Our approach builds upon the above works and tries to that collisions are at least minimized, if not avoided altosolve
+the safety problem in an adver6sa0rial environment. None(c) gether. Technologies such as cooperative adaptive cruis(ed)
+of the above investigate platoonin)g performance in the presence
+of an attacker. Our choicFeif/gorursleid5i n:g(ma)odTehceonfatrlolilnlegr and c(obn)trroilsi(nCgACC) that uosfe tVh2eVficrosmt municatpioenriaorde sensitkiveeyboard's clo
+is follows naturally when somecali(smsme4i0ttahteiontsimone tithetaaktteascktehre signtaoljatom mtrianngspaiottitroatncioksntosantdhethnueswsalfeetvycellhoaicsskgtorebaetegruaworfahnaetneead HKL is pr
+capabilities are known. We also winhcedoe2rn0poirtaitse mnoatxi(mbulmuep)e.rf(ocr)- and w(dit)hosuhtowreltiahbeleveoxltteargnealoifntfohremcaltoiocnk. lEinveenwtihthese(rseydst)emansd without a
+mance constraints and measureththepee leowcearcypoofrtoiuornapopfrtohacehfirst tawreo vculolncekrapbleeritoodins.stIanbileitaychattcaacskes tchaueseledvbeyl iasttlaecskserdumeo-to the loadi
+S tion [4, 23].
+by measuring the severity of theHcKolLlis.ions that take place.
+0
+15 20 25 0 5 10
+The V20ulnerab25ility of Bidirectional Control
+3.115
+5
+10
+time (s) time (s) BothAb.idirectional and unidirectio7n(6a)l:p32la9t-o3o5n2i,n1g9r9e9q.uire
+(c)2.ForTthHeRpuErpAoTsesMofOthDisEstLudy,[4w] epAAch..oyPCnssieacirdrardeligersn,yaaasspnt,eldamStS.os.A.oSnImnaoisnWftr,nyoB(.rd.kC)sShhianolpoculeopnonnoindgslieie,rfnseuscftuotuisrroGenfsoieadarclinurpliear,rciwontpigomencrasyionbipnteearrinatsiothne. sF[9eo]praEAeraxn.tavDimioranopvnlibelmae,t,eawnEept.earndledebvleeecPnheioescfizslooetssr, Eof. vAerhaimclebuprl
+he falling amnedm(bbe)rsr,iesainchg epqouriptipoends woifththfreonfitr-csytabncedlro-rpcehkayrsp-fieacarciilnosgdyssoteefnmsaosrksseeycubroitaybr,yd2'h0s0ac9vl.ioncgk tlhineef.olIlonweearcrhespond to Ftahcetomrso,v2e0m1e2n:0t5s-o1f7,th2e012.
+ii(tobntluaoekf)e.tsh(tech)fieartahsnhstaittadgvatentc(wmaktdhleoe)reta,csosslhtuaohtormcreewkaervneptceslhaheaipetritciaiivolovbeenodsillsditatt.iaiodsegIthsante,ehnraoeceesaeftncdtaoheeh[n5swetdcc]hracveCUilsbleeoe.nsvel-ocaidTetvkcmhl.eiitnereliCyissn.itlhctehgeoAeyvernnwseePt.inlardirLeotteiexhislesntfrslrle(,aesoarwweIsmrencshdtcasietd.)yonh,nusndae1te.ena9m9dtH5ow.tKhtihevcdtLooeehorhnwoiylsisounceaaltnpendasraduniiennsdsHdgewefKnsrsehooit↵Lgennn(edtr(.cobteotOhdslftuexh)oieftevoft).erhtthdfwahIoincneorleafoattllhotr[wh1eeee0r]lsve.hWaehod.rCicioDzolfeonutnsnhpebelcnaoapstnruoltasoart,nnooldhotoonhDfwes.vreloeeCvhweaiirssvc,leenepyla.tDoiosntrsi:b
+The last member is indexed as 1[6a]nEd. tChoeelleinadgherainsdatS.inSdoelxyom. Acllananbootarbde tghuearroabntoeteicd. If the car at stthreinrgeasrtadboielistyn.oAt umtoomveatic Control, I
+n. We focus on the bidirectional plartooaodntsrcahinem.IeE[E23E] Swpheecrterum, Nboavcekm(boerr w2a0n12ts. [tOo nalcinceel;erate into itsTprarendseaccetsiosonrs),otnh, e5n7(t3h)e:620-633, Mar
+every car gathers information abouta(cec.egs.sreadn3g0e-aSnepdtr-2el0a1t3iv].e car in the middle will not be ab[l1e1t]oCd.eFfeenadthaegrastinonste iat.nd M. Lowson. Via
+s, S. Amin, B.veSlioncoiptyo)li,, aAn.dGrieaanci,ts to the mov[e7m]ePn.tsC7(oo6fo),k:3b.2oC9t-ho3nt5dh2ie,ti1ov9ne9hs9i.fcoler string stTahbeilbitiyd.irSeycsttioenmasl s&ystem, owing to otfheplfaatcototnhiantgthine mauitdodmleated transpor
+nd S. Sastry. pCrheacleledningegs afonrdsfeocluloriwnigncgyibte.r The le a[C9d]oenrAtt.rroDileasLvetiltoate,mrEsa.,id5ne4tla(1iPn0o)za:o9,91E-.9A9vr8ea,hm2icb0le0u5rru.e,acatnsdtAo.wFhraetixiassh.appening bhottthpi:n/f/rwownwt.acnydbebrechainrds.org/docs/C
+tems. In Workseshpoapraotniofnutwuriethdiirtesctfioolnloswiner an d[8]haSs. aDEcancrvebsirhsoantomaneadntrKaelf.ebrRenanejcafiegtsopoaflv.eiIthn,itcmelellaipygleasntetoeomcnriuntigose.bHcuoutnm,tarinonl fact, does 2n0oRtespoolvret.tphdifs,p2r0o0b4l.e m[T.echnical repo
+al systems secturraijteyc,t2o0r0y9..The last car only trackssythsteFeacmcatsroraismn,dm20te1rda2i:a0t5ce-lfl1y7oi,wn2s0t1a2b. ilAity.syTmramnestproirctabtiidoinrectional law doesacnceostsecdon0t4r-oJlubnoet-2h01th4e].
+. Linear syste mfrotnhteoorfyita.nd design. Oxford [1R0]esWea.rcDhuPnbaarrt aCn:dEDm. eCrgaivnegneTyer.ecDahrinsotarlnoibdguifetrseo,dntresceepdairnagtions simul[t1a2n]eoRu.slMy..RGaetrhdeers,,itCt.rWiesintostead, and K.
+ress, Inc., 1995.We assume only a single attacker in choonrtizronl ocfonatcroalr oaftvaenhicle plpatlaocoenst:hSetcaubrilrietyntancadr in the middle of the two neighboring
+and S. Solyomar.bAitlrlaarybopaordsittihoen rionbtohtiec platoon. The asttrtiancgksctaarbiilsitpy.oAssui btolymatic Ccoanrstr.ol,AIsEsuEmE ing again the three vehicle platoon with an
+IEEE Spectrumm,orNeopveomwebrefrul20th12a.n[Othnelirneeg;ular cars, i.eT.riatnmsaacytihoanvseognr,e5a7te(3r):620-a63tt3a,cMkearrcihn 2t0h1e2.rear who decides to accelerate, we can see
+-Sept-2013]. acceleration capabilities. The goal [o1f1t]hCe.aFtteaactkheerrsitsotnoe caanudseM. Lowtshoant. dVuiaebtiolitiytsalnedngbtehnetfihtes m1i0ddle vehicle that tries to place
+nditions for smtriunlgtipstleabcioliltlyis.iSoynssteinmsti&me. To accomploifshpltahtoisonthinegaitntaacukteormated ittrsaenlfspeoqrutidsiyssttaenmtst.o the attacker and leader, when the space
+ters, 54(10):99f1o-ll9o9w8s, 2a00m5.odi ed control law that inhdtutcpe:s//owscwiwll.actyiobnerscianrs.orgb/detowcse/enCTiFs%2d0imLoiwnsisohni%ng, would inevitably collide with the
+nd K. Rajagotphael. pIlnatteolloignen(tFcigru.i1se).coIntthroals been sho2w0nRetphoartt.apndfa,tt2a0c0k4e.r[Technliecaadlerre.poInrt;faocntl,inwee; show (Appendix A) that the bidirectional
+tra c flow sctaabnillietvy.erTargaensopsocirltlaattioorny behavior to cauaseccmesosered a0c4c-uJumnuel-a2t0e1d4]. system formed around a single car is locally uncontrollable
+rt C: EmergindgamTaecghen,oalnodgiems,ore collisions over ti[m12e], Rth.aMn .oGneertdheast, Csi.mWpliynstead,aannddtKha.tHaetaslleipa.stCopns:e Aconoperating neighbor is required for
+accelerates in one direction and that this can be achieved stable operation.
+simply by changing the some controller gains [4]. The attack If we limit our discussion to a single attacker, we propose
+always starts in a steady state1c0on guration, when the cars to use the consensus condition that is required in both cases
+Vehicle States:
+x1; v1
+Cars:
+1
+l
+High Level ui Low Level
+Controller Controller
+Fi
+Vehicle
+Model
+States
+er; ef
+vi
+Range-Rate
+Sensors
+(a) Platoon with a bidirectional law under normal operation. Information ow in green. Each car is l meters long and
+the desired separation from center of one car to that of the other is ref.
+ui
+ui
+xn; vn
+n
+MUX
+ui
+x2; v2
+2
+direction of travel
+ref
+x3; v3
+3
+Other Car
+States
+er; ef
+er; ef
+er; ef
+: : :
+: : :
+Traditional
+Controller
+Attack
+Controller
+Attack
+Detector
+(b) Controllers of a single vehicle.
+(c) Inside high level controller: attack detection and controller
+selection based on attack state.
+Figure 2: Overview of Platoon. Each vehicle knows its own velocity and measures a relative distance and
+velocity from rear and front (er; ef ). These same measurements are used in the high level controller to switch
+between rear or front tracking if an attack is detected.
+anyway. We recommend a secondary controller that tries
+to keep a constant distance from the more dangerous and
+uncooperative car (in front or behind) and relies on the other
+car to move and make room. Under normal circumstances a
+traditional bidirectional law is followed; however, upon detect
+of anomalous behavior, indicating the onset of an attack,
+this secondary controller is engaged to mitigate the attack
+(Fig. 2c). This approach is shown to allow a straightforward,
+ultimate boundedness analysis and simulation results
+show that it greatly reduces total damage compared to a
+bidirectional scheme.
+3.2
+Platooning Goals in Adversarial Conditions
+An attacker vehicle cannot be assumed to be following the
+control scheme of the other vehicles. They have free reign to
+do whatever they want, and the other cars do not have any
+assurance of its cooperation. The possible combinations of
+such attacks are virtually limitless. To investigate operation
+in the presence of attackers, we de ne revised platooning
+goals in the presence of an attack that ensure safety at the
+expense of other desirable platooning properties:
+1. The instantaneous and total mean square error from
+reference should be as tightly bounded as possible.
+2. The instantaneous and total damage from collisions
+should be minimal.
+From the point of view of the attacker(s), the aim is to defeat
+these goals. Both these goals are interlinked as well, in the
+sense that there has to be some error in relative positions
+before a collision takes place.
+For the rst goal, we have to investigate how errors propagate
+in the system in the presence of attackers. This largely
+depends on the number of attackers and what they are doing,
+but general statements can be made using concepts such as
+string stability and Lyapunov Stability [3, 11, 21]. Such an
+analysis would have to be global and the interaction between
+each member of the platoon with every other one would have
+to be investigated.
+In this paper, we give priority to the second goal because
+that one seems more imperative if there will be human passengers
+in the platooning vehicles. Incidentally, it is easier to
+analyze as well, since the number of interactions is smaller,
+and the analysis is not entirely removed from that of the rst
+goal.
+For this purpose, a global analysis is not required as such
+but would be bene cial for a more complete understanding.
+We only have to ensure that each car does not collide
+with its neighbors. To achieve this, we design a decentralized
+controller in section 4 for a single car using a concept
+from Lyapunov Stability called uniform ultimate boundedness,
+which ensures that once an error is restricted to an
+interval, it will never leave that interval [11]. In other words,
+when the uniform ultimate boundedness property is ensured
+with an appropriate controller, the inter-vehicle distance between
+a car and its neighbor never deviates from the required
+separation enough to cause a collision.
+Since total or instantaneous damage is not formally de ned,
+we propose to use a metric that depends on two things;
+whether an impact takes place and the relative velocity of
+the colliding vehicles. This choice of measuring damage is
+motivated by previous work done on automated vehicle and
+platooning safety [7, 9]. To measure the accumulation of
+damage, we assign the following as a rate of change to a state
+D:
+D_ = cT vrel
+(1)
+where c is an n 1 length vector whose entries are 0 normally,
+but 1 if there is a collision. vrel is a vector containing the
+absolute values of n 1 relative velocities at time of collision.
+3.3
+Bidirectional Platooning Control
+In keeping with the current literature [2, 16], each vehicle
+is analyzed as a double integrator system, where the control
+input is a desired acceleration. For an n-vehicle platoon, the
+state vector x 2 R2n is made up of positions and velocities
+and the input vector u 2 Rn consists of control inputs. The
+state and input vectors can be expressed as
+x = x1 x2 : : : xn v1 v2 : : : vn
+u = u1 u2 : : : un T
+T ;
+and the state space system becomes
+x_ =
+0n n In n x +
+0n n 0n n
+0n n u
+In n
+where car i has position and velocity xi; vi respectively and
+control input ui. These positions are measured from the
+center of mass of all the cars. In the bidirectional scheme
+ui = fi(xi 1
+xi+1
+xi; vi 1
+xi; vi+1
+vi;
+vi)
+which means each vehicle's control input can only use relative
+distance and velocity measurements from its immediate
+neighbors. This function fi constitutes a high level controller
+that is meant to be independent of a vehicle's dynamics
+(Fig. 2b); as such the control input ui serves as the vehicles
+desired acceleration.
+As the rearmost and leader vehicle lack a follower and predecessor,
+respectively, they follow a slightly modi ed version
+of (4) wherein the rearmost car uses a unidirectional law, and
+the leader follows a reference trajectory while maintaining a
+follower separation
+u1 = f1(xi+1
+un = fn(xi 1
+xref
+xi; vi+1
+xi; vi 1
+xi; vref
+vi)
+vi;
+vi)
+3.4
+Vehicle Model
+The previous section assumes that we can achieve a desired
+acceleration and apply it directly to our system. A realistic
+model of a vehicle has a throttle input or some other type
+of actuator. The purpose of this section is to nd how a
+desired acceleration can be achieved based on our knowledge
+of the vehicle. A model of the vehicle's dynamics is required
+in this case. This can be speci c to di erent vehicles, but
+the general idea is to nd an expression for the control input
+required for a desired acceleration. This constitutes the low
+level controller of Fig. 2b.
+The vehicle model we use is a 2nd order plant with a linear
+friction/drag coe cient. Such models are easy to analyze
+while capturing the major dynamics of the system. Similar
+models have been used in other control systems literature
+to analyze fundamental properties of single vehicles and
+platoons [10, 15, 21].
+x_ i = vi
+v_i =
+Fi
+vi
+where Fi 2 [F ; F +] is a variable to set the actuator (throttle)
+and ; are the model's parameters which can be chosen
+(2)
+(3)
+(4)
+(5)
+(6)
+(7)
+based on the vehicle's internal design values or through
+system modeling [16, 21].
+For the high level controller described in (4) to work, we
+need to compensate for the internal dynamics of the vehicle.
+We use feedback linearization [16,21] to compensate for terms
+in the model described by (7) gives us
+1
+Fi =
+(ui + vi)
+(8)
+(9)
+Note that this controller does require a velocity measurement
+of vehicle i. A sensor which provides this reading will be
+required, but this is just car sensing its internal data and
+does not violate the decentralized condition.
+The reason for including this model is to emphasize that
+there are bounds F ; F + on Fi which lead to saturation. We
+simulate with these saturation limits in order to demonstrate
+our controller on a realistic system where the desired acceleration
+cannot always be achieved. A favorable consequence
+of this is that we cannot achieve in nite acceleration.
+Substituting (8) into (7) gives us the required double integrator
+type system for each vehicle
+x_ i = vi
+v_i = ui
+as long as the condition 1 (ui + vi) 2 [F ; F +] holds true.
+These saturation constraints apply to the attacker as well and
+ensure that we do not have a car with unrealistic capabilities.
+We also add another constraint on this controller which
+prohibits reverse motion. This is to maintain relevance with
+the real application of AHS. It can be expressed as Fi > Fi
+if (vi > 0) and Fi > 0 otherwise, which means that if a
+vehicle's speed is zero or below, it cannot apply negative
+actuator input.
+4.
+ATTACK CONTROLLER
+For our secondary controller that governs vehicle response
+when under attack, we propose the use of sliding mode
+control (SMC) because the nature of the problem lends itself
+naturally to SMC. Firstly, the demands of the system require
+the fewest collisions (preferably none at all) in the face of
+an attacker. Secondly, the attack is limited in what it can
+do by its (perhaps heightened) acceleration and velocity
+constraints. Sliding mode controller techniques can use these
+constraints directly and guarantee ultimate boundedness of
+the tracking error, which implies no collisions. Lastly, SMC
+is a robust, well-understood method of nonlinear control
+and straight-forward tools exist to design and analyze its
+performance.
+We will incorporate uncertainties and bounds on acceleration
+and velocity based on our model in the previous
+section and derive a suitable sliding mode controller. Then
+we will design its continuous approximation that enables the
+defending cars to maintain the desired distance from the
+attacker within some error bound. Separate front and rear
+controllers, to control response to an attack originating to the
+front and rear of the vehicle, respectively, are designed and
+then combined later in this section to give a single, uni ed
+high level controller for platooning operations while under
+attack.
+4.1
+Mathematical Preliminaries
+To demonstrate the e cacy of the sliding mode controller,
+we rst need some mathematical preliminaries from control
+systems theory. For a system with state x 2 Rn, the point
+x = 0 is stable if the quantity kxk remains bounded for all
+future time, if it was bounded initially. It is asymptotically
+stable if kxk ! 0 as t ! 1 (Def. 4.1, [11]).
+The stability test involves nding a function V (x) which
+has the some desirable properties (continuously di erentiable,
+V (0) = 0; V (x) 6= 0 8x 6= 0) and demonstrating that its
+derivative V_ (x) is always negative (Thm. 4.1, [11]). Such
+functions are sometimes referred to as Lyapunov Candidate
+functions. Usually (and as in the next section) the control
+input u should appear in the expression for V_ (the derivative
+of V ). If V_ is not negative, it can be forced to be negative
+by applying an appropriate u.
+In the case of sliding mode control, we choose u in such
+a way that u is only dependent on one variable s = P kixi.
+This sliding manifold s is chosen to be stable and the controller
+is used to drive the system onto this manifold. The
+variable s can be controlled by a bang-bang type of controller,
+but a continuous controller is desired in most real-life
+situations to avoid chattering. A function sat(s= )1 can be
+used with the variable chosen for a given ultimate bound
+(Thm. 14.1, [11]). Thus we can choose a bound on the
+maximum deviation of position error such that it is less than
+the distance to the next car. This will ensure no collisions.
+The process we follow in the next section is to design a
+single sliding mode controller that ensures constant spacing
+for one direction, and then combine two of these for rear and
+front separation to mitigate attacks from either direction.
+4.2
+Single Controller Design
+The design of a front error controller follows. Note that the
+next car's acceleration is not assumed to be known. This car
+could very well be an attacker so we only use bounds on this
+quantity to derive our controller. We begin by de ning error
+coordinates in the frame of car i with the desired separation
+ref in meters
+e1 = xi+1
+e2 vi+1
+xi
+vi
+ref
+where e1 and e2 are the front separation error and relative
+velocity error respectively. If ref does not change with time,
+or changes slowly enough, we can formulate the following
+state space model.
+_
+e1 =
+e2
+e2
+xi+1
+ui
+If we de ne a sliding manifold s = k1e1 + e2, s = 0 is
+naturally stable if k1 > 0, which is to say that so long
+as e2 = k1e1, both e1 and e2 go to zero. To show this
+mathematically,
+Vs = 12 e12
+V_s = e1e_1 = e1e2 =
+k1e12
+which implies asymptotic stability (Thm. 4.1 [11]). Outside
+of this manifold, we can use the Lyapunov Candidate V =
+1 s2 to check if our system reaches the line s = 0, and
+2
+V_ = ss_
+= s(k1e2 + xi+1
+ui)
+ksk (k1ke2k + kxi+1k)
+s(ui)
+1sat(x) = x if kxk < 1 and sgn(x) otherwise
+(10)
+(11)
+(12)
+(13)
+2The maximum velocities and accelerations can be easily
+derived from the given model in the previous section and
+saturation levels on the input Fi.
+Now we are ready to include our attacker's constraints in
+our controller. With ke2k 2vmax and xi+1 amax 2 we use
+the controller:
+s
+ui = sat
+[2k1vmax + amax + ]
+(14)
+For ksk >
+_
+V
+= ksk[k1(ke2k
+ksk
+> 0, we have:
+ksk [k1ke2k + kxi+1k] s(sgn(s) [2k1vmax + amax + ])
+2vmax) + (kxi+1k
+amax)
+]
+Hence choosing will give us an ultimate bound on the error
+(Thm. 14.1, [11]). Given a choice of k1 and the requirement
+that ke1k < ( ref l), where l is the length of a car and
+e2 = 0, we choose such that
+ksk >
+k1ke1k + ke2k >
+k1( ref l) >
+Thus, we have a controller with two parameters (k1; ) that
+have a range of acceptable values. The separate controllers
+for the rear systems can be derived in a similar manner and
+are combined in the next section. Combining (14) and (8)
+appropriately will give us our full controller. Also, n does
+not appear in any of these expressions. If the controller is
+applied as is (in only one direction), our error bounds will
+essentially be independent of the number of vehicles.
+4.3
+Unified Attack Controller
+The front and rear controllers are combined in the graph
+theoretic manner presented in [19]. Let G = (V; E) be
+the directed graph representing the interconnectivity of the
+system. V is the set of nodes (same as the number cars)
+present in our graph and E the set of directed edges. An
+edge (i; j) 2 E (drawn from j to i in our gures) means that
+car i can sense information about car j. If a car can sense
+information about another car (directed edge exists), it is
+said to be its neighbor. A useful way to denote this is the
+adjacency matrix.
+The adjacency matrix of a directed graph G is denoted
+Aadj 2 Rn n where aii = 0 , aij = 0 if there is no edge (i; j)
+and aij = c where c > 0 represents the weight of the edge
+(i; j). For the bidirectional system this becomes:
+(15)
+20 1 0 : : : 0 03
+61 0 1 : : : 0 07
+60 1 0 : : : 0 07
+6 7
+Aadj = 666 ... ... ... . . . ... ... 777
+6 7
+40 0 0 : : : 0 15
+0 0 0 : : : 1 0
+ui =
+n
+X aij ui;j
+j=1
+= ui;r + ui;f
+The controllers combined for the front and rear are the sum
+of the controllers weighted with the rows of the adjacency
+matrix,
+1
+1
+2
+2
+3
+3
+4
+4
+Figure 3: Interaction of a 5-member platoon. The
+leader also follows a reference. The arrows denote information
+ow; an arrow from 3 to 4 means 4 senses
+some information about 3, for example relative distance.
+Figure 4: Interaction of a ve member platoon with
+attacker at position three. Note that attacker is assumed
+to be indi erent.
+which is simply the linear combination of the two high level
+controllers from front and back error systems. The leader's
+front controller is based on the reference trajectory.
+This structure is shown in Fig. 3. If there is consensus in
+the system, all the cars will try to maintain the same intervehicle
+spacing and the platooning goals will be met. However
+if some car is not cooperating, platooning goals might not
+be met, as in the case of an attacker. Furthermore, this
+controller combining can be seen as an external disturbance
+which one of the two sliding mode controllers is not meant to
+deal with. ui;r can be seen as an external disturbance to ui;f
+and vice versa. Hence the ultimate boundedness analysis
+might not hold.
+4.4
+Adjusting the Graph in Case of an Attacker
+Consider the case where an attacker is at position three
+in a ve member platoon. The attacker cannot be assumed
+to be looking at any other members (possible worst case) so
+row three is zero. The adjacency matrix is then
+20 1 0 0 03
+61 0 1 0 07
+Aadj = 660 0 0 0 07
+7
+40 0 1 0 15
+0 0 0 1 0
+and this scheme is shown in Fig. 4. From simulation results,
+it is possible that cars around the attacker, while trying
+to maintain their distance from the other cars, fail to keep
+their spacing from the attacker, as the controllers are given
+equal weight. Our proposed solution to this problem is to
+use an attack detection method, and change the weights in
+the adjacency graph so that the controller in the direction of
+the attack is prioritized.
+Since a car can only change its own rows of Aadj, the
+detection and adjustment scheme has to be decentralized
+and without inter-vehicle communication as well. Attack
+detection lters are implemented in the following subsection
+as discussed in [14]. Such lters, which each car is equipped
+with, have two outputs, one for an attack somewhere in front,
+the other for anywhere behind. This is a detection scheme
+and not an identi cation method. But, as we demonstrate,
+even this helps greatly with damage mitigation.
+A rule for adjusting the weights of the controller is used.
+This rule, in practice, could be a continuous mapping of the
+attack detection output, or perhaps just a decision rule. A
+simple scheme for this is outlined as follows (Fig. 5): The
+rear and front attack detection lters give outputs rr; rf
+5
+5
+respectively. These values should be zero if there is no attack
+and more and more positive if there is one. The threshold r
+can be chosen to ignore false positives due to sensor noise.
+Additionally, it can also be set to achieve a tolerance level;
+cars might have to deviate a certain amount before they are
+detected as attackers by their neighbors.
+input: (rr; rf ) %results from attack detection
+(rear and front)
+if krf rrk < r % epsilon r is some threshold
+aadj;i;i 1 0:5 ; aadj;i;i+1 0:5 % look front
+and back
+else
+if rf rr > 0
+aadj;i;i 1 0 ; aadj;i;i+1 1 % only look front
+if rf rr < 0
+aadj;i;i 1 1 ; aadj;i;i+1 0 % only look back
+Figure 5: Decision rule for adjusting adjacency matrix.
+Each car adjusts only its own row, based on
+local information.
+If implemented correctly, we should obtain the structure
+outlined in Fig. 6 and the following adjacency matrix
+20 1 0 0 03
+60 0 1 0 07
+Aadj = 660 0 0 0 07
+7
+40 0 1 0 05
+0 0 0 1 0
+In this setting our ultimate boundedness analysis should
+hold, as there is only one control objective for each car. It
+should be noted that, say for this case, car number two
+moves back to avoid car three and can only `hope' that car
+one moves back as well3. Additionally, the error bounds are
+independent of the number of vehicles if the controller is in
+this state.
+Thus our detection scheme switches the bidirectional controller
+to a unidirectional one in certain cases, with the
+direction (rear or front), dependent on the position of the
+attacker. The leader follows a di erent version of this rule
+because in front of it, there is a reference trajectory and
+not another car. A threshold is only applied to the rear
+attack detection lter output to decide whether to ignore the
+reference or not. The last car does not follow this rule at all
+since it has only one control objective.
+4.5
+Attack Detection Filter Design
+The attack detection lters used here are essentially low
+pass lters that act on measurement residuals. Low pass
+ltering is essential because an attack detection lter should
+not change its result with the same frequency at which the
+attacker is oscillating. Another convenience is that the measurement
+residual depends only on the error coordinates
+e = [e1 e2]T , which are used for the controller in section 4.2.
+The error coordinates are then passed through a squaring
+function with gains l1; l2 and then low pass ltered. The
+3This fact should not be surprising, since even under normal
+platooning, consensus is required for operation. For example,
+no car can arbitrarily assign front and rear desired distances
+for itself if either of the other cars does not want that spacing.
+1
+2
+3
+4
+5
+Figure 6: Interaction of a 5-member platoon with
+attacker at position 3 with adjacency adjusted.
+Table 1: Simulation Parameters
+Vehicle Dynamics
+normal attacker
+Fi+ = 1 Fi+ = 1
+= 0:1 = 0:1
+= 5 att 5
+Controller
+Detection Filter
+k1 = 0:1
+= 0:025
+l1 = 200
+l2 = 600
+fcuto = 0:01 Hz
+time and frequency domain representations are given as
+r(t) = hlp(t) e(t)T l1 0
+0 l2
+e(t)
+(16)
+where hlp(t) is the impulse response of the low pass lter
+and for our simulation, this is chosen to be a 2nd order
+Butterworth lter with cuto frequency fcuto . Standard
+lter design techniques can be used to choose the parameters
+when certain characteristics are desired from the response,
+such as rise time and damping.
+In general, the lter parameters can be chosen to be very
+high for a quick response, but there is a trade o between
+speed and accuracy that is mostly set by the cuto frequency.
+One of the caveats of this type of lter is that it `undetects'
+an attack as quickly as it detects it. But it is also important
+to note that the choice of lter does not play an essential role
+in the global picture and that parameters can be chosen with
+some degree of freedom in searching for optimal performance.
+Because we know that errors propagate in interconnected
+platoons [2, 10, 15, 21], these lters will be able to detect
+an attack even if the attacking vehicle is far down or up in
+the platoon. In other words if the attacker is at position
+three and car two reacts accordingly, then it too will deviate
+from the desired spacing. Car one will sense this deviation
+from car two and will then react accordingly and so on. We
+emphasize again that we have an attack detection scheme,
+not an identi cation scheme.
+As mentioned before, there are two of these lters, one for
+the rear error system, and one for the front. The results of
+these two rr; rf are compared to gure out the change in
+connectivity. Since they work on information already available,
+they do not require any extra sensors or communication.
+Our system is still completely decentralized.
+5. SIMULATION AND RESULTS
+To demonstrate the e ectiveness of our approach, we consider
+a ve vehicle platoon with the attacker at position three.
+The attacker vehicle follows a square-wave acceleration pattern,
+where the attacker applies maximum control e ort and
+then minimum with a given frequency fatt. Our platooning
+goals stipulate ref = 9 m and vref = 25 ms-1, where each
+car length l = 4.5 m (one car length of separation between
+cars). The parameters in the dynamic model of the cars,
+controller and detection lter are given in Table 1. In order
+to increase the attacker power, att is chosen to be greater
+than . This is equivalent to having a more powerful engine.
+Consequently the maximum acceleration and velocity of the
+attacker will be equal or higher than the normal vehicles.
+5.1
+Evaluating Attack Efficacy
+To calculate the e ect of an attack we assign a damage
+state to the platoon along the lines of 1. This damage state
+starts with a value of zero and all the collisions' relative
+velocities are accumulated as the simulation progresses and
+cars collide.
+We also de ne a `collision line' as follows:
+De nition 1. Given an attacking and a defending vehicle
+along with some initial conditions, with both applying maximum
+actuator e ort, it is possible to nd the time they
+collide (tcol) using the solution to xi+1(t) xi(t) = 0. Then
+1
+fcol = 2tcol is a function of relative attacker power and initial
+conditions.
+The value of fcol gives us a cuto frequency for each value
+of relative attacker power. Below this frequency (T =2 > tcol,
+enough time to collide in any case), there will be unavoidable
+collisions. Above this frequency we can avoid collisions if a
+suitable control scheme is adopted.
+In other words, for Figures. 8, 9 and 10, all damage that
+outside the green line should be avoidable. The attacker is
+oscillating too fast to have enough position deviation to hit
+the other vehicle that is moving away from it.
+5.2
+Results Comparison
+In all of the plots against time presented below, the attacker
+is of equal power ( att = ) as the other vehicles. Total
+simulation time was 120 seconds.
+From a comparison at a single frequency of attack (Fig. 7a,
+Fig. 7b), we nd that damage is reduced signi cantly by
+applying the attack detection approach. Below are accumulated
+damage comparisons across a range of frequencies and
+a range of relative attacker power (Fig. 9, Fig. 10). The
+numbers on the y-axis correspond to the ratio of attacker
+power over normal vehicle power. For a reference, we also
+include a total damage measurement using a linear bidirectional
+control law in Fig. 8. The high level controller for this
+was
+ui = kp(xi+1
+xi
+ref) + kp(xi 1
+xi + ref)+
+kd(vi+1
+vi) + kd(vi 1
+vi)
+(17)
+with kp = 1 and kd = 3. The attacker breaks the platoon
+into two sections and for ve vehicles, these gains are string
+stable [4].
+The collision line bounds a region in which whatever controller
+we design, there will be collisions based on the saturation
+limits of the defending vehicles with respect to those of
+the attacker. Outside of this region, collisions are avoidable.
+We see that with detection, we can have close to zero collisions
+outside this region, whereas we still see damage with
+normal bidirectional control.
+The little damage that occurs in the low frequency region
+with relative attacker power of 1 is small. We surmise that our
+attack detection lters may at times register false negatives,
+where the error goes down enough that the detection lters
+unregister an attack. After that, it might take time for the
+lters to detect the attack again. This drawback should be
+negated using a more robust or intelligent lter design. Even
+if there are false positives, they should be short lived and the
+attack detection should correct itself before any signi cant
+damage has taken place, as is the case with our controller.
+Across this landscape, we nd that damage is greatly
+reduced using attack detection in many cases, most notably
+3,000
+)
+(m 2,000
+s
+iitsoon 1,0000
+P−1,000
+1.3
+1.25
+1.2
+α
+/tt 1.15
+a
+α
+1.1
+1.05
+110−2
+)
+m
+(s 10
+n
+o
+i
+rta 0
+a
+p
+e
+S 0 10 20 30 40 50 60 70 80 90 100 110 120
+Time (s)
+0 10 20 30 40 50 60 70 80 90 100 110 120
+Time (s)
+d
+tea 400
+l
+um300
+u
+cc 200
+A
+eg 100
+a
+aDm 00 10 20 30 40 50 60 70 80 90 100 110 120
+(a) Sliding mode cToinmter(osl)ler without detection.
+2-1
+3-2
+4-3
+5-4
+Sep+Ref-4
+Desired sep
+Car length
+1
+2
+3
+4
+5
+Reference
+3,000
+)
+(m 2,000
+s
+iitsoon 1,0000
+P−1,000
+)
+m
+(s 10
+n
+o
+i
+rta 0
+a
+p
+e
+S 0 10 20 30 40 50 60 70 80 90 100 110 120
+Time (s)
+0 10 20 30 40 50 60 70 80 90 100 110 120
+Time (s)
+d
+t 4
+e
+a
+l
+um3
+u
+cc 2
+A
+e 1
+g
+a
+am00 10 20 30 40 50 60 70 80 90 100 110 120
+D
+(b) Sliding mode contrToilmleer(sw)ith detection.
+Figure 7: Separations, positions and damage data, single attacker at 3. With detection, we sometimes see a
+few collisions where our lters detect a false negative and are not quick enough to register the attack again.
+2,000
+d
+e
+lta 1,500
+u
+m
+ccu 1,000
+A
+e
+ag 500
+m
+a
+D
+0
+10−2
+10−1
+fatt (Hz)
+100
+101 1
+1.1
+1.2
+αatt/α
+1.3
+10−1
+100
+fatt (Hz)
+101
+Figure 8: Linear Controller without attack detection. Total damage across relative attacker power and
+frequencies. Collision line in green.
+low frequency attacks with attacker power equal to normal
+vehicle power.
+There are also characteristic similarities between the two
+curves, namely that there is a frequency above which there
+is no damage for every possible attacker power level. This
+is expected given the attacking vehicle has some constraints
+from saturation.
+One more thing to note is that the leader gives up the reference
+trajectory when it detects an attack behind it. This is
+equivalent to giving up platooning and following the attacker.
+Thus control of all the vehicles is given to the attacker, which
+acts like a new reference. This undesirable e ect might be
+avoidable in the future by using a less aggressive adjustment
+law, where control in one direction is not fully turned o .
+It might be possible to start a di erent platooning protocol
+after a certain amount of time spent defending this way, such
+as to increase separations or to disband the platoon. Further
+investigation does seem warranted in this direction.
+6. CONCLUSION AND FUTURE WORK
+In this paper, we examined a sliding mode control scheme's
+e ectiveness at stopping collisions in adversarial platooning
+environment. Two independent sliding mode controllers, to
+thwart attacks coming from the front and rear of the vehicle,
+were devised and then combined using an adjacency matrix.
+While some of the assumptions of sliding-mode control are
+not met when controllers are combined in this way, with
+certain detection measures these de ciencies are negated and
+the amount of damage taken reduced by switching the interconnection
+of the system. We tested our approach on a
+1.3
+1.25
+1.2
+α
+/tt 1.15
+a
+α
+1.1
+1.05
+110−2
+1.3
+1.25
+1.2
+α
+/tt 1.15
+a
+α
+1.1
+1.05
+110−2
+10−1
+100
+fatt (Hz)
+10−1
+100
+fatt (Hz)
+101
+101
+d
+e
+t
+lau 1,000
+m
+u
+c
+c
+A
+eg 500
+a
+m
+a
+D
+0
+10−2
+ed 600
+t
+a
+l
+um400
+u
+c
+c
+eA200
+g
+a
+am 0
+D 10−2
+10−1
+fatt (Hz)
+100
+101 1
+1.1
+1.2
+αatt/α
+10−1
+fatt (Hz)
+100
+101 1
+1.1
+1.2
+αatt/α
+Figure 9: Sliding Mode Controller without attack detection. Total damage across relative attacker power
+and frequencies. Collision line in green. Note that outside the collision line, we still have collisions, especially
+when attacker is as strong as normal vehicles.
+Figure 10: Sliding Mode Controller with attack detection. Total damage across relative attacker power and
+frequencies. Collision line in green. Note that outside the collision line, there is very little damage with
+detection. This means avoidable collisions are being avoided.
+realistic model of a vehicle and presented the methodology
+for developing a controller based on this model. Through simulation
+results, we observed that damage is greatly reduced
+when our controller and detection method are employed,
+and that most, if not all, avoidable collisions are protected
+against.
+The primary goal of this work was to preserve the safety
+of platoons at the expense of other platooning goals (e.g.
+string stability). Consequently, every car follows the actions
+of the attacker to ensure that no collisions result from their
+actions. Future work will consider how a hybrid approach,
+which takes both safety and string stability into account,
+may be developed. Secondly, we did not observe a drastic
+change between the linear and sliding mode controllers in the
+absence of adjusting the adjacency matrix to accommodate
+the direction from which the attack originated; i.e. a pure
+SMC approach for bidirectional platooning would not provide
+inherent protection. Finally, the case of multiple attackers
+remains to be investigated. An analysis on controllability
+and consensus will have to be carried out with more than one
+attacking car and tests will have to include parameters like
+attacker positions, level of collusion and attack observability
+will have to be included.
+7.
+ACKNOWLEDGMENTS
+This work is supported by the National Science Foundation
+under Grant No. 1410000.
+8. REFERENCES
+[1] \The SARTRE project". www.sartre-project.net,
+2002. [Online; accessed 15-June-2015].
+[2] P. Barooah and J. Hespanha. Error ampli cation and
+disturbance propagation in vehicle strings with
+decentralized linear control. In Decision and Control,
+1.3
+1.3
+sartre platooning programme. In 17th world congress on
+intelligent transport systems, volume 1, page 12, 2010.
+[19] R. Sharma, M. Kothari, C. Taylor, and I. Postlethwaite.
+Cooperative target-capturing with inaccurate target
+information. In American Control Conference (ACC),
+2010, pages 5520{5525, June 2010.
+[20] S. Sheikholeslam and C. Desoer. Longitudinal control
+of a platoon of vehicles with no communication of lead
+vehicle information: a system level study. Vehicular
+Technology, IEEE Transactions on, 42(4):546{554, Nov
+1993.
+[21] D. Swaroop and J. Hedrick. String stability of
+interconnected systems. Automatic Control, IEEE
+Transactions on, 41(3):349{357, Mar 1996.
+[22] H. Tanner. On the controllability of nearest neighbor
+interconnections. In Decision and Control, 2004. CDC.
+43rd IEEE Conference on, volume 3, pages 2467{2472
+Vol.3, Dec 2004.
+[23] D. Yanakiev and I. Kanellakopoulos. A simpli ed
+framework for string stability analysis in ahs. In
+Proceedings of the 13th IFAC World Congress, pages
+177{182, 1996.
+APPENDIX
+A.
+CONSENSUS REQUIREMENT IN A BIDIRECTIONAL
+SYSTEM
+We can express the complete bidirectional system as follows.
+Allow e be the error states:
+2e13
+2xi 1
+6e277 = 66xi+1
+64e35 4 x_ i 1
+e4 x_ i+1
+xi + ref3
+xi
+ref7
+7
+5
+2005 and 2005 European Control Conference.
+CDC-ECC '05. 44th IEEE Conference on, pages
+4964{4969, Dec 2005.
+[3] R. Caudill and W. Garrard. Vehicle-follower
+longitudinal control for automated transit vehicles.
+Journal of Dynamic Systems, Measurement, and
+Control, 99(4):241{248, 1977.
+[4] S. Dadras, R. M. Gerdes, and R. Sharma. Vehicular
+platooning in an adversarial environment. In
+Proceedings of the 10th ACM Symposium on
+Information, Computer and Communications Security,
+pages 167{178. ACM, 2015.
+[5] J. Fax and R. Murray. Information ow and cooperative
+control of vehicle formations. Automatic Control, IEEE
+Transactions on, 49(9):1465{1476, Sept 2004.
+[6] A. Ferrara and C. Vecchio. Sliding mode control for
+automatic driving of a platoon of vehicles. In Variable
+Structure Systems, 2006. VSS'06. International
+Workshop on, pages 262{267, June 2006.
+[7] J. Fishelson. Platooning Safety and Capacity in
+Automated Electric Transportation. Master's thesis,
+Utah State University, 2013.
+[8] R. M. Gerdes, C. Winstead, and K. Heaslip. Cps: an
+e ciency-motivated attack against autonomous
+vehicular transportation. In Proceedings of the 29th
+Annual Computer Security Applications Conference,
+pages 99{108. ACM, 2013.
+[9] S. S. Jackson. Safety Aware Platooning of Automated
+Electric Transport Vehicles. Master's thesis, Utah State
+University, 2013.
+[10] M. Jovanovic and B. Bamieh. On the ill-posedness of
+certain vehicular platoon control problems. In Decision
+and Control, 2004. CDC. 43rd IEEE Conference on,
+volume 4, pages 3780{3785 Vol.4, Dec 2004.
+[11] H. Khalil. Nonlinear Systems. Prentice Hall, 2002.
+[12] K.-Y. Liang, J. Martensson, and K. Johansson.
+Fuel-saving potentials of platooning evaluated through
+sparse heavy-duty vehicle position data. In Intelligent
+Vehicles Symposium Proceedings, 2014 IEEE, pages
+1061{1068, June 2014.
+[13] Y. Mo, E. Garone, A. Casavola, and B. Sinopoli. False
+data injection attacks against state estimation in
+wireless sensor networks. In Decision and Control
+(CDC), 2010 49th IEEE Conference on, pages
+5967{5972. IEEE, 2010.
+[14] F. Pasqualetti, R. Carli, A. Bicchi, and F. Bullo.
+Identifying cyber attacks via local model information.
+In Decision and Control (CDC), 2010 49th IEEE
+Conference on, pages 5961{5966, Dec 2010.
+[15] L. Peppard. String stability of relative-motion pid
+vehicle control systems. Automatic Control, IEEE
+Transactions on, 19(5):579{581, Oct 1974.
+[16] R. Rajamani. Vehicle Dynamics and Control.
+Mechanical Engineering Series. Springer, 2011.
+[17] W. Ren and D. Green. Continuous platooning: a new
+evolutionary operating concept for automated highway
+systems. In American Control Conference, 1994,
+volume 1, pages 21{25 vol.1, June 1994.
+[18] T. Robinson, E. Chan, and E. Coelingh. Operating
+platoons on public motorways: An introduction to the
+(18)
+(19)
+(20)
+2
+2e_13
+e3
+6e277 = 664xi 1
+e4
+64e35
+e4 xi+1
+x_ i
+x_ i
+3
+7
+ui75
+ui
+and for each car using the high-low level controller, we have
+a computed acceleration as an input (xi = ai). Then
+which can be written in matrix form as:
+2e_13
+20 0 1 03 2e13
+2 0 3
+2 0 3
+6e277 = 6600 00 00 10775 664ee23757 + 664 0177 ui + 664xi0 175
+64e35 4 5 7
+e4 0 0 0 0 e4 1 xi+1
+which can then be rewritten as:
+e_ = Ae + Bui + [0 0 xi 1 0]T + [0 0 0 xi+1]T
+The terms on the right could include inputs from the attackers,
+which we cannot change. They can be regarded as
+external disturbances. We only have access to ai.
+Controllability is independent of the feedback controller (or
+lack thereof) applied. A necessary and su cient condition for
+controllability for a linear n-dimensional system x_ = Ax+Bu
+is
+rank([B AB A2B : : : An 1B]) = n
+(21)
+For our 4-dimensional system 20, the rank is only 2. Thus
+the system is not fully controllable. Only two linear combinations
+of the four possible states are controllable. Using
+controllability staircase form, it can be shown that these
+controllable modes are
+e1 + e2
+e3 + e4
+(22)
+which is the di erence between the front and rear separations
+and its corresponding relative velocity (e1 is in opposite
+direction to e2 and so are e3 and e4). Thus, a car can only
+place itself anywhere in between the two neighboring cars
+using its own controller.
+The system is stable only if the uncontrollable part of the
+system follows the desired trajectory without control e ort.
+If only one of (xi 1; xi+1) is also following the platooning
+protocol, then the system is stabilizable.
+If this is the case, then one of these terms can be considered
+an input to the system and B becomes:
+2 0
+03
+6 0 07
+64 1 17
+5
+1 0
+and rank([B AB A2B : : : An 1B]) = 4. Hence, in the
+bidirectional system, each car (except for the last one) relies
+on at least one good neighbor to ensure platooning. For
+the leader, the reference cannot be considered working to
+stabilize the system. This consensus condition is required in
+all regular platooning scenarios.
+Thus, even the bidirectional structure relies on the other
+cars cooperating, just as in the unidirectional case. And the
+actual quantity being controlled, with a symmetric controller,
+is just the position and velocity in between the two neighboring
+cars, which is driven to the mid point within that
+space. It should be noted that the unidirectional case is also
+a special case of bidirectional system where we choose the
+rear controller to be zero.

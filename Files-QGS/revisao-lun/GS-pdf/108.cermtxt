@@ -1,0 +1,880 @@
+Globecom 2014 - Communication and Information System Security Symposium
+LPAttack: Leverage Point Attacks against State
+Estimation in Smart Grid
+Song Tan , Wen-Zhan Song , Michael Stewarty, and Lang Tongz
+Department of Computer Science, Georgia State University, GA, USA
+yDepartment of Mathematics and Statistics, Georgia State University, GA, USA
+zSchool of Electrical and Computer Engineering, Cornell University, NY, USA
+stan,songwz@cs.gsu.edu, mastewart@gsu.edu, ltong@ece.cornell.edu
+Abstract-A novel class of malicious data attacks, LPAttack,
+are presented against the state estimation process in Smart Grid.
+Here LP represents leverage points, which are the outliers in the
+factor space of the regression model for Smart Grid state estimation.
+The attacker strategically manipulates the parameter data in
+Smart Grid to mislead the control center with incorrect system
+parameter information, such that leverage points are created
+within the factor space of the state estimation regression model.
+As a result, the attacker can freely inject arbitrary errors into the
+meter measurements corresponded with the leverage points, while
+bypassing the existing bad data detection mechanism. We first
+introduce the fundamental principles and strategies of launching
+LPAttack in Smart Grid. Then the potential countermeasure
+based on robust Schweppe-Huber Generalized-M estimator is
+proposed. Finally, we evaluate the LPAttack principles and its
+countermeasure through simulations in IEEE test system, and
+examine in particular the effect of the attacks on Locational
+Marginal Prices in real-time pricing power market.
+I. INTRODUCTION
+Smart Grid is envisioned to improve the efficiency of
+the legacy power system by integrating cyber infrastructure
+for sensing, control, computation and communication. State
+estimation is a key system monitoring process deployed in
+power control center to estimate the unknown state variables
+based on meter measurement data, power network topology
+data and parameter data [1]. The output of state estimation
+lays the foundation for a series of subsequent critical control
+processes, such as contingency analysis, security constrained
+power analysis, and real-time pricing in power market, etc.
+Due to the strong dependency on the cyber infrastructure
+for data collection, transmission and storage in Smart Grid, it
+becomes more likely for malicious attackers to compromise
+meters, intercept data, or even gain access to the databases to
+mislead the state estimation process with tampered data, which
+could lead to serious unstable power operating conditions or
+even blackout. Therefore, the data security of state estimation
+for Smart Grid is a key concern with increasing urgency for
+cyber security research.
+Quite a few of existing works have already addressed the
+issue. In [2], Liu et al. are firstly introduced the concept
+of false data attacks against Smart Grid state estimation.
+Assuming the attackers keep the original network topology
+This research is supported by NSF grant (NSF-CPS-1135814) to Sensorweb
+Research Laboratory at Georgia State University.
+data and parameter data intact, the authors shows that the
+attacker can inject errors to the meter measurement data in
+certain ways while without being detected by the existing bad
+data detectors. Inspired by the work in [2], extensive further
+developments are made in [3] [4] [5] [6], etc. Different undetectable
+attacks and defence strategies are presented. However,
+all the above works only consider the manipulations of meter
+measurement data, and the errors introduced by the attacker
+to the meter measurements have to be in the column space of
+the Jacobian matrix of the state estimation regression model.
+In [7], the authors at first introduce another kind of malicious
+data attack, called topology attack. The key innovation is that
+the manipulations of power network topology data are also
+considered.
+In this paper, we present a novel class of malicious data
+attack against Smart Grid state estimation, called LPAttack.
+Here LP represents leverage points, which are the outliers
+in the factor space of the regression model for state estimation
+[8]. Different from the previous works, we present a
+brand new approach to launching undetectable data attacks
+by strategically manipulating the parameter data, such that
+leverage points are created within the factor space of the state
+estimation regression model. The key feature about leverage
+point is that the residual of the measurement corresponded
+with the leverage point will be very small even when it
+is contaminated with a very large error [8]. Based on this
+key feature, the attacker can freely introduce arbitrary errors
+into the meter measurements while without being detected by
+the existing bad data detection mechanisms. The concept of
+leverage point is not new in power system state estimation,
+however, as far as we know, we are the first to explore the
+potentials of cyber attacks employing this feature. The key
+contributions in the paper are:
+We present and rigorously prove the validity of the fundamental
+principles and strategies for launching LPAttacks.
+We propose a potential countermeasure against the attacks
+based on robust Schweppe-Huber Generalized-M
+estimator.
+We evaluate the attacking principles and countermeasure
+in IEEE test system, and examine in particular the effects
+of attacks on the real time pricing in power market.
+978-1-4799-3512-3/14/$31.00 ©2014 IEEE
+643
+II. PRELIMINARIES
+State estimation: Figure 1 demonstrates the typical state
+estimation process in control center. State estimation takes
+three kinds of data as input:
+z: The meter measurement data, including power injections
+at buses and power flows across branches.
+t: The network topology data, indicating the on/off status
+of power network switches between buses.
+p: The parameter data, typically including: 1) the branch
+susceptance data and 2) the variances of meter measurement
+errors, etc.
+Typically, z, t and p are either sent wirely/wirelessly from
+meters to control center, or kept in databases.
+After taking the input, the topology processing and observability
+analysis process would generate the regression model
+equation, in which:
+1) The matrix H depends on the topology data t and the
+branch susceptance data in p;
+2) The variances of each meter measurement error ei in
+vector e, denoted by i2, are part of data in p.
+Then the weighted least-square state estimator is used to get
+the best estimates of the unknown state variables x, which are
+the voltage magnitude and phase angle at each bus.
+z
+t
+p
+Topology processing z=Hx+e
+and Observability
+analysis
+Fail
+State estimator
+(weighted least-square)
+x =(HTWH)-1HTWz
+x
+Bad data detection
+Pass
+x
+Fig. 1. State estimation process in control center
+Mathematically, a precise definition of state estimation is
+given as follows [1]. Let x = (x1; x2; :::; xn)T and z =
+(z1; z2; :::; zm)T denote state variables and meter measurements,
+respectively, where n is the number of unknown state
+variables, m is the number of meter measurements, and m
+n. Further let e = (e1; e2; :::; em)T denote meter measurement
+errors, which are assumed to be normally distributed with zero
+mean. The state variables are related to the measurements by:
+z = h(x) + e
+where h(x) = (h1(x1; x2; :::; xn); :::; hm(x1; x2; :::; xn))T ,
+and E(e) = 0 and cov(e) = W , and W is defined as:
+2
+1
+2
+6
+6 0
+W = 6666 ...
+4
+0
+0
+2
+.
+.
+.
+2
+. . .
+0 3
+.
+.
+.
+.
+.
+.
+7
+7
+7
+7
+7
+7
+2 5
+m
+where i2 is the variances of ei.
+Globecom 2014 - Communication and Information System Security Symposium
+(1)
+(2)
+644
+The state estimation problem is formulated as the following
+Weighted Least Square (WLS) format:
+minimize 1 rT W r
+x 2
+subject to z = h(x) + r
+For state estimation in standard DC power flow [1], the
+Equation (1) can be represented by a linear regression model:
+z = Hx + e
+where H is an m n full rank Jacobian matrix of the
+measurement model. Then the WLS state estimator will give
+the following solution:
+x^ = (HT W H) 1HT W z
+Bad data detection: Measurement residuals are employed by
+the bad data detection techniques in Smart Grid to protect
+state estimation process against abnormality in measurement
+data, which are usually caused by nature or faulty sensors. The
+measurement residual is represented as:
+r = z
+z^ = z
+Hx^
+The objective function for bad data detection is defined as:
+where Hi is the ith row of H. Then in the J (x^) test:
+J (x^) =
+m
+X (zi
+i=1
+Hix^)2
+2
+i
+= Xm ri22
+i=1 i
+J (x^) =
+( Bad data ;
+if J (x^) > "
+Good data ; if J (x^)
+"
+where " is an empirical detection threshold defined in control
+center. If no bad data is detected, the state estimation resulted
+x^ would be accepted by the subsequent control processes.
+Otherwise, an alarm is fired and new data must be incorporated
+to start over the whole process.
+III. LPATTACK:LEVERAGE POINT ATTACK
+We assume that the attackers can access and manipulate the
+data z, t, and p as needed to launch the attacks.
+Let z = W 12 z, r = W 21 r, H = W 21 H and e = W 21 e,
+from (4):
+z = H
+x + e
+where E[e] = 0 and cov[e] = Im. Then the WLS solution for
+x in (5) can be rewritten as:
+and the residual,
+x^ = (HT H) 1HT z
+r = z
+Hx^ = (Im
+K)z
+where Im is the m dimensional identity matrix and K is
+defined as:
+K = H(HT H) 1HT
+(3)
+(4)
+(5)
+(6)
+(7)
+(8)
+(9)
+(10)
+(11)
+Globecom 2014 - Communication and Information System Security Symposium
+Since ri = ri= i and zi = zi= i, we can rewrite as:
+then from J (x^) definition, when
+ri2
+2
+i
+(1
+m
+Kii) X(zj2= j2)
+j=1
+m
+X(1
+i=1
+m
+Kii) X(zj2= j2)
+j=1
+"
+Since K is both symmetric (K = KT ) and idempotent (K
+K = K), then Kii can also be written as:
+Kii = Ki2i +
+m
+X
+j=1;j6=i
+Ki2j
+(12)
+It follows from the above equation that 0
+Kii
+1.
+A. Principles of LPAttack
+In the above regression model, the row vector Hi =
+(Hi1; Hi2; :::; Hin) defines a factor point in the n dimensional
+factor space of the regression. The outliers which are far
+away from the bulk of the factor points in this space are
+called leverage points and the corresponding measurements
+are called leverage measurements [8]. Geometrically, Kii
+gives a measure of the distance from the factor point Hi to
+the bulk of the remaining (m 1) factor points. Therefore, a
+larger Kii would simply indicate a leverage point.
+A large value of Kii will also imply that there is a strong
+influence of the ith measurement zi on its estimated z^i,
+such that the estimated value is essentially determined by
+its measured value [1]. Thus we call the value of Kii as
+the leverage of measurement zi. As we can see from (10)
+and (12), as Kii becomes closer to 1, the residual ri would
+be very small, no matter how much error is introduced into
+measurement zi. Since the bad data detection process depends
+solely on the measurement residual, it would fail to reject
+the measurement data even when it is contaminated with a
+very large error. In other words, the larger the attackers can
+increase the value of Kii, the less likely the perturbation of
+measurement zi can be detected by the bad data detection
+process. This is the key idea of LPAttack. Theorem 1 gives
+the general relationship between any set of measurements z
+and the values of Kii when it can pass the J (x^) test.
+Theorem 1: Let " be the threshold and i=1;:::;m be the
+variances of errors in the J (x^) test. Given any set of measurements
+z, it is guaranteed to pass the J (x^) test when
+Pim=1(1 Kii) Pjm=1(zj2= j2) ".
+Proof: From (10), we have,
+Kij zj ) + (1
+Kii)zi
+(13)
+From Cauchy-Schwarz inequality and (12),
+m
+ri = ( X
+j=1;j6=i
+m
+ri2 = (( X
+j=1;j6=i
+m
+[ X
+j=1;j6=i
+= [Kii
+= (1
+Ki2j + (1
+Ki2i + (1
+m
+Kii)[X zj2]
+j=1
+Kij zj ) + (1
+Kii)zi)2
+m
+Kii)2][X zj2]
+j=1
+m
+Kii)2][X zj2]
+j=1
+645
+(14)
+(15)
+(16)
+(17)
+z, in
+(18)
+(19)
+The measurement z is guaranteed to pass the J (x^) test.
+Theorem 1 suggests a loosely bound condition for the
+attacker to launch a successful attack in general. From a
+pragmatic point of view, it is more worth investigating how the
+perturbation of a particular measurement zi, can be marked by
+the only change of Kii.
+Theorem 2: Suppose the original set of measurements z
+can bypass the J (x^) test. When the measurement zi in z is
+perturbed into zi0 by the attacker, there always exists a new
+value Ki0i 2 (Kii; 1], such that the new measurement set z0 is
+guaranteed to bypass the J (x^) test.
+Proof: Since the original measurements z can bypass the
+J (x^) test, from (10), we have:
+J (x^) = rT r = zT (Im
+K)T (Im
+K)z
+"
+Since matrix Im
+K is idempotent, from the above we have:
+zT (Im
+K)z
+"
+Let = " zT (Im K)z, z0 = W 12 z0, 4z = z0
+order for z0 to pass the test, it must also satisfy:
+(zT + 4zT )(Im
+K)(z + 4z)
+"
+Expand (18) and compare with (17), we have:
+4zT (Im
+K)(z0 + z)
+Note 4z only has one nonzero element 4zi since only the
+ith measurement is perturbed. So, the above is equivalent to:
+m
+4zi[( X
+j=1;j6=i
+Kij cj ) + ci(1
+Kii)]
+;
+(20)
+where cj = zj0 + zj , for j = 1; 2; :::; m. Combined with (12),
+it can be seen that for any value of 4zi, equation (20) is
+guaranteed to be satisfied when increasing the value Kii to a
+particular value Ki0i 2 (Kii; 1]. In particular, when Ki0i = 1,
+4zi can be infinity.
+Theorem 2 demonstrates how much the attacker has to
+increase the value Kii after the perturbation of a single
+measurement zi. Note that in cases when the attacker wants
+to perturb multiple measurements, he would perturb the measurement
+one at a time and Theorem 2 is applied repeatedly
+to each targeted measurement with the most updated Kii and
+z. One last question for the attacker would be how to actually
+increase the value of Kii. The following theorem gives the
+answer.
+Globecom 2014 - Communication and Information System Security Symposium
+Theorem 3: Let Kii be the ith diagonal element of hat
+matrix K defined in (11), then,
+(1
+Kii)2
+w" Hp #w2
+wwww Hf wwww2
+k HT 2
+i k2
+where Hi is the ith row of H, and H is partitioned as:
+H = [HpHiHf ]T
+Proof: Since K is both symmetric (K = KT ) and
+idempotent (K K = K), then K is the orthogonal projector
+for col(H), which is the column space of H. For any vector
+v, the projection of v gives the closest vector in col(H) to v,
+where closest is measured in Euclidean norm. That is,
+k v
+Kv k22
+k v
+2
+u k2
+for all u 2 col(H).
+Let y^ = Kei be the projection of ei on the col(H), where
+ei is the m dimensional vector with ith element equals to 1
+and all the other elements are zeros. Then there exists a vector
+t^ such that
+y^ = Ht^ = 6 Hit^ 7
+4 5
+2 Hpt^ 3
+Hf t^
+k ei
+Ht^ k22
+k ei
+Ht k22
+k Hpt^ k22 + k Hf t^ k22 + (1
+k Hpt k22 + k Hf t k22 + (1
+Hit^)2
+Hit)2
+Note y^ is the closest vector to ei in col(H), and for any t,
+or equivalently,
+(21)
+(22)
+(23)
+(24)
+646
+B. LPAttack strategies in Smart Grid
+In this part, we introduce the specific attacking strategies in
+Smart Grid by applying the above principles.
+1) Attacking power flow measurement
+Power flow measurement is the one placed between buses
+to monitor the power flow across the connecting branch. If an
+entry zi of z is the measurement of the power flow from bus
+k to m, then zi = Bkm(xk xm), where Bkm is the branch
+susceptance between bus k and m and xk; xm are the unknown
+voltage phase angles at bus k and m. The corresponding ith
+row of H is:
+kth entry mth entry
+Hi = [0; :::; | B{kzm }; 0; :::; 0; | B{zkm }; :::; 0]
+(25)
+If the attacker intends to alter the measurement from zi to zi0
+without being detected, he should apply Theorem 2 first to
+figure out how much he has to increase the value of Kii, then
+applies rule 1 and rule 2, which requires increasing the value
+of Bkm and decreasing the value of i.
+2) Attacking power injection measurement
+Power injection measurement is placed at bus to monitor the
+power injection of the particular bus, typically from a load or
+synchronized generator. If zi is the measurement of power
+injection at bus i, it is the sum of all the power flows along
+incident branches to that bus: zi = Pj2Ni zij , where Ni is
+the set of buses incident to i, e.g. , k; m 2 Ni. Therefore, the
+corresponding ith row of H is the sum of all the row vectors
+corresponding to the incident branch power flows, which is:
+Hi = [0; :::;
+ith entry
+|X{z }
+Bij ; :::;
+j2Ni
+kth entry
+| {z }
+Bik ; :::;
+mth entry
+| B{zim }; :::; 0]
+(26)
+If the attacker intends to alter the measurement from zi to z0
+i
+without being detected, he applies Theorem 2 first to figure
+out how much he has to increase the value of Kii, then he
+can apply rule 1 and rule 2 in this case. In addition, since
+the number of nonzero elements is related to the physical
+connections of buses in power network, rule 3 cannot be
+applied directly. However, it is still valuable since it suggests
+that the power injection measurements at buses with more
+incident branches are more vulnerable since they already have
+a large leverage in normal condition.
+C. Remarks
+Several facts are worth pointing out from the above analysis.
+First, since i is the standard deviation of measurement error
+ei, a smaller i indicates a higher accuracy of the measurement
+zi. This implies that high accuracy measurement is more likely
+to become a leverage point and attacking a higher accuracy
+device will actually have better chance of success. Second,
+increasing the susceptance of branches should be the first
+choice of the attacker since it can affect the branch flow measurement
+and the power injection measurements at incident
+k HpHiT k22 + k Hf HiT k22 =
+k HiT k24 k HiT k24
+w" Hp #w2
+wwww Hf wwww2 k HiT k22
+k HT 4
+i k2
+k Hf t^ k22
+w2
+HiT www
+w2
+w" Hp #
+w
+w
+ww Hf
+k HT 4
+i k2
+w" Hp #w2
+= wwww Hf wwww2
+k HT 2
+i k2
+Note that since y^ = Kei, then with (22), we get Hit^ = Kii.
+Also set t = HiT =k HiT k22, then (1 Hit)2 = 0. From (24),
+(1
+Kii)2
+k Hpt k22 + k Hf t k22
+k Hpt^ k22
+From Theorem 3, it can be seen that the attacker can increase
+the value of Kii by just increasing the l2-norm of HiT . Since
+Hi = 1= i Hi, then mathematically it gives three rules to
+increase the value of Kii:
+Rule 1: Increase the absolute values of elements in Hi.
+Rule 2: Decrease the value of i.
+Rule 3: Increase the number of non-zero elements in Hi.
+Globecom 2014 - Communication and Information System Security Symposium
+buses simultaneously. Third, the existences of leverage points
+in actual power system are very common. For instance, the
+IEEE 118-bus system has 7:2% of branches with relatively
+large susceptance(13 over 179) and 28% of buses with at
+least 4 incident branches (33 over 118) [8]. This suggests
+that even without the explicit creations of leverage points, the
+attacker can still launch LPAttack against the corresponding
+measurements.
+IV. COUNTERMEASURE
+Since all the attacking strategies are based on the creation of
+leverage points, the straightforward countermeasure would be
+first evaluating the leverages of measurements to identify leverage
+points, then discard corresponding measurements before
+entering WLS state estimator. However, since the ubiquitous
+existence of leverage points in power system and the leverage
+measurements could be good when there is no cyber attacks,
+the above approach would destroy a large amount of useful
+information and could even make the system unobservable.
+Therefore, a better solution should be replacing the WLS
+with a more robust state estimator, which is designed to
+automatically detect leverage points and suppress the influence
+of corresponding measurements on the state estimation.
+Inspired by the works in [9] [10], we present the countermeasure
+based on the robust Schweppe-Huber Generalized-M
+(SHGM) estimator. We modified SHGM such that it possesses
+good robustness and efficiency against leverage-point attacks.
+!i is specifically designed as the penalty factor to suppress the
+effects of leverage measurements. The details are as follows:
+minimize
+x
+i=1
+subject to z = h(x) + r
+m
+(r) = X (ri)
+where z; h(x) are the same as in (1), and (ri) is a function
+of the measurement residual ri, which is defined as:
+(ri) =
+( 1 r2= i2
+2 i
+a !ijri= ij
+21 a2 !i2
+jri= ij a !i
+otherwise
+where a is a constant ranging from 1 to 3 and !i is defined
+as:
+!i = minf1; [
+1
+Kii
+Kii
+]g
+(27)
+Note that when a is infinity, the SHGM is equivalent to WLS.
+We propose a solution algorithm based on numerically stable
+iteratively re-weighted least squares method [11]. Writing
+the KKT necessary conditions for a minimum of (r):
+@
+@x
+=
+)
+@
+@r
+m
+X
+i=1
+@r
+@x = 0 )
+m
+X @
+i=1 @ri
+m
+(ri) Hi = 0 ) X
+i=1
+@ri = 0
+@x
+(ri)
+ri
+ri Hi = 0
+where (ri) = @@ri . Write the above in matrix form, we have:
+HT
+Q r = 0
+where Q is a m dimensional diagonal matrix and Qii =
+defined as:
+Qii =
+( 1
+2
+i
+a !i sign(ri)
+ri i
+jri= ij a !i
+otherwise
+Also, from the first order Taylor approximation, we have:
+h(x)
+h(xk) + H
+4xk
+where k means the kth iteration. Since r = z h(x), rk = z
+h(xk), combined with (28), we get the kth iteration equation:
+HT
+Q
+H 4 xk = HT
+Q rk
+Note that matrix Q is keeping updated based on the residual
+r of current iteration. Given an initial guess, equation (31)
+would generate the final solution.
+V. EVALUATION
+We evaluate the proposed attacking strategy and countermeasure
+using IEEE 14 test system in Figure 2. It is provided
+with 12 power injection measurements and 13 power flow
+measurements in normal steady state. In the following, IN i
+denotes a power injection measurement at Bus i and FL i j
+denotes a power flow measurement from Bus i to Bus j. We
+extract configurations and parameters of the IEEE test systems
+from MATPOWER.
+(ri) ,
+ri
+(29)
+(30)
+(31)
+12
+6
+1
+2
+G
+G
+G
+13
+11
+5
+G
+8
+10
+7
+14
+G
+9
+4
+3
+Power injection measurement
+Power flow measurement
+Fig. 2. IEEE 14 bus test system
+We first investigate the LPAttack principle in Theorem 2
+by demonstrating the relationship between the perturbation
+of power measurement zi and the corresponding required
+minimum increase of Kii. Table I lists the results for several
+chosen power measurements in IEEE 14 test system. Note
+4zi =j zi0 zi j and 4Kii = Ki0i Kii. 4zi is set to be
+0:5; 1; 2; respectively. All numerical values of the measurements
+are in per-unit system with base value 100MVA(pu).
+Meas.
+Normal zi
+Original Kii
+4Kii(4zi=0.5)
+4Kii(4zi=1)
+4Kii(4zi=2)
+TABLE I
+LEVERAGE-POINT ATTACK IN IEEE 14 BUS SYSTEM
+IN1 FL1-2 IN4 IN5 IN6 FL4-5
+125.48 84.70 -27.39 -4.36 -6.42 -35.38
+0.3969 0.2171 0.6043 0.5536 0.5902 0.2179
+0.0637 0.0413 0.0140 0.0053 0.0034 0.0181
+0.1275 0.0864 0.0283 0.0101 0.0070 0.0364
+0.2553 0.1733 0.0567 0.0319 0.0151 0.0738
+FL5-6
+24.52
+0.1967
+0.0126
+0.0254
+0.0518
+(28)
+647
+The results from Table I imply some interesting facts. First,
+we discover that in general, when the original magnitude of
+measurement is large, the corresponding required 4Kii is
+relatively large. This indicates that the attack against measurements
+with smaller magnitude is easier to succeed. Second,
+when the original value of Kii is large, such as IN4 and IN5,
+the perturbations of corresponding measurements only require
+small increase in Kii. This suggests that the attacks against
+measurements with larger Kii are more prone to success.
+Next we will study how the changes in parameters of branch
+susceptance and measurement error variances will affect the
+leverages of measurements. Figure 3 gives the result for IN5.
+y
+iiitts
+v
+n
+e
+S
+P
+M
+L
+3
+2
+1
+0
+-1
+-2
+-3
+) 60
+s
+n
+em50
+se
+i
+(r 40
+e
+t
+e
+am30
+r
+a
+ep20
+c
+n
+tap10
+ce
+sSu 0
+16
+la 14
+iud 12
+se 10
+R 8
+6
+4
+2
+0
+Susceptance parameter of Branch 4-5
+Weight parameter of measurement IN5
+16000
+14000
+12000 r
+e
+10000 tem
+8000 raap
+64000000 itgehW
+2000
+0
+0.55
+0.6
+0.65
+0.7 0.75 0.8
+Leverage of measurement IN5
+0.85
+0.9
+0.95
+Fig. 3. Relations between leverage of IN5 and value of parameters
+Globecom 2014 - Communication and Information System Security Symposium
+IN4 has larger impact on LMPs of bus 4,5 and almost no
+impact on bus 13,14, either positive or negative.
+Measurement IN1
+Measurement IN4
+Measurement FL5-6
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10 11 12 13 14
+Bus index number
+Fig. 5. LMP sensitivities of all buses with respect to measurements
+VI. CONCLUSION AND FUTURE WORK
+In this paper, we present and rigorously prove the validity
+of the principles and strategies of LPAttacks, the novel
+data integrity attacks against state estimation in Smart Grid.
+Countermeasure based on robust state estimation is proposed.
+Our current attacking principles require the attacker to have a
+global knowledge of the targeting Smart Grid system. Future
+work would explore the possibility of conducting attacks only
+using local information. Meanwhile, potential countermeasures
+based on secure meter placement would also be studied.
+REFERENCES
+[1] A. Abur and A. Expo´sito, Power System State Estimation: Theory and
+Implementation, 2004.
+[2] Y. Liu, P. Ning, and M. K. Reiter, “False data injection attacks against
+state estimation in electric power grids,” in Proceedings of the 16th ACM
+Conference on Computer and Communications Security, 2009.
+[3] O. Kosut, L. Jia, R. Thomas, and L. Tong, “Malicious data attacks
+on smart grid state estimation: Attack strategies and countermeasures,”
+in Smart Grid Communications (SmartGridComm), 2010 First IEEE
+International Conference on, 2010, pp. 220-225.
+[4] S. Cui, Z. Han, S. Kar, T. Kim, H. Poor, and A. Tajer, “Coordinated
+data-injection attack and detection in the smart grid: A detailed look
+at enriching detection solutions,” Signal Processing Magazine, IEEE,
+vol. 29, no. 5, pp. 106-115, 2012.
+[5] A. Giani, E. Bitar, M. Garcia, M. McQueen, P. Khargonekar, and
+K. Poolla, “Smart grid data integrity attacks,” Smart Grid, IEEE Transactions
+on, vol. 4, no. 3, pp. 1244-1253, 2013.
+[6] Y. Huang, M. Esmalifalak, H. Nguyen, R. Zheng, Z. Han, H. Li,
+and L. Song, “Bad data injection in smart grid: attack and defense
+mechanisms,” Communications Magazine, IEEE, vol. 51, no. 1, pp. 2733,
+2013.
+[7] J. Kim and L. Tong, “On topology attack of a smart grid: Undetectable
+attacks and countermeasures,” Selected Areas in Communications, IEEE
+Journal on, vol. 31, no. 7, pp. 1294-1305, 2013.
+[8] L. Mili, V. Phaniraj, and P. Rousseeuw, “Least median of squares
+estimation in power systems,” Power Systems, IEEE Transactions on,
+vol. 6, no. 2, pp. 511-523, May 1991.
+[9] L. Mili, M. Cheniae, N. S. Vichare, and P. Rousseeuw, “Robust state
+estimation based on projection statistics [of power systems],” Power
+Systems, IEEE Transactions on, vol. 11, no. 2, pp. 1118-1127, May
+1996.
+[10] R. A. S. Benedito, L. F. C. Alberto, N. G. Bretas, and J. B. A. London,
+“Power system state estimation: Undetectable bad data,” International
+Transactions on Electrical Energy Systems, 2013.
+[11] P. J. Green, “Iteratively reweighted least squares for maximum likelihood
+estimation, and some robust and resistant alternatives,” Journal of the
+Royal Statistical Society. Series B (Methodological), vol. 46, no. 2, pp.
+149-192, 1984.
+[12] T. Zheng and E. Litvinov, “On ex post pricing in the real-time electricity
+market,” Power Systems, IEEE Transactions on, vol. 26, no. 1, pp. 153164,
+Feb 2011.
+Countermeasure
+Weighted Least Square
+Threshold of Bad data detection
+1
+2
+3
+4 5 6 7
+Perturbation of measurement IN4
+8
+9
+10
+Fig. 4. Residual in conventional WLS and our proposed countermeasure
+Figure 4 shows the residuals after measurement perturbation
+in both WLS and our countermeasure. We can see that the
+residual in countermeasure is significantly larger than in WLS
+and can fire the bad data detection alarm correspondingly in
+most cases.
+Finally, the effects of LPAttacks on power market, particularly
+on the Locational Marginal Price (LMP), are examined.
+LMP is the core variable in market operations and obtained
+through the real-time pricing models. The real-time pricing
+models are built on the power flow measurements given by
+the state estimation process, thus our proposed leverage-point
+attacks would directly affect the LMPs. We adopt the Ex-post
+pricing model in [12] and conduct the sensitivity analysis of
+LMP at each of the 14 buses with respect to perturbations in
+different power flow measurements. Figure 5 shows the LMP
+sensitivities of all 14 buses with respect to the changes in
+three measurements: IN1, IN4 and FL5-6. The unit on vertical
+axis is ($/MWh)/(puMVA). We can see that the perturbation
+in measurements would have greater impact on the LMPs of
+nearby buses than other buses. For example, perturbation of
+648

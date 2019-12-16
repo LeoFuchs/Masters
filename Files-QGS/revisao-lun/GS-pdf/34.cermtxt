@@ -1,0 +1,1023 @@
+1244
+IEEE TRANSACTIONS ON SMART GRID, VOL. 4, NO. 3, SEPTEMBER 2013
+Smart Grid Data Integrity Attacks
+Annarita Giani, Eilyan Bitar, Manuel Garcia, Miles McQueen, Pramod Khargonekar, and Kameshwar Poolla
+Abstract-Real power injections at loads and generators, and
+real power flows on selected lines in a transmission network are
+monitored and transmitted over a SCADA network to the system
+operator. These are used in state estimation algorithms to make
+dispatch, re-balance and other energy management system [EMS]
+decisions. Coordinated cyber attacks on power meter readings can
+be designed to be undetectable by any bad data detection algorithm.
+These unobservable attacks present a serious threat to grid
+operations. Of particular interest are sparse attacks that involve
+the compromise of a modest number of meter readings. An efficient
+algorithm to find all unobservable attacks [under standard
+DC load flow approximations] involving the compromise of exactly
+two power injection meters and an arbitrary number of power meters
+on lines is presented. This requires flops for a power
+system with buses and line meters. If all lines are metered,
+there exist canonical forms that characterize all 3, 4, and 5-sparse
+unobservable attacks. These can be quickly detected with
+flops using standard graph algorithms. Known-secure phasor measurement
+units [PMUs] can be used as countermeasures against a
+given collection of cyber attacks. Finding the minimum number of
+necessary PMUs is NP-hard. It is shown that PMUs at carefully
+chosen buses are sufficient to neutralize a collection of cyber
+attacks.
+Index Terms-Cybersecurity, integrity attacks, observability,
+smart grid, synchro-phasors.
+I. INTRODUCTION
+C and the electricity grid in particular, is a subject of inYBERSECURITY
+of critical infrastructures in general,
+creasing research interest [8], [10]. The potential consequences
+of successful cyber attacks on the electricity grid are staggering.
+SCADA [Supervisory Control and Data Acquisition] hardware
+and software components are used to supervise, control, optimize,
+and manage electricity generation and transmission systems.
+As the grid evolves, legacy SCADA systems will co-exist
+Manuscript received May 30, 2012; revised October 03, 2012 and November
+15, 2012; accepted January 18, 2013. Date of publication April 18, 2013; date of
+current version August 21, 2013. This work was supported in part by EPRI and
+CERTS under sub-award 09-206; PSERC S-52, in part by the NSF under Grants
+EECS-1129061/9001, CPS-1239178, and CNS-1239274/9467/9178, in part by
+the Republic of Singapores National Research Foundation through a grant to
+the Berkeley Education Alliance for Research in Singapore for the SinBerBEST
+Program, in part by the Florida Energy Systems Consortium, the Eckis Professor
+endowment at the University of Florida, in part by Robert Bosch LLC through
+its Bosch Energy Research Network funding program, and in part by the U.S.
+Department of Energy through the INL/LANL/LDRD/CNLSPrograms.
+A. Giani is with the Center for Nonlinear Studies, Los Alamos National Laboratory,
+Los Alamos, NM 87545 USA.
+E. Bitar is with the School of Electrical and Computer Engineering, Cornell
+University, Ithaca, NY 14850 USA.
+M. Garcia is with the Department of Mechanical Engineering, University of
+California, Berkeley, CA 94720 USA.
+M. McQueen is with the Idaho National Laboratory, Idaho Falls, ID 83401
+USA.
+P. Khargonekar is with the Department of Electrical Engineering, University
+of Florida, Gainesville, FL 32611 USA.
+K. Poolla is with the Department of Electrical and Computer Engineering,
+University of California, Berkeley, CA 94720 USA.
+Color versions of one or more of the figures in this paper are available online
+at http://ieeexplore.ieee.org.
+Digital Object Identifier 10.1109/TSG.2013.2245155
+and inter-operate with new components [ex: smart meters], networks
+[ex: NASPInet] [29], sensors [ex: phasor measurement
+units or PMUs] [37], and control devices [ex: intelligent relays]
+[30], [31]. Tomorrow's Smart Grid will incorporate increased
+sensing, communication, and distributed control to accommodate
+renewable generation, EV [Electric Vehicle] loads, storage,
+and many other technologies. These innovations increase the
+grid's vulnerability to cyber attacks, increasing the urgency and
+relevance of cyber security research.
+State estimation is a major component of Energy Management
+Systems [1], [28]. This is the optimal estimation of the
+power system state [voltage magnitudes and phase angles at
+all buses] using [noisy] data from [real and reactive] power
+meters, voltage sensors, and system parameters. We consider
+data integrity cyber attacks that consist of a set of compromised
+power meters whose readings are altered by the attacker. Cyberattacks
+whose compromised meter readings are consistent with
+the physical power flow constraints are called unobservable.
+Unobservable
+attacks require
+coordination-compromised
+meter readings must be carefully orchestrated to fall on a low
+dimensional manifold in order for the attack to be unobservable.
+Unobservable attacks will pass any bad data detection
+algorithm. Such attacks can cause significant errors in state
+estimation algorithms, which can mislead system operators into
+making potentially catastrophic decisions. Liu et al. [25] have
+recently shown that many power systems commonly admit
+unobservable attacks involving a relatively small number of
+power meters, and consequently the degree of coordination
+necessary is modest. This surprising result has led to a flurry of
+activity in the power system cybersecurity research community
+[6], [20], [34], [35].
+A. Summary of Contributions
+We focus on unobservable low-sparsity cyber attacks that require
+coordination of a small number of [ 5] meters. Indeed,
+we suggest that cyber attacks of large numbers of meters are
+improbable because of the degree of temporal coordination necessary
+across geographically separated attack points. We provide
+an efficient algorithm to find all unobservable attacks involving
+the compromise of exactly two power injection meters
+and an arbitrary number of power meters on lines. This requires
+flops for a power system with
+buses and
+line meters.
+For the special case, where all lines are metered, we derive
+canonical forms for 3, 4, and 5-sparse unobservable attacks in
+terms of the graph of the power network. We further show that
+all -sparse attacks for
+retic algorithms that require
+can be found using graph-theoflops
+to detect the presence
+of these canonical forms for power systems with bounded degree
+[i.e. max number of lines attached to a bus].
+We next consider the problem of using known-secure PMUs
+to thwart an arbitrary collection [not necessarily sparse] of
+1949-3053 © 2013 IEEE
+GIANI et al.: SMART GRID DATA INTEGRITY ATTACKS
+cyber attacks. We offer a characterization of buses at which
+these PMUs must be placed to mitigate the collection of attacks.
+Finding the minimum number of necessary PMUs is NP-hard
+[3]. We show that it is sufficient to place PMUs at carefully
+chosen buses to neutralize a collection of cyber attacks. We
+offer an algorithm to determine this sufficient placement that
+requires flops. We also offer countermeasures based
+on state estimation without additional hardware. We conclude
+with synthetic examples that illustrate our results.
+We use the notion of topological observability for deriving
+our results. Unobservable attacks can be characterized topologically.
+As a result, they do not depend on power system line
+electrical parameters or operating points. Consequently, our results
+are not restricted to the linearized DC state estimation setting
+but also hold for general nonlinear power flow models. The
+complete development in the nonlinear setting is left for a future
+paper.
+B. Related Work
+Many recent papers have explored various aspects of cyber
+attacks on SCADA/EMS systems that impact the key function
+of state estimation [5], [6], [20], [34], [35]. It was shown in
+[20] that the attack strategy identified in [25] can be equivalently
+characterized by the property that the power system becomes
+unobservable by the removal of the compromised meters.
+Fault detection is intimately connected to, but distinct from, integrity
+attack detection. Recently, Gorinevski et al. [12] considered
+a fault detection problem in SCADA/EMS systems that
+is closely related to the problem formulation and approach of
+[20]. Phasor measurement units have recently attracted a great
+deal of interest for providing direct, low-latency state measurements.
+Emami and Abur [9] have shown that with the introduction
+of a few extra PMUs, the bad data detection capabilities
+of a given system can be dramatically improved. More relevant
+to our work is the recent paper of Bobba et al. [3] who have
+investigated the use of PMUs in mitigation of SCADA/EMS
+cyber attacks identified in [25] using heuristic algorithms. The
+recent paper by Kim and Poor [19] also investigates optimal
+PMU placement problems. Their approach is to use a greedy
+PMU placement algorithm which suggests in simulation studies
+that placing PMUs at 1/3 the number of nodes serves to protect
+the system. Both papers recognize that the underlying placement
+problem is NP-hard.
+An early version without proofs of some of the results in this
+paper was presented at the 2011 IEEE SmartGridComm [11].
+II. PROBLEM SET-UP
+The entry in the vector is . The vector, every component
+of which is 1, is , and denotes the unit vector.
+For a matrix , let and denote its range and null
+spaces respectively. The transpose of is written . Subspaces
+of R are written . Sets [of meters, buses, attacks]
+are designated S V A. The number of elements in S is
+written S , and V S denotes the set of elements in V that are
+not in S.
+Consider a power system consisting of buses, connected
+by transmission lines. The power system can be represented as
+1245
+an undirected graph whose vertices V are the buses, and with
+edge set E being the lines. Generators and loads are represented
+by arcs entering or leaving a vertex.
+There are two types of buses: injection buses where loads
+or generators are connected, and null buses where no external
+power is supplied or extracted. Transmission lines connect pairs
+of buses. We combine all generation and loads at a bus into a
+single injection, and we assume there is no more than one line
+between any pair of buses. There are real power flow meters
+on selected lines, and power injection meters to measure net injected
+real power from all generators, and net power supplied
+to all loads. As we will consider lossless DC load flow models,
+other measurements [ex: real power flows at both ends of a line,
+reactive power flows, etc.] are not immediately relevant to our
+problem formulation. These become important for general nonlinear
+load flow models. Today, real power meter data is acquired
+every 2-10 seconds and transmitted to the EMS control
+center over a legacy SCADA network. There is some consensus
+that this SCADA network is vulnerable to cyber-attacks [17]. A
+small fraction [ 10-15%] of lines have power flow meters, and
+while all generators and loads are metered [for settlement], only
+larger [ 50 MW] units have meters connected to the SCADA
+network.
+We consider a power system whose underlying graph is
+simply connected. We make standard DC load flow assumptions:
+quasi-steady state operation, all bus voltages are 1 p.u.,
+the lines are lossless, and power angle differences are
+small. We remark that these assumptions are made to simplify
+our exposition. Indeed, some of the results of this paper [see Remark
+15] are intimately connected to topological observability
+[18] and therefore apply to the general case of nonlinear load
+flow irrespective of operating condition. We designate an arbitrary
+slack bus from which voltage phases are referenced.
+Under these DC load flow assumptions, the power system state
+is simply the bus angles relative to the slack bus R . In
+standard practice, we disregard one of the injected power readings,
+as the sum of power injections is zero to account for power
+conservation. In our situation, we must depart from this practice
+to allow for the possibility that power readings at any bus might
+be compromised.
+Let R be the vector of injected power measurements
+at the buses. We order the buses so the first subset consists
+of null buses, and the second subset consists of injection buses.
+Thus has the form . Let R be the vector of
+line power measurements. We can model the power system by
+the linear equations:
+R
+(1)
+Here, is constructed from line susceptances. We assume that
+all susceptances are positive. With this assumption, we note that
+the DC power flow model (1) does not admit real power flow
+loops. The partition of [and ] corresponds to buses [null and
+injection], and line meters respectively. We assume the system
+state can be uniquely deduced [modulo translations] from the
+injected power observations , or equivalently, .
+A. Unobservable Attacks
+Definition 1: An attack S is a set of meters S,
+and an attack vector R . The nonzero components
+of correspond to the compromised meters in S, i.e.
+S . Under the attack , the meter readings
+are changed by the attacker from their uncompromised values
+to the compromised values . We abuse language and say
+that a line is compromised when we mean that the meter on that
+line is compromised. The sparsity of the attack is S the
+number of compromised meters.
+Definition 2: Consider a power system with the power flow
+model (1). Let denote the current system state, and
+denote the uncompromised measurements. An attack is
+called unobservable at operating point with respect to the
+model (1) if there exists some system state consistent with the
+compromised observations, i.e.
+Remark 3: Here is the (unique) perceived state perturbation
+associated with attack . It is the fictitious change of
+system state necessary to produce the compromised meter readings
+. As model (1) is linear, S is unobservable
+if and only if , is solvable, and S indexes the
+nonzero elements of . Unobservability of under the model
+(1) does not depend on the current system state .
+Remark 4: Consider an unobservable attack S . Let
+M denote set of all meters, indexed , and let
+T M S be the complement of S. We can conduct elementary
+row permutations (or re-index power meters) to write
+Here the matrices and are formed from by deleting the
+rows in S and by retaining the rows in S respectively. Note that
+every element of the vector is nonzero. This representation will
+be useful in the sequel.
+The next result follows immediately from [20].
+Theorem 5: Consider the DC power flow model (1). Consider
+an unobservable attack S . Construct the matrices
+and from by deleting the rows in S and by retaining the
+rows in S respectively. Then
+(a)
+(b) the attack vector must belong to the subspace:
+S
+T
+(3)
+1246
+IEEE TRANSACTIONS ON SMART GRID, VOL. 4, NO. 3, SEPTEMBER 2013
+R
+Proof: Let is the (unique) perceived state perturbation
+associated with attack . From Remark 4, we can permute
+the rows of to write
+This establishes (b). Also, , which forces
+, proving (a). We note that while , not every vector in
+is an admissible attack vector. This is because we also require
+that every entry of be nonzero.
+(2)
+V
+V
+V
+V
+V
+defined by the equivalence classes
+Unobservable attacks require a high degree of coordination.
+The attack vector must be carefully orchestrated across spatially
+separated meters, and the attacker must have access to
+the model. This necessary coordination suggests that low sparsity
+attacks are more probable as they involve compromising a
+small number of meters. Low sparsity attacks have been studied
+in [25], [35].
+B. Observable Islands
+With every unobservable attack, we can associate a set of observable
+islands. This graph-theoretic construct is central to the
+results in this paper. Observable islands are disjoint subsets of
+buses, which share the same perceived change of state [voltage
+phase] under the attack. More precisely:
+Definition 6: Let S be an unobservable attack, and
+let be its associated perceived change of system state. Partition
+the set of buses V into the disjoint union
+V
+The sets V are called the observable islands associated
+with the attack .
+Remark 7: We can now offer a geometric picture of unobservable
+attacks. If an attack is unobservable, it must be consistent
+with the underlying model, and thus corresponds to a perceived
+perturbation in power flow. All non-zero power flows
+in this perturbed power flow correspond either to compromised
+sensors or unmetered lines. This perturbation must satisfy power
+conservation at each bus. It is characterized by the perceived
+bus phase perturbations . All buses within an observable island
+have the same perceived voltage angle perturbation, and
+therefore perceived power flow perturbations on lines entirely
+within any observable island are identically zero. None of meters
+on these lines could have been compromised. Conversely,
+any line connecting two distinct observable islands has a phase
+difference across it, and must therefore have non-zero perceived
+power flow perturbation. All such lines must either have compromised
+meters or be unmetered. This observable island characterization
+is central to our exposition.
+Theorem 8: Consider the unobservable attack S .
+(a) Every compromised line in S connects distinct observable
+islands.
+(b) Every line that connects distinct observable islands is either
+unmetered or compromised.
+(c) No lines contained within an observable island are compromised.
+Proof: Under attack , we will have perceived real power
+flow perturbations from bus to bus , and bus phase perturbations
+at bus .
+(a) If the line connecting buses and is compromised,
+and this requires . Thus, buses must fall
+in distinct observable islands.
+(b) If a line connects buses from distinct observable islands,
+we must have which forces .
+This implies that the meter on that line is compromised or
+that the line is unmetered.
+GIANI et al.: SMART GRID DATA INTEGRITY ATTACKS
+(c) Any line connecting buses within an observable island
+has which implies . As a result, this
+line cannot have been compromised.
+Remark 9: Fix an unobservable attack S . Its associated
+observable islands can be found by solving
+for the state , and placing buses into equivalence classes according
+to Definition 6. This requires flops and is numerically
+sensitive. If all lines are metered, Theorem 8 suggests
+a robust graph-theoretic algorithm to calculate all connected
+components corresponding to the observable islands of
+: (a) Start with the power system graph , and delete all compromised
+lines indexed in S. (b) The observable islands are
+the resulting connected components of the reduced graph. All
+connected components of a graph can be found in
+time using standard breadth-first or depth-first search algorithms
+[14]. The observable islands of do not depend on transmission
+line parameters. They are derived from the interconnection
+structure of the power system graph. We do not have a
+graph-theoretic method of constructing observable islands in the
+case that all lines are not metered. The easiest way appears to be
+linear algebraic. Solve for the state perturbation
+and place buses accordingly in equivalent classes. This method
+is not robust and suffers from noise issues. Indeed, it may be
+worth while exploring other notions of islands to allow for small
+[non-zero] power flow within an island. This is a subject of further
+research and beyond the scope of this paper.
+III. CHARACTERIZATIONS OF SPARSE ATTACKS
+We now characterize irreducible attacks, and offer an algorithm
+to find all irreducible attacks that involve the compromise
+of exactly two power injection meters. We then derive canonical
+forms for all 3-, 4-, and 5-sparse attacks under the assumption
+that all lines are metered.
+A. Irreducible Attacks
+Definition 10: An attack S is called irreducible
+if it is unobservable and there is no unobservable attack
+S with S S.
+We will need the following:
+Lemma 11: Let S be an irreducible attack. Construct
+the matrices and from by deleting the rows in S
+and by retaining the rows in S respectively. Then,
+Proof: Assume S is irreducible. Without loss of
+generality, we can permute the rows of to write
+Suppose there exists such that
+one entry of being zero. Define
+. Note that S S (strictly). Then,
+unobservable, contradicting irreducibility of .
+We begin by characterizing irreducible attacks:
+with at least
+and S
+S is
+1247
+Theorem 12: Consider the DC power flow model (1). Fix S.
+Construct the matrices and from by deleting the rows in
+S and by retaining the rows in S respectively. Then, the attack
+S is irreducible
+(a)
+(b) For
+(c)
+S ,
+R
+Proof: Necessity. Suppose S is irreducible. As is in
+particular, unobservable, from Theorem 5 we have
+. Assume . Then, there exist independent
+vectors such that . From Lemma 11, we
+conclude that all the entries of and are nonzero.
+Define . As are independent and
+, we have . Notice that . By construction, the first
+component of is . Using Lemma 11,
+this contradicts irreducibility of , proving (a).
+Next, suppose condition (b) is violated. Then, there exists
+and such that
+Define , and S
+, we have S S. Also, S
+contradicting irreducibility of .
+From Theorem 5(b), we have that , proving (c).
+Sufficiency. Suppose conditions(a)-(c) hold. Select any
+. We show that S is irreducible.
+Since , we can write , . Define
+If , we have
+. Since
+is unobservable,
+.
+This violates condition (b). Thus, every entry of is nonzero.
+Observe that
+with every entry of being nonzero. From Remark 4,
+S is unobservable.
+We now show that is irreducible. Suppose not. Then,
+there exists an unobservable attack S with S S.
+Let be the corresponding perceived perturbation. Let
+M denote the set of all meters, and
+define the complementary sensor sets T M S, T M S .
+Note that T T. We have
+Since T T, we have that contains the rows of . This
+forces . From (a), every vector in has the form
+. Thus for some . As a result,
+. The nonzero entries of the attack vectors
+index compromised sensors, so S S , contradicting the strict
+containment, proving the claim.
+S
+T
+S
+T
+1248
+IEEE TRANSACTIONS ON SMART GRID, VOL. 4, NO. 3, SEPTEMBER 2013
+Fig. 1. Algorithm for finding all irreducible attacks involving the compromise
+of exactly two power injection meters and an arbitrary number of line meters.
+B. Attacks Involving 2 Power Injection Meters
+Finding all possible irreducible attacks is equivalent to
+finding minimal sets of rows of whose deletion reduces
+by one (see Theorem 12). This is a computationally
+intractable problem even for small power networks. Cyberattacks
+involving large numbers of meters are improbable
+because of the degree of temporal coordination necessary
+across geographically separated attack points. We therefore
+focus on low-sparsity cyber-attacks that require coordination
+of a small number of meters.
+We first consider irreducible attacks involving the compromise
+of exactly two power injection meters and an arbitrary
+number of power meters on lines. Theorem 12 immediately suggests
+an efficient algorithm offered in Fig. 1 to find all such attacks.
+Our algorithm uses certain linear algebraic manipulations
+that bear some resemblance to the procedure in [21] to find all
+critical measurement sets in the context of power system observability.
+The algorithm exploits the following observations. Consider
+the DC power flow model (1). As the system is assumed observable,
+. Using elementary column operations, we
+can write the power flow model as
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+. . .
+. . .
+.
+.
+.
+.
+.
+.
+All entries of the row are 1, because the sum of
+injected powers is zero for all states . We seek minimal sets
+of rows of [two injection meters and an arbitrary number
+of lines] whose deletion reduces its rank by one. For example,
+deleting the first two rows of leaves
+For this matrix to have rank , we must further delete all line
+meter rows where . The complete algorithm is offered
+in Fig. 1.
+This algorithm requires flops for a power system
+with buses and line meters. For the CAISO 4000 bus
+system, this can be done in approximately 1 minute on a 3 Ghz
+PC. The technique can be recursively extended to irreducible attacks
+involving power injection meters, but the algorithm
+complexity is which is disheartening. The
+attack vector , which is also specified in the algorithm, must
+lie in a 1-dimensional subspace as identified in Theorem 12.
+C. Canonical Forms
+In some future reality, we can imagine that all lines on the
+transmission network are instrumented with power meters.
+In this situation, we can offer a graph theoretic characterization
+of 3-, 4-, and 5-sparse attacks. A bridge is an edge whose
+deletion increases the number of connected components in a
+graph. We have the following:
+Theorem 13: Assume all lines are metered. An irreducible
+attack S is 3-sparse if and only if
+(a) S consists of two adjacent injection buses and the
+line connecting these buses, and
+(b) The connecting line is a bridge of the power system
+graph .
+Proof: Let be a 3-sparse irreducible attack. This corresponds
+to some perceived perturbation in power flow (see Remark
+7). As this power flow must have a source and a sink,
+two distinct injection buses must be compromised. These
+buses must be in distinct observable islands. There must exist
+some path from to along which the perceived power flows.
+As all lines are metered, every edge on that path must be compromised.
+Since is 3-sparse, this path can contain only one
+edge, i.e. the third compromised sensor must be on a line connecting
+. If there are other lines connecting these islands,
+GIANI et al.: SMART GRID DATA INTEGRITY ATTACKS
+they must also be compromised (see Theorem 8). As only three
+sensors are compromised, no such line can exist, which forces
+to be a bridge. Sufficiency is evident from construction.
+Theorem 14: Assume all lines are metered. An irreducible
+attack S is 4-sparse if and only if
+(a) S consists of two injection buses and two lines
+.
+(b) The injection buses are connected by the lines
+via an intermediate bus .
+(c) The connecting lines are bridges of the power
+system graph .
+Proof: Let be a 4-sparse irreducible attack. This corresponds
+to some perceived perturbation in power flow (see Remark
+7). As this power flow must have a source and a sink, two
+injection buses must be compromised. Since perceived
+power flows from to [or vice-versa], these buses must be
+in distinct islands. Since the system graph is connected, there
+must be at least 1 line connecting these islands. This line must
+also be compromised as all lines are assumed metered. Since
+is 4-sparse, exactly one other meter must be compromised. If
+this is an injection meter, it must be at a bus distinct from
+as we assume there is at most one injection meter at any
+bus. Since perceived power must flow from or to , at least one
+other line meter must be compromised, making have sparsity
+5. Thus, exactly two distinct injection buses and two
+lines are compromised.
+All paths that carry nonzero perceived power must connect
+and as these are the only compromised injection nodes. As all
+lines are metered, every edge on these paths must be compromised.
+Since is 4-sparse, these paths contain exactly 2 edges
+in total. Thus at most two such paths exist. If there were two
+paths, these contain distinct singleton edges connecting .
+This possibility is precluded by our assumption that there is no
+more than one line between any pair of buses. Thus the perceived
+power must flow from to on a single path containing
+exactly two compromised lines . Label the intermediate
+bus . This could be a null bus or an uncompromised injection
+bus.
+Finally, the buses must fall in distinct observable
+islands as perceived power flows between these buses. Lines
+or connect these islands. If there are other lines connecting
+these islands, they must also be compromised (see Theorem 8).
+As only 4 sensors are compromised, no such lines can exist,
+which forces to be bridges. Sufficiency is evident from
+construction.
+Theorems 13 and 14 essentially offer canonical forms for 3and
+4-sparse irreducible attacks. A more succinct representation
+of these canonical forms is shown in Fig. 2. Every 3- and
+4-sparse irreducible attack must have the structure captured in
+these canonical forms. For 5-sparse attacks, there are three possible
+canonical forms, and these are shown in Fig. 3. Armed
+with these canonical forms, we can readily parse a power system
+graph to detect the presence of low sparsity unobservable attacks.
+This involves standard depth-first search methods [7] to
+find minimal cut-sets. For example, [33] offers a algorithm
+to find all bridges in a graph. Finding cut-sets consisting
+of 2 edges [as found in two of the 5-sparse canonical forms] can
+be done by deleting edges and searching for bridges.
+1249
+Fig. 2. Canonical forms: 3-sparse (left) & 4-sparse (right) irreducible attacks.
+Fig. 3. Three canonical forms for 5-sparse irreducible attacks.
+Remark 15: These canonical forms for sparse attacks depend
+only on the topological properties on the power system graph.
+Indeed, the current operating point and bus admittance parameters
+play no role. As a result, these canonical forms represent
+attacks that are irreducible with respect to a complete nonlinear
+power system model. The attack vector itself must lie on
+a one-dimensional manifold [as opposed to a subspace for the
+linear DC power flow model (1)].
+IV. COUNTERMEASURES
+A. Countermeasures Using Known-Secure PMUs
+Consider an arbitrary [not necessarily sparse] collection A
+of unobservable attacks. We now consider countermeasures
+against attacks in A by placing known-secure phase measurement
+units [PMUs] at certain buses to render these attacks
+observable. A PMU placed at bus offers direct measurement
+of the voltage phase at that bus. PMU's are networked on
+the newer NASPInet architecture which has been designed for
+secure data transfer. As a result, attacks that compromise PMU
+data are much less likely than those that target power meters on
+the legacy SCADA network. This justifies our assumption of
+known-secure PMUs. We begin with the following:
+Theorem 16: Consider an arbitrary collection of unobservable
+attacks A . Let
+V
+V
+V
+denote the observable islands associated with attack .
+All attacks in A can be made observable by placing PMUs at
+buses B
+V
+B
+V
+B
+i.e. every attack has two distinct islands which contain PMUs.
+Proof: Consider the observable islands V V associated
+with attack . If attack occurs, all observable islands
+1250
+IEEE TRANSACTIONS ON SMART GRID, VOL. 4, NO. 3, SEPTEMBER 2013
+must have pair-wise distinct phases. By placing PMUs at buses
+in any two distinct islands, we can monitor their voltage phase
+difference, rendering attack observable.
+Finding the minimal number of PMUs necessary to make the
+attacks in A observable is equivalent to the following set-theoretic
+problem: Given a collection Q Q
+of sets, find the minimal set B, such that Q B for all
+. This is known as the hitting set problem [see [36],
+p. 451], which is known to be NP-hard. We are able to offer a
+clean upper bound on the minimal number of PMUs required,
+and offer an algorithm to determine their placement:
+Theorem 17: Consider any collection A
+of unobservable attacks. There exists a set B containing
+buses with the following property: if direct measurements of the
+voltage phase angles at all buses B are available, then the
+collection of attacks A becomes observable.
+Proof: We construct the set of buses B at which we place
+PMUs. Select any buses drawn from distinct observable
+islands V and V associated with for inclusion in B. This
+choice renders observable from Theorem 16. Consider the
+observable islands associated with attack :
+V
+V
+V
+As the union of these islands contains all buses, we must have
+V for some index . Select any bus V ,
+for inclusion in B. By construction, we have placed PMUs in
+two distinct observable islands associated with . Next, consider
+the observable islands of attack . Again, we must have
+V for some index . Select any bus V ,
+for inclusion in B. PMUs at and render observable. We
+continue in this fashion and select buses for inclusion
+in B. This collection of PMUs makes all the attacks in A
+observable, proving the claim.
+Heuristic procedures can be used to reduce the number of
+PMUs necessaryto render A observable. A greedy algorithm for
+this was proposed in [3]. The placement algorithm of [19] suggests
+in simulation studies that it requires placing PMUs at about
+1/3 the total number of buses to protect the system. We offer an
+alternative method that exploits the underlying observable island
+structure. The idea is to select buses at each iteration from
+the smallest observable island. Intuitively, this process is likely
+to place PMUs that are common to many islands. Our algorithm
+is detailed in Fig. 4.
+B. Countermeasures Based on State-Estimation
+We now offer a countermeasure strategy based on state-estimation
+that does not require any hardware investment. It is
+of use to detect large unobservable attacks where the measurements
+are compromised at a time scale much faster than the
+native rate at which loads and generation vary. The essential
+idea is as follows. Let denote the trajectory of voltage
+phases. Under normal system operation is a slowly varying
+signal. At the time-scales we are concerned with, we can write
+. Suppose we have an unobservable attack ,
+which commences at time . Let V V denote the observable
+islands of . Define . Under normal operating
+conditions, for a short time interval after the attack
+We can declare an arbitrary slack bus , which we place in V .
+Therefore, we observe [equivalently] that for ,
+V
+V
+V
+V
+Fig. 4. Heuristic algorithm for PMU placement.
+commences. Consider any island V , and designate an arbitrary
+reference bus V . For all other buses V , the phase differences
+, . Equivalently, the voltage
+angles at all buses within an island translate in unison after an
+attack. For example, suppose we have two observable islands
+V and V . The voltage angles [prior to the attack] are roughly
+constant. After the attack, two groups of bus angles evolve together,
+i.e. for we have
+where . If V is large, this event of bus
+angles translating in unison is improbable under normal system
+operation.
+In the general case, we will have a collection of observable islands.
+After an attack, the voltage angles translate in unison for
+each island. We place the slack bus in the largest island. State estimation
+will reveal that collections of states in the other islands
+translate in union. Define of the second largest
+island. If , we would observe states of all other [singleton]
+islands translating, which will not raise any alarms. If
+however, is large, say 10, we would observe the states
+of ten buses translating in union. Thus, is a natural measure
+of detectability of the attack. Attacks with very large are
+easily detected. Further research based on change-point detection
+methods [2] is required to establish a connection between
+and the latency of detecting the attack.
+V. EXAMPLES
+A. 6-bus Illustrative Example
+We begin with a synthetic 6-bus example to illustrate unobservable
+attacks, perceived power flows, the associated observable
+islands, and our counter measure strategy using known-secure
+PMUs. Buses 2 and 5 are generator buses, while buses 1, 3,
+GIANI et al.: SMART GRID DATA INTEGRITY ATTACKS
+1251
+TABLE III
+IEEE TEST CASES WITH ALL LINES METERED
+Fig. 5. Power system actual flows before the attack.
+Fig. 6. Power system perceived flows after the attack.
+TABLE I
+SYNTHETIC 6-BUS EXAMPLE: VOLTAGE PHASE ANGLES
+TABLE II
+IEEE TEST CASES WITH 20% OF LINES METERED
+4, and 6 are loads. All line admittances are identical. The generation
+at bus 5 is less expensive. All power injections/extractions
+and all line flows are metered. The power flows before the
+attack are shown in Fig. 5. At a certain time, an attacker compromises
+the line meter reading on line (3, 4) and the power
+extraction readings at loads 3, 4. This is done in a coordinated
+fashion so the perceived flows are consistent with the DC power
+flow model. This consistency renders the attack unobservable.
+The perceived power flows after the attack are shown in Fig. 6
+[only the values that change are shown]. The perceived power
+flow perturbation is a 50 MW flow from bus 4 to bus 3 along the
+tie-line (3,4). There are two observable islands: V
+and V . Notice that there is no perceived power
+flow entirely within any observable island. The system operator
+estimates the voltage phase angles at all buses before and after
+the attack. These are tabulated in Table I. Observe that the perceived
+angle changes are approximately constant within any island.
+Placing two secure PMUs at a pair of buses, one in each
+island, will serve as a countermeasure. The recorded phase difference
+between these PMUs in distinct islands will be zero
+Fig. 7. IEEE 300 bus test case: 19 bus subsystem.
+which is in conflict with the state estimation results, alerting the
+system operator to this attack.
+B. Irreducible Attacks
+We have run our algorithm for finding all irreducible attacks
+involving exactly two injection meters [see Fig. 1] on the 300,
+2383, and 2746 IEEE Bus Test Cases. We have done this in two
+cases: (a) all lines are metered, (b) 20% of the lines [chosen at
+random] are metered. In each case, we have found the number of
+2, 3, and 4 sparse attacks, and an upper bound on the number of
+PMUs necessary to render these attacks observable. PMUs were
+placed using our heuristic algorithm [see Fig. 4]. Our results are
+tabulated below.
+From these limited studies, we see that power systems are
+vulnerable to many sparse unobservable attacks. If only some
+lines are metered, the number of possible attacks can increase
+substantially. Sparse attacks can be found quickly, and countermeasures
+can be developed using known-secure PMUs. These
+examples suggest that PMUs are needed to render the
+collection of attacks observable. This is approximately half the
+sufficient number of PMUs used in the placement algorithm of
+Theorem 17. For instance, in the 2383 test case with all lines metered,
+we have identified 480 unobservable attacks with sparsity
+4. Our heuristic algorithm of Fig. 4 places PMUs at 232 select
+buses to render this collection of attacks observable, while
+1252
+IEEE TRANSACTIONS ON SMART GRID, VOL. 4, NO. 3, SEPTEMBER 2013
+Fig. 8. 3-Sparse attack that compromises injection buses 9021 and 9002. The
+attack commences at with amplitude increasing at 3 MW/sec.
+Theorem 17 offers an upper bound of
+this purpose.
+PMUs for
+C. State Estimation Based Countermeasures
+Fig. 7 shows a 19 bus portion of the IEEE 300 bus test case
+that is particularly prone to unobservable attacks. If all lines and
+all injection buses were metered then this 19 bus test case would
+be prone to six 5-sparse, twelve 4-sparse, and four 3-sparse attacks.
+In particular, we examine the 3-sparse attack that involves
+injection buses 9021 and 9002. This attack has two observable
+islands, one containing 5 buses and the other containing
+295 buses. The attack begins at , and the attacker
+gradually increases the amplitude of the attack at 3 MW/sec to
+evade detection. Fig. 8 shows the state evolution. Notice that
+two groups of voltage angles [corresponding to the observable
+islands] evolve in unison. The perceived angle perturbations in
+the 5 bus island are zero because the [arbitrary] slack bus is contained
+in this island. This event alerts the system operator of the
+attack without the investment of additional PMUs.
+VI. CONCLUSIONS
+In this paper, we have introduced and characterized irreducible
+cyberattacks. We have offered an efficient algorithm
+to find all irreducible attacks that involve the compromise of
+exactly two power injection meters. We have derived canonical
+forms for all 3-, 4-, and 5-sparse attacks under the assumption
+that all lines are metered. We have offered countermeasures
+against arbitrary unobservable attacks using known-secure
+PMUs, and shown that PMUs are sufficient to disable
+attacks.
+A significant difficulty in state estimation is the stale data
+problem. Meter readings arrive asynchronously at the state estimator,
+and the worst case delay may be on the order of 5-10
+minutes [including algorithm convergence time]. With such latencies,
+state estimation may be a poor vehicle to detect cyberattacks.
+The deeper issue with cybersecurity research relates to
+grid operations. An attack has consequences only when the grid
+operator is misled into taking harmful actions based on the compromised
+data. A comprehensive and realistic analysis of cybersecurity
+threats to electricity grids must therefore incorporate
+current operating practice, both under normal and contingency
+operations. These issues are worthy of future research.
+REFERENCES
+[1] A. Abur and A. G. Exposito, Power System State Estimation: Theory
+and Implementation. Boca Raton, FL, USA: CRC Press, 2004.
+[2] M. Basseville and I. V. Nikiforov, Detection of Abrupt Changes:
+Theory and Application. Englewood Cliffs, NJ, USA: Prentice-Hall,
+1993.
+[3] R. B. Bobba, K. M. Rogers, Q. Wang, H. Khurana, K. Nahrstedt, and
+T. J. Overbye, “Detecting false data injection attacks on DC state estimation,”
+in Proc. 1st Workshop Secure Control Systems, CPS Week
+2010, Stockholm, Sweden, Apr. 2010, pp. 1-9.
+[4] J. Chen and A. Abur, “Placement of PMUs to enable bad data detection
+in state estimation,” IEEE Trans. Power Syst., vol. 21, no. 4, pp.
+1608-1615, Apr. 2006.
+[5] S. Cui, Z. Han, S. Kar, T. T. Kim, H. V. Poor, and A. Tajer, “Coordinated
+data injection attack and detection in smart grid,” IEEE Signal
+Process. Mag., vol. 29, no. 5, pp. 106-115, 2012.
+[6] G. Dan and H. Sandberg, “Stealth attacks and protection schemes for
+state estimators in power systems,” in Proc. 1st IEEE Int. Conf. Smart
+Grid Commun. (SmartGridComm), 2010, pp. 214-219.
+[7] S. Dasgupta, C. Papadimitriou, and U. Vazirani, Algorithms.
+NewYork, NY, USA: McGrawHill, 2006.
+[8] Department of Energy. [Online]. Available: http://www.oe.energy.
+gov/DocumentsandMedia/02-1-11_OE_Press_Release_Risk_Management.pdf
+[9] R. Emami and A. Abur, “Robust measurement design by placing synchronized
+phasor measurements on network branches,” IEEE Trans.
+Power Syst., vol. 25, no. 1, pp. 38-43, Feb. 2010.
+[10] T. Flick and J. Morehouse, “Securing the smart grid: Next generation
+power grid security,” in Proc. Syngress, Amsterdam, The Netherlands,
+2010.
+[11] A. Giani, E. Bitar, M. Garcia, M. McQueen, P. Khargonekar, and K.
+Poolla, “Smart grid data integrity attacks: Characterizations and countermeasures,”
+in Proc. 2nd IEEE Int. Conf. Smart Grid Communications
+(SmartGridComm), 2010, pp. 232-237.
+[12] D. Gorinevsky, S. Boyd, and S. Poll, “Estimation of faults in DC electrical
+power system,” in Proc. IEEE Conf. Decision Contr., Dec. 2009,
+pp. 4334-4339.
+[13] G. P. Granelli and M. Montagna, “Identification of interacting bad data
+in the framework of the weighted least square method,” Electric Power
+Syst. Res., vol. 78, no. 5, pp. 806-814, 2008.
+[14] J. Hopcroft and R. Tarjan, “Efficient algorithms for graph manipulation,”
+Commun. ACM, vol. 16, no. 6, pp. 372-378, 1973.
+[15] C.-H. Huang, C.-H. Lee, K.-R. Shih, and Y.-J. Wang, “Bad data analysis
+in power system measurement estimation,” Eur. Trans. Electr.
+Power, vol. 20, pp. 1082-1100, 2010.
+[16] H.-J. Koglin, T. Neisius, G. Beissler, and K. D. Schmitt, “Bad data
+detection and identification,” Int. J. Electric Power, vol. 12, no. 2, pp.
+94-103, 1990.
+[17] V. Igure, S. Laughtera, and R. Williams, “Security issues in SCADA
+networks,” Comput. Security, vol. 25, no. 7, pp. 498-506, 2006.
+[18] G. N. Korres et al., “Numerical observability analysis based on network
+graph theory,” IEEE Trans. Power Syst., vol. 18, no. 3, pp. 1035-1045,
+2003.
+[19] T. T. Kim and H. V. Poor, “Strategic protection against data injection
+attacks on power grids,” IEEE Trans. Smart Grid, vol. 2, no. 2, pp.
+326-333, 2011.
+[20] O. Kosut, L. Jia, R. Thomas, and L. Tong, “Malicious data attacks on
+smart grid state estimation: Attack strategies and counter measures,”
+in Proc. 1st IEEE Int. Conf. Smart Grid Commun. (SmartGridComm),
+2010, pp. 220-225.
+[21] J. London, J. B. A. L. Alberto, and N. Bretas, “Network observability:
+Identification of the measurements redundancy level,” in Proc. Power
+Syst. Technol. Conf., 2000, vol. 2, pp. 577-582.
+[22] Q. Li, R. Negi, and M. D. Ilíc, “Phasor measurement units placement
+for power system state estimation: A greedy approach,” in Proc. IEEE
+Power Energy Soc. General Meeting, 2011, pp. 1-8.
+[23] K.-P. Lien et al., “Transmission network fault location observability
+with minimal PMU placement,” IEEE Trans. Power Del., vol. 21, no.
+3, pp. 1128-1136, 2006.
+GIANI et al.: SMART GRID DATA INTEGRITY ATTACKS
+1253
+[24] J. Lin and H. Pan, “A static state estimation approach including bad
+data detection and identification in power systems,” in Proc. IEEE
+Power Energy Society General Meeting, 2007, pp. 1-7.
+[25] Y. Liu, P. Ning, and M. K. Reiter, “False data injection attacks against
+state estimation in electric power grids,” in Proc. 16th ACM Conf.
+Comput. Commun. Security, 2009, pp. 21-32.
+[26] L. Mili, T. Van Cutsem, and M. Ribbens-Pavella, “Bad data identification
+methods in power systems state estimation,” IEEE Trans. Power
+Apparatus Syst., vol. 103, no. 11, pp. 3037-3049, 1985.
+[27] N. M. Manousakis and G. N. Korres, “Observability Analysis for
+Power Systems Including Conventional and Phasor Measurements,”
+in Proc. 7th Mediterranean Conf. Power Generation, Transmission,
+Distribution Energy Conversion, 2010, pp. 1-8.
+[28] A. Monticelli, State Estimation in Electric PowerSystems: A Generalized
+Approach. New York, NY, USA: Springer, 1999.
+[29] NIST Framework and Roadmap for Smart Grid Interoperability Standards,
+“NIST Special Publication 1108,”, Jan. 2010.
+[30] [Online]. Available: http://www.naspi.org/naspinet.stm
+[31] T. J. Overbye and J. D. Weber, “The smart grid and PMUs: Operational
+challenges and opportunities,” in Proc. IEEE Power Energy Soc. General
+Meeting, 2010, pp. 1-5.
+[32] A. G. Phadke, J. S. Thorp, and K. Karimi, “State estimation with phasor
+measurements,” IEEE Trans. Power Syst., vol. 1, pp. 233-241, 1986.
+[33] R. Tarjan, “A note on finding the bridges of a graph,” in Proc. Inf.
+Process. Lett., Apr. 1974, pp. 160-161.
+[34] A. Teixeira, S. Amin, H. Sandberg, K. H. Johansson, and S. S. Sastry,
+“Cyber-security analysis of state estimators in electric power systems,”
+in Proc. IEEE Conf. Decision Contr., 2010, pp. 5991-5998.
+[35] A. Teixeira, G. Dan, H. Sandberg, and K. H. Johansson, “A Cyber Security
+Study of a SCADA Energy Management System,” ArXiv e-prints,
+2010.
+[36] D. P. Williamson, “The primal-dual method for approximation algorithms,”
+Math Programming Series B, vol. 91, pp. 447-478, 2002.
+[37] H. Wu, “PMU impact on state estimation reliability for improved grid
+security,” in Proc. IEEE Transm. Distrib. Conf. Exhibition, PES, 2006,
+vol. 25, no. 1, pp. 1349-1351.
+Annarita Giani received the M.S. degree in mathematics
+from the Universitá di Pisa, Pisa, Italy. She received
+a Ph.D from the Thayer School of Engineering
+at Dartmouth College, Hanover with a dissertation
+on computer security, anomaly tracking and cognitive
+attacks.
+She then worked for the Italian Registration Authority
+and for the Instituto di Informatica e Telematicadel
+Consiglio Nazionale delle Ricerche di Pisa.
+After graduation she was a researcher at the Institute
+for Security Technology Studies. From 2007 she was
+a postdoctoral fellow at the Department of Electrical Engineering and Computer
+Science, University of California at Berkeley, CA, USA. She is currently
+a Director's Fellowship at Los Alamos National Laboratory, NM, USA, where
+she works on issues related to cyber security of smart grid. Her research interests
+include computer security, cyber physical systems and critical infrastructure
+protection.
+Eilyan Bitar received the B.S. and Ph.D. degrees
+from the University of California, Berkeley, CA,
+USA, in 2006 and 2011, respectively.
+He is currently an Assistant Professor and the
+David D. Croll Sesquicentennial Faculty Fellow in
+the School of Electrical and Computer Engineering
+at Cornell University, Ithaca, NY, USA. Prior to
+joining Cornell in the Fall 2012, he was engaged as a
+Postdoctoral Fellow in the department of Computing
+and Mathematical Science (CMS) at the California
+Institute of Technology and at the University of
+California, Berkeley, in Electrical Engineering and Computer Science during
+the 2011-12 academic year. His research interests include stochastic optimization
+and control theory and their applications to the economics, control, and
+protection of electric power systems.
+Manuel Garcia is a second year graduate student
+in Mechanical Engineering at the University of California,
+Berkeley, CA, USA, working in the Berkeley
+Center for Control and Identification (BCCI).
+His general research interests include optimization,
+nonlinear analysis and control, and uncertainty
+quantification. His power systems interests include
+cyber security, fast state estimation, and optimal
+resource scheduling.
+Miles McQueen is a Chief Scientist in the Cyber Security
+RD department at Idaho National Laboratory
+(INL). Miles has held a variety of technical and programmatic
+leadership roles at INL, and has also been
+Director of the University of Idaho's Computer Science
+Program at the Idaho Falls Center for Higher
+Education.
+With well over 40 peer reviewed scientific publications,
+he is currently leading research teams investigating
+various aspects of the security eco system related
+to critical infrastructure, and developing novel
+mitigations for currently unidentified vulnerabilities. Previously, he investigated
+novel, first of a kind, Zero-Day vulnerability estimation techniques.
+Pramod Khargonekar received the B.Tech. degree
+in electrical engineering from the Indian Institute of
+Technology, Bombay, India, in 1977, the M.S. degree
+in mathematics, and the Ph.D. degree in electrical engineering
+from the University of Florida, Gainesville,
+FL, USA, in 1980 and 1981, respectively.
+After holding faculty positions in Electrical Engineering
+at the University of Florida and University
+of Minnesota, he joined The University of Michigan
+in 1989 as Professor of Electrical Engineering and
+Computer Science. He became Chairman of the Department
+of Electrical Engineering and Computer Science in 1997 and also held
+the position of Claude E. Shannon Professor of Engineering Science. In July
+2001, he rejoined the University of Florida and served as Dean of the College
+of Engineering from till July 2009. He is currently Eckis Professor Electrical
+and Computer Engineering at the University of Florida.
+Kameshwar Poolla received the B.Tech. degree
+from the Indian Institute of Technology, Bombay,
+India, in 1980, and the Ph.D. degree from the University
+of Florida, Gainesville, FL, USA, in 1984,
+both in electrical engineering.
+He has served on the faculty of the University of
+Illinois, Urbana, IL, USA, from 1984 to 1991. Since
+then, he has been at the University of California,
+Berkeley, CA, USA, where he is the Cadence
+Distinguished Professor of Mechanical Engineering
+and Electrical Engineering and Computer Sciences.
+He also serves as the Founding Director of the IMPACT Center for Integrated
+Circuit manufacturing at the University of California. He co-founded On Wafer
+Technologies which offers metrology based yield enhancement solutions for
+the semiconductor industry. On Wafer was acquired by KLA-Tencor in 2007.
+Dr. Poolla has been awarded a 1988 NSF Presidential Young Investigator
+Award, the 1993 Hugo Schuck Best Paper Prize, the 1994 Donald P.
+Eckman Award, the 1998 Distinguished Teaching Award of the University
+of California, the 2005 and 2007 IEEE TRANSACTIONS ON SEMICONDUCTOR
+MANUFACTURING BEST PAPER PRIZES, and the 2009 IEEE CSS Transition to
+Practice Award. His current research interests covers many aspects of the Smart
+Grid: Renewable Integration, Demand Response, Cybersecurity, Experimental
+Economics, and Sensor Networks.

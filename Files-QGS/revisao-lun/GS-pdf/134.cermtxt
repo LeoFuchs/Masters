@@ -1,0 +1,731 @@
+Implementation of Unobservable State-preserving
+Topology
+Attacks
+Jiazi Zhang
+Dept. of Electrical,Computer, and Energy Engineering
+Arizona State University
+Tempe, AZ, 85287
+Email: jzhanI88@asu.edu
+Lalitha Sankar
+Dept. of Electrical, Computer, and Energy Engineering
+Arizona State University
+Tempe, AZ, 8528 7
+Email: lalithasankar@asu.edu
+Abstract-This paper studies the vulnerability of AC state
+estimation (SE) with respect to a class of unobservable statepreserving
+topology attacks, in which the topology data are
+changed by attacker while the states remain unchanged. An
+algorithm based on breadth-first search (BFS) is developed to determine
+the subset of topology data and measurements required to
+launch successful unobservable state-preserving topology attacks.
+It is shown that the proposed algorithm can enable an attacker
+to obtain the localized topology and corresponding measurement
+data to mount an attack that bypasses bad data detector and
+successfully changes topology information of the system in the
+cyber layer.
+Keywords-Cyber physical system security, power system state
+and topology estimation, topology aatck, breadth-first search.
+I. INTRODUCTION
+Topology information plays an essential role in power
+system operation. In energy management systems (EMSs), various
+data processing modules including state estimation (SE),
+contingency analysis (CA), and optimal power flow (OPF)
+are highly dependent on topology information. Cyber attacks
+that alter the system topology information can result in wrong
+solutions within these modules with potential consequences
+including systematic problems and failures.
+There has beenmuch recent interest in understanding the
+cyber-security challenges facing the electric power system. In
+[1], the authors introduce a class of false data injection (FDI)
+attacks for DC SE and show that an attacker with suficient
+system knowledge can inject malicious measurements without
+beingdetected by existing bad data detection techniques that
+are subsequent to SE. In [2], Kosut et al. demonstrate that the
+algebraic condition for unobservableFDI attack is equivalent
+to that of network observability.In [3], the authors focus on
+FDI attacks on AC SE and introduce a class of unobservable
+attacks that are limited to a sub-graph of the network. They
+demonstrate that the knowledge of both system topology and
+states are required to launch unobservableFDI attacks on AC
+SE. In [4], the authors demonstrate that unobservableFDI
+attacks on AC SE can lead to a physical generation re-dispatch
+when none was needed.
+Yet another class of FDI attacks is one that alters topology
+data in an unobservable mannerI.n [5], Kim and Tong formally
+introduce an unobservabletopology attack as a specicfi class of
+FDI attacks on power systems and evaluate the attack's impact
+on the locational marginal prices (LMPs). The authors design
+the attack to alter the system topology estimate by injecting
+malicious measurements and false line status data. Topology
+attacks for DC SE are also studied in [6] and [7].
+In this paper, we focus on a non-linear system model (i.e.,
+AC SE) and on a class of unobservabletopology attacks in
+which an attacker can change topology information of the
+system without changing the states. We henceforth refer to
+such attacks as unobservable state-preserving topology attacks.
+These attacks can beof two types: line-maintaining and lineremoving:
+for a line-maintaining attack, the attacker changes
+measurements and line status information to make it appear
+that line which is not in the system is now shown as active at
+the control center via SCADA data; the opposite is achieved by
+a line-removing attack. The paper [5] introduces unobservable
+state-preserving topology attacks; however the analysis in [5]
+is restricted to line-removing attacks. To launch such attacks,
+the authors propose an attack heuristic in which the attacker
+can set the power flow measurements for a specific line to zero
+and change the power injection measurements at the end buses
+of that line.
+In this paper, we focus on a class of unobservablestatepreserving
+line-maintaining attacks. We seek to understand the
+minimum amount of information an attacker needs to launch
+such attacks. We assume the attacker is aware of a physical
+outage in the system and changes the resulting SCADA data
+(prior to SE) to make it appear that the line is in service. We
+denote such a line as the target line hereinaeftr. Specicfially,
+false line oflw measurements need to becreated for the target
+line; however, this cannot be achieved by just adjusting the
+measurements at the end buses and requires estimating states
+at those buses as well, since the flow on the outage line has to
+becomputed. For a reliablestate estimate, the attacker needs to
+identify a physical connection (we denote as path hereinafter)
+between the end buses of the target line, over which it can
+estimate states with local measurements, and thereby, create
+an unobservableattack. However, there are multiple such paths
+in the system. To create an attack with the smallest set of
+information, the attacker needs to find the shortest path. Since
+the power system can be represented as an undirected and
+unweighted graph, algorithms such as Dijkstra's and BellmanFord,
+which are used to find the shortest path in directed and
+weighted graph, are not suitable in this problem. Therefore,
+we propose an algorithm based on breadth-first search (BFS),
+which is generally used for traversing or searching graph data
+structures [8]. We need such an algorithm to search for the
+shortest path that connected the end buses of the target line in
+power system.
+II. MATHEMATICALMODEL
+In this section, we first introduce the system network and
+topology processor models. Then we provide a short review of
+mathematical formulation for AC SE and baddata detection.
+Throughout, we assume there are nb buses, nbr branches, and
+nz measurements in the system.
+A. System Network and Topology Processor
+The electric power system can berepresented bya graph
+9 = {N, E} where Nand E are the sets of buses and
+lines, respectively. For a specicfi system, we assume the static
+topology is 90 = {No, Eo} where No and Eo are the sets of
+all existing buses and branches, respectively. Then, the static
+connectivity of the buses with lines can be represented with
+nbr x nb "from" and "to" line-to-bus incidence matrices AKJ
+and AKt, respecttively. If a line k exists to contnect bus i to
+bus j, the (k, i) h element of AKJ and (k, j) h element of
+AKt are I and all other entries of AKJ and AKt are set to
+zeros. The overall nbr x nb line-to-bus incidence matrix AKN
+is calculated using AKJ and AKt as follows
+AKN = AKJ - AKt·
+At the control center, SCADA collects line status data as a
+nbr x 1 vector s with entries Sk E {O, I} for k E {I, ...,nbr}
+that indicate the on and of status of circuit-breakers on
+each line. The data is then passed to a topology processor
+which maps the real-time power system topology along with
+network connectivity data. The complete topology information
+is captured bytwo matrices Ybn the branchadmittance matrix,
+and Ybus, the bus admittance matrix, defined as
+and
+Ybr = D [diag(s)AKNJ,
+Ybus = [diag(s)AKNJTD [diag(s)AKNJ
+(2)
+(3)
+where D denotes the nbr x nbr branchadmittance matrix for
+90, diag (-) denotes an operator that takes an n x 1 vector
+and creates the corresponding n x n diagonal matrix with the
+vector elements along the diagonal.
+The topology data is crucial for power system operation.
+It determines the real-time AC power flow model. Assume V
+denotes the nb x 1 complex voltage vector, such that V =
+VL.B, where voltage angle and voltage magnitude, B and V
+are both nb x 1 vectors. The AC power flow model for the
+system can bewritten as
+[ 1 [ A1' .�* 1
+Sbus diag (V) . Yb';,s V*
+where SJ and St are nbr x 1 "from" and "to" complex power
+lfow vectors, respectively, Sbus is nb x 1 complex power
+injection vector, * represents the conjugate of vector [9].
+This model is used in the subsequent SE module. In AC
+SE, the "from" and "to" power flow measurements and the
+power injection measurements of buses with power injection
+(generation and/or loads) are used to estimate the states. Therefore,
+a correct topology information ensures the validity of SE
+results. Once the line status data is altered by attacker, the
+topology processor will export incorrect topology information,
+and hence, lead to wrong estimation results.
+B. State Estimation
+Consider an nz x 1 vector z of nonlinear measurements
+given as
+z = h(x, 9) + e
+where x = [B, VJT is the system state vector, and e is an
+nz x 1 noise vector which is independent of x and is modeled
+as Gaussian distributed with 0 mean and crr covariance such
+that the measurement error covariance matrix is given byR =
+diag( {crn : )' The function h(x, 9) is a vector of nonlinear
+functions that1 describes the relationship between the system
+states and measurements for a topology 9. Both the line status
+data s and the measurements z are collected by the SCADA
+system. The commonly obtainedmeasurements in the grid are
+the active and reactive power oflws and bus injections.
+We use weighted least-squares (WLS) AC SE to calculate
+the B and V [10]. The objectiveof the estimation process is to
+minimize the sum of the squares of the weighted deviations of
+the estimated measurements from z. The states are solved as
+a least square problem with the following objectivefunction
+min J(x) = (h(x) - zfR-1(h(x) - z) ,
+the solution to which satisfies
+oJ(x)
+g(x) = = HT(x) . R-1 . (h(x) - z) = 0
+ox
+where the system Jacobianmatrix H = &�) Ix=,i; and x is
+the 2nb x 1 estimated state vectors. The WLS solution for this
+nonlinear optimization problem can besolved iteratively.
+(5)
+(6)
+(7)
+(8)
+(9)
+(1)
+(4)
+where XZm-n),p is the value from X2 distribution tables
+corresponding to a detection confidence with probabilityp (e.g.
+95%) and m - n degrees of freedom.
+If the threshold in (9) is violated, largest normalized
+residual method is further used for baddata identification. The
+identified badmeasurement is removed from the measurement
+vector and the SE is repeated until no baddata is detected.
+C. Bad Data Detection
+Measurements collected bySCADA can contain errors, and
+hence, undermine the accuracy of estimated states. Therefore,
+baddata detector should beequipped with SE to detect faulty
+measurements, and hence, protect SE from large errors. The
+measurement residual vector is used to detect baddata, as
+r = z - h(x, 9)
+where r is the nz x 1 residual vector.
+The X2-detector is utilized to detect baddata. The threshold
+is determined bythe x2-test. To bypass the baddata detection,
+the residuals should satisfy the following relationship
+rTR-1r /'": X2(m-n),p
+III. ATTACK MODEL
+In an unobservablestate-preserving topology attack, the
+attacker aims to maliciously change the system topology from
+Q to a different "target" topology Q = {N, £} without
+changing the states. In this paper, we only consider topology
+attacks that perturb line connection [, to £; the attacks aiming
+to split or merge buses are out of scope, i.e. , N remains
+unchanged. We denfie the line with status data changed by
+attacker as target line and the end buses of the target line as
+target buses.
+As stated in Section I, topology attacks can beof two types:
+line-maintaining and line-removing. For a line-maintaining
+attack, the attacker maliciously alters the line status data of
+the target line and injects false data to make it appear that line
+which is not in the original graph [, is now shown as active
+in £; the opposite is achieved by a line-removing attack. To
+launch a state-preserving topology attack, the attacker injects
+nbr x 1 line status attack vector band nz x 1 measurement
+attack vector a. The line status attack vector bhas entries bk E
+{-1 , 0,1 } for k E {l, ...,nbr} such that bk = 1, -1, and 0,
+correspond to line-maintaining, line-removing and no attack
+cases, respectively. This attack modifies (s, z) for topology Q
+to (8", z) for topology Q such that
+In the absence of noise, the attack vector satisfies
+"8 = s + b, and z = z+ a.
+a = h(x,Q) - h (x,Q) .
+For a cyber-basedtopology attack considered here, when
+the states are preserved, i.e. , unchanged, and the system
+topology except for the target line remains the same, the
+attacker needs to change the power flow of the target line. To
+achieve this, the attacker only needs to change the power flow
+measurements on the target line and power injection measurements
+on the target buses to make such attack unobservable.
+A. Line-removing vs. Line-maintaining attacks
+For line-removing attack, as stated in [5], when the attacker
+sets the target line status to zero, the "from" and "to" power
+lfow measurements should also be changed to zero. The
+modified power injection measurements for bus i are
+Pt = P i -P ij
+Qf = Qi -Qij
+where P ij andQij are the physical active and reactive "from"
+power flows of line ij, respectively. The modified power
+injection measurements on bus j obey (12), as well. An
+example of such attack is shown in Fig. l(a). In this case,
+to create a precise attack, the line flow P ij and Qij have
+to beestimated using all the relevant SCADA measurements.
+A heuristic way to creating such attacks is to use just the
+local power oflw measurements at bothends of the target line.
+This is proposed in [5] and the authors have demonstrated its
+performance via simulation.
+In contrast, we argue that for a line-maintaining attack,
+such a heuristic will not work. This is because for a linemaintaining
+attack, the actual "from" and "to" power flows
+on the target line are already zero since the target line is out.
+(10)
+(11)
+(12)
+W hen the attacker sets the target line status to 1, the "from"
+and "to" power flow measurements should benon-zero since
+the line appears active at control center. The modiefid "from"
+power oflw measurements PIj and Qij should satisfy
+Pi J = V? (gsi+ 9ij) - ViVj( gijCOS(ei - ej)
++bijsin(ei - ej))
+Qij = -V? (bsi+ bij) - ViVj(9 ijsin(ei - ej)
+-bijcoS(ei - ej))
+where bij and gij are the susceptance and conductance of the
+target line, respectively, bsi and gsi are the shunt branchsusceptance
+and conductance of bus i, respectively. The modified
+"to" power flow measurements Pj and Qji also obey (13).
+From (13), we can see that to calculate the false power oflw
+measurements on the target line, the attacker needs to estimate
+the states. For the power injection measurements for bus i,
+since the power injection for bus i should equal to the sum of
+all line power flows from bus i, the measurements should be
+modified as
+Pt = P i+PiJ
+Qi = Qi+Qij
+where P i and Qi are the physical active and reactive power
+injectionmeasurements, respectively; Pi a andQi are the injection
+measurements modified byattacker. The power injection
+measurements on bus j also satisfy the relationship in (14).
+An example of such an attack is shown in Fig. l(b).
+(13)
+(14)
+• Modified Meter
+D Normal Mete r
+_ Modified Line Stanis
+_ Normal Line StanIS
+(b) Line-maintaining attack
+Fig. I. Examples of unobservable state-preserving topology attacks.
+IV. UNOB SERVABLE STATE-PRESERVING
+LI NE-MANITAINI N G ATTACKS WITHL OCAL INFORMATION
+We assume the attacker
+has the following capabilities:
+1)
+2)
+3)
+Attacker has knowledge
+entire network.
+Attacker has the capability to observe measurements
+only for a sub-network S of Q and perform SE for S.
+The choice of S is described in detail in the sequel.
+Attacker has the capability to change both the line
+status data of the target line and the measurements
+on both target line and target buses.
+of the topology Q of the
+For the system, we assume that the power system is observable
+prior to the attack.
+For nonlinear measurement model and AC SE, the attacker
+cannot construct a only with the knowledge of system configuration.
+In fact, recent work in [3], [4] show that attack vector
+constructed with DC measurement model can bedetected when
+the system uses AC SE. To this end, we model a sophisticated
+attacker who attacks the line status data and measurements of
+the target line and the power injection measurements on the
+end buses of target line (target buses) by first estimating the
+system states xsfor 5 using AC SE. Let IT represent the set
+of measurements the attacker needs to modify to launch an
+attack. The resulting modified measurement vector z input to
+SE has entries
+_ Zi,
+Zi= {
+hi(xs, Q) ,
+(15)
+For line-maintaining attacks, equations (13)-(14) imply
+that the voltage magnitudes and voltage angle difference of
+the target buses are required to form the unobservableattack
+vector. Thus, the attacker has to obtaina good estimate of the
+voltage magnitudes and voltage angle diefrence of the target
+buses. Since the target line is physically disconnected, the
+attacker needs to find a sub-network of the physical system to
+estimate states on the target buses. Such a sub-network should
+contain at least one physical path that connects the two target
+buses. By using power oflw measurements on the lines of the
+path, attacker can estimate the voltage magnitudes and voltage
+angle differences of the buses on the path, and thus, obtain a
+good estimate of the states of the target buses. For clarification,
+consider the example shown in Fig. 2. In this case, the target
+line is the line connecting bus 1 and 2. The goal of attacker
+is to obtaina good estimate of states on target buses 1 and 2.
+Assume bus1 is the reference bus. Attacker can use power flow
+measurements on the line connecting bus 1 and 4 to calculate
+V4 and!':, 814 = 81 - 84. Then, the V3 and!':, 843 = 84 - 83
+can be estimated with power flow measurements on the line
+connecting bus4 and 3 and the estimated V4L84. It is the same
+for estimation of V2 and!':, 832 = 83 - 82. Then, attacker can
+obtain a good estimation of voltage magnitudes VI and V2,
+and voltage angle differenc!':,e 812 =!':, 814+!':, 843+!':, 832,
+and hence, calculate the modified measurements.
+Fig. 2. Illustration of a sub-network forunobservable state-preserving attack
+For a specific target line, there are multiple paths between
+the two target buses in the system. To reduce the cost of
+attacks, attacker needs to analyze the system topology 9 and
+ifnd the shortest path between the two target buses. Thus,
+the attack can be launched by estimating a minimal set of
+measurements.
+We use a BFS algorithm to identify the shortest path
+that connects the target buses. The minimal observation subnetwork
+5 denotes the connectivity of the buses and lines on
+1)
+2)
+3)
+1)
+2)
+3)
+the shortest path. The physical power grid 9 is represented as
+an unweighted and undirected graph in which an edge is a line
+and a node is a bus. We assign one of the target buses as the
+starting bus and the remaining target bus is the destination
+bus. The procedure to determine 5 is as follows:
+Algorithm 1 BFS for shortest path connecting target buses
+Input: g, starting bus, destination bus
+Output: shortest path connecting the starting bus and the
+destination
+Set the starting bus as the in progress bus and the rest
+buses as unvisited buses. Set the level of the current
+set of in pgroress buses as k = O.
+Search all unvisited buses that are connected (by a
+branch) to the set of in progress buses. Mark such
+unvisited buses as the in progress buses and the
+previous set of in pgroress buses as visited buses.
+Set the level of the current set of in progress buses
+as k = k + 1. If the destination bus is in the set of in
+progress buses, that means the shortest path tree has
+beenidentified, go to step 3. Otherwise, repeat step
+2.
+Backtrack from the desination bus to the starting bus
+level-by-Ievel,and identify the shortest path. If there
+is more than one shortest path, repeat step 3 until all
+shortest paths are identified.
+Once 5 is found, the attacker can assign one of the
+target buses as a slack bus, collect and use the power oflw
+measurements Zsfor all buses and lines in 5 to perform local
+SE to minimize the estimate error as:
+Js(xs) = (h(xs,5) - zsfRsl(h(xs,5) - zs),
+(16)
+for which the solution is
+g(xA s) = JfJ( xs) = HT(xA s)·Rs1·(h(xs,5)-zs)= 0 (17)
+Jf xs
+where H = fJh1:s,S) s Ix=sxs is the system Jacobian matrix.
+The WLS solution for this nonlinear optimization problemcan
+besolved iteratively. Then attacker can calculate the modified
+measurements with (15).
+Since the power system is a complex geographically distributed
+network, attacker may be limited to a subset of the
+network static topology. Under such conditions, this method
+can also be applied to find the minimal observation subnetwork.
+Inpractice, to launch an unobservablestate-preserving linemaintaining
+attack, attackers are limited to finite sets of target
+lines due to the following reasons:
+The power injection measurements can only be altered
+byredistributing loads in cyberlayer. Attacker
+cannot change generator output data due to direct
+communication between control center and power
+plant.
+The power injection for no load buses cannot be
+altered, since load occurring in no load buses can
+beilmnediately detected byoperator.
+Any attacks that can lead to negative loads in cyber
+layer can bedetected.
+The significant alteration of the system such as
+system dividing to several islands (line-removing
+attack) or islands combiningto a whole system (linemaintaining
+attack) can lead to operator's intervention.
+Therefore, to launch a successful line-maintaining attack, attacker
+should analyze the system topology and operation states
+prudently to choose a target line. The following three classes
+of lines should beavoided as target lines:
+Single critical line or critical pairs of lines.
+Lines that once beingattacked can lead to negative
+loads in cyberlayer.
+Lines that connected to no load buses.
+In Section V, we illustrate the attack design and the algorithm
+performance with an IEEE 24-bus reliable test system (RTS).
+V.
+NUMERICALRESULTS
+In this section, we use the IEEE 24-bus RTS shown in Fig.
+3 as the test system. We assume that the measurements in the
+test system are: (a) active and reactive power flows on both
+ends of all lines; and (b) active and reactive power injection
+on buses with loads and/or generation; i.e. , overall, the number
+of total measurements in the test system is 192. We run our
+simulations with MATLAB R2014a and MATPOWER 4.1.
+4)
+1)
+2)
+3)
+6
+. 5
+lJ 4
+3
+Z2
+Target
+Line #
+2
+5
+8
+9
+12
+13
+34
+35
+TABLE l. CLASSIFICATIONOF INFEASIBLETARGETLINESFOR
+UNDETECTABLSETATE-PRESERVINLGINE-MAINTAININAGTTACK
+Infeasible Reason
+Critical Line
+Connect to No Load Bus
+Lead to Negative Load
+Infeasible Target Line
+#11
+#7. #14-#22, #25-#28,#30-#33,#36-#38
+#1,#3,#4,#6,#10,#23,#24
+B. Minimal Observation Sub-network
+In this subsection, we exhaustively illustrate the minimal
+observation sub-network of each feasibletarget line according
+to the algorithm introduced in Section IV. The details of
+each minimal observation sub-network for each target line are
+demonstrated in TABLE II. The minimal numberof lines and
+buses (denote as nSl and nSb, respectively) inside the minimal
+observation sub-network for each target line is illustrated in
+Fig. 4. That is the minimal information the attacker needs to
+observe beforelaunching a successful attack. Since the system
+is under full monitoring redundancy, there are 4 measurements
+which are active and reactive power flow measurements on
+both "from" and "to" ends placing on a line. Therefore, the
+minimum number measurements the attacker needs to access
+is the minimum number of observation measurements along
+the path, as well as the measurements placed on the target line
+and the target buses, i.e. , 4nsl + 8.
+I • Minimu mBranch r
+• Minim umBus
+.2 #5 ,8 .9 #2# 3 # 4# 5
+Target Line
+Fig. 4. Number of branches and buses of the minimal observation subnetwork
+of each target line
+TABLE II.
+MINIMALOBSERVATIONSUB-NETWORK FOR ALLFEASIBLE
+TARGETLINES
+Branches of Minimal
+Observation Sub-network
+#1,#4,#8, #6
+#1,#3, #9,#10
+#4,#1,#5, #6
+#3,#1, #5,#10
+#13,#16,#14
+#12,#14, #16
+#35
+#34
+Connectivity
+of Buses
+1=;.2=;.4=;.9=;.3
+2=;.1 =;.5=;.1 0=;.6
+4=;.2=;.1=;.3=;.9
+5=;.1 =;.2=;.6=;.10
+8=;.10=;.11 ;=.9
+8=;.9=;.1 1=;.10
+19=;.20
+19=;.20
+Fig. 3. IEEE 24-busreliable test system.
+A. Feasible Target Line Selection
+In this subsection, we analyze the test system to identify
+all feasible target lines for unobservablestate-preserving linemaintaining
+attacks. We first exclude critical lines and the lines
+that connected to a no load buses in the system. For the rest
+lines, we perfonn a whole network SE and use the estimated
+states to calculate the attack vector. We check the modiefid
+loads in cyber layer for each line and exclude the lines that
+can lead to negative loads. TABLE I demonstrates all the lines
+we exclude from the set of feasibletarget lines and the reason
+for exclusion. Overall, for line-maintaining attacks, there are
+8 feasible target lines in the test system, for which the line
+indices are #2, #5, #8, #9, #12, #13, #34, #35.
+From these results, we can see that the minimal observation
+sub-network for each target line is relatively small compared
+with the whole network topology even for a small system such
+as IEEE 24-bus RTS. The largest minimal observation subnetwork
+in the test system consists of 4 branches and 5 buses,
+in which the total observation measurements number is 16.
+The numberof measurements of this sub-network that attacker
+need to access inside is 24, which is 12.5% of the test system.
+Therefore, it is possible for attacker to launch such attacks
+with only a small subset of information of the system.
+.
+.,. .<
+2#
+, 5 ,8 19
+/, r-.
+. - - '1-
+1-.
+_._ •• Falsealannconstraint
+LocalInformation
+GlobalInformation
+#12#13#14 #15
+TargetLine
+.C
+Undetectability
+of Attacks
+Inthis subsection, we test the unobservablestate-preserving
+line-maintaining attacks
+with bothglobalinformation and local
+information on the test system.
+In our simulation, we use
+MATPOWER to generate
+measurements
+and perform state
+estimation.
+The default setting
+of the IEEE 24-bus system
+in
+MATPOWER is utilized for simulation.
+system is operating under optimal power oflw
+We assume the
+and the loads of
+the system
+are constant. The errors for all measurements are
+assumed to beei rv
+is chosen for a 95% confidence in detection.
+N (0, 0.01 ) and the X2 detector threshold
+We test 1000 trials for each target line with two attack
+regimes, global information regime and local information
+regime. The global information regime is that attacker
+can
+observe all measurements in the system
+and perform AC SE
+with
+whole network topology
+and measurements.
+While the
+local information regime is that attacekr
+can only observe the
+measurements inside the minimal sub-network S and perform
+AC SE with topology and measurements of S. In each trial, the
+measurements are generated byadding random Gaussian noise
+to the actual power oflws
+and injections of the test system. The
+attacekr
+ifrst
+uses
+both global and local information regime
+to obtain the estimated states.
+Then the attack
+vectors are
+calculated with both regimes, and added to the corresponding
+measurements to get two sets of corrupted measurements.
+We
+use these corrupted
+measurements to perform AC SE of the
+whole network to obtain residuals and use x2-test
+with the
+residuals.
+If the residual is greater than the threshold,
+we
+assume this trial as detected trial.
+We calculate the detection
+Probabilityas P detecuon =
+#detection trials
+#trJals
+. The detection probabilities
+of attacks
+with both global information and local
+information for each target line are demonstrated in Fig. 5. The
+bluedash and dot line represents the 5% false alarm constraint
+of the X2 detector.
+. 4
+.
+=
+=< . :Ss: . 32
+Q .. 1
+"
+6
+5
+0
+Fig. 5.
+Detection probability (1000 trials) of unobservable state-preserving
+line-maintaining attacks on both global information and local information
+(false alarm const. =5%)
+From Fig. 5, we can see that for most target lines, the
+detection probabilitiesof attacks
+generated with globalinformation
+are lower than those with local information. However,
+both of them are lower than the false alarm constraint, which
+means the proposed attacks
+will not bedetected.
+VI.
+CO NCLUSION A ND FUTUREWORK
+In this paper, we focus on unobservablestate-preserving
+topology attacks,
+especially the line-maintaining attacks.
+We
+propose an algorithm
+based on BFS to nfid
+the
+minimum
+local information required to perform such attacks.
+We have
+shown that our proposed algorithm can enablean attacker
+to
+obtainthe localized topology and corresponding measurement
+data to mount an attack that bypasses bad data detector and
+successfully changes topology information of the system in the
+cyberlayer.
+One possible extension is to study a more sophisticated
+class of topology attacks
+in which both topology information
+and system
+states are changed byattacker
+in an unobservable
+manner. Moreover, we will also study the consequences of
+topology attacks
+on physical power system. It is crucial to
+identify the anomalies caused bysuch unobservabletopology
+attacks
+in modules subsequent to SE, and thereby, develop the
+detection
+modules and resiliency mechanisms to detect and
+mitigate such topology attacks.
+REFERENCES
+[1] Y. Liu, P. Ning, andM. K. Reiter, "False data injection attacks against
+state estimation in electric power grids," in Proceedings
+ofthe i6th ACM
+Coriference
+on Computer and Communications Security, ser. CCS '09,
+Chicago, Illinois, USA, 2009, pp. 21-32.
+[2] O. Kosut, L. Jia, R. J. Thomas, and L. Tong, "Malicious data attacks
+on the smart grid," iEEE Tnrasactions
+on Smart Grid, vol. 2, no. 4, pp.
+645-658, 2011.
+Meeting, Washington,DC, July 2014.
+Smart Grid Technologies (ISGT),
+February 2013, pp. 1-6.
+[3] G. Hug and J. A. Giampapa, "Vulnerability assessment of AC state
+estimation with respect to false data injection cyber-attacks," IEEE
+Transactions
+on Smart Grid, vol. 3, no. 3, pp. 1362-1370, 2012.
+[4] J. Liang, O. Kosut, and L. Sankar, "Cyber-attackson ac state estimation:
+Unobservability and physical consequences," in IEEE PES Genelra
+[5] J. Kim and L. Tong, "On topology attack of a smart grid," in innovative
+2013 IEEE PES, Washington,DC,
+2011.
+manual," 2015.
+[6]
+M. Rahman, E. Al-Shaer, and R. Kavasseri, "Impact analysis of
+topology poisoning attacks on economic operation of the smart power
+grid," in Distributed Computing Systems (ICDCS), 2014 IEEE 34th
+international
+Coriference
+on, June 2014, pp. 649-659.
+[7] A. Ashok and M. Govindarasu, "Cyber attacks on power system state
+estimation through topology errors," in Power and Energy Society
+General
+Meeting, 2012 IEEE, July 2012, pp. 1-8.
+[8] S. Even, Graph
+Algorithms (2nd ed).
+Cambridge University Press,
+[9] R. D. Zimmerman and C. E. MuriUo-Sanchez",Matpower 5.1 user's
+[10] A. Abur and A. G. Exposito, Power System State Estimation: Theory
+and Implementation.
+NewYork: CRC Press, 2004.

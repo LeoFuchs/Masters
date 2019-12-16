@@ -1,0 +1,782 @@
+2015 European Control Conference (ECC)
+July 15-17, 2015. Linz, Austria
+Secure and Robust State Estimation under Sensor Attacks,
+Measurement Noises, and Process Disturbances: Observer-Based
+Combinatorial Approach
+Chanhwa Lee, Hyungbo Shim, and Yongsoon Eun
+Abstract- This paper presents a secure and robust state estimation
+scheme for continuous-time linear dynamical systems.
+The method is secure in that it correctly estimates the states
+under sensor attacks by exploiting sensing redundancy, and it is
+robust in that it guarantees a bounded estimation error despite
+measurement noises and process disturbances. In this method,
+an individual Luenberger observer (of possibly smaller size) is
+designed from each sensor. Then, the state estimates from each
+of the observers are combined through a scheme motivated
+by error correction techniques, which results in estimation
+resiliency against sensor attacks under a mild condition on the
+system observability. Moreover, in the state estimates combining
+stage, our method reduces the search space of a minimization
+problem to a finite set, which substantially reduces the required
+computational effort.
+I. INTRODUCTION
+Recent advances in computers and communications have
+enabled feedback control technology to address more sophisticated
+and complex problems of large-scale. For example,
+heterogeneous multi-agent systems are frequently encountered
+[1], decentralized and distributed control algorithms
+are developed [2], and large-scale traffic control is addressed
+using wireless sensor network [3]. As this trend prevails,
+the resulting systems that integrate computers, controls, and
+communication networks are now more exposed and can be
+vulnerable to malicious attacks. Indeed, attacks on systems
+that involve feedback controllers took place in reality [4],
+[5], [6], and may lead to catastrophic disruptions in critical
+infrastructure [6]. Therefore, resiliency of control systems
+under malicious attacks has become one of the critical system
+design considerations and is actively studied [7], [8], [9].
+In this paper, we consider attacks on sensors of feedback
+control systems, and present a secure and robust state estimation
+scheme for continuous-time linear dynamical systems.
+The method is secure in that it correctly estimates the states
+under sensor attacks by exploiting sensing redundancy, and
+it is robust in that it guarantees a bounded estimation error
+despite measurement noises and process disturbances.
+We consider linear dynamical systems with multiple outputs
+and design a Luenberger observer for each output.
+This work was supported by ICT R&D program of MSIP/IITP Grant
+number 14-824-09-013, Resilient Cyber-Physical Systems Research, and in
+part by the Brain Korea 21 Plus Project in 2015.
+C. Lee and H. Shim are with ASRI, Department of Electrical and Computer
+Engineering, Seoul National University, Korea. chlee@cdsl.kr,
+hshim@snu.ac.kr
+Y. Eun is with Department of Information & Communication Engineering,
+Daegu Gyeongbuk Institute of Science & Technology, Korea.
+yeun@dgist.ac.kr
+Then, we combine the state estimates from each of the
+observers through a scheme motivated by error correction
+techniques. We formulate the problem such that the error
+correcting method (like in [10] and [11]) is applicable to
+combine multiple state estimates from each of the observers.
+Specifically, the state estimates from a bank of observers
+are stacked to form a higher dimensional column vector,
+and an error correcting method, tailored to this specially
+structured vector, is used to achieve attack-resiliency. It is
+shown that the resiliency, or error correctability, arises from
+the redundancy of observability.
+In the stage of combining state estimates, an `0 minimization
+problem arises from error correction techniques.
+By adopting a combinatorial approach [12] and modifying
+it based on observers, our method substantially reduces
+the required computational effort to solve the minimization
+problem.
+Additionally, the effect of bounded measurement noises
+and process disturbances on state estimation is analyzed. A
+method of calculating the bound on state estimation errors
+is provided, and the error bound turns out to be proportional
+to the bounds on noises and disturbances.
+It should be pointed out that fault tolerant control [13] can
+be viewed as closely related to resiliency. However, the fault
+tolerant control mainly focuses on reliability from internal
+non-colluding faults while the attack resilient control deals
+with external malicious attacks which act in a coordinated
+way and is sometimes stealthy [14]. Physical redundancy
+approach has been used where redundant components are
+introduced along with majority voting logic [15], [16]. Functional
+redundancy approach has also been exploited, which
+includes state observer [17], Kalman filter [18], parameter
+estimation [19], threshold logic [20], and statistical decision
+theory [18]. The idea of employing a bank of observers is
+motivated by [21] and [22], in which it is used for detecting
+mode-switching and estimating state variables in switched
+dynamical systems.
+The error correcting problem, which we use to combine
+estimates from a bank of observers, can be transformed
+to a problem of reconstructing sparse vectors [23]. Sparse
+signal recovery technique is one of the main concerns in
+compressed sensing (CS) literature [24], [25]. There are
+three main algorithmic approaches to sparse signal recovery:
+geometric, greedy, and combinatorial. The geometric
+algorithm uses linear programming techniques by recasting
+the `0 minimization problem into a convex optimization
+978-3-9524269-3-7 ©2015 EUCA
+1872
+problem [23]. Greedy algorithm iteratively approximates the
+signal coefficients [26]. Combinatorial approach identifies a
+subset of anomalous elements by investigating all possible
+combinations [12].
+Motivated by the considerable work in CS, fundamental
+studies on state recovery of discrete-time linear time invariant
+(LTI) systems under attacks, have been carried out recently
+[27], [28], [29]. Basic concepts regarding this problem are
+introduced and characterized in [27] and the geometric
+approach is adopted to solve the problem, however, it can not
+guarantee real time estimation. Bounded noises, disturbances,
+and modeling errors are considered in [28] and the state
+estimation error is analyzed, but an explicit error bound is not
+given. Reference [29] proposes an event-triggered projected
+gradient descent algorithm which is a kind of iterative greedy
+algorithm with additional restrictive conditions.
+Compared to [27]-[29], we take an observer-based combinatorial
+approach, and computational burden is much
+lessened by reducing the search space of an optimization
+problem to a finite set. Moreover, a bound on estimation error
+is explicitly derived from system parameters. We formulate
+the problem for continuous-time dynamics in this paper for
+convenience.
+The rest of the paper is organized as follows. Section
+II introduces the notation used throughout the paper and
+the problem formulation. In Section III, the static error
+correcting problem for both noiseless and noisy situations,
+is considered. We then design individual observers using the
+Kalman observability decomposition, and the overall estimation
+scheme is presented in Section IV. Finally, simulation
+results are given in Section V and we provide concluding
+remarks in Section VI.
+II. PRELIMINARIES
+A. Notation
+In this subsection, we summarize the notation used
+throughout the paper. The subset of natural numbers,
+f1; 2; ; pg N, is denoted by [p]. The cardinality of a
+set S is denoted by jSj and the support of a vector v 2 Rp
+is defined as supp(v) := fi 2 [p] : vi 6= 0g where vi is the
+i-th element of v. The cardinality of supp(v) defines the `0
+norm1 of a vector v, i.e., kvk0 := jsupp(v)j: A vector v is
+said to be q-sparse when it holds that kvk0 q, and a set
+q := fv 2 Rp : kvk0 qg denotes the set of all q-sparse
+vectors.
+Assume that a vector v 2 Rp and a subset [p]
+of indices are given. By v 2 Rp, it is meant that v is
+obtained by setting the elements of v indexed by c :=
+fi 2 [p] : i 2= g to zero. Similar notation is used for a matrix
+M 2 Rp n. The matrix obtained by setting the rows of
+M indexed by c to zero, is denoted as M 2 Rp n.
+Sometimes the notation will be abused to imply v 2 Rj j
+(or M 2 Rj j n) which is the vector v (or the matrix M )
+1Strictly speaking, `0 “norm” is not a norm in the mathematical sense
+because it does not satisfy the absolute homogeneity of norm properties.
+However, it is conventionally called “norm” abusing terminology.
+whose elements (or rows) not corresponding to the index set
+are actually eliminated.
+Several special notations are also used for a stacked
+vector x 2 Rnp. For a given index i 2 [p], the index
+sSeitmiflanr(liy to1)a+n i1n;dne(xi set1) + 2;[p], t;hneigindisexdesentotSedi2 as in in.
+[np] is denoted as n. A stacked vector x 2 Rnp of length
+np can be split into p column vectors of length n, i.e.,
+x = xn1> xn2> xnp> > 2 Rnp, where xin 2 Rn represent
+the i-th split column vector of length n in x. With the
+iRnnd.exThseet (nin-stdaecfikende)d saubpopvoer,t itoffoxllow2s Rthnapt ixsin d=efinxedin a2s
+suppn(x) := fi 2 [p] : xin 6= 0n 1g and its cardinality defines
+the (n-stacked) `0 norm of x, i.e., kxk0n := jsuppn(x)j:
+Similarly to the usual vector case, a stacked vector x is said
+to be (n-stacked) q-sparse when it holds that kxk0n q, and
+a set nq := fx 2 Rnp : kxk0n qg denotes the set of all
+(n-stacked) q-sparse vectors. If it is clear from the context
+that the vector taken into consideration is a stacked vector,
+we omit the term “n-stacked”.
+B. Problem Formulation
+Among various attack scenarios [14], we consider false
+data injection attacks on sensors and the plant is given by
+x_ (t) = Ax(t) + Bu(t) + d(t)
+y(t) = Cx(t) + n(t) + a(t)
+(1)
+where x(t) 2 Rn is the states, u(t) 2 Rm is the inputs, and
+y(t) 2 Rp is the measured outputs. In addition, d(t) 2 Rn
+is the process disturbances, n(t) 2 Rp is the measurement
+noises, and a(t) 2 Rp is the errors injected by adversarial
+attacks. The measurement of the i-th sensor at time t, denoted
+by yi(t), is corrupted by both the noise ni(t) and the attack
+ai(t). We pose conditions on noises, disturbances, and attacks
+given as follows.
+Assumption 1: The process disturbance d and each measurement
+noise ni for i 2 [p] are uniformly bounded, i.e.,
+kd(t)k2
+dmax;
+kni(t)k2
+nmax;
+8t
+0:
+Assumption 2: The attack vector a(t) is q-sparse, i.e.,
+a(t) 2 q for all t. More precisely, there exists an index set
+[p] such that supp(a(t)) for t 0 and j j q.
+Assumption 2 implies that the adversary can compromise
+only a subset of sensors possibly with arbitrary attack values.
+The objective of this paper is to estimate the state x(t) of
+the given system (1) under Assumptions 1 and 2.
+III. STATIC ERROR CORRECTION OVER REALS
+This section considers an error correcting problem over
+real numbers when the signals are constant. Throughout this
+section, we will consider an (n-stacked) vector z^ 2 Rnp
+unless otherwise mentioned. Given a matrix 2 Rnp n,
+we want to recover a vector x 2 Rn from measurements
+z^ =
+x + v + e 2 Rnp
+(2)
+which are corrupted by noise v and error e. The matrix
+is called a coding matrix, v 2 Rnp is a vector of bounded
+1873
+noises, and e 2 Rnp denotes an arbitrary and unknown vector
+of sparse errors.
+A. Noise-Free Signal Recovery
+In this subsection, let us assume that v = 0np 1 in (2). The
+following notion of correctability can now be introduced.
+Definition 1: A coding matrix 2 Rnp n is said to be
+(n-stacked) q-error correctable if for all x1; x2 2 Rn and
+e1; e2 2 nq, x1 + e1 = x2 + e2 implies x1 = x2.
+We now give an equivalent condition which characterizes
+the error correctability of the matrix .
+Lemma 1: The matrix 2 Rnp n is (n-stacked) q-error
+correctable if and only if n has full column rank for every
+set [p] satisfying j j p 2q.
+Proof: (if): Suppose that is not q-error correctable.
+That is, there exist x1; x2 2 Rn satisfying x1 6= x2, and
+e1; e2 2 nq such that x1 +e1 = x2 +e2. Let x := x1 x2
+and e := e1 + e2, then it follows that x = e where
+x 6= 0n 1 and e 2 n2q. With an index set := (suppn(e))c,
+it is obvious that j j p 2q and n x = 0np 1. Therefore,
+the null space of n is not trivial, i.e., N ( n ) 6= f0n 1g,
+which contradicts the full column rank condition of n .
+(only if): Suppose, for the sake of contradiction, that there
+exists an index set [p] with j j p 2q and x 6= 0n 1
+such that n x = 0np 1. Then it follows that kek0n 2q
+where e := x. Let e1 and e2 be such that e = e1 + e2
+where ke1k0n q and ke2k0n q. Thus, there exist x 2 Rn
+satisfying x 6= 0n 1, and e1; e2 2 nq, such that x + e1 =
+0n 1 + e2, which implies is not q-error correctable.
+Directly from Definition 1, 2 Rnp n is (n-stacked) qerror
+correctable if and only if there exists a decoding map
+D : Rnp ! Rn such that D(z^) = x where z^ = x + e 2 Rnp
+and e 2 nq. From now on, we will discuss the problem of
+constructing a decoder that can actually correct (n-stacked) q
+errors when is (n-stacked) q-error correctable. Recall that,
+with a usual vector z = x+e 2 Rp where e 2 q, the input
+x is uniquely recovered by the well-known `0 minimization
+decoder D0 : z 7! arg min 2Rn kz k0 for 2 Rp n
+with p > n [10, Section 3], [27, Proposition 5]. Then, it is
+not difficult to see that the `0 minimization also works for the
+stacked vector z^ = x+e 2 Rnp. Indeed, we can reconstruct
+the input x from the solution of the `0 minimization problem
+2Rn; "2Rnp k"k0n subject to " = z^
+min
+;
+or equivalently,
+m2iRnn kz^
+k0n ;
+as asserted in the following lemma.
+Lemma 2: Assume that 2 Rnp n is q-error correctable.
+For any x 2 Rn and e 2 nq, suppose that we obtain
+measurements of the form z^ = x + e 2 Rnp. Then
+x = arg min 2Rn kz^ k0n , i.e., the decoder D0n : z^ 7!
+arg min 2Rn kz^ k0n corrects q errors.
+Proof: Suppose that there exist a solution x0 2 Rn of
+min 2Rn kz^ k0n satisfying x0 6= x and e0 := z^ x0 2
+qn. Then, it follows that z^ = x0 + e0 = x + e, and
+ke0k0n kek0n q because e0 is the minimal solution. This
+(3)
+(30)
+implies that is not q-error correctable and thus completes
+the proof by contradiction.
+So far, in order to solve (3) or (30), we should have
+searched the whole space Rn. However, this can be drastically
+reduced to a finite set
+Fp q(z^) :=
+2 Rn :
+= (
+n )y z^ n where
+[p] and j j = p
+q
+where ( n )y is the pseudoinverse of n . Note that
+jFp q(z^)j p p q = pq . When it comes to solving (3)
+or (30), the following theorem claims that it is enough to
+search the finite set Fp q(z^), not Rn.
+Theorem 1: Assume that 2 Rnp n is q-error correctable.
+Suppose that we obtain measurements of the form
+z^ = x + e 2 Rnp where x 2 Rn and e 2 qn. Then
+x = arg min 2Fp q(z^) kz^ k0n .
+Proof: It is easily proved by the fact x 2 Fp q(z^).
+Remark 1: Since the `0 minimization problem (3) is
+NP-hard [30] in terms of computational complexity, many
+researchers have pursued a relaxation of (3) while imposing
+additional conditions. It is emphasized that the algorithm
+proposed in Theorem 1 actually relieves the computational
+complexity, not by imposing additional conditions, but by
+reducing the search space to a finite set. Indeed, the algorithm
+is a kind of combinatorial approach which tests
+coonrlryectiqpon algoprqithcmanodfitdeantetes,stswahlille 1pth+e c2pon+venti+onappl err2opr
+combinations.
+B. Robustness with Bounded Noises
+The measurements are prone to be contaminated by noises
+in most practical situations, e.g, imperfect sensors, quantization
+errors, modeling errors, or external disturbances. A
+signal recovery algorithm which is robust to bounded noises,
+is proposed in this subsection. By robustness, we mean that
+the error bound is guaranteed to be proportional to the noise
+level. Therefore, stable signal recovery is possible in the
+presence of noises.
+Under bounded noise v 2 Rnp satisfying kvink2 vmax
+for all i 2 [p] in (2), it will be shown that any solution of
+the following relaxed `0 minimization problem
+2Fp q(z^); "2Rnp k"k0n
+min
+subject to kz^in
+"ink2
+n
+i
+yields an approximation of the original input x where
+vm0ax := pp q vmax. From an implementation point of
+view, (4) is transformed to the following minimization problem
+which is in more accessible form:
+vm0ax; 8i 2 [p]
+(4)
+min
+2Fp q(z^)
+i 2 [p] : kz^in
+in k2 > vm0ax
+:
+(40)
+Note that (40) has only one optimization variable , while (4)
+has two optimization variables and ". Consequently, when
+we implement the algorithm, the unconstrained problem (40)
+is preferable to (4). However, when robustness of the given
+signal reconstruction scheme is analyzed, the problem (4) is
+1874
+more useful than (40) because the corresponding error vector
+e^ and the noise vector v^ can be directly determined from the
+solution x^. Actually, (40) can be interpreted as a relaxation
+of the problem (30). The following proposition shows the
+equivalence of (4) and (40).
+Proposition 1: For any x 2 Rn, e 2 nq, and v 2 Rnp
+satisfying kvink2 vmax for all i 2 [p], suppose that the
+measurements are given by z^ = x + v + e 2 Rnp. The `0
+minimization problem (4) is equivalent to the optimization
+problem (40).
+Proof: It is omitted due to space limitation.
+As in the noiseless case of Theorem 1, a robust estimation
+scheme which utilizes an optimization over a finite set, is
+presented in the following theorem, with new notation of
+p q( ) := min f min (
+= 1. max n (
+k := (pp
+q + 1)pp
+n ) :
+n )y 2 :
+[p]; j j = p
+qg
+[p]; j j = p
+qo ;
+2q= p 2q( );
+where 2 Rnp n and min ( n ) denotes the minimum
+singular value of n .
+Theorem 2: Assume that 2 Rnp n is q-error correctable.
+For any x 2 Rn, e 2 nq, and v 2 Rnp satisfying
+kvink2 vmax for all i 2 [p], suppose that the noisy
+observation z^ 2 Rnp is given by z^ = x + v + e. Then
+kx^
+xk2
+kvmax
+where x^ is a solution of the minimization problem (40).
+Proof: Since (4) and (40) are equivalent by Proposition
+1, x^ is also a solution of (4). Assuming that e^ is the
+error vector corresponding to x^ in (4), first, it is claimed
+that ke^k0n q. Let be any subset of (suppn(e))c with
+j j = p q. Then, with x := ( n )y z^ n 2 Fp q(z^), one has
+x = x + ( n )y v n because n has full column rank and
+thus ( n )y n = In n. Now, define v := z^ n n x 2 Rnp
+and e := z^ x v. Then, it is obtained that
+kz^in
+in x
+= k(Inp np
+eink2 = kvink2
+n (
+n )y)v n k2
+kvk2
+pp
+qvmax = vm0ax;
+for all i 2 [p] where the last inequality comes from fact that
+k(Inp np n ( n )y)k2 1 and kv n k2 pp qvmax.
+By the construction of e, it follows that kek0n q and
+kz^in in x eink2 vm0ax for all i 2 [p]. Thus, one
+can conclude that ke^k0n kek0n q because e^ is the
+minimal solution of (4). Now, the corresponding noise vector
+to x^ and e^ is defined by v^ := z^ x^ e^, and thus
+kv^ink2 vm0ax for all i 2 [p] by the constraint in (4). Since
+z^ = x + v + e = x^ + v^ + e^, it follows that x~ + e~ = v~
+where x~ := x^ x, e~ := e^ e, and v~ := v^ v. Note that
+ke~k0n 2q and kv~ink2 vm0ax + vmax for all i 2 [p]. Let
+be any subset of (suppn(e~))c satisfying j j = p 2q.
+Then, n x~ = v~ n . Since n has full column rank by
+Lemma 1, it follows that x~ = ( n )y v~ n . Finally, one can
+calculate the bound of kx~k2 as kx~k2 ( n )y 2kv~ n k2
+(pp q + 1)pp 2qvmax= p 2q( ) = kvmax.
+(5)
+(6)
+(7)
+where ci is the i-th row of C. Denote the observability
+matrix of (5) by Gi := ci> (ciA)> (ciAn 1)> >, and
+let i be the observability index of (A; ci), i.e., i :=
+rank(Gi). Then the set of the first i rows of Gi is linearly
+independent. The null space of Gi, N (Gi), which is Ainvariant,
+is the unobservable subspace. Furthermore, the
+quotient space of N (Gi) is observable, and is sometimes
+called, with abuse of terminology, the observable subspace.
+The system (5) is now decomposed into two subspaces of
+Rn, i.e., N (Gi) and N (Gi)?. Recall that N (Gi)? = R(Gi>)
+where R(Gi>) is the range space of Gi>. Choose matrices
+Zi 2 Rn i and Wi 2 Rn (n i) such that their columns
+are orthonormal bases of R(Gi>) and N (Gi), respectively.
+Furthermore, any two columns of them are orthonormal so
+that [Zi Wi]> [Zi Wi] = In n.
+We make the change of state variables as defined by the
+transformation
+zi> wi> > = Zi Wi > x:
+Now, in terms of this new state zi> wi> >, (5) becomes
+z_i(t)
+w_ i(t)
+= Si
+yi(t) = ri
+O
+O
+zi(t) +
+wi(t)
+Zi>
+Wi>
+zi(t)
+wi(t)
++ ni(t) + ai(t)
+(Bu(t) + d(t))
+IV. DYNAMIC ERROR CORRECTION WITH OBSERVERS
+In this section, a secure and robust dynamic observer
+design problem for the plant (1) is considered. The system is
+first transformed by the Kalman observability decomposition
+to design a Luenberger observer for each sensor. Then, the
+static error correcting methods discussed so far are applied
+to the information collected from each individual observer.
+A. Observability Decomposition and Observer Design
+Assuming that only i-th sensor is available in (1), the plant
+is reduced to the single-output system as follows:
+x_ (t) = Ax(t) + Bu(t) + d(t)
+yi(t) = cix(t) + ni(t) + ai(t)
+where Si := Zi>AZi, ri := ciZi, and O represents the zero
+matrix of appropriate size. Finally, the observable subsystem
+of (7) is obtained as follows:
+z_i(t) = Sizi(t) + Zi>Bu(t) + Zi>d(t)
+yi(t) = rizi(t) + ni(t) + ai(t):
+Here, the pair (Si; ri) is observable by the properties of the
+decomposition. Thus, we can design a standard Luengerger
+observer of the form
+z^_i(t) = Siz^i(t) + Zi>Bu(t) + Li (yi(t)
+riz^i(t))
+(8)
+where Li is chosen so that Fi := Si Liri is Hurwitz. The
+error dynamics, with z~i := z^i zi, are governed by
+z~_i(t) = Fiz~i(t) + Lini(t)
+Zi>d(t) + Liai(t):
+(9)
+1875
+The solution of (9) becomes
+z~i(t) = vi(t) + ei(t)
+(10)
+where vi(t) := eFitz~i(0) + R0t eFi(t )(Lini( ) Zi>d( ))d
+and ei(t) := R0t eFi(t )Liai( )d . Here, ei(t) may have
+arbitrary values since it is affected by the attack signal
+ai(t). For all t 0 and i 2 [p], there exist F 1 and
+F > 0 such that keFitk2 F e F t since all Fi's are
+Hurwitz. In addition, for some L; Z 1, it holds that
+keFitLik2 Le F t and keFitZi>k2 Z e F t. Then,
+one can easily show that
+kvi(t)k2
+F kz~i(0)k2e
+F t + vmax
+where vmax :=
+Lnmax= F +
+Z dmax= F .
+B. Observer-Based Combinatorial State Estimation in the
+Presence of Attacks, Noises, and Disturbances
+This subsection presents the main results of the paper.
+We apply the static error correcting methods studied so far
+into the observer design problem of the control system (1).
+From the similarity transformation (6), it trivially follows
+that Zi>x = zi for all i 2 [p]. By appending n i zero row
+vectors, O(n i) n, to each Zi> and stacking them all, we
+finally have the following equation of the form
+A technical lemma revealing the equivalence between the
+above new notions is derived easily from Lemma 1.
+Lemma 3: The system (1) is observable under q-sparse
+sensor attacks if and only if it is 2q-redundant observable.
+Proof: Let [p] be any index set satisfying j j =
+p 2q. Denote the observability matrix of (A; C ) as G :=
+C> (C A)> (C An 1)> > : By the construction of
+and its elements Zi>'s, it follows that R(G>) = R( >n ).
+Thus, rank(G ) = n if and only if n has full column
+rank. Finally, by Lemma 1, rank(G ) = n for any [p]
+satisfying j j = p 2q if and only if is q-error correctable,
+which completes the proof.
+Finally, we have the following theorem which suggests
+a secure and robust estimation algorithm for dynamical
+systems under sensor attacks in the presence of measurement
+noises and process disturbances.
+Theorem 3: Under Assumptions 1 and 2, let the system
+(1) be 2q-redundant observable. In addition, suppose that
+observers are designed as (8). Then, for any > 0, there
+exists a T ( ) such that
+kx^(t)
+x(t)k2
+kvmax + ;
+8t
+T ( )
+where, with vm00 ax := pp
+q(vmax + =k),
+x^(t) := arg min i 2 [p] : kz^in in k2 > vm00 ax :
+2Fp q(z^(t))
+Proof: It easily follows from Theorem 2.
+Remark 2: An anomaly detector which monitors the system
+to detect deviations from the nominal behavior [14],
+can be designed by the dedicated observer scheme [20].
+Originated from the fault detection and isolation area, the
+dedicated observer scheme also utilizes a bank of observers
+like the proposed algorithm in Subsection IV-A. More precisely,
+the output error signal y~i of the following system
+z~_i(t) = Fiz~i(t) + Lini(t)
+y~i(t) = riz~(t)
+ni(t)
+ai(t):
+Zi>d(t) + Liai(t);
+(90)
+where y^i := riz^i and y~i := y^i yi, can be used as a
+residual. Since (90) is primarily designed to detect sensor
+(or instrument) faults, not malicious attacks, a decision
+logic, which announces possible anomalies in the i-th sensor
+when the residual y~i exceeds a predefined threshold, can not
+identify stealthy attacks nor zero dynamics attacks [14]. On
+the other hand, the proposed error correcting algorithm in
+Theorem 3 can reveal those covert attacks because ei in (10)
+becomes relatively large (i.e., keik2 0) even when y~i is
+small enough.
+V. NUMERICAL EXAMPLE
+We consider a linear dynamical system (1) with
+A =
+C =
+0:1
+1 0
+0 1
+I2 2;
+B = O2 1;
+1 1
+1 1
+1
+2
+2
+1
+>
+;
+(14)
+where u(t) 0 and, d(t) and n(t) are white noise signals
+that are saturated by dmax = 0:1 and nmax = 0:1,
+respectively. Note that (14) is 4-redundant observable. The
+2Z1n>3 2z1n(t)3 2z^1n(t)3
+. . .
+64 .. 75 x(t) = 6 .. 7 = 6 .. 7
+Zpn> 4zpn(t) 4z^pn(t)
+5 5
+where
+Zin> :=
+z^in(t) :=
+Zi>
+O(n i) n
+z^i(t)
+0(n i) 1
+;
+;
+zin(t) :=
+z~in(t) :=
+2z~1n(t)3
+.
+6 .. 7 ;
+4z~pn(t)
+5
+zi(t)
+0(n i) 1
+z~i(t)
+0(n i) 1
+;
+:
+The equation (11) can be written in a compact form as
+z^(t) =
+x(t) + z~(t) =
+x(t) + v(t) + e(t) 2 Rnp
+where consists of Zin>'s and the last equality comes from
+(10). It is also assumed for v(t) and e(t) that additional zero
+elements are augmented as in (12). Note that (13) coincides
+with the static error correcting problem (2) except the time
+index t.
+Before presenting the final theorem, new notions of qredundant
+observability and observability under q-sparse
+sensor attacks are introduced.
+Definition 2: The dynamical system (1) is said to be qredundant
+observable2 if the pair (A; C ) is observable for
+any [p] with j j = p q.
+Definition 3: The dynamical system (1) is said to be
+observable under q-sparse sensor attacks if the matrix 2
+Rnp n in (13) is (n-stacked) q-error correctable.
+2The same concept was introduced in [29] with q-sparse observability
+notion, but we used different terminology as q-redundant observability
+because q-sparse observability was formerly defined in [31] which concerns
+q-sparse initial values.
+(11)
+(12)
+(13)
+1876
+200
+0
+−200
+0
+1
+0
+−1
+−2
+0
+a1(t)
+a2(t)
+x˜1(t)
+x˜2(t)
+1
+2
+3
+4
+5
+Time(sec)
+6
+7
+8
+9
+10
+Fig. 1. Plot of attack a1(t) and a2(t)
+4
+5
+Time(sec)
+6
+1
+2
+3
+7
+8
+9
+10
+Fig. 2. Plot of state estimation error x~1(t) and x~2(t)
+2-sparse attack signal a(t) is injected into the system. More
+precisely, supp(a(t)) = f1; 2g for t 2 and the attack
+signals are depicted in Fig. 1. The state estimation errors
+x~i(t) := x^i(t) xi(t) are described in Fig. 2 which shows
+the attack-resilient property of our estimation algorithm.
+VI. CONCLUSION
+In this paper, we have considered continuous-time LTI
+systems under sensor attacks in the presence of measurement
+noises and process disturbances. It is assumed that
+the adversarial attacks are q-sparse and noises/disturbances
+are bounded. By extending the classical error correction
+techniques to the stacked vector case, a secure and robust
+estimation algorithm based on a bank of Luenberger observers
+has been proposed under 2q-redundant observability
+condition of the given system. The contributions of this
+paper are as follows. First, without any additional restrictive
+conditions other than 2q-redundant observability, we could
+estimate the state values with relatively less computation.
+This advantage comes from the fact that we solve the `0
+minimization problem on a reduced finite set. Second, stable
+signal recovery is possible with a guaranteed error bound in
+the presence of noises/disturbances. Moreover, the maximum
+error bound is given in an explicit form of the bounds on
+noises/disturbances.
+REFERENCES
+[1] J. Kim, J. Yang, H. Shim, and J.-S. Kim, “Robustness of synchronization
+in heterogeneous multi-agent systems,” in Proc. of 12th European
+Control Conf., 2013, pp. 3821-3826.
+[2] U. Ozguner, “Decentralized and distributed control approaches and
+algorithms,” in Proc. of 28th IEEE Conf. on Decision and Control,
+1989, pp. 1289-1294.
+[3] W. Chen, L. Chen, Z. Chen and S. Tu, “A realtime dynamic traffic
+control system based on wireless sensor network,” in Proc. of International
+Conf. Workshops on Parallel Processing, 2005, pp. 258-264.
+[4] R. Langner, “Stuxnet: Dissecting a cyberwarfare weapon,” IEEE
+Security & Privacy, vol. 9, no. 3, pp. 49-51, 2011.
+[5] A. Wright, “Hacking cars,” Communications of the ACM, vol. 54,
+no. 11, pp. 18-19, 2011.
+[6] C.-W. Ten, C.-C. Liu, and G. Manimaran, “Vulnerability assessment
+of cybersecurity for SCADA systems,” IEEE Trans. on Power Systems,
+vol. 23, no. 4, pp. 1836-1846, 2008.
+[7] A. Teixeira, K. C. Sou, H. Sandberg, and K. H. Johansson, “Secure
+control systems: A quantitative risk management approach,” IEEE
+Control Systems, vol. 35, No. 1, pp. 24-45, 2015.
+[8] Y. Liu, P. Ning, and M. K. Reiter, “False data injection attacks against
+state estimation in electric power grids,” ACM Trans. on Information
+and System Security, vol. 14, no. 1, pp. 13:1-13:33, 2011.
+[9] Y. Mo, T. H.-J. Kim, K. Brancik, D. Dickinson, H. Lee, A. Perrig, and
+B. Sinopoli, “Cyber-physical security of a smart grid infrastructure,”
+Proceedings of the IEEE, vol. 100, no. 1, pp. 195-209, 2012.
+[10] V. Guruswami, J. R. Lee, and A. Wigderson, “Euclidean sections of
+`1N with sublinear randomness and error-correction over the reals,”
+in Proc. of 11th International Workshop on APPROX and 12th
+International Workshop on RANDOM, vol. 5171 of Lecture Notes in
+Computer Science, Springer-Verlag, 2008, pp. 444-454.
+[11] M. Rudelson and R. Vershynin, “Geometric approach to errorcorrecting
+codes and reconstruction of signals,” International mathematics
+research notices, vol. 2005, no. 64, pp. 4019-4041, 2005.
+[12] H. Q. Ngo and D.-Z. Du, “A survey on combinatorial group testing
+algorithms with applications to DNA library screening,” Discrete
+mathematical problems with medical applications, vol. 55, pp. 171182,
+2000.
+[13] P. M. Frank, “Fault diagnosis in dynamic systems using analytical
+and knowledge-based redundancy: A survey and some new results,”
+Automatica, vol. 26, no. 3, pp. 459-474, 1990.
+[14] A. Teixeira, I. Shames, H. Sandberg, and K. H. Johansson, “A secure
+control framework for resource-limited adversaries,” Automatica,
+vol. 51, pp. 135-148, 2015.
+[15] R. E. Lyons and W. Vanderkulk, “The use of triple-modular redundancy
+to improve computer reliability,” IBM Journal of Research and
+Development, vol. 6, no. 2, pp. 200-209, 1962.
+[16] D. Dolev, N. A. Lynch, S. S. Pinter, E. W. Stark, and W. E. Weihl,
+“Reaching approximate agreement in the presence of faults,” Journal
+of the ACM, vol. 33, no. 3, pp. 499-516, 1986.
+[17] P. M. Frank and X. Ding, “Survey of robust residual generation and
+evaluation methods in observer-based fault detection systems,” Journal
+of process control, vol. 7, no. 6, pp. 403-424, 1997.
+[18] R. K. Mehra and J. Peschon, “An innovations approach to fault
+detection and diagnosis in dynamic systems,” Automatica, vol. 7, no. 5,
+pp. 637-640, 1971.
+[19] R. Isermann, “Fault diagnosis of machines via parameter estimation
+and knowledge processing-Tutorial paper,” Automatica, vol. 29, no. 4,
+pp. 815-835, 1993.
+[20] R. N. Clark, “Instrument fault detection,” IEEE Trans. on Aerospace
+Electronic Systems, vol. 14, pp. 456-465, 1978.
+[21] C. Lee, Z. Ping, and H. Shim, “On-line switching signal estimation
+of switched linear systems with measurement noise,” in Proc. of 12th
+European Control Conf., 2013, pp. 2180-2185.
+[22] A. Tanwani, H. Shim, and D. Liberzon, “Observability for switched
+linear systems: Characterization and observer design,” IEEE Trans. on
+Automatic Control, vol. 58, no. 4, pp. 891-904, 2013.
+[23] E. J. Cande`s and T. Tao, “Decoding by linear programming,” IEEE
+Trans. on Information Theory, vol. 51, no. 12, pp. 4203-4215, 2005.
+[24] D. L. Donoho, “Compressed sensing,” IEEE Trans. on Information
+Theory, vol. 52, no. 4, pp. 1289-1306, 2006.
+[25] M. A. Davenport, M. F. Duarte, Y. C. Eldar, and G. Kutyniok,
+“Introduction to compressed sensing,” in Compressed Sensing: Theory
+and Applications, Cambridge Univ. Press, 2012.
+[26] J. A. Tropp, “Greed is good: Algorithmic results for sparse approximation,”
+IEEE Trans. on Information Theory, vol. 50, no. 10, pp. 22312242,
+2004.
+[27] H. Fawzi, P. Tabuada, and S. Diggavi, “Secure estimation and control
+for cyber-physical systems under adversarial attacks,” IEEE Trans. on
+Automatic Control, vol. 59, no. 6, pp. 1454-1467, 2014.
+[28] M. Pajic, J. Weimer, N. James, P. Tabuada, O. Sokolsky, I. Lee, and
+G. Pappas, “Robustness of attack-resilient state estimators,” in Proc. of
+5th IEEE/ACM International Conf. on Cyber-Physical Systems, 2014,
+pp. 163-174.
+[29] Y. Shoukry and P. Tabuada, “Event-triggered projected Luenberger
+observer for linear systems under sparse sensor attacks,” in Proc. of
+53rd IEEE Conf. on Decision and Control, 2014, pp. 3548-3553.
+[30] B. K. Natarajan, “Sparse approximate solutions to linear systems,”
+SIAM journal on computing, vol. 24, no. 2, pp. 227-234, 1995.
+[31] N. Tarfulea, “Observability for initial value problems with sparse
+initial data,” Applied and Computational Harmonic Analysis, vol. 30,
+no. 3, pp. 423-427, 2011.
+1877

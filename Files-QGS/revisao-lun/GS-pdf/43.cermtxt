@@ -1,0 +1,993 @@
+IEEE TRANSACTIONS ON POWER SYSTEMS, VOL. 29, NO. 2, MARCH 2014
+627
+Impact of Data Quality on Real-Time
+Locational Marginal Price
+Liyan Jia, Jinsub Kim, Robert J. Thomas, Life Fellow, IEEE, and Lang Tong, Fellow, IEEE
+Abstract-The problem of characterizing impacts of data quality
+on real-time locational marginal price (LMP) is considered. Because
+the real-time LMP is computed from the estimated network
+topology and system state, bad data that cause errors in topology
+processing and state estimation affect real-time LMP. It is shown
+that the power system state space is partitioned into price regions
+of convex polytopes. Under different bad data models, the worst
+case impacts of bad data on real-time LMP are analyzed. Numerical
+simulations are used to illustrate worst case performance for
+IEEE-14 and IEEE-118 networks.
+Index Terms-Bad data detection, cyber security of smart grid,
+locational marginal price (LMP), power system state estimation,
+real-time market.
+I. INTRODUCTION
+T components. The day-ahead market determines the loHE
+deregulated electricity market has two interconnected
+cational marginal price (LMP) based on the dual variables of
+the optimal power flow (OPF) solution [1], [2], given generator
+offers, demand forecast, system topology, and security constraints.
+The calculation of LMP in the day-ahead market does
+not depend on the actual system operation. In the real-time
+market, on the other hand, an ex-post formulation is often
+used (e.g., by PJM and ISO-New England [3]) to calculate the
+real-time LMP by solving an incremental OPF problem. The
+LMPs in the day-ahead and the real-time markets are combined
+in the final clearing and settlement processes.
+The real-time LMP is a function of data collected by the supervisory
+control and data acquisition (SCADA) system. Therefore,
+anomalies in data, if undetected, will affect prices in the
+real-time market. While the control center employs a bad data
+detector to “clean” the real-time measurements, miss detections
+and false alarms will occur inevitably. The increasing reliance
+on the cyber system also comes with the risk that malicious data
+may be injected by an adversary to affect system and real-time
+market operations. An intelligent adversary can carefully design
+a data attack to avoid detection by the bad data detector.
+Manuscript received December 20, 2012; revised January 23, 2013, May 19,
+2013, and August 19, 2013; accepted October 02, 2013. Date of publication
+November 07, 2013; date of current version February 14, 2014. This work was
+supported in part by a grant under the DoE CERTS program, the NSFunder
+Grant CNS-1135844, and a PSERC grant. Part of this work was presented at
+HICSS 2012 and PES General Meeting 2012. Paper no. TPWRS-01391-2012.
+The authors are with the School of Electrical and Computer Engineering,
+Cornell University, Ithaca, NY 14853 USA (e-mail: lj92@cornell.edu;
+jk752@cornell.edu; rjt1@cornell.edu; ltong@cornell.edu).
+Color versions of one or more of the figures in this paper are available online
+at http://ieeexplore.ieee.org.
+Digital Object Identifier 10.1109/TPWRS.2013.2286992
+Fig. 1. Change of real-time LMPs due to bad data. (a) Bad meter data.
+(b) Topology error.
+Regardless of the source of data errors, it is of significant
+value to assess potential impacts of data quality on the realtime
+market, especially when a smart grid may in the future
+deploy demand response based on real-time LMP. To this end,
+we are interested in characterizing the impact of worst case data
+errors on the real-time LMP. The focus on the worst case also
+reflects the lack of an accurate model of bad data and our desire
+to include the possibility of data attacks.
+A. Summary of Results and Organization
+We aim to characterize the worst effects of data corruption on
+real-time LMP. By “worst”, we mean the maximum perturbation
+of real-time LMP caused by bad or malicious data, when a
+fixed set of data is subject to corruption. The complete characterization
+of worst data impact, however, is not computationally
+tractable. Our goal here is to develop an optimization based approach
+to search for locally worst data by restricting the network
+congestion to a set of lines prone to congestion. We then apply
+computationally tractable (greedy search) algorithms to find the
+worst data and evaluate the effects of worst data by simulations.
+In characterizing the relation between data and real-time
+LMP, we first present a geometric characterization of the
+real-time LMP. In particular, we show that the state space of
+the power system is partitioned into polytope price regions,
+as illustrated in Fig. 1(a), where each polytope is associated
+with a unique real-time LMP vector, and the price region is
+defined by a particular set of congested lines that determine the
+boundaries of the price region.
+Two types of bad data are considered in this paper. One is the
+bad data associated with meter measurements such as the branch
+power flows in the network. Such bad data will cause errors in
+state estimation, possibly perturbing, as an example, the correct
+state estimate in to in [as shown in Fig. 1(a)]. The
+analysis of the worst case data then corresponds to finding the
+0885-8950 © 2013 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+628
+IEEE TRANSACTIONS ON POWER SYSTEMS, VOL. 29, NO. 2, MARCH 2014
+worst measurement error such that it perturbs the correct state
+estimation to the worst price region.
+The second type of bad data, one that has not been carefully
+studied in the context of LMP in the literature, is error in digital
+measurements such as switch or breaker states. Such errors
+lead directly to topology errors therefore causing a change in the
+polytope structure as illustrated in Fig. 1(b). In this case, even
+if the estimated system state changes little, the prices associated
+with each region change, sometimes quite significantly.
+Before characterizing impacts of bad meter data on LMP, we
+need to construct appropriate models for bad data. To this end,
+we propose three increasingly more powerful bad data models
+based on the dependencies on real-time system measurements:
+state independent bad data, partially adaptive bad data, and fully
+adaptive bad data.
+In studying the worst case performance, we adopt a widely
+used approach that casts the problem as one involving an adversary
+whose goal is to make the system performance as poor as
+possible. The approach of finding the worst data is equivalent to
+finding the optimal strategy of an attacker who tries to perturb
+the real-time LMP and avoid being detected at the same time.
+By giving the adversary more information about the network
+state and endowing him with the ability to change data, we are
+able to capture the worst case performance, sometimes exactly
+and sometimes as bounds on performance.
+Finally, we perform simulation studies using the IEEE-14
+and IEEE-118 networks. We observe that bad data independent
+of the system state seems to have limited impact on realtime
+LMPs, and greater price perturbations can be achieved by
+state dependent bad data. The results also demonstrate that the
+real-time LMPs are subject to much larger perturbation if bad
+topology data are present in addition to bad meter data.
+While substantial price changes can be realized for small
+networks by the worst meter data, as the size of network grows
+while the measurement redundancy rate remains the same, the
+influence of worst meter data on LMP is reduced. However,
+larger system actually gives more possibilities for the bad
+topology data to perturb the real-time LMP more significantly.
+Our simulation results also show a degree of robustness provided
+by the nonlinear state estimator. While there have been
+many studies on data injection attacks based on DC models,
+very few consider the fact that the control center typically employs
+the nonlinear WLS state estimator under the AC model.
+Our simulation shows that effects of bad analog data designed
+based on DC model may be mitigated by the nonlinear estimator
+whereas bad topology data coupled with bad analog data can
+have greater impacts on LMP.
+The rest of the paper is organized as follows. Section II briefly
+describes a model of real-time LMP and introduces its geometric
+characterization in the state space of the power system.
+Section III establishes the bad data models and summarizes
+state estimation and bad data detection procedures at the control
+center. In Section IV, a metric of impact on real-time LMP
+caused by bad meter data is introduced. We then discuss the algorithms
+of finding worst case bad meter data vector in terms of
+real-time price perturbation under the three different bad data
+models. Section V considers the effect of bad topology data on
+real-time LMP. Finally, in Section VI, simulation results are presented
+based on IEEE-14 and IEEE-118 networks.
+B. Related Work
+Effects of bad data on power system have been studied extensively
+in the past; see [4]-[6]. Finding the worst case bad data is
+naturally connected with the problem of malicious data. In this
+context, the results presented in this paper can be viewed as one
+of analyzing the impact of the worst (malicious) data attack.
+In a seminal paper by Liu, Ning, and Reiter [7], the authors
+first illustrated the possibility that, by compromising enough
+number of meters, an adversary can perturb the state estimate
+arbitrarily in some subspace of the state space without being
+detected by any bad data detector. Such attacks are referred to
+as strong attacks. It was shown by Kosut et al. [8] that the condition
+for the existence of such undetectable attacks is equivalent
+to the classical notion of network observability.
+When the adversary can only inject malicious data from a
+small number of meters, strong attacks do not exist, and any
+injected malicious data can be detected with some probability.
+Such attacks are referred to as weak attacks [8]. In order to affect
+the system operation in some meaningful way, the adversary
+has to risk being detected by the control center. The impacts of
+weak attack on power system are not well understood because
+the detection of such bad data is probabilistic. Our results are
+perhaps the first to quantify such impacts. Most related research
+works focused on DC model and linear estimator while only few
+have addressed the nonlinearity effect [9], [10].
+It is well recognized that bad data can also cause topology
+errors [11], [12], and techniques have been developed to detect
+topology errors. For instance, the residue vector from state estimation
+was analyzed for topology error detection [12], [11],
+[13]. Monticelli [14] introduced the idea of generalized state
+estimation where, roughly speaking, the topology that fits the
+meter measurements best is chosen as the topology estimate.
+The impacts of topology errors on electricity market have not
+been reported in the literature, and this paper aims to bridge this
+gap.
+The effect of data quality on real-time market was first considered
+in [15] and [16]. In [16], the authors presented the financial
+risks induced by the data perturbation and proposed a
+heuristic technique for finding a case where price change happens.
+While there are similarities between this paper and [16],
+several significant differences exist: 1) This paper focuses on
+finding the worst case, not only a feasible case. 2) This paper
+considers a more general class of bad data where bad data may
+depend dynamically on the actual system measurements rather
+than static. 3) This paper considers a broader range of bad data
+that also include bad topology data, and our evaluations are
+based on the AC network model and the presence of nonlinear
+state estimator.
+II. STRUCTURES OF REAL-TIME LMP
+In this section, we present first a model for the computation of
+real-time LMP. While ISOs have somewhat different methods
+JIA et al.: IMPACT OF DATA QUALITY ON REAL-TIME LOCATIONAL MARGINAL PRICE
+of computing real-time LMP, they share the same two-settlement
+architecture and similar ways of using real-time measurements.
+In the following, we will use a simplified ex-post realtime
+market model, adopted by PJM, ISO New England, and
+other ISOs [17], [3]. We view this model as a convenient mathematical
+abstraction that captures the essential components of the
+real-time LMP calculation. For this reason, our results should be
+interpreted within the specified setup. Our purpose is not to include
+all details; we aim to capture the essential features.
+In real-time, in order to monitor and operate the system, the
+control center will calculate the estimated system conditions (including
+bus voltages, branch flows, generation, and demand)
+based on real-time measurements. We call a branch congested
+if the estimated flow is larger than or equal to the security limit.
+The congestion pattern is defined as the set of all congested
+lines, denoted as . Note that we use hat (e.g., ) to denote
+quantities or sets that are estimated based on real-time measurements.
+Details of state estimation and bad data detection are discussed
+in Section III-B.
+One important usage of state estimation is calculating the
+real-time LMP. Given the estimated congestion pattern , the
+following linear program is solved to find the incremental OPF
+dispatch and associated real-time LMP, [17]:
+where is the vector of incremental dispatchable
+load, the vector of incremental generation dispatch,
+and the corresponding real-time
+marginal cost of generations and dispatchable loads, and
+the lower and upper bounds for incremental generation
+dispatch, and the lower and upper bounds for incremental
+dispatchable load, and the sensitivity of branch
+flow on branch with respect to the power injection at bus .
+The real-time LMP at bus is defined as the overall cost increase
+when one unit of extra load is added at bus , which is
+calculated as
+(1)
+(2)
+where is the dual variable for the load-generation equality
+constraint, and is the dual variable corresponding to the line
+flow constraint in (1).
+Note that in practice, the control center may use the ex-ante
+congestion pattern, which is obtained by running a 5 min ahead
+security-constrained economic dispatch with the state estimation
+results and the forecasted loads (for the next five-minute interval)
+and choosing the lines congested at the dispatch solution
+[17], [3]. However, to avoid the complication due to ex-ante dispatch
+calculation, we assume that real-time pricing employs the
+estimated congestion pattern obtained from state estimation
+629
+(3)
+results. By doing so, we attempt to find direct relations among
+bad data, the state estimate, and real-time LMPs. Notice that
+once the congestion pattern is determined, the whole incremental
+OPF problem (1) no longer depends on the measurement
+data.
+Under the DC model, the power system state, , is defined as
+the vector of voltage phases, except the phase on the reference
+bus. The power flow vector is a function of the system state
+where is the sensitivity matrix of branch flows with respect
+to the system state.
+Assume the system has buses. Then,
+, where represents the state space. Any system state
+corresponds to a unique point in . From (3), the branch flow
+is determined by the system state . Comparing the flows with
+the flow limits, we obtain the congestion pattern associated
+with this state. Hence, each point in the state space corresponds
+to a particular congestion pattern.
+We note that the above expression in (2) appears earlier in [1]
+where the role of congestion state in LMP computation was discussed.
+In this paper, our objective is to make explicit the connection
+between data and LMP. We therefore need a linkage between
+data and congestion. To this end, we note that the power
+system state, the congestion state, and LMP form a Markov
+chain, which led to a geometric characterization of LMP on the
+power system state space, as shown in the following theorem.
+Theorem 1 (Price Partition of the State Space): Assume that
+the LMP exists for every possible congestion pattern.1 Then, the
+state space is partitioned into a set of polytopes where
+the interior of each is associated with a unique congestion
+pattern and a real-time LMP vector. Each boundary hyperplane
+of is defined by a single transmission line.
+Proof: For a particular congestion pattern defined by a
+set of congested lines, the set of states that gives is given by
+where is the th row of [see (3)], and the flow limit
+on branch . Since is defined by the intersection of a set of
+half spaces, it is a polytope.
+Given an estimated congestion pattern , the envelop theorem
+[18] implies that for any optimal primal solution and dual
+solution of (1) that satisfy the KKT conditions, (2) always gives
+the derivative of the optimal objective value with respect to the
+demand at each bus, which we assume exists, i.e., each congestion
+pattern is associated with a unique real-time LMP vector
+. Hence, all states with the same congestion pattern share the
+same real-time LMP, which means each polytope in corresponds
+to a unique real-time LMP vector.
+Theorem 1 characterizes succinctly the relationship between
+the system state and LMP. As illustrated in Fig. 1(a), if bad data
+are to alter the LMP in real-time, the size of the bad data has
+to be sufficiently large so that the state estimate at the control
+center is moved to a different price region from the true system
+state.
+1This is equivalent to assuming that the derivative of the optimal value of (1)
+with respect to demand at each bus exists.
+630
+IEEE TRANSACTIONS ON POWER SYSTEMS, VOL. 29, NO. 2, MARCH 2014
+(4)
+where is the set of possible bad data. When bad data
+are present, the topology processor will generate the topology
+estimate corresponding to , and this incorrect topology estimate
+will be passed to the following operations unless detected
+by the bad data detector.
+B. State Estimation
+We assume that the control center employs the standard
+weighted least squares (WLS) state estimator. Under DC model
+We assume herein a DC model in which the measurement
+function in (4) is linear. Specifically
+where is the measurement matrix. Such a DC model, while
+widely used in the literature, may only be a crude approximation
+of the real power system. By making such a simplifying
+assumption and acknowledging its weaknesses, we hope to obtain
+tractable solutions in searching for worst case scenarios. It
+is important to note that, although the worst case scenarios are
+derived from the DC model, we carry out simulations using the
+actual nonlinear system model.
+2) Topology Data: Topology data are represented by a binary
+vector , where each entry of represents the state of
+a line breaker (0 for open and 1 for closed). The bad topology
+data is modeled as
+On the other hand, if some lines are erroneously removed
+from or added to the correct topology, as illustrated in Fig. 1(b),
+it affects the LMP calculation in three ways.2 First, the state estimate
+is perturbed since the control center employs an incorrect
+topology in state estimation. Secondly, the price partition of the
+state space changes due to the errors in topology information.
+Third, the shift matrix in (1), which is a function of topology,
+changes thereby altering prices attached to each price region.
+III. DATA MODEL AND STATE ESTIMATION
+A. Bad Data Model
+1) Meter Data: In order to monitor the system, various meter
+measurements are collected in real time, such as power injections,
+branch flows, voltage magnitudes, and phasors, denoted
+by a vector .3 If there exists bad data among the measurements,
+the measurements with bad data, denoted by , can
+be expressed as a function of the system states
+where represents the random measurement noise.
+We make a distinction here between the measurement noise
+and bad data; the former accounts for random noise independently
+distributed across all meters whereas the latter represents
+the perturbation caused by bad or malicious data. We assume
+no specific pattern for bad data except that they do not
+happen everywhere. We assume that bad data can only happen
+in a subset of the measurements, . We call as set of suspectable
+meters, which means the meter readings with in
+may subject to corruption. If the cardinality of is , the feasible
+set of bad data is a -dimensional subspace, denoted as
+.
+We will consider three bad data models with increasing power
+of affecting state estimates.
+M1. State independent bad data: This type of bad data is independent
+of real-time measurements. Such bad data may be the
+replacement of missing measurements.
+M2. Partially adaptive bad data: This type of bad data may
+arise from the so-called man in the middle (MiM) attack where
+an adversary intercepts the meter data and alter the data based
+on what he has observed. Such bad data can adapt to the system
+operating state.
+M3. Fully adaptive bad data: This is the most powerful type
+of bad data, constructed based on the actual measurement
+.
+Note that M3 is in general not realistic. Our purpose of considering
+this model is to use it as a conservative proxy to obtain
+performance bounds for the impact of worst case data.
+2In addition to these, the change in topology will affect contingency analysis.
+Such effect will appear as changes in contingency constraints in real-time
+LMP calculation (1) [17]. However, dealing with contingency constraints will
+significantly complicate our analysis and possibly obscure the more direct link
+between bad data and real-time LMP. Hence, we consider only line congestion
+constraints in (1).
+3Notice here both conventional measurements and PMU measurements can
+be incorporated. Although PMU data seem to have more direct impact on state
+estimation and real-time LMP calculation, we won't differentiate the types of
+measurements in the following discussion.
+(5)
+(6)
+(7)
+(8)
+(9)
+(10)
+where is the covariance matrix of measurement noise , and
+.
+If the noise is Gaussian, the WLS estimator is also the
+maximum likelihood estimate (MLE) of state . By the invariant
+property of MLE, from (3), the maximum likelihood estimate of
+the branch flows is calculated as
+The congestion pattern used in real-time LMP calculation (1)
+is directly from state estimation and consists of all the estimated
+branch flows which are larger than or equal to the branch flow
+limits, i.e.,
+where is the flow limit on branch .
+In the presence of bad meter data , the meter measurements
+collected by control center is actually . By
+using , the WLS state estimate is
+where is the “correct” state estimate without the presence
+of the bad data (i.e., ).
+Equation (10) shows that the effect of bad data on state estimation
+is linear. However, because is confined in a -dimensional
+subspace , the perturbation on the actual system state is
+limited to a certain direction.
+where . Note that unlike the linear
+effect of bad meter data, bad topology data affects the state estimate
+by altering the measurement matrix to .
+C. Bad Data Detection
+The control center uses bad data detection to minimize the
+impact of bad data. Here, we assume a standard bad data detection
+used in practice, the -detector in [5]. In particular,
+the -detector performs the test on the residue error,
+, based on the state estimate . From the WLS state estimate
+(7), we have
+where
+The
+.
+-detector is a threshold detector defined by
+JIA et al.: IMPACT OF DATA QUALITY ON REAL-TIME LOCATIONAL MARGINAL PRICE
+When bad data exist both in meter and topology data, the control
+center uses a wrong measurement matrix , corresponding
+to the altered topology data, and the altered meter data . Then,
+the WLS state estimate becomes
+where is the threshold calculated from a prescribed false alarm
+probability, and . When the measurement data
+fail to pass the bad data test, the control center declares the existence
+of bad data and takes corresponding actions to identify
+and remove the bad data.
+In this paper, we are interested in those cases when bad data
+are present while the -detector fails to detect them.
+IV. IMPACT OF BAD DATA ON LMP
+In this section, we examine the impact of bad data on LMP,
+assuming that the topology estimate of the network is correct.
+One thing to notice is that in searching for the “worst” case,
+we take the perspective of the control center, not that of the attacker.
+In particular, we look for the worst congestion pattern for
+the LMP computation, even if this particular congestion pattern
+is difficult for the attacker to discover. So the focus here is not
+how easy it is for an attacker to find a locally worst congestion
+pattern; it is how much such a congestion pattern affects the
+LMP.
+A. Average Relative Price Perturbation
+In order to quantify the effect of bad data on real-time price,
+we need to first define the metric to measure the effect. We define
+the relative price perturbation (RPP) as the expected percentage
+price perturbation caused by bad data. Given that LMP
+varies at different buses, RPP also varies at different locations.
+Let be the data received at the control center and
+the LMP at bus . The RPP at bus is a function of bad data ,
+given by
+(14)
+where the expectation is over random state and measurement
+noise.
+To measure the system-wide price perturbation, we define the
+average relative price perturbation (ARPP) by
+where is the number of buses in the system.
+The worst case analysis to be followed can be used for other
+metrics (e.g., price increase ratios or price decrease ratios,
+which are closely related to the market participants' gain
+or loss). Similar results can be showed following the same
+strategies. However, the comparison among different metrics is
+beyond the scope of this paper.
+B. Worst ARPP Under State Independent Bad Data Model
+First, we consider the state independent bad data model (M1)
+given in Section III-A. In this model, the bad data are independent
+of real-time measurements.
+In constructing the state independent worst data, it is useful
+to incorporate prior information about the state. To this end, we
+assume that system state follows a Gaussian distribution with
+mean , covariance matrix . Typically, we choose as the
+day-ahead dispatch since the nominal system state in real-time
+varies around its day-ahead projection.
+In the presence of bad data , the expected state estimate and
+branch flow estimate on branch are given by
+where is the corresponding row of branch in .
+Our strategy is to make this expected state estimate into the
+region with the largest price perturbation among all the possible
+regions, . From (9), this means making all the expected
+branch flows satisfy the boundary condition of
+(11)
+(12)
+(13)
+631
+(15)
+(16)
+(17)
+(18)
+(19)
+(20)
+However, due to the uncertainty (from both system state and
+measurement noise ), the actual estimated state after attack, ,
+may be different from . Therefore, we want to make
+at the “center” of the desired price region, i.e., maximizing the
+shortest distance from to the boundaries of the polytope
+price regions while still holding the boundary constraints. The
+shortest distance can be calculated as
+However, the existence of bad data detector prevents the bad
+data vector from being arbitrarily large. According to (12), the
+weighted squared residue with is
+since
+Heuristically, since has zero mean, the term can be
+used to quantify the effect of data perturbation on estimation
+residue. Then we use to control the detection probability
+in the following optimization.
+Therefore, for a specific congestion pattern , the adversary
+will solve the following optimization problem to move the state
+estimate to the “center” of the price region and keeping the
+detection probability low:
+which is a convex program that can be solved easily in practice.
+We call a region feasible if it makes problem (21) feasible.
+Among all the feasible congestion patterns, the worst region
+is chosen as the one giving the largest ARPP:
+This problem is also a convex optimization problem, which
+can be easily solved. Among all the 's which make the above
+problem feasible, we choose the one with the largest price perturbation,
+denoted as . The solution to problem (26) with
+as the congestion pattern is the worst bad data vector.
+D. Worst ARPP Under Fully Adaptive Bad Data
+Finally, we consider the bad data model M3, in which the
+whole set of measurements is known to the adversary. The
+worst bad data vector depends on the value of . Different from
+the previous two models, with bad data vector , the estimated
+state is deterministic without uncertainty. In particular
+and the estimated flow on branch
+deterministic
+after attack is also
+632
+IEEE TRANSACTIONS ON POWER SYSTEMS, VOL. 29, NO. 2, MARCH 2014
+(21)
+(22)
+(23)
+(24)
+(25)
+(26)
+Similar to the previous two models, congestion pattern is
+called feasible if there exists some bad data vector to make
+the following conditions satisfied:
+Among all the feasible congestion patterns, we choose the
+one with the largest price perturbation, . Any bad data vector
+satisfying condition (29) can serve as the worst fully adaptive
+bad data.
+E. Greedy Heuristic
+The strategies presented above are based on the exhaustive
+search over all possible congestion patterns. Such approaches
+are not scalable for large networks with a large number of possible
+congestion patterns. We now present a greedy heuristic approach
+aimed at reducing computation cost. In particular, we
+develop a gradient like algorithm that searches among a set of
+likely congestion patterns.
+First, we restrict ourselves to the set of lines that are close to
+their respective flow limits and look for bad data that will affect
+the congestion pattern. The intuition is that it is unlikely that
+bad data can drive the system state sufficiently far without being
+detected by the bad data detector. In practice, the cardinality of
+such a set is usually very small compared with the systems size.
+Second, we search for the worst data locally by changing one
+line in the congestion pattern at a time. Specifically, suppose that
+a congestion pattern is the current candidate for the worst data.
+Given a set of candidate lines that are prone to congestions, we
+search locally by flipping one line at a time from the congested
+state to the un-congested state and vice versa. If no improvement
+can be made, the algorithm stops. Otherwise, the algorithm updates
+the current “worst congestion pattern” and continue. The
+effectiveness of this greedy heuristic is tested in Section VI-C.
+where is the LMP at bus if the is the system state, and
+the set of all the feasible congestion patterns. Hence, the worst
+case constant bad data vector is the solution to optimization
+problem (21) by setting the congestion pattern as .
+C. Worst ARPP Under Partially Adaptive Bad Data
+For bad data model M2, only part of the measurement values
+in real-time are known to the adversary, denoted as . The adversary
+has to first make an estimation of the system state from
+the observation and prior distribution, then make the attack decision
+based on the estimation result.
+Without the presence of bad data vector, i.e., , the
+system (5) gives
+where is the rows of corresponding to the observed measurements
+and the corresponding part in the measurement
+noise .
+The minimum mean square error (MMSE) estimate of
+given is given by the conditional mean
+Then, the flow estimate on branch after attack is
+Still, we want to move the estimation of state to the “center”.
+On the other hand, the expected measurement value
+. Again, we need a pre-designed parameter to
+control the detection probability. Therefore, the solution to the
+following optimization problem is the best attack given congestion
+pattern
+(27)
+(28)
+(29)
+JIA et al.: IMPACT OF DATA QUALITY ON REAL-TIME LOCATIONAL MARGINAL PRICE
+633
+V. BAD TOPOLOGY DATA ON LMP
+So far, we have considered bad data in the analog measurements.
+In this section, we include the bad topology data, and
+describe another bad data model.
+We represent the network topology by a directed graph
+where each denotes a bus and each
+denotes a connected transmission line. For each physical transmission
+line (e.g., a physical line between and ), we assign
+an arbitrary direction [e.g., ] for the line, and is in
+if and only if bus and bus are connected.
+Bad data may appear in both analog measurements and digital
+(e.g., breaker status) data, as described in Section III-A:
+(30)
+As in Section IV, we employ the adversary model to describe
+the worst case. The adversary alters to by adding from the
+set of feasible attack vectors such that the topology
+processor produces the “target” topology as the topology estimate.
+In addition, the adversary modifies by adding
+such that looks consistent with .
+In this section, we focus on the worst case when the adversary
+is able to alter the network topology without changing the state
+estimate.4 We also require that such bad data are generated by
+an adversary causing undetectable topology change, i.e., the bad
+data escape the system bad data detection. For the worst case
+analysis, we will maximize the LMP perturbation among the
+attacks within this specific class. Even though this approach is
+suboptimal, the simulation results in Section VI demonstrate
+that the resulting LMP perturbation is much greater than the
+worst case of the bad meter data.
+Suppose the adversary wants to mislead the control center
+with the target topology , a topology obtained by
+removing5 a set of transmission lines in (i.e.,
+). We assume that the system with is observable: i.e., the
+corresponding measurement matrix has full column rank.6
+The adversarial data modification aimed at perturbing the
+topology estimate at the control center was studied in [19]. Suppose
+that the adversary changes the breaker status such that
+the target topology is observed at the control
+center. Simultaneously, if the adversary introduces bad data
+, then
+(31)
+which means that the meter data received at the control center
+are completely consistent with the model generated from .
+Thus, any bad data detector will not be effective.
+4In general, the adversary can design the worst data to affect both the state
+estimate and network topology. It is, however, much more difficult to make such
+attack undetectable.
+5Line addition by the adversary is also possible. However, compared to line
+removal attacks, line addition attacks require the adversary to observe a much
+larger set of meter measurements to design undetectable attacks. In addition, the
+number of necessary modifications in breaker data is also much larger: to make
+a line appear to be connected, the adversary should make all the breakers on the
+line appear to be closed. Please see [19] for the detail.
+6Without observability, the system may not proceed to state estimation and
+real-time pricing. Hence, for the adversary to affect pricing, the system with the
+target topology has to be observable.
+Fig. 2. and
+injection at and
+: Each row is marked by the corresponding meter ( for
+for flow from to ).
+Fig. 3. Attack modifies local measurements around the line
+in
+.
+It is of course not obvious how to produce the bad data , especially
+when the adversary can only modify a limited number
+of measurements, and it may not have access to the entire state
+vector . Fortunately, it turns out that can be generated by
+observing only a few entries in without requiring global information
+(such as the state vector ) [19].
+A key observation is that and differ only in a few
+entries corresponding to the modified topology (lines in )
+as illustrated in Fig. 2. Consider first the noiseless case. Let
+denote the entry of corresponding to the flow measurement
+from to . As hinted from Fig. 2, it can be easily seen that
+has the following sparse structure [19]:
+where denotes the line flow from to when the line is
+connected and the system state is , and is the column of
+the measurement-to-branch incidence matrix, that corresponds
+to : i.e., is an -dimensional vector with 1 at the
+entries corresponding to the flow from to and the injection at
+, and at the entries for the flow from to and the injection
+at , and 0 at all other entries. Absence of noise implies that
+, which leads to
+(32)
+(33)
+With (33) in mind, one can see that setting and
+adding to is equivalent to the following simple procedure:
+as described in Fig. 3, for each in :
+1) Subtract and from and , respectively;
+2) Set and to be 0
+where is the entry of corresponding to the injection measurement
+at bus .
+When measurement noise is present (i.e., ),
+the idea of the attack is still the same: to make approximate
+so that is close to . Since
+is an unbiased estimate of for each , and
+this implies that is an unbiased estimate
+634
+IEEE TRANSACTIONS ON POWER SYSTEMS, VOL. 29, NO. 2, MARCH 2014
+of . Hence, we set to be
+, the same as in the noiseless setting, and
+the attack is executed by the same steps as above.
+For launching this attack to modify the topology estimate
+from to , the adversary should be able to 1) set such that
+the topology processor produces instead of and 2) observe
+and modify , and for all . The attack is
+feasible if and only if and contain the corresponding attack
+vectors.
+To find the worst case LMP perturbation due to undetectable,
+state-preserving attacks, let denote the set of feasible s, for
+which the attack can be launched with and . Among the feasible
+targets in , we consider the best target topology that results
+in the maximum perturbation in real-time LMPs. If ARPP
+is used as a metric, the best target is chosen as
+(34)
+when the
+is the
+where denotes the real-time LMP at bus
+attack with the target is launched on , and
+real-time LMP under no attack.
+VI. NUMERICAL RESULTS
+In this section, we demonstrate the impact of bad data on
+real-time LMPs with the numerical simulations on IEEE-14 and
+IEEE-118 systems. We conducted simulations in two different
+settings: the linear model with the DC state estimator and the
+nonlinear model with the AC state estimator. The former is usually
+employed in the literature for the ease of analysis whereas
+the latter represents the practical state estimator used in the
+real-world power system. In all simulations, the meter measurements
+consist of real power injections at all buses and real power
+flows (both directions) at all branches.
+A. Linear Model With DC State Estimation
+We first present the simulation results for the linear model
+with the DC state estimator. We modeled bus voltage magnitudes
+and phases as Gaussian random variables with the
+means equal to the day-ahead dispatched values and small
+standard deviations. In each Monte Carlo run, we generated
+a state realization from the statistical model, and the meter
+measurements were created by the DC model with Gaussian
+measurement noise. Once the measurements were created,
+bad data were added in the manners discussed in Sections IV
+and V. With the corrupted measurements, the control center
+executed the DC state estimation and the bad data test with
+the false alarm probability constraint 0.1. If the data passed
+the bad data test, real-time LMPs were evaluated based on the
+state estimation results. For IEEE-14 and IEEE-118 system, the
+network parameters7 are available in [20].
+7In addition to the network parameters given in [20], we used the following
+line limit and real-time offer parameters. In the IEEE-14 simulation, the generators
+at the buses 1, 2, 3, 6, and 8 had capacities 330, 140, 100, 100, and 100
+MW and the real-time offers 15, 31, 30, 10, and 20 $/MW. Lines (2, 3), (4,
+5), and (6, 11) had line capacities 50, 50, and 20 MW, and other lines had no
+line limit. In the IEEE-118 simulation, the generators had generation costs arbitrarily
+selected from and generation capacities
+arbitrarily selected from . Total 16 lines had
+the line capacities arbitrarily selected from , and other lines
+had no line limit. To handle possible occurrence of price spikes, we set the upper
+and lower price caps as 500$ MW and , respectively. Total 1000
+Monte Carlo runs were executed for each case.
+Fig. 4. Linear model: ARPP versus detection prob. (a) IEEE-14: ARPP of the
+worst topology data is 66.1%. (b) IEEE-118: ARPP of the worst topology data
+is 22.4%.
+We used the number of meter data to be modified by the adversary
+as the metric for the attack effort. For the 14-bus system,
+in each Monte Carlo run, we randomly chose two lines, and the
+adversary was able to modify all the line flow meters on the
+lines and injection meters located at the ends of the lines. For the
+118-bus system, we randomly chose three lines, and the adversary
+had control over the associated line and injection meters.
+Both state and topology attacks were set to control the same
+number of meter data8 so that we can fairly compare their impacts
+on real-time LMPs. As for the meter data attack, we only
+considered the lines that are close to their flow limits (estimated
+flows under M1 and M2, or actual flows under M3) as candidates
+for congestion pattern search. The threshold is chosen as
+10 MW in our simulation.
+Fig. 4 is the plot of ARPPs9 versus detection probabilities of
+bad data. They show that even when bad data were detected
+with low probability, ARPPs were large, especially for the fully
+adaptive bad meter data and the bad topology data.
+Comparing ARPPs of the three bad meter data models, we
+observe that the adversary may significantly improve the perturbation
+amount by exploiting partial or all real-time meter data
+(for the partially adaptive case, the adversary observed a half of
+all meters.) It is worthy to point out that bad topology data result
+in much greater price perturbation than bad meter data.
+Recall the discussion in Sections II and V that bad topology
+data and bad meter data employ different price-perturbing
+mechanisms: bad topology data perturb real-time LMP by
+8Topology attacks need to make few additional modifications on breaker
+state data such that the target lines appear to be disconnected to the topology
+processor. However, for simplicity, we do not take into account this additional
+effort.
+9The detection probabilities for the fully adaptive bad meter data and the bad
+topology data cases were less than 0.1 in all the simulations. In the figures, we
+draw ARPPs of those cases as horizontal lines so that we can compare them
+with other cases.
+JIA et al.: IMPACT OF DATA QUALITY ON REAL-TIME LOCATIONAL MARGINAL PRICE
+635
+Fig. 5. Nonlinear model: ARPP versus detection prob. (a) IEEE-14: ARPP of
+the worst topology data is 95.4%. (b) IEEE-118: ARPP of the worst topology
+data is 76.9%.
+restructuring the price regions without perturbing the state estimate
+(the line-removal attack introduced in Section V does not
+perturb state estimate) whereas bad meter data perturb real-time
+LMP by simply moving the state estimate to a different price
+region. Therefore, the observation implies that restructuring the
+price regions has much greater impact on real-time LMP than
+merely perturbing the state estimate.
+B. Nonlinear Model With AC State Estimation
+The simulations with the nonlinear model intend to investigate
+the vulnerability of the real-world power system to the
+worst adversarial act, designed based on the linear model. The
+simulations were conducted on IEEE-14 and IEEE-118 systems
+in the same manner as the linear case except that we employed
+the nonlinear model and the AC state estimation.
+Fig. 5 is the plot of ARPPs versus detection probabilities.
+The result shows that the proposed methodology can affect the
+system to some extent even when nonlinear estimator is used,
+especially when the bad data are present in the topology data,
+although the nonlinear estimator makes this effect relatively less
+significant compared with the linear case results.
+C. Performance of the Greedy Search Heuristic
+We also conducted simulation based on the proposed greedy
+search technique in Section IV-E. The simulation was based
+on 118-bus system, and all parameters were the same as those
+presented in Section VI-A. We compared the performance
+and computation time of the greedy heuristics with exhaustive
+search benchmark, as shown in Table I. Notice here the exhaustive
+search and greedy search are both over the lines that
+are close to their flow limits (estimated flows under M1 and
+M2, or actual flows under M3), the same as in Section VI-A. In
+Table I, the second column (average search time) is the average
+TABLE I
+PERFORMANCE OF GREEDY SEARCH METHOD
+searching time for worst congestion pattern over 1000 Monte
+Carlo runs, and the third column (accuracy) is the percentage
+that the greedy search find the same worst congestion pattern
+as the exhaustive search. From the result, we can see that using
+greedy heuristic can give us much faster processing algorithm
+without losing much of the accuracy.
+VII. CONCLUSION
+We report in this paper a study on impacts of worst data on
+the real-time market operation. A key result of this paper is the
+geometric characterization of real-time LMP given in Theorem
+1. This result provides insights into the relation between data
+and the real-time LMP; it serves as the basis of characterizing
+impacts of bad data.
+Our investigation includes bad data scenarios that arise from
+both analog meter measurements and digital breaker state data.
+To this end, we have presented a systematic approach by casting
+the problem as one involving an adversary injecting malicious
+data. While such an approach often gives overly conservative
+analysis, it can be used as a measure of assurance when the impacts
+based on worst case analysis are deemed acceptable. We
+note that, because we use adversary attacks as a way to study the
+worst data, our results have direct implications when cyber-security
+of smart grid is considered. Given the increasing reliance
+on information networks, developing effective countermeasures
+against malicious data attack on the operations of a future smart
+grid is crucial. See [8], [10], [19], and [21] for discussion about
+countermeasures.
+Although our findings are obtained from academic benchmarks
+involving relatively small size networks, we believe that
+the general trend that characterizes the effects of bad data is
+likely to persist in practical networks of much larger size. In
+particular, as the network size increases and the number of simultaneous
+appearance of bad data is limited, the effects of the
+worst meter data on LMP decrease whereas the effects of the
+worst topology data stay nonnegligible regardless of the network
+size. This observation suggests that the bad topology data
+are potentially more detrimental to the real-time market operation
+than the bad meter data.
+REFERENCES
+[1] F. F. Wu, P. Varaiya, P. Spiller, and S. Oren, “Folk theorems on transmission
+access: proofs and counterexamples,” J. Reg. Econ., vol. 10,
+pp. 5-23, Jul. 1996.
+[2] E. Litvinov, T. Zheng, G. Rosenwald, and P. Shamsollahi, “Marginal
+loss modeling in LMP calculation,” IEEE Trans. Power Syst., vol. 19,
+no. 2, pp. 880-888, May 2004.
+[3] T. Zheng and E. Litvinov, “Ex-post pricing in the co-optimized energy
+and reserve market,” IEEE Trans. Power Syst., vol. 21, no. 4, pp.
+1528-1538, Nov. 2006.
+[4] A. Abur and A. G. Expósito, Power System State Estimation: Theory
+and Implementation. Boca Raton, FL, USA: CRC, 2000.
+[5] E. Handschin, F. C. Schweppe, J. Kohlas, and A. Fiechter, “Bad data
+analysis for power system state estimation,” IEEE Trans. Power App.
+Syst., vol. PAS-94, no. 2, pp. 329-337, Mar./Apr. 1975.
+636
+IEEE TRANSACTIONS ON POWER SYSTEMS, VOL. 29, NO. 2, MARCH 2014
+[6] F. C. Schweppe, J. Wildes, and D. P. Rom, “Power system static state
+estimation, Parts I, II, III,” IEEE Trans. Power App. Syst., vol. PAS-89,
+pp. 120-135, 1970.
+[7] Y. Liu, P. Ning, and M. K. Reiter, “False data injection attacks against
+state estimation in electric power grids,” in Proc. ACM Conf. Computer
+and Communications Security, 2009.
+[8] O. Kosut, L. Jia, R. J. Thomas, and L. Tong, “Malicious data attacks
+on the smart grid,” IEEE Trans. Smart Grid, vol. 2, no. 4, pp. 645-658,
+Dec. 2011.
+[9] L. Jia, R. J. Thomas, and L. Tong, “On the nonlinearity effects on malicious
+data attack on power system,” in Proc. 2012 Power and Energy
+Society General Meeting, Jul. 2012.
+[10] G. Hug and J. A. Giampapa, “Vulnerability assessment of AC state estimation
+with respect to false data injection cyber-attacks,” IEEE Trans.
+Smart Grid, vol. 3, no. 3, pp. 1362-1370, 2012.
+[11] F. F. Wu and W. E. Liu, “Detection of topology errors by state estimation,”
+IEEE Trans. Power Syst., vol. 4, no. 1, pp. 176-183, Feb. 1989.
+[12] K. A. Clements and P. W. Davis, “Detection and identification of
+topology errors in electric power systems,” IEEE Trans. Power Syst.,
+vol. 3, no. 4, pp. 1748-1753, Nov. 1988.
+[13] I. S. Costa and J. A. Leao, “Identification of topology errors in power
+system state estimation,” IEEE Trans. Power Syst., vol. 8, no. 4, pp.
+1531-1538, Nov. 1993.
+[14] A. Monticelli, “Modeling circuit breakers in weighted least squares
+state estimation,” IEEE Trans. Power Syst., vol. 8, no. 3, pp.
+1143-1149, Aug. 1993.
+[15] R. J. Thomas, L. Tong, L. Jia, and O. E. Kosut, “Some economic impacts
+of bad and malicious data,” in Proc. PSerc 2010 Workshop, Portland,
+ME, USA, Jul. 2010, vol. 1.
+[16] L. Xie, Y. Mo, and B. Sinopoli, “False data injection attacks in electricity
+markets,” in Proc. IEEE 2010 SmartGridComm, Oct. 2010.
+[17] A. L. Ott, “Experience with PJM market operation, system design, and
+implementation,” IEEE Trans. Power Syst., vol. 18, no. 2, pp. 528-534,
+May 2003.
+[18] A. Mas-Colell and M. D. Whinston, Microeconomics Theory. Oxford,
+U.K.: Oxford Univ. Press, 1995.
+[19] J. Kim and L. Tong, “On topology attack of a smart grid: Undetectable
+attacks and countermeasures,” IEEE J. Select. Areas Commun., vol. 31,
+no. 7, pp. 1294-1305, Jul. 2013.
+[20] Power Systems Test Case Archive. [Online]. Available: http://www.ee.
+washington.edu/research/pstca/.
+[21] T. T. Kim and H. Poor, “Strategic protection against data injection
+attacks on power grids,” IEEE Trans. Smart Grid, vol. 2, no. 2, pp.
+326-333, Jun. 2011.
+Liyan Jia received the B.E. degree from the Department
+of Automation, Tsinghua University, Beijing,
+China, in 2009. He is currently pursuing the Ph.D.
+degree in the School of Electrical and Computer Engineering,
+Cornell University, Ithaca, NY, USA.
+His current research interests are in smart grid,
+electricity market and demand response.
+Jinsub Kim received the B.S. degree in electrical engineering
+from KAIST, Korea, and the Ph.D. degree
+in electrical and computer engineering (with minors
+in applied mathematics and statistics) from Cornell
+University, Ithaca, NY, USA.
+He is a postdoctoral associate at the School of Electrical
+and Computer Engineering, Cornell University.
+He has conducted research on statistical inference for
+anomaly detection in communications and power networks.
+His graduate study was supported by a Samsung
+Scholarship.
+Robert J. Thomas (M'73-SM'83-F'93-LF'08)
+is currently Professor Emeritus of Electrical and
+Computer Engineering at Cornell University, Ithaca,
+NY, USA. His technical background is broadly in the
+areas of systems analysis and control of large-scale
+electric power systems. He has published in the areas
+of transient control and voltage collapse problems
+as well as technical, economic, and institutional
+impacts of restructuring.
+Prof. Thomas is a member of Tau Beta Pi, Eta
+Kappa Nu, Sigma Xi, and ASEE. He has received
+five teaching awards and the IEEE Centennial and Millennium medals. He has
+been a member of the IEEE-USA Energy Policy Committee since 1991 and
+was the committees Chair from 1997-1998. He is the founding Director of
+the 13-university-member National Science Foundation Industry/University
+Cooperative Research Center, PSerc and was one of 30 inaugural members of
+the U.S. Department of Energy Secretary's Electricity Advisory Committee
+(EAC). He has served as a Senior Advisor at the US DoE and as a Program
+Director at the NSF.
+Lang Tong (S'87-M'91-SM'01-F'05) received
+the B.E. degree from Tsinghua University, Beijing,
+China, in 1985, and the M.S. and Ph.D. degrees in
+electrical engineering from the University of Notre
+Dame, Notre Dame, IN, USA, in 1987 and 1991,
+respectively.
+He is the Irwin and Joan Jacobs Professor in Engineering
+at Cornell University, Ithaca, NY, USA. He
+was a Postdoctoral Research Affiliate at the Information
+Systems Laboratory, Stanford University in
+1991. He was the 2001 Cor Wit Visiting Professor at
+the Delft University of Technology and had held visiting positions at Stanford
+University and the University of California at Berkeley. His research is in the
+general area of statistical inference, communications, and complex networks.
+His current research focuses on inference, optimization, and economic problems
+in energy and power systems.
+Prof. Tong received the 1993 Outstanding Young Author Award from the
+IEEE Circuits and Systems Society, the 2004 best paper award from the IEEE
+Signal Processing Society, and the 2004 Leonard G. Abraham Prize Paper
+Award from the IEEE Communications Society. He is also a coauthor of
+seven student paper awards. He received Young Investigator Award from the
+Office of Naval Research. He was a Distinguished Lecturer of the IEEE Signal
+Processing Society.

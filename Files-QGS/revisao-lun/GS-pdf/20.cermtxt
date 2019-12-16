@@ -1,0 +1,793 @@
+IEEE SmartGridComm 2012 Symposium - Cyber Security and Privacy
+Power Flow Cyber Attacks and Perturbation-Based
+Defense
+Katherine R. Davis , Kate L. Morrowy, Rakesh Bobbay, Erich Heiney
+PowerWorld Corporation
+yInformation Trust Institute, University of Illinois at Urbana-Champaign
+kate@powerworld.com; fmorrow4, rbobba, eheineg@illinois.edu
+Abstract-In this paper, we present two contributions to false
+data injection attacks and mitigation in electric power systems.
+First, we introduce a method of creating unobservable attacks on
+the AC power flow equations. The attack strategy details how an
+adversary can launch a stealthy attack to achieve a goal. Then, we
+introduce a proactive defense strategy that is capable of detecting
+attacks. The defense strategy introduces known perturbations by
+deliberately probing the system in a specific, structured manner.
+We show that the proposed approach, under certain conditions,
+is able to detect the presence of false data injection attacks, as
+well the attack locations and information about the manipulated
+data values.
+I. INTRODUCTION
+False data injection attacks in the power grid have recently
+begun to attract wide-spread interest. The role of data in power
+systems analysis, and hence the importance of studying false
+data injection attacks, is understood by considering the data
+pipeline from the measurement devices in the field to the pointof-end-use
+applications. Devices such as relays and remote
+terminal units (RTUs) perform the physical data acquisition
+and are connected through a Supervisory Control and Data
+Acquisition (SCADA) system. Communication networks then
+transmit this data which is ultimately processed by power
+applications, such as those in an energy management system
+(EMS) at a control center. A taxonomy of dependencies
+between the communications and the physical power infrastructures
+is given in [1].
+At the application level, maliciously injected data can be
+a serious threat. The problem, from an operational reliability
+standpoint [2], [3], arises when the operator sees the effects
+of the injected false data (what the attacker wants him or
+her to see), yet is unaware that there is anything wrong. The
+operator is then in a position where he or she is unknowingly
+making decisions and taking control actions based on the false
+state of the system [4], [5], [6]. The importance of situational
+awareness is explicitly revealed in the reports of investigations
+following the August 14, 2003 blackout [7] and the more
+recent southwest outage [8].
+A necessary enabler of designing protection and detection
+mechanisms is the ability to sufficiently characterize how
+attacks might look in a real power system and how they might
+be achieved from a practical standpoint.
+In [9], a probing approach is proposed for detecting false
+data injection attacks. The approach relies on perturbing the
+power system by leveraging D-FACTS devices to change the
+a
+G
+H
+Ybus = G + jB
+s ;V = [ ; V]
+P
+Q
+fpq
+n
+fP V g
+fV g
+J
+mi
+m~i
+di
+ki
+TABLE I
+NOTATION
+Attack vector, change in measurements
+Set of attacker goals
+Measurement Jacobian
+System admittance matrix
+System state
+Real power injection
+Reactive power injection
+Mismatch of withdrawn and injected power
+Number of buses
+Set of PV buses
+Set of V buses
+Power flow Jacobian
+Actual measurement state
+Observed measurement state
+Probe to transition to mi
+Controller change for di
+impedance on a set of chosen lines in order to create observable
+changes in the system, which an adversary is unable to
+anticipate. The level of perturbation needed to thwart attacks
+and the deviation from optimal caused by the perturbations
+were also investigated.
+This work builds upon [9] in two directions. First, we
+introduce a simple algorithm for creating targeted unobservable
+false data injection attacks based on the AC power
+flow equations. Secondly, we introduce a perturbation-based
+detection strategy and show its ability to identify false data
+injection attacks by utilizing the value of data over time
+(i.e., incorporating information from multiple snapshots).
+The rest of this paper is organized as follows. Section II
+provides a brief background on false data injection attacks,
+with specific focus on unobservable attacks. A method of
+creating unobservable false data injection attacks based on the
+AC power flow equations is presented in Section III. The attack
+assumes the adversary has control over a limited set of meters.
+Furthermore, the adversary needs only local information to
+achieve the attack. Then, in Section IV, we formulate an
+intentional perturbation (probing) strategy for attack detection.
+The result is that by enacting a sequence of probes, it becomes
+possible under certain conditions to detect that an attack is
+occurring, identify which meters are involved, and identify
+changes in injected data values.
+II. ON OBSERVABILITY, STEALTH ATTACKS, AND
+COMPROMISED METERS
+Table I shows the notation used in this work.
+978-1-4673-0911-0/12/$31.00 ©2012 IEEE
+342
+A. Stealth Attacks
+Unobservable or stealth attacks can be defined as data
+injection attacks which completely satisfy the system model
+equations. Thus, the observed measurements raise no alarms.
+For this to be possible in the power grid, it means that multiple
+solutions that satisfy the equations must exist for the system.
+Power systems are nonlinear systems which may have multiple
+or no solutions. The adversary must be able to compute (and
+inject) one of the solutions that is different from the true
+solution of the actual system. The surface of solutions for
+the DC power flow model follows a linear mapping, and this
+solution space has been fairly well characterized and explored
+in the literature (e.g., [10], [11], [12]).
+Due to their adherence to the power system measurement
+model equations, unobservable attacks are a notably severe
+class of false data injection attack. Typical residual-based bad
+data detection is not sufficient against stealth attacks.
+A useful characterization of stealth attacks is provided in
+[11], where the general formulation can be summarized as an
+optimization problem to minimize the p-norm of an attack
+vector a such that the attack satisfies a set of goals and
+such that the attack is unobservable. This way of expressing
+the problem is general enough to encompass the false data
+injection attacks of interest.
+In particular, in equation (1), repeated from [11], it is
+assumed that the attacker knows the measurement model
+H, the attacker wishes to find an attack vector a such that
+a 2 Im(H) (the attack is stealthy at a linearized level), and
+the attack is to satisfy a set of goals (a 2 G ).
+min
+a
+s.t.
+kakp
+a 2 G; a 2 Im(H)
+(1)
+More recently, [13] extends the characterization of unobservable
+attacks, expanding on the work in [14]. In particular,
+[14] characterizes the relationship between power system observability
+(i.e. the ability to estimate the state from a given set
+of measurements) and coordinated false data injection attack
+detectability. This concept, the basic correlation between state
+observability and attack detectability underlies the foundation
+of the entire notion of unobservable attacks that has developed
+into a topic of great interest to both the cyber and power
+communities.
+Teixeira et. al. [15] arrive at an interesting practical result
+which is that under certain conditions, when attack vectors
+are chosen based on a linearized power flow model, (i.e. the
+DC model), and the attacks are chosen in accordance with a
+particular goal, the attack will succeed and be unobservable
+to a state estimator. The authors show this experimentally
+using the state estimator in MATPOWER [16], a toolbox for
+MATLAB. The unobservability of the attacks may hold even
+as the scaling of the attack vector is significantly increased.
+More recently, Jia et. al. [17] demonstrate that unobservable
+attacks designed for the linear model are not necessarily
+effective when applied to a nonlinear system. The work
+compels the need to study attacks designed specifically for
+the nonlinear AC power flow equations and move away from
+the potentially misleading DC simplifications. Coincidentally,
+then, [17] provides motivation for the AC attacks presented in
+this paper.
+Many countermeasures to false data injection attacks have
+been proposed (e.g., [14], [10], [13], [9]) in the literature.
+While most such defenses rely on leveraging power sensor
+information, [18] fuses cyber intrusion detection system (IDS)
+alerts and power system measurements to detect false data
+injection and identify modified measurements.
+As the grid becomes more 'intelligent' and more potential
+vulnerabilities are introduced, concerns regarding false data
+injection and their analysis will only grow more prominent.
+Thus, being able to model, study, and analyze false data injection
+attacks to understand the repercussions in a real system
+is of paramount importance. It remains an open question to
+ascertain the extent to which the threat of these attacks is real
+versus how much is perceived.
+This work is a step towards providing an answer to that
+question. A better understanding of the attack space helps us
+as the defenders of the power grid work towards providing
+appropriate mitigation strategies based on the determined
+threat level and based on the characteristics, or signatures, of
+the types of attacks deemed of interest to pursue.
+An advantage that the defenders of the system can expect is
+that the attacker has limited resources (access to meter data),
+whereas we can access measurements (even though they might
+be bad measurements) and control devices anywhere on the
+system.
+III. POWER FLOW ATTACKS
+This work extends [9] which alludes to the presence of the
+attacks described in this paper but does not actually present
+them. In [9], we merely assume that such attacks are possible.
+In the TCIPG testbed [19], we were able to demonstrate the
+attacks developed in this paper. This section provides the
+mathematical background and basis for the attacks.
+Algorithm 1 summarizes the steps of the attack power
+flow. The attack power flow provides a recipe for a malicious
+intruder to modify measurements such that power balance is
+still satisfied. Such attacks are inherently unobservable in the
+AC power system model.
+A. AC Power Flow Solution
+The objective of the standard power flow problem is to
+solve for the state of the system such that the system satisfies
+real and reactive power balance. The power injected into each
+bus by aggregate generation and load must equal the power
+withdrawn by any connected lines and shunts. Solution of
+these equations is a well-known and well-studied nonlinear
+problem [20], [21]. Real and reactive power flows depend
+on the state, the voltage magnitude and angle, yet the state
+is unknown and must be found such that power balance
+is satisfied throughout the system. The power flow solution
+enforces the conservation of power.
+343
+Picalc
+Qcalc
+i
+pi
+qi
+fpq(s ;V)
+=
+=
+k2C
+= Picalc
+= Qicalc
+= [ p; q]
+Pi
+Qi
+X jVijjVkj(Gik cos ik + Bik sin ik)(2)
+k2C
+X jVijjVkj(Gik sin ik
+Bik cos ik)(3)
+(4)
+(5)
+(6)
+(7)
+344
+where (6) is zero at solution and where the system admittance
+matrix is defined as Ybus = G + jB [21].
+The power flow problem may be written succinctly as
+fpq(s ;V) = 0
+where finding its solution is at the heart of most power systems
+analysis. Its solution is typically found using the NewtonRaphson
+method, an iterative technique that requires multiple
+evaluations and factorizations of a large sparse matrix of
+sensitivities, the Jacobian matrix J.
+B. Slack, PV, and PQ buses
+The above discussion is somewhat simplified and ignores
+a few details which are important to talk about here to help
+explain our attack recipe in the next section.
+Consider that the only unknowns in the power flow equations
+might not be the system state, s ;V. Often, load buses
+are represented in the power flow solution by constant power
+terms P and Q and are referred to as P Q buses. Generator
+buses often have voltage regulation to maintain some terminal
+voltage, Vspec. Thus, they are modeled as constant P and
+constant V buses, called P V buses. For P V buses, the voltage
+angle must still be solved for, but rather than solve for V
+which is specified, we solve for its Q such that the desired
+V is obtained. One bus is designated the slack or the swing
+bus. This accounts for the fact that absolute angles are not
+meaningful. Everywhere in the power flow equations, what
+actually appear are always only angle differences. Angles are
+only meaningful with respect to a reference.
+The slack bus is the bus which serves as an angle reference.
+In practice, the slack bus is chosen to be a large generator bus
+and its state variables and V are fixed values in the power
+flow. Its P and Q values are computed only after the power
+flow solution is complete. Hence, the slack bus gets its name
+because it picks up the slack or the losses of the system. Line
+Let V be the vector of voltage magnitudes and be
+the vector of voltage angles. The vector of real power net
+injections (generation minus load at each bus) is P and the
+vector of reactive power net injections is Q. Each bus thus
+has four quantities: Vi, i, Pi, and Qi.
+The power flow finds the set of voltages and angles that
+satisfy the conservation of power for a given set of net power
+injections at the buses. The system state s may be written as
+s ;V = [ ; V]T, and the power flow or the power balance
+equations are given by the following:
+TABLE II
+TRUE DATA VALUES
+Bus Num.
+1
+2
+3
+4
+5
+6
+7
+8
+9
+V(pu)
+1.04
+1.025
+1.025
+1.026
+0.996
+1.013
+1.026
+1.016
+1.032
+Theta(deg)
+0
+9.279
+4.664
+-2.217
+-3.989
+-3.688
+3.718
+0.726
+1.966
+Pinj(pu)
+0.717
+1.63
+0.85
+0.0
+-1.25
+-0.9
+0.0
+-1.0
+0.0
+Qinj(pu)
+0.270
+0.066
+-0.109
+0.0
+-0.5
+-0.3
+0.0
+-0.35
+0.0
+losses act as an unspecified load, where the value of the losses
+are not known until after solution for the state s ;V.
+C. Attack Power Flow Recipe
+The attack power flow solution determines the data injections
+needed to achieve a target while satisfying the underlying
+system model (power balance) and therefore making the attack
+unobservable.
+In some ways, the attack power flow is the reverse of
+the normal power flow. The normal power flow designates
+one slack bus and solves for the states at all other buses.
+By contrast, the attack power flow assumes that states at
+all unmodifiable buses are fixed and solves for the value
+modifications necessary to make that true.
+To perform an attack, we set all of the unmodifiable states
+to be fixed V buses. This holds V and fixed at that
+bus. The f or loops (see lines 7 and 17) in Algorithm 1
+calculate real and reactive power mismatch between injected
+and withdrawn power at a node. The mismatch is used in each
+Newton-Raphson iteration to update the value of the state. The
+algorithm exits when power balance is satisfied for the system
+(i.e., the norm of the mismatch is less than the tolerance; see
+line 30).
+Consider an attack scenario where the attacker is targeting
+a single bus. In this case, all buses should be made V buses
+except the target bus. The attack is now described in context
+of a Western Systems Coordinating Council (WSCC) 9-bus
+test system [22]. In this example, the scenario is that the
+attacker modifies the data such that the system appears to be
+experiencing an overload. In reality, the system is fine, but the
+attacker is trying to entice us to shed load.
+The system has the true data values shown in Table II. The
+attacker chooses false-data injection values for modification.
+In this example, the attacker's goal is to spoof the data to
+make it look like Q6 increased by 100 MVAr. When this
+is accomplished via Algorithm 1, we (the operators) see the
+numbers in Table III.
+The summary of the attack scenario is this. By manipulating
+the measurements at bus 6, the attacker is able to (1) cause
+the voltage at bus 6 to appear high (1.07 per unit instead
+of 1.01) thereby causing us to consider taking some control
+actions, like shedding load, and (2) the attacker's changes are
+consistent with the power flow solution, so it will be undetected
+using conventional residual-based bad data detection
+[23]. Note that the attacker also necessarily modifies a couple
+of measurements at bus 4 and bus 9; these are the boundary
+TABLE III
+ATTACK POWER FLOW VALUES
+Bus Num.
+1
+2
+3
+4
+5
+6
+7
+8
+9
+V(pu)
+1.04
+1.025
+1.025
+1.026
+0.996
+1.070
+1.026
+1.016
+1.032
+Theta(deg)
+0
+9.280
+4.664
+-2.217
+-3.989
+-4.173
+3.720
+0.727
+1.966
+Pinj(pu)
+0.716
+1.63
+0.850
+-0.001
+-1.25
+-0.9
+0.000
+-1
+0.010
+Qinj(pu)
+0.270
+0.066
+-0.109
+-0.640
+-0.500
+0.7
+0
+-0.350
+-0.345
+buses to bus 6. This attack scenario is demonstrated by the
+authors in the video [19].
+What this effect, of needing to manipulate the boundary bus
+values, represents is that the attacker must be able to defeat the
+defender's attempt to protect basic measurements. As proven
+in [14] and shown in various ways throughout the recent
+literature on defenses against false data injection, as long as
+a defender is able to protect a set of basic measurements,
+that is, those that are needed for observability of the system,
+unobservable attacks such as those presented here are not
+possible. Hence, as an attacker, the goal would be to violate
+this protection mechanism. This is a fundamental principle
+related to power system observability and the physical characteristics
+of the system: any attack which is truly unobservable
+(stealthy) must cause the defender to violate the assumption of
+protected basic measurements. A state is observable if there is
+a measurement equation which provides enough information to
+estimate the state. Hence, if all measurements which reflect the
+value of the state variable are compromised, then the attacker
+has complete control over that state.
+D. Attacker Knowledge and Discussion
+The strategy presented creates unobservable attacks on the
+AC power flow equations and presents a specific way of
+implementing these attacks. The inputs to Algorithm 1 are
+the adversary's knowledge of the system topology Ybus, the
+system state s ;V, and the power injections P0, Q0. The
+attacker is free to make assumptions about these values. Here,
+we examine the minimum knowledge required by an attacker
+to perform the attack.
+Let us denote as target buses the buses where we focus our
+P and Q injection changes (i.e., bus 6 in our example). Let
+us denote as boundary buses all buses adjacent to the target
+buses (i.e., buses 4 and 9). All non-boundary and non-target
+buses are assumed to be unmodifiable.
+Fixed V buses have no entries in the power flow Jacobian,
+and all buses are fixed V except the target buses. The only
+equations which must be solved are the P and Q equations at
+the target buses. The solution gives the state variables V and
+at the target buses. Then, by inspection of the power flow
+equations, the only buses whose P and Q equations depend
+on V and at the target buses are the boundary buses. For
+this reason, it is necessary that the attacker be able to modify
+the power injection values at the boundary buses.
+In summary, the only measurements needed when calculating
+an unobservable attack are measurements at the buses
+Algorithm 1: Attack Power Flow Algorithm
+Input: [Ybus , V0 , 0 , P0, Q0, fV g, fP V g]
+Output: [Vf , f , Pf , Qf ]
+1 nFixedThetas = sizefV g;
+2 nFixedVs = sizefP V g;
+3 nPQ = n - nFixedVs - nFixedThetas;
+4 nThetaStates = n - nFixedThetas;
+5 nVStates = n - nFixedVs;
+6 for iter = 1 : maxIter do
+7 for i = 1 : nThetaStates do
+8 si = i + nF ixedT hetas;
+9 pbr = 0;
+10 for j = 1 : n do
+11 sj = j;
+12 pbr = pbr + CalcPflow(Ybus(si; sj); Vsi; si) , si 6= sj ;
+13 end
+14 pfcalcI(i) = CalcPShunt(Ybus(si; si); Vsi; si) + pbr;
+15 end
+16 pfI = pfcalcI - P0;
+17 for i = 1 : nVStates do
+18 si = i + nF ixedT hetas + nF ixedV s;
+19 qbr = 0;
+20 for j = 1 : n do
+21 sj = j;
+22 qbr = qbr + CalcQflow(Ybus(si; sj); Vsi; si) , si 6= sj ;
+23 end
+24 qfcalcI(i) = CalcQShunt(Ybus(si; sj); Vsi; si) + qbr;
+25 end
+26 qfI = qfcalcI - Q0;
+27 fpq = [pfI; qfI];
+28 [J(s)] = CalcJac(Ybus; sV ; nFixedVs, nFixedThetas);
+29 sV = sV [J(s)] 1 fpq;
+30 if jjfpqjj < tol then
+31 Attack power flow is solved;
+32 break;
+33 end
+34 end
+35 Calculate Pf and Qf for all buses (see lines 7 - 26);
+36 Return the results, [Vf , f , Pf , Qf ];
+adjacent to the target buses. Therefore, in order to perform
+an unobservable attack, the adversary does not need to know
+everything about the system, but only needs to know local
+information (both measurements and topology) only one layer
+out from the target buses.
+IV. PROBING DEFENSE
+The probing defense described in this paper uses an observe
+and perturb methodology to compare the expected results of
+a control action with the observed response of the system.
+The method uses only observed data values, and the expected
+results of the control actions can be determined using historical
+data, if available. The goal is to utilize our perceived but
+incorrect measurement state of the system to discern the spoof.
+The approach in [9] is to change settings on Distributed
+Flexible AC Transmission System (D-FACTS) devices [24],
+[25] to cause impact on measurements, but any available
+control devices may be used (tap changing transformers, generators,
+switched shunts, etc.). We can obtain predictions of the
+impact of the probe on our measurements. The fundamental
+idea is that if the measurements do not change in the way we
+expect, there may be cause for alarm, and further investigation
+is warranted. The vector of settings for each device is termed
+345
+A. Assumptions
+The adversary is assumed to be modifying measurement
+values, but no assumptions are made about how this is done.
+We do not consider whether the attack occurs through a
+compromise of the data channel, the device, the control center,
+etc. The control devices are assumed to already be in place in
+the system for another purpose (e.g., loss minimization). The
+defenders are assumed to have control over the devices. We
+consider that the attack vector may be different at each time.
+The keys are pre-determined values, required to produce measurement
+changes that are large enough to be distinguishable
+from system noise.
+We assume for simplicity that there are no other measurable
+events while conducting the series of probes, e.g., load and
+generation remain reasonably constant. Accounting for load
+or generation changes or other events while conducting a
+sequence is outside the scope of the current work, but is a
+future research direction.
+B. Observations of Measurement States
+In discussing the defense, a different definition of 'state'
+is needed from the power flow state described in Section III.
+We denote the measurement state of the system under key
+ki as mi, which is a vector of measurements corresponding
+to a single snapshot of the system which includes a specific
+power flow state and topology. This can be a vector of real
+and reactive line flows. In the rest of the discussion, the
+measurement state is referred to only as the state.
+Let the true initial state of the system be m0. The observed
+initial state of the system, m~0, may not be the same as the
+true initial state, since an attack may or may not be present.
+From m0, the first probe is enacted, causing the system to
+achieve its new true state
+m1 = d1(m0)
+where d1 is the updated solution to the nonlinear power flow
+equations ((2), (3)) based on the application of key k1. In
+this work, we use di to model the behavior of the true (and
+possibly unobservable) physical system under perturbation.
+This true state m1 is unknown to us. The state we observe
+after applying the probe is given by:
+(10)
+(11)
+(12)
+(13)
+(14)
+a key. This key is chosen from a set of acceptable keys. Keys,
+keyspaces, and key choice are explored further in [9].
+Elements in the vector where the attacker does not have control
+are indicated by subscript j:
+(8)
+(9)
+346
+aij = 0 8 j 2= M
+Our problem is to determine M (which set of meters
+the attacker is controlling), and to a lesser extent, the attack
+injections (a0, a1) (what was the attacker doing).
+At each time snapshot, the system has a measurement state
+mi. The measurement state resulting from subsequent probe
+kj is mj. The corresponding observed states are m~i and m~j.
+This results in the following set of equalities:
+mj
+m~j
+=
+=
+dj(mi); 8 j
+dj(mi) + aj =
+mj + aj; 8 j
+We expect that dj(m0) = dj(mi) 8 i; j, which relies on
+the assumption that the underlying state of the system is not
+changing. That is, we are not experiencing changes in load or
+generation, or topology other than our perturbations.
+C. Attack Detection
+If a probing sequence is enacted such that the system is
+made to return to a previously observed state, the difference
+between the expected result of the probe and the actual
+perceived effect of the probe will reveal the existence of bad
+data and its locations.
+To see how this is possible, consider the system, its true
+values, and its perceived values at each time instant or probing
+snapshot. The examples for the first probe are given above (9),
+and the equations for each additional probe can be written in
+a similar way.
+Now, consider the possibility that the attack vector is not
+solely dependent on the state, but could vary across different
+visits to a particular state. That is, the attack vectors for an
+observed state m~i may be different when that state is observed
+at different times. This means that the attacker's injections may
+change from ai to ai , where denotes one transition to state
+mi and denotes a subsequent transition. Then, let the actual
+perceived measurement state at transition be m~ i; , and let
+the expected measurement state due to a previous transition
+be m~ i; . The difference can be written as follows,
+m~1
+=
+=
+d1(m0) + a1
+m1 + a1
+where a1 denotes the attacker's spoof applied to the system
+while in state m1. Note that if an attack is present, the actual where mi is a state which has previously been visited. Here,
+observed state after applying the probe is different from the we take advantage of the fact that we are probing the system
+expected state calculated with the probe. to states we have been to before. The observed quantity (14)
+Each spoofed vector ai can only contain alterations to directly tells us the difference in attack vectors at the returnedmeters
+within the set of the attacker's controlled meters, M . to states.
+which is equal to
+~
+i
+=
+m~ i;
+m~ i;
+~
+i
+=
+=
+mi + ai;
+ai;
+ai;
+mi + ai;
+D. Discussion
+We note a few observations from these results. First, based
+only on our observed quantities, after actuating a careful
+sequence of probes and observing the responses, it may be
+possible to isolate the source of the false data injection attack.
+A fundamental caveat is obvious from examination of equation
+(14). In this formulation, if ai; and ai; are equal, the attack
+remains undetectable. This result seems to indicate that if it is
+possible for an attacker to always maintain a specific attack for
+a given state, this defense will not work. In that case, there is
+really no incentive for an attacker to change his or her attack
+vector unless unless it is necessary in order to launch stealthy
+attacks. However, it may still be possible for the defenders
+to unmask those attacks. For example, rather than using ai;
+(a single observation) as our expected value, we can use a
+weighted average over many previous observations. Multiple
+targeted probing sequences can be initiated to obtain more sets
+of data.
+One important point is that the probes do not need to
+be from D-FACTS devices. Nowhere in this analysis is the
+presence of D-FACTS included or shown to be necessary. Any
+probing mechanism which is capable of producing observable
+changes in the system can be used as part of the probing defense
+strategy. The need for measurable perturbations resulting
+from a probe is examined in [9]. Finally, if an attack is not
+stealthy, this defense strategy may not be needed at all, as the
+attack could readily be detected by other more conventional
+means.
+V. CONCLUSIONS
+In this paper, we have shown how to launch unobservable
+attacks against the AC power flow equations using only
+local information. We have also proposed a particular probing
+defense strategy to detect attacks by enacting sequences of
+probes and keeping track of the observed quantities. The
+defense is independent of the type of probe as well as the
+type of attack. Future work will explore the effectiveness of
+the attacks and the probing defense, as the adversary's view
+of the system is varied.
+ACKNOWLEDGEMENT
+This material is based upon work supported in part by the
+Department of Energy under Award Number DE-OE0000097.
+REFERENCES
+[1] S. Sridhar, A. Hahn, and M. Govindarasu, “Cyber-physical system
+security for the electric power grid,” Proceedings of the IEEE, vol. 100,
+no. 1, pp. 210 -224, Jan. 2012.
+[2] North American Electric Reliability Corporation, “Reliability standards
+for the bulk power systems of North America,” [Online].
+Available: http://www.nerc.com/files/Reliability Standards Complete
+Set 21Jul08.pdf, July 2008.
+[3] N. Balu, T. Bertram, A. Bose, V. Brandwajn, G. Cauley, D. Curtice,
+A. Fouad, L. Fink, M. Lauby, B. Wollenberg, and J. Wrubel, “On-line
+power system security analysis,” Proceedings of the IEEE, vol. 80, no. 2,
+pp. 262 -282, Feb 1992.
+[4] L. Xie, Y. Mo, and B. Sinopoli, “Integrity data attacks in power market
+operations,” IEEE Trans. Smart Grid, vol. 2, no. 4, pp. 659-666, 2011.
+[5] L. Jia, R. J. Thomas, and L. Tong, “Impacts of malicious data on realtime
+price of electricity market operations,” in Hawaii International
+Conference on System Sciences. IEEE Computer Society, 2012, pp.
+1907-1914.
+[6] A. Teixeira, H. Sandberg, G. Dan, and K.-H. Johansson, “Optimal Power
+Flow: Closing the Loop over Corrupted Data,” in American Control
+Conference (ACC), June 2012.
+[7] U.S.-Canada Power System Outage Task Force, “Final Report on the
+August 14, 2003 Blackout in the United States and Canada: Causes
+and Recommendations,” [Online]. Available: https://reports.energy.gov/
+BlackoutFinal-Web.pdf, April 2004.
+[8] FERC/NERC Staff, “Arizona-Southern California Outages on
+September 8, 2011, Causes and Recommendations,” [Online].
+Available: http://www.nerc.com/fileUploads/File/News/AZOutage
+Report 01MAY12.pdf, May 2012.
+[9] K. L. Morrow, E. Heine, K. M. Rogers, R. B. Bobba, and T. J. Overbye,
+“Topology perturbation for detecting malicious data injection,” in
+Hawaii International Conference on System Sciences. IEEE Computer
+Society, 2012, pp. 2104-2113.
+[10] O. Kosut, L. Jia, R. J. Thomas, and L. Tong, “Malicious data attacks
+on smart grid state estimation: Attack strategies and countermeasures,”
+in First IEEE International Conference on Smart Grid Communications
+(SmartGridComm), 2010. IEEE, 2010.
+[11] A. Teixeira, S. Amin, H. Sandberg, K. Johansson, and S. Sastry, “Cyber
+security analysis of state estimators in electric power systems,” in 49th
+IEEE Conference on Decision and Control (CDC), 2010, Dec. 2010, pp.
+5991 -5998.
+[12] Y. Liu, P. Ning, and M. Reiter, “False data injection attacks against state
+estimation in electric power grids,” ACM Transactions in Information
+and Systems Security (TISSEC), 2011, vol. 14, no. 1, pp. 13:1-13:33,
+June 2011.
+[13] A. Giani, E. Bitar, M. Garcia, M. McQueen, P. Khargonekar, and
+K. Poolla, “Smart grid data integrity attacks: characterizations and
+countermeasures,” in IEEE International Conference on Smart Grid
+Communications (SmartGridComm), 2011, Oct. 2011, pp. 232 -237.
+[14] R. B. Bobba, K. M. Rogers, Q. Wang, H. Khurana, K. Nahrstedt,
+and T. J. Overbye, “Detecting false data injection attacks on dc state
+estimation,” in 1st Workshop on Secure Control Systems (SCS '10), 2010.
+[15] A. Teixeira, G. Dan, H. Sandberg, and K.-H. Johansson, “A cyber
+security study of a scada energy management system: Stealthy deception
+attacks on the state estimator,” in Proc. IFAC World Congress, August
+2011.
+[16] R. Zimmerman, C. Murillo-Sanchez, and R. Thomas, “Matpower:
+Steady-state operations, planning, and analysis tools for power systems
+research and education,” Power Systems, IEEE Transactions on, vol. 26,
+no. 1, pp. 12 -19, feb. 2011.
+[17] J. Liyan, R. J. Thomas, and L. Tong, “On the nonlinearity effects on
+malicious data attack on power system,” in To appear in 2012 Power
+and Energy Society general meeting, July 2012.
+[18] S. Zonouz, K. M. Rogers, R. Berthier, R. B. Bobba, W. H. Sanders,
+and T. J. Overbye, “SCPSE: Security-Oriented Cyber-Physical State
+Estimation for Power Grid Critical Infrastructures,” IEEE Trans. Smart
+Grid, to appear.
+[19] Trustworthy Cyber Infrastructure for the Power Grid, “Research Demos,”
+[Online]. Available: http://tcipg.org/news/research-demos.
+[20] A. Wood and B. Wollenberg, Power Generation, Operation, and Control,
+2nd ed. John Wiley and Sons, 1996.
+[21] J. Glover, M. Sarma, and T. Overbye, Power system analysis and design.
+Thomson, 2008.
+[22] P. Sauer and M. Pai, Power system dynamics and stability. Champaign,
+IL: Stipes Publishing L.L.C., 1997.
+[23] A. Monticelli, State estimation in electric power systems. Boston,
+Mass.: Kluwer Academic Publishers, 1999.
+[24] D. Divan, W. Brumsickle, R. Schneider, B. Kranz, R. Gascoigne,
+D. Bradshaw, M. Ingram, and I. Grant, “A distributed static series
+compensator system for realizing active power flow control on existing
+power lines,” IEEE Transactions on Power Delivery, vol. 22, pp. 642649,
+Jan 2007.
+[25] K. M. Rogers, “Power system control with distributed flexible ac
+transmission system devices,” Master's thesis, University of Illinois at
+Urbana-Champaign, 2009.
+347

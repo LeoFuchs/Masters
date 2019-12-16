@@ -1,0 +1,720 @@
+2015 IEEE 54th Annual Conference on Decision and Control (CDC)
+December 15-18, 2015. Osaka, Japan
+Security in Cyber-Physical Systems:
+Controller Design Against Known-Plaintext Attack
+Ye Yuany and Yilin Moz
+Abstract- A substantial amount of research on the security
+of cyber-physical systems assumes that the physical system
+model is available to the adversary. In this paper, we argue that
+such an assumption can be relaxed, given that the adversary
+might still be able to identify the system model by observing
+the control input and sensory data from the system. In such a
+setup, the attack with the goal of identifying the system model
+using the knowledge of input-output data can be categorized
+as a Known-Plaintext Attack (KPA) in the information security
+literature. We first prove a necessary condition and a sufficient
+condition, under which the adversary can successfully identify
+the transfer function of the physical system. We then provide a
+low-rank controller design which renders the system unidentifiable
+to the adversary, while trading off the LQG performance.
+I. INTRODUCTION
+Cyber-Physical Systems (CPSs) refer to the embedding of
+widespread sensing, networking, computation, and control
+into physical spaces with the goal of making them safer,
+more efficient and reliable. Driven by the miniaturization and
+integration of sensing, communication, and computation in
+cost effective devices, CPSs are bound to transform several
+industries such as aerospace, transportation, built environment,
+energy, health-care, and manufacturing, to name a
+few. While the use of dedicated communication networks
+has so far sheltered systems from the outside world, use
+of off-the-shelf networking and computing, combined with
+unattended operation of a plethora of devices, provides
+several opportunities for malicious entities to inject attacks
+on CPSs. A wide variety of motivations exist for launching
+an attack on CPSs, ranging from economic reasons such
+as drawing a financial gain, all the way to terrorism. Any
+attack on safety-critical CPSs may significantly hamper the
+economy and lead to the loss of human lives. While the
+threat of attacks on CPSs tends to be underplayed at times,
+the Stuxnet worm provided a clear sample of the future to
+come [1], [2].
+Due to space limitation, please refer to [21] for all proofs and numerical
+simulations.
+y: Ye Yuan was with Control Group, Department of Engineering, University
+of Cambridge (Darwin College), United Kingdom. He is now with
+Department of Electrical Engineering and Computer Sciences, UC Berkeley.
+Email: yy311@berkeley.edu.
+z: Yilin Mo is with the School of Electrical and Electronic
+Engineering, Nanyang Technological University, Singapore. Email:
+ylmo@ntu.edu.sg.
+Ye Yuan was supported by EPSRC. Yilin Mo was supported in part by
+TerraSwarm, one of six centers of STARnet, a Semiconductor Research
+Corporation program sponsored by MARCO and DARPA. The authors
+gratefully acknowledge Prof. Richard M. Murray for the numerous interesting
+discussions on the topic.
+A substantial amount of research effort has been dedicated
+to identifying possible security vulnerabilities of the CPS and
+develop countermeasures. To this end, many attack models,
+such as stealthy attack1 [3], [4], [5], [6], [7], replay attack [8],
+[9] and covert attack [10], have been proposed by various
+researchers. Teixeira et al. [11] propose a characterization
+of different attack models based on the attacker's resources,
+which are divided into three different categories: knowledge
+of the system model, knowledge of the real-time control
+and sensory data (disclosure resources) and the capability to
+modify the control and sensory data (disruptive resources).
+Their results illustrate that many attack models proposed in
+the literature require the knowledge of the system models
+from the adversary. For example, in the stealthy attack
+scenario [5], the adversary will inject an external control
+input to the physical system and then remove the physical
+system's response to this malicious input from the sensors'
+measurements. The system operator will not be able to
+detect the attack if the response to the malicious control
+input is removed perfectly. However, such an attack requires
+the adversary to know the perfect model of the physical
+system, which may be difficult to acquire in many practical
+scenarios, since the modeling information is usually stored
+inside the controller. On the other hand, we argue that in
+many situations, the control and sensory data are much easier
+to acquire. This is due to the fact that these data are typically
+not encrypted for many CPSs [12]. Furthermore, even if the
+control and sensory data are encrypted, it might be easier
+to break the security of sensors and actuators due to their
+low computational capability. Thus, for the adversary, the
+disclosure resources may be more available than the model
+knowledge.
+In this paper, we discuss whether the adversary can use
+its disclosure resources to gain the model knowledge by the
+means of system identification. We model the CPS as a linear
+feedback control system, which is illustrated in Fig 1. The
+adversary is assumed to only use its disclosure resources. In
+other words, it can only passively observe the control input u
+and the sensory data y and cannot inject any disturbances to
+the system. The goal of the adversary is to learn the physical
+system model G(z), which further enables the adversary to
+launch other attacks, such as stealthy attack and covert attack.
+Such an attack model is very similar to the KnownPlaintext
+Attack (KPA) studied in information security,
+where the adversary has samples of both the plaintext and the
+1The stealthy attack is also referred to as false data injection attack, zero
+dynamics attack in the literature.
+978-1-4799-7886-1/15/$31.00 ©2015 IEEE
+5814
+w(k)
+u(k)
+H(z)
+G(z)
+K(z)
+v(k)
+y(k)
+Fig. 1. A general diagram of the CPS. In particular, we consider a widelyused
+LQG framework in this paper. G(z) represents the plant while K(z)
+the controller.
+corresponding ciphertext and want to deduce the encryption
+key. For our case, one can view the system model, the control
+input u and the sensory data y as the encryption key, plaintext
+and ciphertext respectively.
+As a result, we will focus on KPA in this paper. The main
+contributions of the paper are twofold:
+1) We provide a necessary condition and a sufficient
+condition, under which the system is vulnerable to
+KPA, i.e., the adversary can successfully identify the
+system model G(z). The results can be viewed as
+an application of classical system identification [13],
+[14], [15], [16], [17], [18] for the closed-loop system
+described in Section III.
+2) We design a countermeasure to KPA by using a “lowrank”
+controller design strategy for K(z) while trading
+off the LQG control performance.
+The rest of the paper is organized as follows: In Section II,
+we model the system as a linear feedback control system
+subject to Gaussian process and measurement noise. In
+Section III, we provide necessary and sufficient conditions,
+under which the adversary can identify the system model
+G(z). We further provide a numerical algorithm for the
+adversary to compute G(z). In Section IV, we present a
+controller design which is resilient to KPA while only
+incurring minimal control performance loss.
+Notations
+A B : A B is a positive semi-definite matrix.
+E : expected value. Sn : the set of n n symmetric
+matrices. If U is a positive semidefinite matrix, then U 1=2 is
+a positive semidefinite matrix that satisfies U 1=2U 1=2 = U .
+We will use calligraphic letters to denote transfer matrices
+and normal letters to denote constant matrices. A rational
+transfer function is called to be proper if the degree of the
+numerator does not exceed the degree of the denominator. It
+is called strictly proper if the degree of the numerator is less
+than the degree of the denominator. For a rational transfer
+matrix V(z), we define V (z) = VT ( z1 ).
+II. SYSTEM MODEL
+We model the physical system has a linear time invariant
+system, which takes the following form:
+(1)
+(2)
+(3)
+(4)
+x(k + 1) = Ax(k) + Bu(k) + w(k);
+y(k) = Cx(k) + v(k);
+where x(k) 2 Rn, u(k) 2 Rp, y(k) 2 Rm are the state, the
+control input and the sensor measurement at time k respectively.
+w(k) 2 Rn, v(k) 2 Rm are the process and measurement
+noise at time k. We assume that w(k); v(k); x(0)
+are jointly independent zero mean Gaussian random variables
+with covariance , Q and R respectively. We further assume
+that Q; R 0 are strictly positive definite and (A; B) is
+stabilizable and (A; C) is detectable.
+From system model in (1), we can write down the relation
+between sensor measurement y and the control input u and
+the noise process w and v as follows:
+y(k) = G(z)u(k) + H(z)w(k) + v(k);
+in which G(z) , C(zI A) 1B and H(z) , C(zI A) 1,
+and z 1 is the unit delay. We assume that the controller is
+also a linear time invariant controller. Therefore, the control
+input can be written as
+u(k) = K(z)y(k):
+We restrict the future discussions to the controller that
+satisfies the following assumption:
+Assumption 1. [Controller] The transfer function of the controller
+K(z) is a proper rational function of z. Furthermore,
+the closed-loop system is asymptotically stable.
+Remark 1. If we assume that K(z) is rational, then K(z)
+being proper is equivalent to the controller being causal.
+Moreover, the limit limz!1 K(1) < 1 is well-defined. For
+the closed-loop system, since G(z) is a strictly proper transfer
+function, it follows that limz!1 G(z)K(z) = 0, which
+implies that I G(z)K(z) is invertible almost everywhere.
+We assume that an adversary passively observes the control
+input u(k) and the sensory data y(k) from time 0 to
+1. The goal of the adversary is to infer the physical system
+model G(z) from u(k) and y(k).
+III. KPA IN CPS
+In this section, we shall first apply closed-loop system
+identification technique to the CPS and investigate the identifiability
+condition of G(z) and K(z) in Section III-A (an
+algorithm to perform the identification has been proposed in
+[21]). A stealthy attack which is enabled by KPA is discussed
+in Section III-B.
+A. On the identifiability of G(z); K(z)
+This subsection is devoted to deriving the identifiability
+condition of G(z) and K(z). The identifiability of such systems
+have been investigated based on spectral factorization.
+Definition 1. Let e(k) = (e1(k); ::; eN (k))T be a N dimensional
+discrete-time, zero-mean, wide-sense stationary
+5815
+random process. For any 2 Z, define its autocorrelation
+function Re( ) and power spectral density e(z) as
+Re( ) , E[e(k)eT (k + )]:
+e(z) ,
+Re( )z
+:
+1
+X
+= 1
+Since we assume that the closed-loop system is asymptotically
+stable, h uy((kk)) i converges to a stationary process. Hence,
+the adversary can compute (or estimate) the joint power
+spectral density y;u for the limiting stationary process, if it
+observes the system for a sufficient amount of time. By (3)
+and (4), we know that y;u satisfies the following equation:
+Q
+y;u(z) = C(z) 0
+0
+R C (z):
+where the closed-loop transfer function C(z) has the following
+form
+(5)
+(6)
+(7)
+(8)
+(9)
+5816
+C(z) =
+,
+C11(z)
+C21(z)
+(I
+K(I
+C12(z)
+C22(z)
+GK) 1H
+GK) 1H
+(I
+K(I
+GK) 1
+GK) 1 :
+Assumption 2. C(z) is asymptotically stable and minimum
+phase, i.e., all the poles and zeros of C(z) lie strictly inside
+the unit disk.
+Remark 2. This is a commonly adopted assumption for
+input-output stability and internal stability.
+We first consider the identifiability of C(z) from the joint
+spectral density y;u.
+Lemma 1. Under the Assumption 1 and 2, if there exists
+C(z); Q; R and C^(z); Q^; R^ that lead to the same y;u, then
+there exists a unitary matrix V11, such that
+C^11(z) = C11(z)V11;
+C^21(z) = C21(z)V11;
+Q^ = V11QV11;
+C^12(z) = C12(z);
+C^22(z) = C22(z);
+R^ = R:
+We now consider the identifiability of G(z), K(z) and
+H(z) from C(z). Before continuing on, we need the following
+definition:
+Definition 2. We define the normal rank of a transfer matrix
+A(z) to be the maximum rank of A(z) over all z 2 C.
+Proposition 1. Given C(z), the following transfer functions
+can be uniquely specified :
+K(z) = C22(z)C121(z);
+H(z) = C121(z)C11(z);
+G(z)K(z) = I
+C121(z):
+If K(z) has full normal row rank then G(z) can be uniquely
+determined from the following equality
+G(z) = (I
+C121(z))Ky(z);
+where Ky(z) is the unique transfer matrix satisfies
+K(z)Ky(z) = I.
+Based on Lemma 1 and Proposition 1, we have the
+following theorem about the identifiability of G(z) and K(z).
+Theorem 1. Consider the feedback control scheme described
+in Sec II. Under the Assumption 1 and 2, the following
+statements hold:
+G(z)K(z) and K(z) are uniquely identifiable;
+R is uniquely identifiable;
+H(z) and Q can be identified up to the following
+transformation
+(10)
+(11)
+H^(z) = H(z)V11
+Q^ = V11QV11;
+in which V11 is a unitary matrix.
+Furthermore, if K(z) if full normal row rank, then G(z) is
+uniquely identifiable.
+We now provide a sufficient condition under which the
+system is not identifiable by the adversary:
+Theorem 2. Let w(k); v(k) be a realization of the noise
+process and x(k); y(k); u(k) be the corresponding system
+state, sensor measurements and control input that satisfy (1),
+(2) and (3). If K(z) can be factorized into
+K(z) = F K~(z);
+where F 2 Rp q is a constant matrix with q < p and K~(z) 2
+Cq m is a transfer function, then there exists a matrix B^ 6=
+B, such that the following equalities hold for B^:
+x(k + 1) = Ax(k) + B^u(k) + w(k);
+y(k) = Cx(k) + v(k); u(k) = K(z)y(k):
+Remark 3. Clearly, if the factorization described by (11)
+is possible, then the adversary cannot tell the difference
+between the physical system model G(z) = C(zI A) 1B
+and G^(z) = C(zI A) 1B^ since they share the same input
+and output relation. This is due to the fact that the controller
+only inject the control input that lies in the column space of
+F and hence there are some ambiguities in the B matrix.
+It is worth noticing that (11) implies that K(z) is not full
+normal row rank. In fact, the normal rank of K(z) is at most
+q. On the other hand, a non full normal row rank matrix K(z)
+can always be decomposed as K(z) = F (z)K~(z), where
+F (z) is a p by q transfer matrix with q < p. Therefore,
+there exists a gap between Theorem 1 and 2. This is due to
+the fact that even though K(z) is not right invertible, which
+implies that the adversary cannot directly compute G(z) from
+G(z)K(z) and K(z), the adversary could potentially use side
+information to infer G(z) (for example, G(z) = H(z)B.) We
+are planning to investigate the gap and tighten Theorem 1
+and Theorem 2 in the future work.
+B. What can the attacker do after KPA?
+In this section, we briefly describe a stealthy attack on the
+CPS after the adversary has obtained the transfer function
+G(z). The goal of this subsection is to demonstrate that KPA
+can enable other attacks discussed in the literature. For more
+detailed discuss on stealthy attack, please refer to [5].
+We assume that the adversary compromised a subset of
+actuators and sensors and can change the corresponding
+control inputs and sensor measurements respectively. As a
+result, the system equation becomes:
+x(k + 1) = Ax(k) + B [u(k) +
+uua(k)] + w(k);
+y(k) = Cx(k) + v(k) +
+u(k) = K(z)y(k);
+yya(k);
+where ua(k) and ya(k) is the bias on the control inputs and
+the sensor measurements injected by the adversary at time k.
+u ( y) is a diagonal matrix with binary diagonal elements,
+such that the ith diagonal elements is 1 if and only if the
+ith actuator (sensor) is compromised by the attacker. Since
+the matrices u and y represent the set of compromised
+actuators and sensors, they are known to the attacker. Let us
+define
+Ga(z) , C(zI
+A) 1B u = G(z) u:
+Clearly, the whole trajectory of the sensor measurements
+y is a function of the noise process w; v, the initial condition
+x(0) and the adversary's action ua; ya. Therefore, we shall
+denote it as
+y = f (w; v; x(0); ua; ya):
+Notice that we omitted the control input u since u can be
+calculated from y.
+Now if there exists a scalar z 2 C, and two vectors u 2
+Cp and y 2 Cm, such that
+Ga(z )u +
+yy = 0;
+then the adversary can choose
+ua(k) = zku ; ya(k) = zky :
+(12)
+Let us define x
+that
+, (z I
+A) 1B uu . One can verify
+f (w; v; x(0) + x ; ua; ya) = f (w; v; x(0); 0; 0):
+Therefore, the attack is stealthy since given the sensory data
+y, the controller cannot distinguish the following two cases
+from the sensory data:
+1) the initial condition is x(0) + x and the adversary
+injected ua and ya defined in (12);
+2) the initial condition is x(0) and no adversary exists.
+Remark 4. It is worth noticing that the adversary only need
+to compute z ; u and y to launch the attack, which only
+requires the knowledge of G(z); u and y.
+IV. LOW-RANK CONTROLLER DESIGN AGAINST KPA
+By Theorem 2, one way to prevent the adversary from
+identifying G(z) is to enforce the factorization (11) on the
+controller transfer function K(z). Let us define the following
+“virtual” control input:
+u~(k) , K~(z)y(k):
+(13)
+Hence, u(k) = K(z)y(k) = F u~(k). The factorization on
+K(z) implies the CPS diagram illustrated in Fig 2.
+w(k)
+u(k)
+H(z)
+G(z)
+F
+u˜(k)
+v(k)
+K˜(z)
+y(k)
+Fig. 2. The diagram of the CPS with a low-rank controller design, where
+K(z) is factorized into F K~(z).
+Since we are restricting ourselves to use a low-rank
+controller, the performance of the system may not be optimal.
+In this section, we consider the problem of optimizing the
+following infinite horizon LQG performance:
+J = lim sup
+T !1
+1
+min E
+T u(k)
+k=0
+(14)
+under the constraint that F 2 Rp q where q is given. The
+W; U matrices are assumed to be positive semidefinite. We
+shall first consider how to design K~(z) when F is given. We
+then provide a heuristic algorithm to compute the optimal F
+based on convex relaxation.
+"T 1 #
+X x(k)T W x(k) + u(k)T U u(k) ;
+A. Optimal K~(z)
+as
+Since u(k) = F u~(k), we can rewrite the system equation
+x(k + 1) = Ax(k) + B~u~(k) + w(k);
+where B~ , BF . Furthermore, the objective function of LQG
+can be rewritten as
+J = lim sup
+T !1
+1
+min E
+T u~(k)
+k=0
+"T 1 #
+X x(k)T W x(k) + u~(k)T U~ u~(k) ;
+where U~ , F T U F 2 Rq q. Therefore, the optimal control
+is given by a Kalman filter and a LQR controller [19]:
+5817
+Kalman Filter: The state estimation of the Kalman filter
+(with a fixed gain) is given by:
+x^(k) = x^(kjk
+x^(k + 1jk) = Ax^(k) + Bu(k):
+1) + K(y(k)
+Cx^(kjk
+1));
+where K = P CT (CP CT + R) 1; and P is the fixed point
+of the following Riccati equation:
+P = AP AT + Q
+AP CT (CP CT + R) 1CP AT :
+LQR controller: The optimal control can then be derived
+as a linear function of the state estimate:
+u~(k) = L~x^(k);
+where
+L~ =
+(B~T S~B~ + U~ ) 1B~T S~A;
+and S~ is the solution of the following Riccati equation
+S~ = AT S~A + W
+AT S~B~(B~T S~B~ + U~ ) 1B~T S~A: (16)
+The corresponding K~ (z) is given by
+K~ (z) = zL~ hzI
+(I
+KC)(A + BL~)i 1 K:
+The corresponding LQG cost is given by
+J
+= tr(S~Q) + tr[(W + AT S~A
+S~)(P
+KCP )]
+= tr(S~Y ) + tr[W (P
+KCP )];
+where
+B. Optimal F
+Y , Q + A(P
+KCP )AT
+(P
+KCP )
+= P CT (CP CT + R) 1CP
+0:
+Now we consider how to design the optimal F matrix
+in order to minimize the LQG cost. Since the second term
+on the RHS of (17) is independent of F , the optimization
+problem can be formulated as the following optimization
+problem:
+minimize
+F 2Rp q
+tr(S~Y ):
+By applying matrix inversion lemma on the RHS of (16),
+we have
+S~ = AT
+S~ 1 + B~U~ 1B~T
+1
+A + W;
+(15)
+where
+(17)
+(18)
+(19)
+(20)
+5818
+On the other hand, assume that X is a symmetric projection
+matrix of rank q. Let v1; : : : ; vq to be the orthonormal
+basis of the column space of X. Then the following F will
+satisfy (21):
+F = U 1=2 v1 : : :
+vq :
+Therefore, instead of optimizing over F , the optimization
+problem (19) can be manipulated into
+minimize
+X2Sp
+subject to
+tr(S~Y )
+S~ = gX (S~);
+X = XT ; X2 = X; rank(X) = q;
+gX (S~) , AT
+S~ 1 + BXBT
+1
+A + W:
+(24)
+We will first manipulate the constraint S~ = gX (S~) into
+Linear Matrix Inequalities (LMIs). To this end, we need the
+following intermediate result [20]:
+Proposition 2. For a fixed X, gX (S~) is monotonically nondecreasing
+in S~.
+Consider the following optimization problem:
+minimize
+X2Sp; S~
+subject to
+tr(S~Y )
+~
+S
+gX (S~);
+X = XT ; X2 = X; rank(X) = q;
+where we relax the S~ = gX (S~) constraint in (23) to
+S~ gX (S~). The next theorem proves that (23) and (25)
+are equivalent:
+Lemma 2. There exists an optimal solution (X; S~) for the
+optimization problem (25) (not necessarily unique), such that
+the following equality holds
+S~ = gX (S~):
+We will now rewrite the constraint S~ gX (S~) as an LMI.
+To this end, let us take the inverse on both sides of S~
+gX (S~) and apply matrix inversion lemma on the RHS,
+W 1
+S~ 1
+W 1AT Z 1AW
+1
+0;
+(26)
+where
+Z = S~ 1 + AW
+1AT + BXBT :
+Let us define T = S~ 1, using Schur complement, we know
+that (26) is equivalent to:
+T + AWW1A1TAT+ BXBT WAW1 1T 0:
+Therefore, optimization problem (25) is equivalent to:
+(22)
+(23)
+(25)
+(27)
+(28)
+0;
+where
+Let us denote
+B~U~ 1B~T = BF F T U F
+1 F T B
+= BU 1=2 hU 1=2F F T U F
+1 F T U 1=2i U 1=2BT :
+X , U 1=2F F T U F
+1 F T U 1=2; B , BU 1=2:
+(21)
+It is easy to verify that X2 = X and X = XT . Hence X
+is a symmetric projection matrix. Furthermore, rank(X) =
+rank(F ) = q.
+minimize
+X; S~; T
+subject to
+tr(S~Y )
+S~ I
+I T
+T + AW
+0;
+1AT + BXBT
+W 1AT
+AW
+W 1
+1
+T
+X = XT ; X2 = X; rank(X) = q:
+The first constraint is equivalent to S~ T 1 0. Since
+we are minimizing tr(S~Y ) and Y 0, the optimal solution
+must have S~ = T 1.
+We will now relax the constraint on X into a convex
+constraint, which is given by the following lemma:
+Lemma 3. The closed convex hull of all rank q projection
+matrix X 2 Sp is given by
+X = fX 2 Sp : 0
+X
+I ; tr(X ) = qg:
+Hence, by Lemma 3, the optimization problem can be relaxed
+to the following semidefinite programing optimization
+and solved efficiently:
+minimize
+X; S~; T
+subject to
+tr(S~Y )
+S~ I
+I T
+T + AW
+1AT + BX BT
+0;
+W
+1AT
+X
+X = X T ; 0
+I ; tr(X ) = q:
+AW
+W 1
+1
+T
+(29)
+0;
+Remark 5. In summary, the optimization problem (19), (23),
+(25) and (28) are all equivalent. On the other hand, the
+constraint on X in (28) is relaxed into a convex constraint
+in (29). Therefore, the optimal value of (29) is no greater
+than the optimal value of (19), (23), (25) and (28).
+Denote the optimal solution of (29) as (X ; S~ ; T ). Since
+we relaxed the constraint on X , X is not necessarily a
+projection matrix. To derive a projection matrix from X ,
+one can do an eigendecomposition and rewritten X as
+X
+= U diag( 1; : : : ; p)U T ;
+where U is a orthonormal matrix and 1
+can define a projection matrix X0 from X
+as
+p. We
+X0 = U diag(1; : : : ; 1; 0; : : : ; 0)U T :
+| {z } | p{zq }
+q
+Denote the corresponding fixed point of S~ = gX0 (S~) as S~0.
+Let us further denote the optimal value of (19) as . Clearly,
+X0 lies in the feasible set of the optimization problem (23).
+Therefore, tr(S~0Y ) : On the other hand, since (29) is
+a relaxed problem, we have tr(S~ Y ): Therefore, we
+know the optimality gap of our heuristic solution is bounded
+by
+tr(S~0Y )
+tr(S~0Y )
+tr(S~ Y ):
+Furthermore, if X is indeed a projection matrix, then the
+optimality gap is 0 and we solve (19) exactly.
+V. CONCLUSION
+We consider KPA in CPS and provide a necessary condition
+and a sufficient condition under which the transfer
+function of the physical system can be uniquely identified by
+an adversary who passively observes the control input and
+sensory data. Our results demonstrate the vulnerability of the
+classical MIMO feedback control systems to KPA. A lowrank
+controller design framework is then proposed to prevent
+the adversary from identifying the exact physical system
+model. The design trade-off between system performance
+and security has been investigated.
+REFERENCES
+[1] T. M. Chen, “Stuxnet, the real start of cyber warfare? [editor's note],”
+IEEE Network, vol. 24, no. 6, pp. 2-3, 2010.
+[2] D. P. Fidler, “Was stuxnet an act of war? decoding a cyberattack,”
+IEEE Security & Privacy, vol. 9, no. 4, pp. 56-59, 2011.
+[3] Y. Liu, M. Reiter, and P. Ning, “False data injection attacks against
+state estimation in electric power grids,” in Proceedings of the 16th
+ACM conference on Computer and communications security, 2009.
+[4] S. Sundaram and C. Hadjicostis, “Distributed function calculation via
+linear iterative strategies in the presence of Malicious agents,” IEEE
+Transactions on Automatic Control, vol. 56, no. 7, pp. 1495-1508,
+2011.
+[5] F. Pasqualetti, F. Dorfler, and F. Bullo, “Attack detection and identification
+in cyber-physical systems,” IEEE Transactions on Automatic
+Control, vol. 58, no. 11, pp. 2715-2729, 2013.
+[6] H. Fawzi, P. Tabuada, and S. Diggavi, “Secure estimation and control
+for cyber-physical systems under adversarial attacks,” IEEE Transactions
+on Automatic Control, vol. 59, no. 6, pp. 1454-1467, 2014.
+[7] A. Teixeira, I. Shames, H. Sandberg, and K. H. Johansson, “A secure
+control framework for resource-limited adversaries,” Automatica,
+vol. 51, no. 0, pp. 135 - 148, 2015.
+[8] Y. Mo, R. Chabukswar, and B. Sinopoli, “Detecting integrity attacks on
+SCada systems,” IEEE Transactions on Control Systems Technology,
+vol. 22, no. 4, pp. 1396-1407, 2014.
+[9] Y. Mo, S. Weerakkody, and B. Sinopoli, “Physical authentication
+of control systems: Designing watermarked control inputs to detect
+counterfeit sensor outputs,” IEEE Control Systems Magazine, vol. 35,
+no. 1, pp. 93-109, 2015.
+[10] R. S. Smith, “A decoupled feedback structure for covertly appropriating
+networked control systems,” 2011, pp. 90-95.
+[11] A. Teixeira, K. C. Sou, H. Sandberg, and K. Johansson, “Secure
+control systems: A quantitative risk management approach,” IEEE
+Control Systems Magazine, vol. 35, no. 1, pp. 24-45, 2015.
+[12] K. Koscher, A. Czeskis, F. Roesner, S. Patel, T. Kohno, S. Checkoway,
+D. McCoy, B. Kantor, D. Anderson, H. Shacham, and S. Savage,
+“Experimental security analysis of a modern automobile,” in Security
+and Privacy (SP), 2010 IEEE Symposium on, 2010, pp. 447-462.
+[13] T. Ng, G. Goodwin, and B. Anderson, “Identifiability of mimo linear
+dynamic systems operating in closed loop,” Automatica, vol. 13, no. 5,
+pp. 477-485, 1977.
+[14] B. Anderson, “An algebraic solution to the spectral factorization
+problem,” IEEE Transactions on Automatic Control, vol. 12, no. 4,
+pp. 410-414, 1967.
+[15] B. Anderson and M. Gevers, “Identifiability of linear stochastic
+systems operating under linear feedback,” Automatica, vol. 18, no. 2,
+pp. 195-213, 1982.
+[16] L. Ljung, System identification. Springer, 1998.
+[17] K. Glover, “Structural aspects of system identification,” 1973.
+[18] B. D. Anderson, “The inverse problem of stationary covariance generation,”
+Journal of Statistical Physics, vol. 1, no. 1, pp. 133-147
+0022-4715, 1969.
+[19] L. Schenato, B. Sinopoli, M. Franceschetti, K. Poolla, and S. S. Sastry,
+“Foundations of Control and Estimation Over Lossy Networks,” Proc.
+IEEE, vol. 95, no. 1, pp. 163-187, 2007.
+[20] B. Sinopoli, L. Schenato, M. Franceschetti, K. Poolla, M. I. Jordan,
+and S. S. Sastry, “Kalman filtering with intermittent observations,”
+Automatic Control, IEEE Transactions on, vol. 49, no. 9, pp. 14531464,
+2004.
+[21] Y. Yuan and Y. Mo “Security in cyber-physical systems: Controller
+design against known-plaintext attack,” Technical Report, Available
+on http://yilinmo.github.io/public/papers/cdc15-1.pdf.
+5819

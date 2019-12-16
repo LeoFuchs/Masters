@@ -1,0 +1,1207 @@
+Moving Target Defense for Hardening the Security of the
+Power System State Estimation
+Mohammad Ashiqur Rahman and
+Ehab Al-Shaer
+Dept. of Software and Information Systems
+University of North Carolina at Charlotte, USA
+{mrahman4, ealshaer}@uncc.edu
+ABSTRACT
+State estimation plays a critically important role in ensuring
+the secure and reliable operation of the electric grid. Recent
+works have shown that the state estimation process is
+vulnerable to stealthy attacks where an adversary can alter
+certain measurements to corrupt the solution of the process,
+but evade the existing bad data detection algorithms and
+remain invisible to the system operator. Since the state estimation
+result is used to compute optimal power flow and
+perform contingency analysis, incorrect estimation can undermine
+economic and secure system operation. However,
+an adversary needs sufficient resources as well as necessary
+knowledge to achieve a desired attack outcome. The knowledge
+that is required to launch an attack mainly includes
+the measurements considered in state estimation, the connectivity
+among the buses, and the power line admittances.
+Uncertainty in information limits the potential attack space
+for an attacker. This advantage of uncertainty enables us to
+apply moving target defense (MTD) strategies for developing
+a proactive defense mechanism for state estimation.
+In this paper, we propose an MTD mechanism for securing
+state estimation, which has several characteristics: (i)
+increase the knowledge uncertainty for attackers, (ii) reduce
+the window of attack opportunity, and (iii) increase the attack
+cost. In this mechanism, we apply controlled randomization
+on the power grid system properties, mainly on the
+set of measurements that are considered in state estimation,
+and the topology, especially the line admittances. We thoroughly
+analyze the performance of the proposed mechanism
+on the standard IEEE 14- and 30-bus test systems.
+Categories and Subject Descriptors
+J.m [Computer Applications]: Miscellaneous;
+F.4.m [Theory of Computation]: Mathematical Logic
+and Formal LanguagesMiscellaneous
+Permission to make digital or hard copies of all or part of this work for personal or
+classroom use is granted without fee provided that copies are not made or distributed
+for profit or commercial advantage and that copies bear this notice and the full citation
+on the first page. Copyrights for components of this work owned by others than
+ACM must be honored. Abstracting with credit is permitted. To copy otherwise, or republish,
+to post on servers or to redistribute to lists, requires prior specific permission
+and/or a fee. Request permissions from Permissions@acm.org.
+MTD'14, November 3, 2014, Scottsdale, Arizona, USA.
+Copyright 2014 ACM 978-1-4503-3150-0/14/11 ...$15.00.
+http://dx.doi.org/10.1145/2663474.2663482.
+Rakesh B. Bobba
+Information Trust Institute & ECE Dept.
+University of Illinois at Urbana-Champaign, USA
+rbobba@illinois.edu
+General Terms
+Security
+Keywords
+Power Grid; State Estimation; False Data Injection Attack;
+Moving Target Defense.
+1. INTRODUCTION
+In the electric power grid, state estimation (SE) is the
+process of finding the best estimate for the system state in
+a weighted least square sense, given a measurement model
+and a set of measurements acquired through a Supervisory
+Control and Data Acquisition (SCADA) system. The 'state'
+corresponds to the vector of bus voltages, from which line
+currents and power-flows can be computed. State estimation
+solutions aid system operators in reliability assessment,
+initiating corrective control measures and enabling pricing
+calculations for real-time electricity markets. Hence, state
+estimation is a critical and inherent part of energy management
+system (EMS) applications for the power grid. However,
+critical infrastructures relying on SCADA based measurements
+are vulnerable to cyber-attacks [1]. It is worth
+mentioning that while phasor measurement units are gradually
+being deployed, the current grid still largely relies on
+extensive SCADA measurements for several EMS applications,
+including state estimation.
+Recent work by [2] has revealed that state estimation is
+vulnerable to cyber-attacks, where adversaries can alter certain
+measurements by injecting false data to corrupt the
+estimation, but remain invisible to the system operator by
+evading the existing bad data detection algorithms. The key
+idea behind these attacks, called Undetected False Data Injection
+(UFDI) attacks, is as follows. State estimation uses
+high measurement redundancy to detect and filter bad or
+erroneous meter measurements by checking if the measurement
+residual (l2-norm of the difference between observed
+and estimated measurements) is below a certain threshold [3,
+4]. An adversary who knows the complete measurement
+model can then manipulate meter measurements to be consistent
+with the measurement model to bypass the bad data
+detection (BDD) process [2]. While the extent of model accuracy
+on attacks is analyzed in [5], it is shown in [6, 7]
+that UFDI attacks, when adversaries have perfect knowledge,
+can be defended if a strategically chosen set of measurements
+are secured. However, due to the resource constraint
+issues with legacy equipment, securing those selected
+measurements might not always be feasible. Moreover, if
+one or more secured measurements become unavailable, the
+correctness of the state estimation is again in question.
+An undetected attack on state estimation has several constraints,
+particularly in terms of an adversary's knowledge of
+the system and resources for achieving a desired attack outcome.
+The knowledge that is required to launch an attack
+mainly includes the measurements that are taken for state
+estimation, the grid topology (i.e., connectivity among the
+buses), and the admittances of the power lines [2]. Though
+partial information might still be sufficient to launch some
+attacks [5], [8], information uncertainly limits the potential
+attack space. We take advantage of this uncertainty to apply
+moving target defense (MTD) strategies for developing
+a proactive defense mechanism for state estimation.
+In this work, we propose an MTD mechanism with the
+following objectives: (i) increasing the complexity for attackers
+by introducing uncertainty, (ii) reducing the window
+of attack opportunity (i.e., the attack space) for attackers,
+and (iii) increasing the attack cost (e.g., the number of measurements
+to be compromised). In our MTD mechanism, we
+randomize the set of measurements that are considered in
+state estimation and the topology with respect to the line
+admittances. The choice of a measurement set for state estimation
+is not unconstrained. The chosen set of measurements
+should be able to observe the system, i.e., all the
+unknown states of the system can be computed uniquely
+from the measurements. We perturb the admittances of a
+selected number of lines to perturb the topology. In this approach,
+we assume that a change in the admittance of a line
+can be performed if a Distributed Flexible AC Transmission
+System (D-FACTS) device is deployed there [9]. We
+thoroughly analyze the performance of our mechanism on
+the standard IEEE 14- and 30-bus test systems [10] using a
+UFDI attack verification model which we proposed in [11].
+Our evaluation shows impressive results in securing state
+estimation from UFDI attacks by significantly reducing the
+number of potential attack vectors.
+The rest of this paper is organized as follows: In Section 2,
+we provide the necessary background. We present the MTD
+mechanism in Section 3. The evaluation results of the MTD
+mechanism is presented in Section 4. We briefly discuss the
+related work in Section 5 and conclude in Section 6.
+2.
+BACKGROUND
+Stealthy attacks on state estimation (as shown in [2], [5])
+were based on the DC (or linearized) power flow model. The
+DC model is simplistic but is popular as it is useful for preliminary
+analytical power system studies. We illustrate our
+techniques using the DC model but the strategies are equally
+applicable for the AC (non-linear) model. In fact, it is easier
+for an adversary to attack the DC model and so if we we can
+defend UFDI attacks against the DC state estimation, then
+we can expect to do better in the AC context.
+2.1
+DC Power Flow Model
+In the DC power flow model, the power balance equations
+in a power system are expressed by assuming the impedance
+of a transmission line purely in terms of its reactance [12].
+The voltage magnitudes at all buses are taken fixed at 1 per
+unit and only the phase angles are treated as the variables.
+Thus, the voltage phasor at bus i is expressed by 1∠θi. Denoting
+the admittance of the line between buses i and j by
+Yij , the real power-flow (Pij) across a transmission line is
+given by: Pij = Yij(θi − θj ). Yij is the reciprocal of the
+reactance. The power-balance constraint that equates the
+algebraic sum of powers incident at every bus to zero creates
+a linear system of equations of the form: [B][θ] = [P].
+2.2
+State Estimation and UFDI Attack
+The state estimation problem is to estimate n power system
+state variables in x = (x1, x2, · · · , xn)T based on a set
+of m (m > n) measurements z = (z1, z2, · · · , zm)T [4], according
+to the following relationship:
+z = h(x) + e
+Here, h(x) = (h1(x1, · · · , xn), · · · , hm(x1, · · · , xn))T and e
+is the vector of measurement errors. In the case of the linearized
+estimation model (i.e., the DC power flow model),
+z = Hx + e, where H = (hi,j )m×n. H is known as the
+Jacobian matrix.
+When the measurement errors are zero mean and normally
+distributed, the state estimate xˆ is calculated as:
+xˆ = (HT WH)−1HT Wz
+Here, W is a diagonal matrix whose elements are reciprocals
+of variances of the meter errors. Thus, estimated measurements
+are calculated as Hxˆ and the residual ||z − Hxˆ|| is
+used to identify bad data. The condition ||z − Hxˆ|| > τ
+implies the presence of bad data [4], τ is set using a hypothesis
+test at a significance level. UFDI attacks [2] are based
+on the idea that if the attack vector a is taken equal to Hc,
+then the residual remains unchanged, since z+a = H(xˆ+c),
+the residual ||(z + a) − H(xˆ + c)|| = ||z − Hxˆ||. The implicit
+assumption here is that the adversary has full knowledge of
+the measurement model H.
+2.3
+Attack Attributes
+The UFDI attack model can be expressed with respect to
+a number of attributes of an attacker as follows:
+• Knowledge Limitation: State estimation of a power
+system is done based on the topology of the grid and
+a number of power measurements taken on different
+lines and buses. For a successful UFDI attack, an
+attacker needs to know the connectivity among the
+buses and the electrical parameters (i.e., admittances)
+of the transmission lines [2], which is not trivial. The
+attacker also needs to know the set of measurements
+considered in state estimation.
+• Accessibility and Resource Constraints: An attacker
+usually does not have access to all of the measurements,
+when physical or remote access to substations
+is restricted or when certain measurements are
+already secured. Additionally, an adversary may be
+constrained with respect to the cost or effort to mount
+attacks on measurements vastly distributed. In such
+cases, an adversary is limited to compromising or altering
+only a limited subset of measurements or buses.
+The extent of access is limited by the attacker's resource
+limitations.
+• Attack Target: An attacker may have a specific aim
+of corrupting the estimation of a certain set of state
+targeting a specific impact on the system.
+Figure 1: The architecture of moving target defense mechanism for hardening the security of state estimation.
+2.4
+Moving Target Defense
+The idea of moving target defense (MTD) has been studied
+for a decade, especially in the field of cybersecurity [13].
+Typical information technology systems operate in a static
+environment. Configuration parameters, such as IP addresses,
+DNS names, network topology, routing entries, security policies,
+software stacks, etc. remain mostly static over relatively
+long periods of time. When a system is static, attackers
+gets enough time to know the configuration and behavior
+of the system, to understand the vulnerabilities and corresponding
+attack vectors, and finally, to launch attacks on
+the system. The same is true for cyber-physical systems like
+power grids, where the physical and cyber system are highly
+static, the operations are fixed, and the protocols are known.
+Moving target defense is the concept of controlled change
+across multiple system dimensions in order to (i) increase
+uncertainty and apparent complexity for attackers, (ii) reduce
+their opportunity space, and (iii) increase the costs of
+their probing and attack efforts [14]. Usually, MTD is not
+meant to provide perfect security. The aim of MTD is to
+enable the operations to be executed safely in a compromised
+environment, where the system is defensible rather
+than perfectly secure. The potential of moving target defense
+mechanisms lies in being able to randomize or perturb
+one or more of the UFDI attack attributes. In this work, we
+devise a moving target defense mechanism considering the
+knowledge attribute, where we add uncertainty in the information
+by changing the set of measurements and the topology
+properties (i.e., line admittances). Even though, the
+attacker may still be successful in launching UFDI attacks,
+due to the uncertainty introduced by the MTD strategy, the
+attack space reduces.
+3.
+MOVING TARGET DEFENSE AGAINST
+UFDI ATTACKS
+In this section, we discuss the strategy of our MTD mechanism
+and the corresponding formal models.
+3.1
+Moving Target Defense Strategy
+In order to increase the uncertainty of the attacker's knowledge
+about the power grid system related to state estimation,
+our MTD mechanism takes two properties of the system:
+(i) the set of measurements considered in state estimation
+and (ii) the admittances of a set of lines in the topology.
+In the following we describe the ideas behind randomizing
+these properties.
+3.1.1
+Changing the set of measurements
+In regular practice, a fixed number of measurements are
+used in the state estimation process. According to the bad
+data detection algorithms, some of the measurements can be
+ignored in the process, if they are noisy enough (i.e., bad)
+relative to rest of the measurements. An adversary needs to
+know the set of measurements used in state estimation and
+alter a group of measurements from the set that are required
+to launch a specific UFDI attack. If the attacker does not
+know the measurement set correctly, he may not be able to
+identify this group of required measurements perfectly, i.e.,
+one or more measurements can be missing in the group or
+included without necessity. Therefore, if we can randomize
+the measurement set used in state estimation by including
+a number of measurements from the unused (but possible)
+measurements, attackers knowledge about the measurement
+set becomes uncertain.
+For an example, let us consider IEEE 14 bus test system
+[10], which has 14 buses and 20 lines. With respect
+to the DC power model, it is possible to have 54 measurements
+(considering forward and backward power flows
+through transmission lines and power consumptions at buses).
+Among these possible measurements, let us assume that a
+fixed set of 30 measurements are taken (recorded and reported
+using sensors/meters) for state estimation, while the
+rest (i.e., remaining 24 potential measurements) are not.
+According to our MTD mechanism, we can take a set of 7
+measurements from the unused measurements by deploying
+measurement sensors there (if necessary). Then, from the
+total 37 measurements, we can select 30 measurements at
+random to be used in state estimation. However, the selected
+set must be capable of observe the system. Later in
+this section, we present a formal model of selecting a measurement
+set according to the observability requirement.
+3.1.2
+Perturbing line admittances
+There are distributed flexible AC transmission system (DFACTS)
+devices, which can be deployed on transmission
+lines and are capable of performing active impedance (i.e.,
+reactance) injection [15]. Leveraging this capability of DFACTS
+devices, we consider the randomization of line admittances
+in our MTD mechanism. We assume that the
+admittance of a line can only be randomized if a D-FACTS
+device is deployed there. However, there are some limitations
+of using D-FACTS devices. Changes in impedance
+have impact on the power flows, which can easily impact
+the power system operations, e.g., the optimal power flow
+of the system [3].
+In order to obtain the effect on the power flows due to
+the deliberate changes in impedance of power lines with the
+help of D-FACTS devices, a sensitivity analysis related to DFACTS
+devices is thoroughly explained in [9]. In our MTD
+mechanism, we consider a feasibility constraint in changing
+line admittances, which ensures that the secured optimal
+power flow solution [3] remains the same in spite of
+the changes in the admittances, although some of the power
+flows must change. We also need to ensure that the changes
+cannot be very trivial. Further, all the lines with D-FACTS
+devices will not be randomized always. A set of lines among
+them will be chosen every time (i.e., with respect to each
+state estimation), and only admittances of these chosen lines
+will be changed. We assume that an adversary may know the
+actual admittance (i.e., base admittance) of each of these
+lines, though he does not know the change amount, and
+thereby, the changed admittance is assumed to be unknown
+to the adversary. We also assume that when a set of line admittances
+are changed, the previously changed admittances
+are returned back to the base admittances. As a result, at a
+particular time admittances of only the selected set of lines
+are unknown to the adversary.
+Arguably power system operations personnel may not be
+willing to perturb line impedances for the exclusive purpose
+of detecting attacks. However, D-FACTS based perturbation
+of line parameters has been considered for minimization
+of power system losses and voltage control applications [9].
+In practice, such line parameter changes could be leveraged
+for detecting attacks. In the rest of the paper we illustrate
+the MTD through perturbation of line parameters as exclusively
+done for attack detection while keeping in mind that
+perturbation done for other optimization applications could
+be leveraged instead.
+3.2
+Formal Model for Strategy Selection
+In Figure 1, we show the architecture of moving target
+defense mechanism. It is a combination of two modules,
+as shown in the figure: one for the arbitrary set of measurements
+selection for state estimation and another for the
+arbitrary set of lines selection for admittance randomization.
+In this section, we present the formal designs of these two
+modules. Different notations that we use in these models
+are shown in Table 1.
+Table 1: Modeling Parameters
+Notation Definition
+b The number of buses in the grid.
+l The number of lines in the grid topology.
+fi The from-bus of line i.
+ei The to-bus of line i.
+di The admittance of line i.
+gi Whether the admittance of line i is known.
+PPijLB TThhee ppoowweerr cfloonwsutmhrpotuigohn laitnebui.s j.
+θj The state value: the voltage phase angle at bus j.
+n The number of states.
+m The number of potential measurements.
+ai If measurement i needs to be altered for the attack.
+ti Whether potential measurement i is taken.
+hi Whether the admittance of line i is perturbed.
+3.2.1
+Basic Power Model
+Consistent with the DC power flow model, the admittance
+of a branch (i.e., line) is computed purely from its reactance.
+The direction of the line is assumed based on the current
+flow direction (i.e., from a end-bus to another end-bus). We
+denote the two end-buses of line i using fi (from-bus) and
+ei (to-bus), where 1 ≤ i ≤ l, 1 ≤ fi, ei ≤ b, l is the number
+of lines, and b is the number of buses. The admittance of
+line i is denoted by di. Each row of H corresponds to a
+power equation. The first 2l rows correspond to the line
+power flow measurements, while the rest corresponds to the
+power consumption measurements. To represent a power
+equation, we define PiL to denote the power flow through line
+i, PjB to denote the power consumption by bus j, and θj to
+denote the state value, i.e., the voltage phase angle at bus j.
+Parameter ai denotes whether measurement i is required to
+be altered (by injecting false data) for the attack. We model
+incomplete information with respect to line admittance and
+use the variable gi to denote whether the attacker knows the
+admittance of line i.
+In the DC model, two measurements can be taken (i.e.,
+recorded and reported by meters) for each line: the forward
+and backward current flows. These measurements are equal
+in magnitude but the opposite in direction. For each bus,
+a measurement can be taken for the power consumption at
+the bus. Therefore, for a power system with l number of
+lines and b number of buses, there are maximally 2l + b (i.e.,
+m = 2l + b) number of potential measurements. Though a
+significantly smaller number of measurements are sufficient
+for state estimation, redundancy is provided to identify and
+filter bad data. We define ti to denote whether potential
+measurement i is taken. Each row of H corresponds to a
+power equation. The first l rows correspond to the forward
+line power flows, while the second l rows correspond to the
+backward line power flows. The power flow of line i have the
+following relation with the states of the connected buses:
+∀1≤i≤l PiL = di(θfi − θei )
+The last n rows of H correspond to the bus power consumptions.
+The power consumption at bus j is simply the
+summation of the power flows of the lines incident to this
+bus. If Lj,in and Lj,out are the sets of incoming and outgoing
+lines of bus j, respectively, then the consumption is:
+∀1≤j≤b PjB =
+PiL PiL
+i∈Lj,in
+i∈Lj,out
+(1)
+(2)
+Basically, state estimation is to find the voltage phase angle
+(θ) of each bus by solving the equations for all of the
+measurements (PiLs and PjBs).
+3.2.2
+Selection of Measurement Set
+The power system is observable, when the measurements,
+each of which represent a power equation, must solve the
+(unknown) states. Therefore, we consider Equations (1) and
+(2) as constraints. Now, if a measurement is taken, it's
+power flow or consumption measurement value assumed to
+be zero. That is:
+∀1≤i≤l (ti ∨ tl+i) → (PiL = 0)
+∀1≤j≤b t2l+j → (PjB = 0)
+If the set of taken measurements can observe the system,
+when we consider each of them as zero, all of the states must
+be the same, i.e., the difference between the states of each
+connecting pair of buses should be zero. Therefore, if the
+system is not observable with this set, then there exists at
+least a pair of buses which have different states with respect
+to each other (i.e., nonzero difference). We find whether
+a set is observable using this contradiction. We take the
+following constraint that all of the states cannot be the same:
+∃1≤j1,j2≤b,j1=j2 θj1 = θj2
+If there is no satisfiable solution to this model, then the set
+of measurements can observe the system.
+3.2.3
+Selection of Lines for Admittance Perturbation
+In the selection of the lines and corresponding changes in
+admittances, the main constraint is that the changes need to
+be done such that the optimal power flow (OPF) cost does
+not increase. Specifically, our aim is to keep the generation
+dispatch as it is, i.e., according to the existing OPF, so that
+there is a minimum impact on the system operation due to
+the topology change.
+The main constraint for OPF is that the total generation
+must be equal to the total expected load. Since we are not
+changing the demands at different buses, the required total
+generation remains the same. Now, the existing OPF
+solution can remain optimal after the admittance changes,
+if and only if the changed power flows still remain within
+associated transmission limits. Since all the power flow and
+consumption equations must hold, we consider them (i.e.,
+Equations (1) and (2)) as constraints:
+∀1≤i≤l PiL = dˆi(θfi − θei )
+∀1≤j≤b PjB =
+PiL i∈Lj,in
+i∈Lj,out
+PiL
+Here, dˆi is the changed admittance of line i, such that dˆi =
+di + Δdi, where Δdi is changes made on line i. The admittance
+of a line can be changed only if D-FACTS devices are
+deployed. Therefore, considering that a line will be chosen
+for admittance change when necessary D-FACTS facility is
+installed there, we define hi for denoting whether the line
+is chosen for admittance change. Then, the following constraint
+holds on Δdi:
+∀1≤i≤l ¬hi → (Δdi = 0)
+If there is a change in the line admittance, the change
+cannot be very small so that the change does not have any
+Figure 2: IEEE 14-bus test system.
+impact. If R is the ratio of the minimum change over the line
+admittance, then we can express this constraint as follows:
+∀1≤i≤l hi → (Δdi ≥ R × di) ∨ (Δdi ≤ −R × di)
+Each line has a capacity for the power flow, i.e., the maximum
+power that can flow through that line. Let PiL,max be
+the line capacity. Therefore:
+∀1≤i≤l PiL ≤ PiL,max
+The change of a line's admittance would be useful to hinder
+adversaries from launching an attack, if one or more
+measurements associated to this line are taken. It is worth
+mentioning that there are four measurements associated to
+a line: two (forward and backward) line flow measurements
+and two bus consumption measurements (at the end buses).
+Although the larger number of measurements is taken, the
+more benefit is supposed to be there, in this model, we consider
+the minimum case as a constraint, i.e., at least one of
+the measurements associated to the line needs to be taken:
+∀1≤i≤l hi → mi ∨ ml+i ∨ mfi ∨ mei
+The solution to this model verifies whether a given choice
+of admittance changes on a selected set of lines satisfy the
+constraints. This model can even synthesize all (or a number
+of) potential sets of lines for admittance randomization with
+changed admittance values.
+3.2.4 Impact of MTD on Attack Attributes
+The measurement set randomization: In order to launch
+a UFDI attack, i.e., changing the states of a group of buses,
+power flows through some lines and power consumptions at
+some buses are impacted (i.e., changed by ΔPiL and ΔPjB
+amounts, refer to the Appendix for the detailed formalization
+of UFDI attack constraints). The attacker needs to
+inject necessary false data to the measurements, i.e., meter
+readings associated to those power flows and consumptions.
+However, the attacker only needs to inject necessary false
+100
+) 80
+aegn
+t
+rece 60
+P
+n
+it(
+y
+ilib 40
+aack
+ttA 20
+050
+UFDI Attack Success w.r.t. Access Capability
+Without MTD Strategy
+With Measurement-based MTD- Naive
+With Measurement-based MTD- Sophisticated
+UFDI Attack Success w.r.t. Access Capability
+Without MTD Strategy
+With MTD- Naive
+With MTD- Sophisticated
+100
+) 80
+aeng
+t
+rece 60
+P
+n
+it(
+y
+ilib 40
+aack
+ttA 20
+050
+60 Access Capability (in Percentage) 90
+70 80
+(a)
+100
+60 Access Capability (in Percentage) 90
+70 80
+(b)
+100
+100
+) 80
+aegn
+t
+rece 60
+P
+n
+it(
+y
+ilib 40
+caak
+ttA 20
+050
+UFDI Attack Success w.r.t. Access Capability
+(IEEE 30 Bus Test System)
+Without MTD Strategy
+With MTD- Naive
+With MTD- Sophisticated
+60 Access Capability (in Percentage) 90
+70 80
+(c)
+100
+Figure 3: The probability of attack success in the cases of different access capabilities: (a) measurement
+based MTD strategy, (b) measurement and line admittance based MTD strategy (14-bus system), and (c)
+measurement and line admittance based MTD strategy (30-bus system).
+data to a measurement i, when it is taken. That is:
+∀1≤i≤l (ΔPiL = 0) → (ti → ai) ∧ (tl+i → al+i)
+∀1≤j≤b (ΔPjB = 0) → (t2l+j → a2l+j )
+The randomization of the set of measurements, considered
+in state estimation, make ti uncertain for the adversary.
+Perturbation of line admittances: If the admittance of
+a line is unknown to the attacker, he cannot determine the
+necessary changes that she needs to make in the power flow
+measurements of the line. The condition is formalized as:
+∀1≤i≤l (ΔP iL = 0) → ((ti ∨ tl+i) → gi)
+Moreover, when the admittance of a line is perturbed (i.e.,
+randomized), we also consider that the admittance is (now)
+unknown to the adversary, although the actual admittance
+(we call it as base admittance) of the line may be known to
+the adversary. Therefore, we take the following constraint:
+∀1≤i≤l hi → ¬gi
+4. PERFORMANCE EVALUATION
+We evaluate the performance of our proposed MTD mechanism
+with respect to successful UFDI attacks on different
+bus states. We use attackability, defined as the number of
+states which can be attacked (i.e., infected by UFDI attacks)
+over the total number of states, as the evaluation metric.
+4.1 Implementation of Formal Models
+In order to verify whether a successful UFDI attack can be
+launched against one or more targeted states, we encode the
+UFDI attack verification model [11] (see the Appendix for
+details) using satisfiability modulo theories (SMT) [16]. To
+execute the model, we use Z3, an efficient SMT solver [17].
+By executing the model, we obtain the verification result as
+either satisfiable (sat) or unsatisfiable. When the result is
+sat, it specifies that there exists an attack vector satisfying
+the constraints regarding the attack attributes.
+In order to implement a prototype of the proposed MTD
+mechanism, we again use SMT to encode the formal model
+of verifying whether a measurement set is observable (refer
+to Section 3.2.2). By solving this model using Z3, we generate
+a number of measurement sets to be used in state estimation.
+In our MTD mechanism, we randomly choose one
+among them following the uniform distribution. We also encode
+the formal model for the line admittance randomization
+that we present in Section 3.2.3. We first use the uniform
+distribution to select a subset of lines among the D-FACTS
+device deployed lines. Then, executing this model (in Z3)
+we figure out whether the admittances of these lines can be
+changed while satisfying all the necessary constraints.
+4.2
+Methodology
+We evaluate the performance of our proposed moving target
+defense mechanism by analyzing the attackability under
+different scenarios considering access capabilities, knowledge
+limitations, and security measures. We evaluate the performance
+of our proposed MTD mechanism using IEEE 14-bus
+test system (Figure 2) [10]. It is consists of 14 buses, 20
+transmission lines, and 54 possible measurements as shown
+in the figure. We also undertake evaluation using IEEE 30bus
+test system for some scenarios to show the impact of the
+system size (i.e., the number of buses) on the performance.
+In our evaluation, we mainly consider two kinds of adversaries:
+(i) naive and (ii) sophisticated. The first type
+of adversary as the name indicates is unaware of the MTD
+scheme. He believes that a fixed set of measurements is used
+in state estimation. The second type of adversary knows
+that the MTD mechanism is running at the grid operator's
+side. As a result, in order to maximize his chances of a successful
+attack, he picks an attack vector that can cover as
+many potential sets of measurements as possible within his
+resource and access limits. For both kinds of adversaries,
+we consider the same resource constraints. An adversary
+can attack 13-15 measurements at a time, while these measurements
+cannot be distributed more than 7-8 buses of the
+system. We execute each evaluation experiment for at least
+30 times and take the arithmetic average of them.
+4.3
+Evaluation Results and Discussion
+4.3.1
+Performance with respect to Accessibility
+Figure 3(a) shows the attackability, i.e., the number of
+states that can be attacked out of the total, in three different
+cases with respect to the application of the MTD (i.e.,
+defense based on our proposed MTD mechanism) and the
+adversary type. In the first case no MTD strategy is applied,
+while in the latter two cases the MTD is used but the
+100
+) 80
+aeng
+t
+rece 60
+P
+n
+it(
+y
+ilib 40
+caak
+ttA 20
+050
+100
+) 80
+aeng
+t
+rece 60
+P
+n
+it(
+y
+ilib 40
+aack
+ttA 20
+0 0
+UFDI Attack Success w.r.t. Knowledge
+(IEEE 30 Bus Test System)
+Without MTD Strategy
+With MTD- Naive
+With MTD- Sophisticated
+Know60ledge about Line Admittances (in Percentage)
+70 80 90
+(c)
+100
+UFDI Attack Success w.r.t. Knowledge
+Without MTD Strategy
+With Measurement-based MTD- Naive
+With Measurement-based MTD- Sophisticated
+UFDI Attack Success w.r.t. Knowledge
+Without MTD Strategy
+With MTD- Naive
+With MTD- Sophisticated
+Know60ledge about Line Admittances (in Percentage)
+70 80 90
+(a)
+100
+Know60ledge about Line Admittances (in Percentage)
+70 80 90
+(b)
+100
+100
+) 80
+aegn
+t
+rece 60
+P
+n
+ti(
+y
+ilib 40
+acak
+ttA 20
+050
+100
+) 80
+eagn
+t
+rece 60
+P
+n
+it(
+y
+ilib 40
+caak
+ttA 20
+100
+) 80
+aegn
+t
+rece 60
+P
+n
+it(
+y
+ilib 40
+caak
+ttA 20
+050
+100
+) 80
+aeng
+t
+rece 60
+P
+n
+it(
+y
+ilib 40
+caak
+ttA 20
+Figure 4: The attackability in the cases of different levels of knowledge about line admittances: (a) measurement
+based MTD strategy, (b) measurement and line admittance based MTD strategy (14-bus system), and
+(c) measurement and line admittance based MTD strategy (30-bus system).
+UFDI Attack Success w.r.t. Secured Measurements
+Without MTD Strategy
+With Measurement-based MTD- Naive
+With Measurement-based MTD- Sophisticated
+UFDI Attack Success w.r.t. Secured Measurements
+Without MTD Strategy
+With MTD- Naive
+With MTD- Sophisticated
+UFDI Attack Success w.r.t. Secured Measurements
+(IEEE 30 Bus Test System)
+Without MTD Strategy
+With MTD- Naive
+With MTD- Sophisticated
+0 0
+5
+10 15 20 25 30 35 40
+Secured Measurements (in Percentage)
+(a)
+0 0
+5
+10 15 20 25 30 35 40
+Secured Measurements (in Percentage)
+(b)
+5 Se1c0ured Measurements (in Percenta3g0e) 35 40
+15 20 25
+(c)
+Figure 5: The attackability in the cases of different numbers of secured measurements in different scenarios:
+(a) measurement based MTD strategy, (b) measurement and line admittance based MTD strategy (14-bus
+system), and (c) measurement and line admittance based MTD strategy (30-bus system).
+type of adversary is different. In the second case the adversary
+is naive, while in the third case he is sophisticated.
+In this set of experiments, only the MTD strategy of randomizing
+the set of measurements used for state estimation
+is applied. Here, we consider the 14-bus test system. We
+take 100 sets of 30 measurements arbitrarily chosen from 37
+(taken) measurements. We vary the accessibility, i.e., access
+capability, of the adversary in the experiments from 50% to
+100%. According to the experiment results, we observe that
+the attack success probability is always high when there is no
+MTD. In both of the cases of naive and sophisticated adversaries,
+the attackability reduces significantly. In the case of
+a sophisticated adversary, as would be expected, the attackability
+reduces less compared to a naive adversary. This is
+because the sophisticated adversary uses all of his resources
+to cover as many potential sets of measurements as possible,
+while the naive adversary only believes one particular set of
+measurements to be used in the state estimation process.
+The graphs in Figure 3(a) also show the impact of access
+capability of the adversary on the atatckability. The results
+are obvious, i.e., the lower the attacker's access capability,
+the better the performance of MTD strategy, which is able
+reduce attackability down to 5% when the access capability
+is no more than 60%.
+Figure 3(b) shows the attackability under different attack
+capabilities of the adversary as well. However, in this set
+of experiments, the MTD strategy of perturbing line admittances
+is applied along with the randomization of the
+set of measurements used for state estimation. We assume
+that D-FACTS devices are deployed on an arbitrary set of 5
+lines, while only 2 lines are chosen among them for admittance
+perturbation at each time. According to the graphs in
+Figure 3(b), we can see that the MTD mechanism shows
+improved performance when we apply both of the MTD
+strategies. This performance improvement is nearly more
+than 10% with respect to the measurement set randomization
+based MTD alone.
+In Figure 3(c), we present the performance of our proposed
+MTD mechanism in the case of the 30-bus test system
+by varying the attacker's access capability. We observe
+the similar behavior in this case as well. Note that we have
+30 states associated to 30 buses and we consider 100 sets of
+65 measurements. Each of these sets are arbitrarily chosen
+from 80 (taken) measurements.
+4.3.2 Performance with respect to Knowledge:
+We evaluate the impact of the adversary's knowledge limitation
+on the performance of the MTD. Again we consider
+the same three cases, i.e., without MTD, MTD with naive
+adversary, and MTD with sophisticated adversary. Figure
+4(a) shows the impact of knowledge limitation when
+only measurement based MTD strategy is applied (in the
+14-bus system). We observe that when the adversary has
+limited knowledge, MTD strategies perform better. However,
+the impact of knowledge limitation is significant in the
+case of the sophisticated adversary. Since a sophisticated
+adversary leverages knowledge about the system and the
+MTD strategy in order to increase his attack success, when
+the knowledge is limited to less than 80%, his attack success
+drops significantly.
+In the case of the MTD considering both randomization of
+the measurement set and perturbation of line admittances,
+we see similar behavior (see Figure 4(b) and Figure 4(c) for
+the 14- and 30-bus systems, respectively). The only difference
+is that the impact of limited knowledge is higher in this
+case. That is, the performance of the MTD increases with
+the decrease of the adversary's knowledge and this increase
+is more significant when both MTD strategies are applied.
+4.3.3
+Performance with respect to Existing Security:
+Figure 5(a) and Figure 5(b) show the impact of secured
+(i.e., data integrity protected) measurements on the performance
+of MTD in the case of the 14-bus system. Figure 5(a)
+shows the case when only measurement set randomization
+strategy is used and, and Figure 5(b) shows the case when
+both measurement set randomization and line admittance
+perturbation strategies are used. The more secured measurements
+the better is the performance of MTD strategies.
+Note that the measurements are secured arbitrarily,
+i.e., they are not secured optimally to achieve the best performance.
+Clearly the performance is better when both of
+the MTD strategies are applied, as evidenced by the graphs
+in the figures. We observe the similar behavior in the case
+of the 30-bus system (see Figure 5(c)).
+5.
+RELATED WORK
+The concept of undetected false data injection attack was
+presented in [2] for the first time, and was extended in [18].
+The authors discussed UFDI attacks considering different
+scenarios, such as limited access to meters and limited resources
+to compromise meters, under random and specific
+targets, assuming that the adversary has complete information
+about the grid. In the general case, the attack vector
+computation problem is NP-complete. Therefore, the authors
+presented few heuristic approaches that can find attack
+vectors. UFDI attacks with incomplete or partial information
+are discussed in [5, 8]. These works mathematically
+showed the impact of incomplete knowledge on the potentiality
+of UFDI attacks. Several security metrics are proposed
+in [19] to quantify the importance of individual buses
+and the cost of attacking individual measurements considering
+the vulnerability of the communication infrastructure.
+In [20], authors claimed that an l1 relaxation-based technique
+provides an exact optimal solution of the data attack
+construction problem.
+Some work has been done to defend state estimation from
+UFDI attacks. For example, Kosut et al. in [21] proposed a
+mechanism based on the generalized likelihood ratio test to
+detect UFDI attacks. Similar approach is found in [22] with
+the help of adaptive cumulative sum control chart test. Few
+other works proposed mechanisms to identify the optimal
+set of measurements to be secured to make UFDI attacks
+detectable. Bobba et al. in [6] showed that for detecting
+UFDI attacks it is necessary and sufficient to protect
+a set of basic measurements, which is actually a minimum
+set of measurements ensuring observability. Kim and Poor
+in [7] proposed a greedy suboptimal algorithm, which selects
+a subset of measurements that can be made immune
+from false data injection for the protection against UFDI attacks.
+In our recent work, we have addressed the problem of
+verifying stealthy attacks on state estimation by providing
+a comprehensive model of the attack attributes along with
+the impact of such attacks on the economic operation of the
+system [11, 23, 24]. In addition, in [24], we have devised
+a security architecture synthesis mechanism with respect to
+a given attack model and the grid operator's resource constraints.
+Since the number of measurements to be secured is
+not so small, applying the group of security measures incurs
+substantial cost, especially due to the existing legacy hybrid
+system. Therefore, a cheaper and useful defense strategy
+like moving target defense (MTD) seems to be attractive.
+MTD techniques have been presented for traditional enterprise
+networks in recent literature. Antonatos et al. proposed
+a network address space randomization scheme to offer
+an IP hopping approach that can defend against hitlist
+worms [25]. Duan et al. presented a proactive random route
+mutation technique in [26], which enables the random and
+simultaneous changes of the routes of the multiple flows in a
+network. However, to our knowledge, moving target based
+defenses haven't received as much attention in SCADA and
+other control networks. In [27], Mo and Sinopoli proposed
+perturbing the input signal to a control system in order to
+detect replay attacks. Controlled perturbation of line admittances
+to detect UFDI was proposed in [28, 29]. Line admittance
+perturbation along with parameter estimation was
+shown to enhance the detectability of UFDI attacks on nonlinear
+state estimation in [30]. In this work, we go beyond
+line admittance perturbation and propose a multipronged,
+comprehensive MTD strategy where the measurements used
+in state estimation are changed along with the line admittances
+in a controlled fashion. The proposed approach is
+novel in this domain.
+6.
+CONCLUSION
+Securing state estimation against cyber-attacks is of paramount
+importance to maintain the integrity of the electric
+power grid. One way to secure state estimation from
+stealthy attacks like undetected false data injection attack
+is by securing a strategically selected number of measurements,
+which can be beyond the capability of the stakeholders.
+Therefore, a less expensive security solution like MTD
+mechanism that we have proposed in this paper is interesting.
+In this mechanism, we have applied randomization
+on the power grid system properties, particularly the set of
+measurements that is used in state estimation and the admittances
+of a set of lines. We have presented formal models
+to find the observable sets of measurements and the lines to
+randomize admittances. We have evaluated the performance
+of our mechanism on the standard IEEE test systems and
+have presented the results. We have found that our proposed
+MTD mechanism can reduce the attackability by 50%-60%
+compared to the situation when this mechanism is not applied.
+While a linear power system model with no losses was
+used here, a future direction of this work would be to extend
+the current solution to account for losses and eventually deal
+with the inherent nonlinearity in power systems.
+7.
+ACKNOWLEDGMENTS
+This research was supported in part by National Science
+Foundation under Grant No. CNS-1352238. Any opinions,
+findings, conclusions or recommendations stated in this material
+are those of the authors and do not necessarily reflect
+the views of the funding sources.
+8. REFERENCES
+[1] D. Kundur, X. Feng, S. Liu, T. Zourntos, and
+K. Butler-Purry. Towards a framework for cyber
+attack impact analysis of the electric smart grid. In
+IEEE International Conference on Smart Grid
+Communications (SmartGridComm), October 2010.
+[2] Yao Liu, Peng Ning, and Michael K. Reiter. False data
+injection attacks against state estimation in electric
+power grids. In ACM Conference on Computer and
+Communications Security (CCS), pages 21-32, 2009.
+[3] A. Monticelli. State estimation in electric power
+systems: a generalized approach. Kluwer Academic
+Publishers, Norwell, MA, 1999.
+[4] A. Abur and A. G. Exposito. Power System State
+Estimation : Theory and Implementation. CRC Press,
+New York, NY, 2004.
+[5] A. Teixeira, S. Amin, H. Sandberg, K.H. Johansson,
+and S.S. Sastry. Cyber security analysis of state
+estimators in electric power systems. In IEEE
+Conference on Decision and Control (CDC), 2010.
+[6] R. B. Bobba et al. Detecting false data injection
+attacks on dc state estimation. In IEEE Workshop on
+Secure Control Systems, CPS Week, Apr 2010.
+[7] T.T. Kim and H.V. Poor. Strategic protection against
+data injection attacks on power grids. IEEE
+Transactions on Smart Grid, 2(2):326 -333, Jun 2011.
+[8] M. Ashfaqur Rahman and Hamed Mohsenian-Rad.
+False data injection attacks with incomplete
+information against smart power grids. In IEEE
+Conference on Global Communications
+(GLOBECOM), Dec 2012.
+[9] K.M. Rogers and T.J. Overbye. Some applications of
+distributed flexible ac transmission system (d-facts)
+devices in power systems. In North American Power
+Symposium (NAPS), pages 1-8, 2008.
+[10] Power systems test case archive.
+http://www.ee.washington.edu/research/pstca/.
+[11] Mohammad Ashiqur Rahman, Ehab Al-Shaer, and
+M. Ashfaqur Rahman. A formal model for verifying
+stealthy attacks on state estimation in power grids. In
+IEEE International Conference on Smart Grid
+Communications (SmartGridComm), October 2013.
+[12] Allen J. Wood and Bruce F. Wollenberg. Power
+Generation, Operation, and Control, 2nd Edition.
+Wiley, 1996.
+[13] Sushil Jajodia, Anup K. Ghosh, Vipin Swarup, Cliff
+Wang, and Xiaoyang Sean Wang, editors. Moving
+target defense- creating asymmetric uncertainty for
+cyber threats, volume 54 of Advances in Information
+Security. Springer, 2011.
+[14] Moving target defense (mtd). Cyber Security, R & D
+Center, U.S. Homeland Security, 2011. http:
+//www.cyber.st.dhs.gov/moving-target-defense/.
+[15] D. Divan and H. Johal. Distributed facts - a new
+concept for realizing grid power flow control. In Power
+Electronics Specialists Conference, 2005. PESC '05.
+IEEE 36th, pages 8-14, June 2005.
+[16] L. de Moura and N. Bjorner. Z3: An efficient smt
+solver. In International Conference on Tools and
+Algorithms for the Construction and Analysis of
+Systems, pages 337-340, 2008.
+[17] Z3: An efficient smt solver. In Microsoft Research.
+http://research.microsoft.com/enus/um/redmond/projects/z3/.
+[18] Yao Liu, Peng Ning, and Michael K. Reiter. False data
+injection attacks against state estimation in electric
+power grids. ACM Transactions on Information and
+System Security, 14(1):13:1-13:33, Jun 2011.
+[19] O. Vukovic, Kin Cheong Sou, G. Dan, and
+H. Sandberg. Network-layer protection schemes
+against stealth attacks on state estimators in power
+systems. In IEEE International Conference on Smart
+Grid Communications (SmartGridComm), October
+2011.
+[20] Kin Cheong Sou, H. Sandberg, and K.H. Johansson.
+On the exact solution to a smart grid cyber-security
+analysis problem. IEEE Transactions on Smart Grid,
+4(2):856-865, 2013.
+[21] O. Kosut, L. Jia, R. J. Thomas, and L. Tong. On
+malicious data attacks on power system state
+estimation. In International Universities Power
+Engineering Conference, August 2010.
+[22] Yi Huang, Husheng Li, K.A. Campbell, and Zhu Han.
+Defending false data injection attack on smart grid
+network using adaptive cusum test. In Annual
+Conference on Information Sciences and Systems
+(CISS), March 2011.
+[23] M. Ashiqur Rahman, E. Al-Shaer, and R. Kavasseri.
+A formal model for verifying the impact of stealthy
+attacks on optimal power flow in power grids. In
+ACM/IEEE International Conference on
+Cyber-Physical Systems (ICCPS), CPS Week,, April
+2014.
+[24] M. Ashiqur Rahman, E. Al-Shaer, and R. Kavasseri.
+Security threat analytics and countermeasure
+synthesis for state estimation in smart power grids. In
+IEEE/IFIP International Conference on Dependable
+Systems and Networks (DSN), June 2014.
+[25] S. Antonatos, P. Akritidis, E. P. Markatos, and K. G.
+Anagnostakis. Defending against hitlist worms using
+network address space randomization. Journal of
+Computer and Telecommunications Networking,
+51(12):3471-3490, August 2007.
+[26] Qi Duan, Ehab Al-Shaer, and Jafar Haadi Jafarian.
+Efficient random route mutation considering flow and
+network constraints. In IEEE Conference on
+Communications and Network Security, October 2013.
+[27] Yilin Mo and Bruno Sinopoli. Secure control against
+replay attacks. Annual Allerton Conf. on
+Communication Control and Computing, pages
+911-918, 2009.
+[28] Kate L Morrow et al. Topology perturbation for
+detecting malicious data injection. In System Science
+(HICSS), 2012 45th Hawaii International Conference
+on, 2012.
+[29] Katherine R Davis et al. Power flow cyber attacks and
+perturbation-based defense. In IEEE International
+Conference on Smart Grid Communications
+(SmartGridComm), 2012.
+[30] William Niemira et al. Malicious data detection in
+state estimation leveraging system losses & estimation
+of perturbed parameters. In IEEE International
+Conference on Smart Grid Communications
+(SmartGridComm), 2013.
+APPENDIX
+A.
+FORMAL MODEL OF UFDI ATTACKS
+We utilize the formal model of verifying UFDI attacks, as
+described in our previous work [11, 24], for evaluating the
+efficacy of our proposed MTD mechanism. Here, we briefly
+describe this verification model for readers' convenience.
+We define cj to denote whether state j (1 ≤ j ≤ n) is affected
+(i.e., changed to an incorrect value) due to false data
+injection. Note that, in the DC model, each state corresponds
+to a bus. Thus, n is equal to b. The attacker may
+not be able to alter a measurement due to inaccessibility or
+existing security measures. We define ri to denote whether
+measurement i is accessible to the attacker. We also define
+si to denote whether the measurement is secured or not.
+A.1
+Formalization of Attacks on States
+The attack on state j specifies that the voltage phase angle
+at bus j is changed. This condition is formalized as follows:
+∀1≤j≤n cj → (Δθj = 0)
+From Equation (1), it is obvious that a change of PiL is
+required based on the changes on state fi (θfi ) and/or state
+ei (θei ). If in the case of false data injection, PiL, θfi , and
+θei are changed to P iL, θ fi , and θ ei , then Equation (1)
+turns into the following:
+P iL = di(θ fi − θ ei )
+The subtraction of Equation (1) from the above equation
+represents whether there are changes in the measurements
+and the states. The resultant equation will be as follows:
+ΔP iL = di(Δθfi − Δθei )
+In this equation, ΔP iL = P iL − PiL, Δθfi = θ fi − θfi , and
+Δθei = θ ei − θei . If Δθfi = 0 (Δθei = 0), then it is obvious
+that state xfi (xei ) is changed (i.e., attacked). Similarly,
+we have the following equation that indicates whether a bus
+power consumption measurement is required to change:
+∀1≤j≤b ΔPjB =
+ΔP iL ΔP
+iL
+i∈Lj,in
+i∈Lj,out
+A.2
+Formalization of False Data Injection
+In order to launch an attack, the attacker must alter a set
+of measurements, which depends on the changes that are
+required to made on different power flows or consumptions.
+When ΔP iL = 0, then it specifies that measurements i and
+l + i (i.e., forward and backward power flow measurements
+corresponding to line i), when they are taken (i.e., ti and
+tl+i), are required to be changed. Similarly, the power consumption
+measurement at bus j is required to change when
+ΔP jB = 0. These are formalized as follows:
+∀1≤i≤l (ΔPiL = 0) → (ti → ai) ∧ (tl+i → al+i)
+∀1≤j≤b (ΔPjB = 0) → (t2l+j → a2l+j )
+Conversely, measurement i is altered, only if it is taken
+and corresponding power measurement is changed. The constraint
+is formalized as follows:
+∀1≤i≤l ai → ti ∧ (ΔPiL = 0)
+∀1≤i≤l al+i → tl+i ∧ (ΔPiL = 0)
+∀1≤j≤b a2l+j → t2l+j ∧ (ΔPjB = 0)
+A.3
+Formalization of Attack Attributes
+Limited Information. If the admittance of a line is unknown
+to the attacker, then she cannot determine the necessary
+changes that she needs to make in the measurements
+associated to the line. We formalize this condition as follows:
+∀1≤i≤l (ΔP iL = 0) → ((ti ∨ tl+i ∨ tfi ∨ tei ) → gi)
+Moreover, when the admittance of a line is perturbed (i.e.,
+randomized), we consider that the admittance is unknown
+to the adversary, although the actual admittance (we call
+it as the base admittance) of the line may be known to the
+adversary. The reason is that the changed amount is not
+known to the adversary. The following constraint addresses
+this point:
+∀1≤i≤l hi → ¬gi
+Limited Capabilities. If a measurement is data integrity
+secured, then though the attacker may have the ability to
+inject false data to the measurement, the false data injection
+will not be successful. Hence, the attacker will only be able
+to change measurement i in order to attack, if the following
+condition holds:
+∀1≤i≤m ai → ri ∧ ¬si
+Limited Resources. The typical resource limitation specifies
+that, at a particular time, the attacker can inject false
+data to TCZ number of measurements, at the maximum:
+1≤i≤m
+ai ≤ TCZ
+There can be a similar resource constraint with respect
+to the number of buses that need to be accessed in order
+to inject false data to the measurements residing at those
+buses. The following conditions identify the buses which
+need to be accessed:
+∀1≤i≤l (ai → ufi ) ∧ (al+i → uei )
+∀1≤j≤b a2l+j → uj
+Let TCB be the maximum number of substations that the
+attacker can compromise simultaneously. Then:
+1≤j≤b
+uj ≤ TCB
+Specific Targets. The attacker most often has a target
+of attacking a selected set of states. However, the attacker
+usually has no specification on the rest of the states. That is,
+an unspecified state might be attacked or not. If the target
+is to attack states 3, 5, and 6, then it is specified as follows:
+c3 ∧ c5 ∧ c6

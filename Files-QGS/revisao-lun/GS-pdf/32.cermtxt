@@ -1,0 +1,1560 @@
+1454
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 59, NO. 6, JUNE 2014
+Secure Estimation and Control for Cyber-Physical
+Systems Under Adversarial Attacks
+Hamza Fawzi, Paulo Tabuada, Senior Member, IEEE, and Suhas Diggavi, Fellow, IEEE
+Abstract-The vast majority of today's critical infrastructure
+is supported by numerous feedback control loops and an attack
+on these control loops can have disastrous consequences. This
+is a major concern since modern control systems are becoming
+large and decentralized and thus more vulnerable to attacks.
+This paper is concerned with the estimation and control of linear
+systems when some of the sensors or actuators are corrupted by an
+attacker. We give a new simple characterization of the maximum
+number of attacks that can be detected and corrected as a function
+of the pair (A, C) of the system and we show in particular that
+it is impossible to accurately reconstruct the state of a system if
+more than half the sensors are attacked. In addition, we show
+how the design of a secure local control loop can improve the
+resilience of the system. When the number of attacks is smaller
+than a threshold, we propose an efficient algorithm inspired from
+techniques in compressed sensing to estimate the state of the
+plant despite attacks. We give a theoretical characterization of
+the performance of this algorithm and we show on numerical
+simulations that the method is promising and allows to reconstruct
+the state accurately despite attacks. Finally, we consider
+the problem of designing output-feedback controllers that stabilize
+the system despite sensor attacks. We show that a principle of
+separation between estimation and control holds and that the
+design of resilient output feedback controllers can be reduced to
+the design of resilient state estimators.
+Index Terms- Algorithm, feedback controller.
+I. INTRODUCTION
+T where in order to sustain the normal operation of many of
+ODAY'S large-scale control systems are present everythe
+critical processes that we rely on. Example of such systems
+include chemical processes, the power grid, water distribution
+networks and many more.
+In a typical control system one can identify different components
+including the actuators, the sensors and the controllers.
+These different components need to communicate with each
+other: for example the sensors communicate their measurements
+to the controllers, the controllers use this information to
+Manuscript received May 22, 2012; revised February 14, 2013, June 29,
+2013, and January 06, 2014; accepted January 12, 2014. Date of publication
+January 28, 2014; date of current version May 20, 2014. This work was
+supported by the National Science Foundation 1136174. Recommended by
+Associate Editor C. Hadjicostis.
+H. Fawzi is with the Laboratory for Information and Decision Systems,
+Department of Electrical Engineering and Computer Science, Massachusetts
+Institute of Technology, Cambridge, MA 02139 USA (e-mail: hfawzi@
+mit.edu).
+P. Tabuada and S. Diggavi are with the Department of Electrical Engineering,
+University of California at Los Angeles, Los Angeles, CA 90095 USA (e-mail:
+tabuada@ee.ucla.edu; suhas@ee.ucla.edu).
+Color versions of one or more of the figures in this paper are available online
+at http://ieeexplore.ieee.org.
+Digital Object Identifier 10.1109/TAC.2014.2303233
+compute the control input, and the control input is then sent to
+the actuators so that it can be physically implemented. In order
+for this communication to take place, a communication network
+is usually deployed across the plant to be controlled. Although
+wired networks have been traditionally used for this purpose,
+an increasing number of control systems now use wireless
+networks since they are easier to deploy and to maintain. In addition,
+these networks are sometimes connected to the corporate
+intranet, and in some cases even to the Internet. Consequently,
+modern control systems are becoming more open to the cyberworld,
+and as such, are more vulnerable to attacks that can cause
+faults and failures in the physical process even though launched
+in the cyber-domain. This realization led to the emergence of
+new security challenges that are distinct from traditional cyber
+security as highlighted in [1], [2].
+Real-world attacks on control systems have in fact occurred
+in the past decade and have in some cases caused significant
+damage to the targeted physical processes. Perhaps one of
+the most popular examples is the attack on Maroochy Shire
+Council's sewage control system in Queensland, Australia that
+happened in January 2000 [3], [4]. In this incident, an attacker
+managed to hack into some controllers that activate and
+deactivate valves and, by doing so, caused flooding of the
+grounds of a hotel, a park, and a river with a million liters
+of sewage [3]. Another well publicized example of an attack
+launched on physical systems is the very recent StuxNet virus
+that targeted Siemens' supervisory control and data acquisition
+systems which are used in many industrial processes [5]. Other
+cases of attacks have been reported in the past years, and we
+refer the reader to [3] for more real-world examples.
+These examples indicate the clear need for strategies and
+mechanisms to identify and deal with attacks on control
+systems.
+Previous Work Related to Security for Control Systems: The
+design of control and estimation algorithms that are resilient
+against faults and failures is certainly not a new problem. In
+fault-detection and identification [6], [7] the objective is to
+detect if one or more of the components of a system has failed.
+Traditionally, this is done by comparing the measurements
+of the sensors with an analytical model of the system and
+by forming the so-called residual signal (in some cases, the
+residual signal actually corresponds to the output of some
+specifically designed LTI system whose inputs are the sensor
+measurements [6]). This residual signal is then analyzed (e.g.,
+using signal processing techniques) in order to determine if
+a fault has occurred. In such algorithms however, there is in
+general one residual signal per failure mode. As we will see
+later, in our problem formulation the number of failure modes
+0018-9286 © 2014 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+FAWZI et al.: SECURE ESTIMATION AND CONTROL FOR CYBER-PHYSICAL SYSTEMS UNDER ADVERSARIAL ATTACKS
+1455
+can be very large and one cannot afford to generate and analyze
+a residual signal for each possible failure mode. In another
+area, namely robust control [8], one seeks to design control
+methods that are robust against disturbances in the model.
+In general however, these disturbances are treated as natural
+disturbances to the system and are assumed to be bounded. This
+does not apply in the context of security since the disturbances
+will typically be adversarial and therefore cannot be assumed
+bounded. This is the case also in the area of stochastic control
+and estimation, where the disturbances are assumed to follow
+a certain probabilistic model, which we cannot adopt for our
+problem.
+Since these assumptions are not justifiable in the context of
+adversarial attacks, there has been a recent increase in control
+systems security research [9]-[15]. In [9], the authors consider
+the problem of control and estimation in a networked system
+when the communication links are subject to disturbances.
+The disturbances (corresponding to packet losses) are however
+assumed to follow a certain stochastic process (typically
+a Bernoulli process) which does not necessarily capture the
+behavior of an attacker. In [10] the authors consider a more
+intelligent jammer who plans his attacks in order to maximize
+a certain cost, while the objective of the controller is to
+minimize this same cost. The authors showed the existence of
+saddle-point equilibrium for this dynamic zero-sum game and
+derived the optimal jamming strategy for a particular instance
+of the problem. The results are however derived in the case of
+one-dimensional systems only, which is a main limitation of
+this work. In [11], [12] the authors study the fundamental
+limitations of attack detection and identification methods for
+linear systems, and for the particular case of power networks.
+They provide graph-theoretic characterization of the vulnerability
+of such systems to attacks, and furthermore they propose
+centralized and decentralized filters to detect and identify attacks
+when possible. These filters are however computationally
+expensive and are in general difficult to implement. Another
+related problem that received attention recently is the problem
+of reaching consensus in the presence of malicious agents [14].
+The authors characterize the number of infected nodes that can
+be tolerated and propose a way to overcome the effect of the
+malicious agents when possible. However one particularity of
+these works is that the dynamics is part of the algorithm and
+can be specifically designed, rather than being given as in a
+physical system.
+Finally, there has also been recent work in the area of real
+error-correction over adversarial channels, e.g., [16], where
+adversarial noise could be unbounded. However the dynamics
+of the system does not generally play a role and the correction
+capability is studied in a static setting that does not take
+advantage of the dynamics of the system. Furthermore, in these
+works, the error protection mechanism can be designed by
+suitably choosing the coding matrix, whereas in our case, the
+plant dynamics is given to us.
+Contributions and Organization of the Paper: This paper
+deals with theoretical as well as algorithmic aspects of estimation
+and control of linear plants subject to attacks. On the
+theoretical side we give a new characterization of the maximum
+resilience of a system to attacks and we prove new results
+concerning the separation of estimation and control, and the
+possibility of increasing the resilience of a system by secure
+local feedback. On the algorithmic side we adopt a novel point
+of view inspired from error-correction over the reals [16] which
+allows us to propose a new estimation algorithm that is robust
+against the attacks and that is also computationally efficient,
+unlike most of the previously proposed approaches which suffer
+from combinatorial explosion [10], [14], [17].
+The paper is organized into two main parts:
+1) The first part (Section III) deals with the estimation problem
+in the presence of attacks. We focus on sensor attacks
+where the results are especially nice and simple to state
+and we identify some of the fundamental limitations to
+estimate the state under attacks. We give in Proposition 2
+a new simple characterization of the maximum number
+of sensor attacks that can be corrected as a function of the
+pair (A, C). This proposition shows in particular that it
+is impossible to reconstruct the state whenever more than
+half of the sensors are attacked.
+We then characterize how secure feedback can be
+used to improve resilience against attacks. Proposition 4,
+shows that we can design controllers that improve the
+resiliency against attacks provided that these controllers
+are not subject to attacks.
+Lastly, on the algorithmic side, we propose a specific
+state reconstructor resilient to attacks that is inspired
+from techniques used in compressed sensing and error
+correction over the reals [16]. We analyze this algorithm
+rigorously and we characterize the maximum number of
+attacks it can correct for a given system (Proposition 6).
+We demonstrate on numerical examples that the proposed
+algorithm is promising and could potentially be used in
+real-world applications.
+2) In the second part of the paper (Section IV), we deal
+with the problem of control with output feedback in the
+presence of attacks on sensors. Our main result in this
+part is to show that a principle of separation of estimation
+and control holds and that the design of resilient output
+feedback controllers can be reduced to the design of
+resilient state estimators. More precisely, we show that
+if one can design an output-feedback law that stabilizes
+the system despite attacks on sensors, then the state can
+also be estimated in the presence of these attacks.
+Preliminary versions of the results appeared in the conference
+papers [18], [19] as well as in the Master's thesis of the
+first author [20].
+II. FORMAL SETTING AND NOTATIONS
+The Formal Setting: Consider the linear control system
+given by the equations
+x(t+1) = Ax(t) + B
+U (t) y(0), . . . , y(t)
++ w(t)
+y(t) = Cx(t) + e(t).
+(1)
+Here x(t) ∈ Rn represents the state of the system at time
+t ∈ N, and y(t) ∈ Rp is the output of the sensors at time t.
+The control input applied at time t depends on the past
+1456
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 59, NO. 6, JUNE 2014
+measurements (y(τ))0≤τ≤t through the output feedback map
+U (t). The vector e(t) ∈ Rp represents the attacks injected by
+the attacker in the different sensors, and the vector w(t) ∈ Rm
+represents the attacks injected in the actuators. Note that if
+sensor i ∈ {1, . . . , p} is not attacked then necessarily ei(t) = 0
+and the output yi(t) of sensor i is not corrupted, otherwise ei(t)
+(and therefore yi(t)) can take any value. The sparsity pattern of
+the attack e(t) therefore indicates the set of attacked sensors.
+The same observation holds for the attacks on actuators w(t).
+Note that from a practical point of view, an attack on a
+sensor could either be interpreted as an attack on the node
+itself (making it transmit an incorrect signal), or it could also
+be interpreted as an attack on the communication link between
+the sensor and the receiver device. Similarly an attack on an
+actuator could either be interpreted as an attack on the actuator
+itself, or on the communication link from the controller to
+the actuator. Throughout the paper, we will be talking about
+“attacked nodes” but we will keep in mind that the second interpretation
+(attack on the communication link) is also possible. In
+Section III-B we will actually look at a scenario where it is the
+communication links that are compromised and not the nodes
+themselves.
+We will assume in this paper that the set of attacked nodes
+does not change over time. More precisely, if K ⊂ {1, . . . , p}
+is the set of attacked sensors and L ⊂ {1, . . . , m} the set of
+attacked actuators, then we have for all t, supp(e(t)) ⊂ K and
+supp(w(t)) ⊂ L (where supp(x) denotes the support of x, i.e.,
+the indices of the nonzero components of x). Note that this is
+a valid and realistic assumption when the time it takes for the
+malicious agent to gain control of a node is large compared to
+the time scale of the estimation algorithm. Furthermore observe
+that a model where the set of attacked nodes is allowed to
+change at every time step while having a fixed cardinality would
+in turn not be very realistic since it would assume that the
+attacker abandons from t to t + 1 some of the nodes he had
+control over. For these reasons, we will assume for our model
+that the sets K and L of attacked sensors and actuators is
+constant over time (and, of course, unknown).
+Moreover, since we are dealing with a malicious agent, we
+will not assume the attacks ei(t) or w(t) (for an attacked sensor i
+j
+or actuator j) to follow any particular model and we will simply
+take them to be arbitrary real numbers. The only assumption
+concerning the malicious agent will be about the number of
+nodes that were attacked. Our statements will then typically
+characterize the number of attacks that can be tolerated in order
+to correctly estimate/control the plant.
+Notations: We use the following notations throughout the
+paper. If S is a set, we denote by |S| the cardinality of S and by
+Sc the complement of S. For a vector x ∈ Rn, the support of x,
+denoted by supp(x), is the set of nonzero components of x and
+the 0 norm of x is the number of nonzero components of x
+supp(x) = {i ∈ {1, . . . , n} | xi = 0}
+x 0 = |supp(x)| .
+Also, if K ⊂ {1, . . . , n}, we let PK be the projection map onto
+the components of K (PK x is a vector with |K| components,
+e.g., if K = {3, 5} then PK x = (x3, x5)).
+For a matrix M ∈ Rm×n we denote by Mi ∈ Rn the i'th row
+of M , for i ∈ {1, . . . , m}. We define the row support of M to
+be the set of nonzero rows of M and we denote by M 0 the
+cardinality of the row support of M
+rowsupp(M ) = {i ∈ {1, . . . , m} | Mi = 0}
+M 0 = |rowsupp(M )| .
+III. ESTIMATION PROBLEM
+In this section we deal with the problem of estimating the
+state of a linear dynamical system in the presence of attacks.
+Throughout the main part of this section we will assume that
+attacks only occur on the sensors (i.e., no attacks on actuators)
+for ease of exposition. At the end of the section though we show
+how to extend the results to the case where there are also attacks
+on the actuators.
+We consider in this section linear dynamical systems of the
+form
+x(t+1) = Ax(t)
+y(t) = Cx(t) + e(t).
+(2)
+As mentioned before, e(t) ∈ Rp are the attack vectors injected
+by the malicious agent in the sensors. For simplicity we have
+also discarded the control input BU (t)(y(0), . . . , y(t)) since it
+does not affect the results in this section. Indeed the results
+presented here hold for any linear affine system where the
+state evolves according to x(t+1) = Ax(t) + v(t) where v(t) is
+a known input (for more details on this, see Section IV-A).
+The problem that we consider in this section is to reconstruct
+the initial state x(0) of the plant from the corrupted
+observations (y(t))t=0,...,T −1. Note that since the matrix A is
+known, the problem of reconstructing the current state x(t)
+or the initial state x(0) are-at least theoretically, when A is
+invertible-equivalent. Therefore, there is no loss of generality
+in focusing on the reconstruction of x(0) instead of the current
+state x(T −1).
+A. Error Correction and Number of Correctable Attacks
+Let x(0) ∈ Rn be the initial state of the plant and let
+y(0), . . . , y(T −1) ∈ Rp be the first T measurements that are
+transmitted from the sensors to the receiver device. The objective
+of the receiver device is to reconstruct the initial state x(0)
+from these measurements. These vectors are given by
+y(t) = CAtx(0) + e(t)
+where e(t) represent the error vector (i.e., the attack vector)
+injected by the attacker (throughout the paper we will use the
+terms “error vector” and “attack vector” interchangeably to
+designate the vector e(t) injected by the attacker; the term “error
+vector” emphasizes the error-correction perspective we adopt in
+this paper). Recall that supp(e(t)) ⊂ K with K ⊂ {1, . . . , p}
+being the set of sensors that are attacked and whose data is
+unreliable.
+Having received the T vectors y(0), . . . , y(T −1), the receiver
+uses a decoder D : (Rp)T → Rn in order to estimate the initial
+FAWZI et al.: SECURE ESTIMATION AND CONTROL FOR CYBER-PHYSICAL SYSTEMS UNDER ADVERSARIAL ATTACKS
+1457
+state x(0) of the plant. The decoder correctly estimates the
+initial state if D(y(0), . . . , y(T −1)) = x(0).
+We say that the decoder D corrects q errors if it correctly recovers
+the initial state x(0) for any set K of attacked sensors of
+cardinality less than or equal to q. More formally we introduce
+the following definition:
+Definition 1: We say that q errors are correctable after T
+steps by the decoder D : (Rp)T → Rn if for any x(0) ∈ Rn,
+any K ⊂ {1, . . . , p} with |K| ≤ q, and any sequence of vectors
+e(0), . . . , e(T −1) in Rp such that supp(e(t)) ⊂ K, we have
+D(y(0), . . . , y(T −1)) = x(0) where y(t) = CAtx(0) + e(t) for
+t = 0, . . . , T − 1.
+Furthermore, we say that q errors are correctable after T steps
+(or, equivalently, that the system is resilient against q attacks
+after T steps) if there exists a decoder that can correct q errors
+after T steps.
+The definition above can be related to the notion of strong
+observability for linear systems [14], [21]. Indeed, our definition
+can be formulated in terms of strong observability of
+the systems (A, B = 0, C, DK ) where D = Ip is the identity
+matrix, and DK is the restriction of the matrix D to the columns
+in K. In fact one can verify that: q errors are correctable if and
+only if the systems (A, 0, C, DK ) are strongly observable for
+all K ⊂ {1, . . . , p} with |K| ≤ 2q.
+Let Eq,T denote the set of error vectors (e(0), . . . , e(T −1)) ∈
+(Rp)T that satisfy ∀t ∈ {0, . . . , T − 1}, supp(e(t)) ⊂ K for
+some K ⊂ {1, . . . , p} with |K| ≤ q. Note that Eq,T is a union
+of p subspaces in (Rp)T .
+q
+1) Characterization of the Number of Correctable Errors:
+Observe that, by definition 1, the existence of a decoder that
+can correct q errors is equivalent to saying that the following
+map:
+Rn × Eq,T → (Rp)T
+x(0), e(0), . . . , e(T −1)
+→
+y(0), . . . , y(T −1)
+=
+Cx(0) + e(0), . . . ,
+CAT −1x(0) + e(T −1)
+(3)
+is invertible, or, more precisely, that it has an inverse for the first
+n components of its domain (we are only interested in the state
+x(0), and not necessarily the error vectors).1 Thus expressing
+injectivity of this map is equivalent to saying that q errors are
+correctable. This gives the following proposition:
+Proposition 1: Let T ∈ N \ {0}. The following are
+equivalent:
+(i) There is no decoder that can correct q errors after T steps;
+(ii) There exists xa, xb ∈ Rn with xa = xb, and error vectors
+(e(a0), . . . , e(aT −1)) ∈ Eq,T and (e(b0), . . . , e(bT −1)) ∈
+Eq,T such that Atxa + e(at) = Atxb + e(t) for all t ∈
+b
+{0, . . . , T − 1}.
+1These two conditions-the existence of an inverse and the existence of an
+inverse to recover just the first n components-are actually equivalent since the
+attack vectors are uniquely determined by x(0) and the y(t)'s and are given by
+e(t) = y(t) − CAtx(0).
+The proposition above simply says that it is not possible to
+unambiguously recover the state x(0) if there are two distinct
+values xa and xb with xa = xb that can, with less than q
+corrupted sensors, explain the received data.
+Note that the domain of the map defined in (3) is the
+Cartesian product of the whole Rn with the error set Eq,T
+which is unbounded. This means that we require the decoder to
+recover any initial state x(0) for any sequence of error vectors
+from Eq,T . In practice however one could consider only vectors
+x(0) in some set Ω ⊂ Rn if one has prior knowledge on the
+initial state (for example, if the states are all nonnegative, say
+for physical reasons, then one could take Ω = Rn+). Similarly,
+if the attacker has a finite amount of energy then we could
+envisage considering only elements of Eq,T in a certain ball
+of finite radius. We do not however pursue this here, and we
+assume in particular that the initial state of the plant can be
+anywhere in Rn and that the magnitude of the errors can be
+arbitrary.
+We now give a necessary and sufficient condition for q errors
+to be correctable that is simpler than the one in proposition 1.
+Proposition 2: Let T ∈ N \ {0}. The following are
+equivalent:
+(i) There is a decoder that can correct q errors after T steps;
+(ii) For all z ∈ Rn \ {0}, |supp(Cz) ∪ supp(CAz) ∪ · · · ∪
+supp(CAT −1z)| > 2q.
+Proof: (i) ⇒ (ii): Suppose for the sake of contradiction
+that there exists z ∈ Rn \ {0} such that |supp(Cz) ∪
+supp(CAz) ∪ · · · ∪ supp(CAT −1z)| ≤ 2q. Let La and Lb be
+two disjoint subsets of {1, . . . , p} with |La| ≤ q and |Lb| ≤ q
+such that La ∪ Lb = supp(Cz) ∪ · · · ∪ supp(CAT −1z) (such
+La and Lb exist since |supp(Cz) ∪ supp(CAz) ∪ · · · ∪
+supp(CAT −1z)| ≤ 2q). Let e(at) = CAtz|La be the vector obtained
+from CAtz by setting all the components outside of
+La to 0, and similarly let e(t) = −CAtz|Lb . Then we have
+b
+CAtz = e(at) − e(bt) with supp(e(at)) ⊂ La and supp(e(bt)) ⊂ Lb
+with |La| ≤ q and |Lb| ≤ q. Now let, for t ∈ {0, . . . , T 1},
+y(t) = CAtz + e(t) = CAt · 0 + e(at). If q errors were corb
+rectable after T steps by some decoder D then we would
+have D(y(0), . . . , y(T −1)) = z and also D(y(0), . . . , y(T −1)) =
+0 which is impossible since z = 0.
+(ii) ⇒ (i): We again resort to contradiction. Suppose that
+q errors are not correctable after T steps: this means there
+(0), . . . , e(aT −1) (supported
+exists xa = xb, and error vectors ea
+on La with |La| ≤ q) and e(b0), . . . , e(bT −1) (supported on Lb,
+with |Lb| ≤ q) such that CAtxa + e(at) = CAtxb + e(t) for all
+b
+t ∈ {0, . . . , T − 1}. Now let z = xa − xb = 0. If we let L =
+La ∪ Lb, then we have |L| ≤ 2q, and we have for all t ∈
+{0, . . . , T − 1}, supp(CAtz) ⊂ L which shows that (ii) does
+not hold.
+It is interesting to note the connection of the proposition
+above with the definition of a q-error-correcting linear code
+in the context of coding over the real numbers. A matrix C ∈
+Rp×n (with p > n) defines a q-error-correcting linear code if for
+any z = 0, |supp(Cz)| > 2q (see for example [22, §3]). This is
+precisely the condition we obtain from the previous proposition
+when T = 1 or when there is no dynamics.
+1458
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 59, NO. 6, JUNE 2014
+It is also interesting to observe that the proposition above
+shows that one cannot recover the initial state x(0) until the
+observability matrix given by
+⎡
+⎢⎢
+⎣
+C
+CA
+.
+.
+.
+CAT −1
+⎤
+⎥⎥
+⎦
+has rank n. Indeed, if the observability matrix has rank smaller
+than n then it has a nontrivial kernel and there exists z = 0
+such that Cz = CAz = · · · = CAT −1z = 0. This shows, by
+the above proposition, that “0 errors cannot be corrected”, or
+in other words, that one cannot reconstruct x(0) even if there
+are no errors in the y(0), . . . , y(T −1).
+Observe also that the characterization of proposition 2 shows
+that the maximum number of correctable errors cannot increase
+beyond T = n measurements. Indeed, this is a direct consequence
+of the Cayley-Hamilton theorem since we have for any
+z and for t ≥ n, supp(CAtz) ⊂ supp(Cz) ∪ supp(CAz) ∪
+· · · ∪ supp(CAn−1z).
+Finally, one can also directly see from the same proposition
+that the number of correctable errors is always less than p/2, for
+any T . It turns out that generically, i.e., for “almost all” systems
+(A, C), the number of correctable errors is maximal and equal
+to p/2 − 1 .
+Proposition 3: For almost all2 pairs (A, C) ∈ Rn×n × Rp×n
+the number of correctable errors after T = n steps is maximal
+and equal to p/2 − 1 .
+Proof: For i ∈ {1, . . . , p}, let ei ∈ Rp be the i'th unit
+vector that has a 1 in the ith component and zeros elsewhere.
+Let fi be the map defined by
+fi : (A, C) ∈ Rn×n × Rp×n
+→ det ⎢⎢
+⎣
+⎡
+eiT C
+eiT CA
+.
+.
+.
+eiT CAn−1
+⎤
+⎥⎥ ∈ R.
+⎦
+where the matrix in the argument of the determinant is an
+n × n matrix. Note that fi is a polynomial in the entries of
+A and C that is not identically zero [to see this take for
+example C = P{1,...,p} to be the projection on the first p components
+and A to be a circular permutation matrix; then if z
+is such that eiT Cz = 0, . . . , eiT CAn−1z = 0 then necessarily
+z = 0, and so the n × n matrix in the definition of fi has
+trivial kernel and so has nonzero determinant]. Hence the zero
+set Zi of fi, Zi = {(A, C) ∈ Rn×n × Rp×n | fi(A, C) = 0}
+has (Lebesgue) measure zero in Rn×n × Rp×n [23]. Hence
+p
+∪i=1Zi has also measure zero. Now to conclude, note that
+for any (A, C) ∈ (∪ip=1Zi)c, the number of correctable errors
+after T = n is maximal. Indeed if z = 0, we have that for all
+i, (eiT Cz, . . . , eiT CAn−1z) = 0Rn since (A, C) ∈ Zi, and so
+|supp(Cz) ∪ supp(CAz) ∪ · · · ∪ supp(CAn−1z)| is maximal
+and equal to p.
+2) Computing the Number of Correctable Errors: Even
+though for almost all pairs (A, C) the number of errors that
+can be corrected is maximal (equal to p/2 − 1 for T = n),
+the problem of actually computing the number of errors that
+can be corrected for a given pair (A, C) after a given number
+of steps T is a hard problem in general. Actually one simple
+yet expensive algorithm is to look for the smallest |K| where
+K ⊂ {1, . . . , p} for which the following matrix has a nontrivial
+kernel:
+⎡
+⎢⎢
+⎣
+PKc C
+PKc CA
+.
+.
+.
+PKc CAT −1
+⎤
+⎥⎥ .
+⎦
+If s is the cardinality of the smallest K for which this matrix has
+nontrivial kernel, then by proposition 2 the maximum number
+of correctable errors is s/2 − 1 . This algorithm is however
+computationally expensive and requires computing the rank of
+2p matrices in the worst-case. A recent result [24] shows that it
+is very unlikely that there is a more efficient way to perform the
+computation.3
+B. Increasing the Number of Correctable Errors by State
+Feedback
+In this section we consider the question of whether it is possible
+to make a given system (A, C) more resilient against attacks
+by modifying the parameters of the system. More specifically,
+if B is some given matrix, we look at the problem of designing
+a matrix G so that the pair (A + BG, C) is resilient against a
+large number of attacks, while it satisfies at the same time other
+design constraints.
+From a practical point of view, this question can be motivated
+by the following scenario depicted in Fig. 1: we first assume
+that the physical system possesses a local control loop that has
+direct access to the state of the plant and that can control the
+evolution of the physical system. This is possible for example if
+the sensors are connected to the local controller through a wired
+link that is not subject to external attacks. If the local control
+loop implements a feedback law of the form u = Gx then the
+evolution of the physical system is governed by the matrix
+A + BG. Also, and as part of the overall plant, a high-level supervisory
+and monitoring system receives measurements from
+the sensors through wireless and vulnerable communication
+links that are subject to attacks. Observe that the choice G of
+the local controller will affect the resilience of the system to
+attacks, i.e., how many errors are correctable by the supervisory
+system. The objective here is therefore to design G in order to
+make the number of correctable errors of the pair (A + BG, C)
+as large as possible.
+Note that there are other design constraints that come into
+play in the choice of the local feedback law. Typically G is
+2That is, except on a set of Lebesgue measure zero in Rn×n × Rp×n.
+Note that the Proposition does not apply if we are only interested in matrices
+(A, C) that have a particular structure (e.g., lie in a certain subspace of
+Rn×n × Rp×n) since the set of pairs with such structure can itself have a
+zero Lebesgue measure in Rn×n × Rp×n.
+3In the special case T = 1 of error correction without dynamics, the number
+of errors that can be corrected is directly related to the spark of a matrix F that
+annihilates C, i.e., such that F C = 0 (see [16, §I.G]). The spark of a matrix F
+is the smallest number of columns that are linearly dependent. According to the
+recent paper [24], computing the spark of a matrix is NP-hard.
+FAWZI et al.: SECURE ESTIMATION AND CONTROL FOR CYBER-PHYSICAL SYSTEMS UNDER ADVERSARIAL ATTACKS
+1459
+Fig. 1. Scenario where a local control loop has direct access to uncorrupted
+sensor information. Using this local control loop, the evolution of the physical
+system will be governed by the matrix A + BG where A is the open-loop
+matrix, B is the control matrix, and G can be chosen arbitrarily. The objective
+is to find G such that the pair (A + BG, C) is resilient against a large
+number of attacks. Choosing such a G will allow the higher level supervisory
+control and monitoring system to recover the correct state despite attacks in the
+communication links between the sensors and the supervisory system.
+chosen so that the eigenvalues of A + BG are inside the unit
+disc so that the resulting closed-loop system is stable. It is
+known by the pole placement theorem that this is possible if
+the pair (A, B) is controllable [25].
+In this section we ask if one can also enforce the requirement
+that the number of correctable errors of the new pair
+(A + BG, C) is large, without losing the freedom of choosing
+the eigenvalues of A + BG. We show in this section that
+the answer is yes, and that if the pair (A, B) is controllable,
+then it is possible to choose G such that p/2 − 1 errors are
+correctable for (A + BG, C) and such that the eigenvalues of
+A + BG are in any arbitrary (or almost arbitrary) prescribed
+locations in the complex plane. In other words, by an adequate
+choice of the local control law, one can make the system more
+resilient to attacks (the number of correctable errors p/2 − 1
+is the maximum possible), without compromising the control
+performance.
+More specifically, we have the following result:4
+Proposition 4: Let A ∈ Rn×n, B ∈ Rn×1 and C ∈ Rp×n
+and assume that the pair (A, B) is controllable and that each
+row of C is not identically zero. Then there exists a finite set
+F ⊂ C such that for any choice of n numbers λ1, . . . , λn ∈
+C \ F such that the λi's have distinct magnitudes, there exists
+G ∈ R1×n such that:
+The eigenvalues of the closed-loop matrix A + BG are
+λ1, . . . , λn.
+The number of correctable errors after n steps for the pair
+(A + BG, C) is maximal (equal to p/2 − 1 ).
+In order to prove this result, we make use of the following
+lemma (a result of the same flavor was obtained in a slightly
+different setting in [26]):
+4We deal only with the single-input case here but the multi-input case can be
+handled using the same arguments. Moreover, the condition for {λi} to have
+distinct amplitudes is not much of a restriction since one can always choose the
+λi's to satisfy this condition and the consequences in terms of performance are
+negligible.
+Lemma 1: Let A ∈ Rn×n and C ∈ Rp×n. Assume that A has
+n eigenvalues all with distinct magnitudes (in particular A is
+diagonalizable). Then the following are equivalent:
+(i) q errors are correctable for (A, C) after n steps.
+(ii) for every eigenvector v of A, |supp(Cv)| > 2q.
+Proof:
+(i) ⇒ (ii): This direction simply corresponds to taking x to
+be an eigenvector of A in the condition |supp(Cx) ∪ · · · ∪
+supp(CAn−1x)| > 2q of Proposition 2.
+(ii) ⇒ (i): We assume that all eigenvectors v of A
+satisfy |supp(Cv)| > 2q and we will show that for
+any x = 0, we have |supp(Cx) ∪ supp(CAx) ∪ · · · ∪
+supp(CAn−1x)| > 2q. The idea here is that if x = 0 then
+for t large enough the vector Atx will be very close to
+an eigenvector w of A, and hence the support of CAtx
+will have more than 2q elements since |supp(Cw)| >
+2q. More formally, let x ∈ Rn \ {0} and consider the
+decomposition of x in the eigenbasis of A: x = is=1 αivi
+with αi = 0 for at least one i, and where v1, . . . , vs are
+eigenvectors of A associated with eigenvalues λ1, . . . , λs.
+Since the eigenvalues of A have distinct magnitudes we
+can assume that |λ1| > |λ2| > · · · > |λs|. We isolate the
+largest eigenvalue in this decomposition and we denote
+λ = λ1 and w = v1. Now we have (Atx − α1λtw)/λt →
+0 when t → +∞. Let S = supp(Cw). Note that since w
+is an eigenvector of A we have |S| > 2q (by assumption).
+We'll now show that for t large enough, the support of
+CAtx contains S: let β = mini∈S |(Cw)i| and observe
+that clearly β > 0. Let t be large enough so that |C(Atx α1λtw)|i/|λ|t
+< β/2 for all i ∈ S. Now we have, for
+i ∈ S
+1 1
+λ t |CAtx|i ≥ λ t |λtCw|i − |CAtx − λtCw|i
+| | | |
+> β − β/2 = β/2 > 0.
+Hence S ⊂ supp(CAtx) for large enough t. But since
+we have supp(CAtx) ⊂ supp(Cx) ∪ supp(CAx) ∪ · · · ∪
+supp(CAn−1x) by the Cayley-Hamilton theorem, we have
+S ⊂ supp(Cx) ∪ supp(CAx) ∪ . . . ∪ supp(CAn−1x). Finally
+since this is true for any x = 0, and since |S| > 2q, we
+conclude by 2 that q errors are correctable after n steps.
+We now use this lemma to prove Proposition 4:
+Proof: (Proposition 4): To prove the result, we will show
+that if the chosen poles λ1, . . . , λn have distinct magnitudes and
+do not fall in some finite set F , then there is a choice of G such
+that the eigenvalues of A + BG are exactly the λ1, . . . , λn, and
+the corresponding eigenvectors vi are such that |supp(Cvi)| =
+p. Thus, by the previous lemma, this will show that the number
+of correctable errors for (A + BG, C) is p/2 − 1 .
+First note that if λ is an eigenvalue of A + BG and x is
+a corresponding eigenvector, then we have Ax + BGx = λx,
+or, if (λI − A)−1 is well defined, x = (λI − A)−1BGx, i.e., x
+is proportional to the vector (λI − A)−1B (since Gx is a real
+number). This means that if λ is an eigenvalue of A + BG, then
+necessarily the corresponding eigenvector is (λI − A)−1B.
+We will therefore look for values of λ for which C(λI A)−1B
+has full support.
+1460
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 59, NO. 6, JUNE 2014
+Let i ∈ {1, . . . , p} be fixed and denote by ei the vector in Rp
+that has a 1 in the ith component and zeros elsewhere. Note that
+since (A, B) is controllable and since CT ei = 0, there exists
+λ such that eiT C(λI − A)−1B = 0 (see [25, Chapter 3, Theorem
+2.17(ii)]), and in fact the set Fi = {λ ∈ C | eiT C(λI A)−1B
+= 0} ⊆ C is finite (zeros of a non-identically-zero rational
+fraction).
+Now consider F = (∪in=1Fi), and let λ1, . . . , λn be any
+choice of n numbers in C \ F with distinct magnitudes. We will
+show that there exists G such that the eigenvalues of A + BG
+are the λj s and the eigenvectors vj are such that Cvj has full
+support.
+By controllability of (A, B) there is a G such that the eigenvalues
+of A + BG are the λj 's. We know that the eigenvectors
+of A + BG are the vj = (λj I − A)−1B. Now by the choice of
+the λj 's and by the definition of F we know that for all j and
+for any i, eiT C(λj I − A)−1B = 0. In other words, for any j,
+the vector Cvj has full support. Hence, by lemma 1, the number
+of correctable errors of (A + BG, C) is maximal.
+C. Optimization Formulation of the Optimal Decoder
+In the previous sections we have discussed and quantified
+the resilience of a given system (A, C) by characterizing the
+maximum number of attacks that are tolerable so that the initial
+state of the system could still be exactly recovered. We saw that
+if the system (A, C) satisfies the condition
+supp(Cz) ∪ · · · ∪ supp(CAT −1z) > 2q,
+∀z = 0
+(4)
+then it is possible to correct any attacks on q sensors using the
+T observations y(0), . . . , y(T −1). We did not discuss however
+how to actually recover the state x(0) from the observations. In
+this section we focus on the problem of constructing a decoder
+that can correct any number q of errors as long as q satisfies the
+condition (4) above.
+Consider the decoder D0 : (Rp)T → Rn defined such that
+D0(y(0), . . . , y(T −1)) is the optimal xˆ solution of the following
+optimization problem:
+x(0), and e(a0), . . . , e(aT −1) with supp(e(at)) ⊂ Ka that generate
+the same sequence y(0), . . . , y(T −1) of observed values, with
+in addition, |Ka| ≤ |K| ≤ q. We therefore have two different
+initial conditions x(0) = xa and two different error vectors
+corresponding to less than q attacked sensors that generate
+exactly the same sequence of observed values. This exactly
+means that q errors are not correctable after T steps which
+contradicts the assumption.
+The proposition above therefore shows that the decoder D0 is
+the best decoder in terms of error-correction capabilities, since
+if any decoder can correct q errors, then D0 can as well. One issue
+however is that the optimization problem (5) is not practical
+since it is NP-hard in general. Indeed for the special case T = 1
+(corresponding to the case of “static” error-correction over the
+reals mentioned earlier) the decoder becomes
+mixˆn∈iRmnize
+y − Cxˆ 0
+(6)
+(where z 0 = |supp(z)|) which is known to be NP-hard (see
+for example [22]).
+However, in [16], Candes and Tao proposed to replace the 0
+“norm” by an 1 norm, thereby transforming the problem into a
+convex program that can be efficiently solved
+mixˆn∈iRmnize
+y − Cxˆ 1 .
+It was then shown in [16] that if the matrix C satisfies certain
+conditions, then the solution of this convex program is the same
+as the one given by the 0 optimal decoder. In the next section
+we consider this relaxation in the context of our problem.
+D. The 1 Decoder: A Relaxation of the Optimal Decoder
+For T ∈ N \ {0}, consider the linear map Φ(T ) defined by
+Φ(T ) : Rn → Rp×T
+x → [Cx
+|
+CAx
+|
+. . .
+|
+CAT −1x].
+Furthermore, if y(0), . . . , y(T −1) ∈ Rp, let Y (T ) the p × T matrix
+formed by concatenating the y(t)'s in columns
+Y (T ) = y(0)
+|
+y(1)
+|
+. . .
+|
+y(T −1)
+∈ Rp×T .
+minimize
+xˆ∈Rn,Kˆ ⊂{1,...,p}
+subject to
+ˆ
+|K|
+supp y(t) − CAtxˆ
+ˆ
+⊂ K
+for t ∈ {0, . . . , T − 1}.
+Observe that the decoder D0 looks for the smallest set K of
+attacked sensors that can explain the received data y(0), . . . ,
+y(T −1). We show in the next proposition that the decoder D0
+is optimal in terms of error-correction capabilities.
+Proposition 5: Assume that q errors are correctable after
+T steps, i.e., that (4) holds. Then the decoder D0 corrects q
+errors, i.e., for any x(0) ∈ Rn, and any e(0), . . . , e(T −1) in Rp
+such that supp(e(t)) ⊂ K with |K| ≤ q, we have D0(y(0), . . . ,
+y(T −1)) = x(0) where y(t) = CAtx(0) + e(t).
+Proof: Let x(0) and the e(t)'s satisfy the stated assumptions,
+with supp(e(t)) ⊂ K and y(t) = CAt + e(t). Assume for
+the sake of contradiction that the feasible point (x(0), K) is
+not the unique optimal point for (5). Hence there exists xa =
+(5)
+Recall that for a matrix M ∈ Rp×T with rows M1, . . . , Mp ∈
+RT the 0 “norm” of M is the number of nonzero rows in M
+M 0 = |rowsupp(M )| = |{i ∈ {1, . . . , p} | Mi = 0}| .
+Observe that the optimal decoder D0 introduced in the previous
+section can be written as
+D0 y(0), . . . , y(T −1)
+= arg min Y (T ) − Φ(T )xˆ
+xˆ∈Rn
+0
+.
+As we saw in the previous section, this decoder finds the
+minimum number of attacked sensors that can explain the
+received data y(0), . . . , y(T −1).
+Analogously to [16], we can define an 1 decoder which,
+instead of minimizing the number of nonzero rows, minimizes
+FAWZI et al.: SECURE ESTIMATION AND CONTROL FOR CYBER-PHYSICAL SYSTEMS UNDER ADVERSARIAL ATTACKS
+1461
+the sum of the magnitudes of each row. Specifically, if we
+measure the magnitude of a row by its r norm in RT (for
+r ≥ 1), we obtain the following decoder D1,r:
+D1,r y(0), . . . , y(T −1) = arg min Y (T ) −Φ(T )xˆ
+xˆ∈Rn
+1/ r
+(7)
+where, by definition, M
+the rows of the matrix M
+1/ r is the sum of the r norms of
+M
+1/ r =
+Mi r .
+p
+i=1
+Note that the optimization problem in (7) is convex and can
+be efficiently solved. Also note that such “mixed” 1/ r norms
+were also used in the compressed sensing literature in the
+context of joint-sparse and block-sparse signal recovery [27].
+We saw in Proposition 2 that the number of errors that can
+be corrected by the optimal 0 decoder D0 is equal to the
+largest number q such that |supp(Cz) ∪ supp(CAz) ∪ · · · ∪
+supp(CAT −1z)| > 2q for all z = 0.
+The next proposition characterizes the maximum number of
+errors that can be corrected by the 1/ r decoder D1,r.
+Proposition 6: The following are equivalent:
+(i) The decoder D1,r can correct q errors after T steps.
+(ii) For all K ⊂ {1, . . . , p} with |K| = q and for all z ∈
+Rn \ {0}, it holds
+i∈K
+i∈Kc
+Φ(T )z
+i r
+<
+Φ(T )z
+i r
+.
+(8)
+Proof: (i) ⇒ (ii): Suppose for the sake of contradiction
+that (ii) does not hold. Then there exists K ⊂ {1, . . . , p}
+with |K| = q, and G = Φ(T )z ∈ Rp×T with z = 0 such that
+i∈K Gi r ≥ i∈Kc Gi r . Let x0 = 0 and define the
+K-supported error vectors e(t), for t ∈ {0, . . . , T − 1} by
+ei(t) = Gi,t if i ∈ K and ei(t) = 0 otherwise. Now consider
+y(t) = CAtx0 + e(t) = e(t) and let Y (T ) be, as before, the
+p × T matrix obtained by concatenating the y(t)'s in columns.
+Note that rowsupp(Y (T )) = K, and that Yi(T ) = (Φ(T )z)i for
+all i ∈ K. We will now show that the objective function for (7)
+at z = 0 is smaller than at x0 = 0, which will show that the
+decoder D1,r fails to reconstruct x(0) from the y(t)'s. This will
+show that (i) is not true. Indeed we have
+Y (T ) − Φ(T )z
+1/ r
+=
+=
+=
+=
+n
+i=1
+i∈Kc
+n
+Y (T ) − Φ(T )z
+Gi r ≤
+i r
+Gi r
+i∈K
+Y (T ) − Φ(T )x0
+i=1
+Y (T ) − Φ(T )x0
+1/ r
+i r
+.
+(ii) ⇒ (i): We again resort to contradiction. Suppose that (i)
+is not true. This means there exists x(0), and e(0), . . . , e(T −1)
+with supp(e(t)) ⊂ K with |K| ≤ q such that D1,r(y(0), . . .
+y(T −1)) = x(0) where y(t) = CAtx(0) + e(t) (i.e., the decoder
+D1,r fails to reconstruct x(0) from the y(t)'s). By definition
+of the decoder D1,r, this means that there exists x˜ = x(0) that
+achieves a smaller 1/ r objective than x(0)
+n
+i=1
+n
+i=1
+Y (T ) − Φ(T )x˜
+i r ≤
+Y (T ) − Φ(T )x(0)
+i r
+.
+Now let z = x˜ − x(0) = 0, and let G = Φ(T )z = U − V with
+U = Y (T ) − Φ(T )x(0) and V = Y (T ) − Φ(T )x˜. We have
+Gi r =
+Ui − Vi r ≥
+Ui r Vi
+r .
+i∈K
+i∈K
+i∈K
+Now since rowsupp(U ) ⊂ K, and since x˜ achieves a
+smina=ll1er Ui1/rr≥objeinc=t1iveVitharn. Hxe0n,cweewehhavaeve i∈K Ui r =
+n
+i∈K
+Gi r ≥
+Vi r Vi
+r
+=
+i=1
+i∈Kc
+i∈K
+i∈Kc
+Vi r =
+Gi r
+where the last equality is because rowsupp(U ) ⊂ K. Hence (ii)
+is not true.
+Observe that, as expected, if the 1/ r decoder can correct q
+errors, then the 0 decoder can correct q errors as well. Indeed,
+if we assume the opposite, then by Proposition 2 there exists
+z = 0 such that |supp(Cz) ∪ · · · ∪ supp(CAT −1z)| ≤ 2q,
+which is equivalent to saying that |rowsupp(Φ(T )z)| ≤ 2q. Now
+let G = Φ(T )z and let K be the q rows of G with the largest r
+norms, then we clearly have i∈K Gi r ≥ i∈Kc Gi r ,
+which contradicts the condition of the previous proposition.
+As a matter of fact, the condition of the previous proposition
+(for the 1/ r decoder) is in some sense a more quantitative
+version of the condition of proposition 2 for the 0 decoder. The
+two conditions guarantee that the row components of Φ(T )z
+are sufficiently spread and are not too concentrated on a small
+subset of the rows.
+As an illustration, consider the simple example where the
+number of sensors is p = n and C = In (i.e., we have one
+sensor per component of the state x ∈ Rn) and where A is the
+cyclic permutation given by
+⎡ 0 1 . . .
+A = ⎢ ... ...
+⎢⎣ 0 0 . . .
+1 0 0
+0 0 ⎤
+. . . 0 ⎥⎥ .
+0 1 ⎦
+. . . 0
+(9)
+It is easy to see that after T = n, the rows of the matrix
+Φ(n)z = [z Az . . . An−1z] are identical up to a permutation,
+and so the r norm of any two rows of Φ(T )z are equal. This
+shows that for any subset K of rows with |K| < n/2, we have
+thei∈K1/ (rΦd(enc)ozd)eir cran<corrie∈cKt ca m(Φax(inm)za)linurm, bwehriocfhesrhroowrssatfhteart
+n steps, namely, n/2 − 1 .
+Finally note that the condition of Proposition 6 for the 1/ r
+decoder corresponds to the well-known “nullspace property” in
+compressed sensing and sparse signal recovery [28].
+1462
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 59, NO. 6, JUNE 2014
+Fig. 2. Performance of 1/ 2 decoder on a randomly chosen system with n =
+25 states and p = 20 sensors. We see that when the number of attacked sensors
+is small enough, the 1/ 2 can still recover the exact state of the system (left).
+As the number of attacked sensors increases, more measurements are needed to
+correctly recover the state of the system (right).
+E. Numerical Simulations
+In this section we show the performance of the proposed
+decoding algorithm first on a random toy example and then on
+a more realistic system modeling an electric power network.
+1) Random System: We first consider the 1/ 2 decoder
+on a system of size n = 25, p = 20 where A ∈ R25×25 and
+C ∈ R20×25 have iid Gaussian entries. For different values q
+of attacked sensors, we tested the decoder on 200 different initial
+conditions x(0) and attacked sensors K ⊂ {1, . . . , p} with
+|K| = q. The initial conditions x(0) were randomly generated
+from the standard Gaussian distribution, and the attack sets
+were chosen uniformly at random from the set of subsets of
+{1, . . . , p} of size q. Fig. 2(a) shows the fraction of initial
+conditions that were correctly recovered by the 1/ 2 decoder
+[cf. (7)] in less than T = 15 time steps for the different values
+of q. We see that for q less than 6 all the initial conditions were
+correctly recovered in less than T = 15 time steps. Fig. 2(b)
+shows the number of time steps that it took in average to
+Fig. 3. Performance of the 1/ ∞ decoder on the IEEE 14-bus power network
+example (Fig. 3(a) is from [17]). The decoder successfully recovered the state
+of the system when the number of attacked sensors was less than 4. When the
+number of attacked sensors was less than 12, the decoder recovered the correct
+state in more than 90% of the cases.
+correctly recover the initial state, as a function of the number
+of corrupted components q. We see that as q increases, more
+measurements were needed to correctly recover the state of the
+system.
+For each simulation, the attack values (i.e., the values injected
+by the attacker in the components K) were chosen
+randomly from a Gaussian distribution. In order to illustrate
+the fact that the decoder can handle unbounded attacks, the
+magnitude of the attacks were chosen to be 20 times larger
+than the magnitude of the state. Furthermore, the matrix A
+was appropriately scaled so it has a spectral radius of 1. The
+optimization problems were solved using CVX [29].
+2) Electric Power Network: In this section we apply the proposed
+decoding algorithm on a model of an electric power network
+and more specifically on the IEEE 14-bus power network
+[30]. The network, depicted in Fig. 3(a) is composed of 5 synchronous
+generators and a total of 14 buses. The system is represented
+by 2 × 5 = 10 states giving the rotor angles δi and the
+frequencies ωi = dδi/dt of each generator. Under some simplifying
+assumptions the evolution of the system can be captured
+by a linear difference equation corresponding to the linearized
+swing equations (see [31] for the derivation of the equations).
+FAWZI et al.: SECURE ESTIMATION AND CONTROL FOR CYBER-PHYSICAL SYSTEMS UNDER ADVERSARIAL ATTACKS
+1463
+We assume, like in [17], that p = 35 sensors are deployed and
+measure at every time step the real power injections at every
+bus (14 sensors), the real power flows along every branch
+(20 sensors), and the rotor angle at generator 1 (1 sensor).
+For different values of attacked sensors q, we ran 200 simulations
+with different sets of attacked sensors K of cardinality
+q, and different initial conditions x(0) that were randomly
+generated like in the previous example. In the simulations
+we did not allow the last sensor measuring the rotor angle
+to be attacked. Indeed if this sensor is attacked then there
+is no hope of correctly recovering the state since the system
+becomes unobservable. The 1 decoder we used however is
+the one described in Section III-D and did not incorporate the
+knowledge of the unattacked sensor in any way. Fig. 3(b) shows
+the number of simulations (out of the 200) where the state
+x(0) was correctly recovered using the 1/ ∞ decoder in less
+than T = 10 steps. Observe that for q ≤ 4 the success rate of
+the decoder was 100%. Furthermore when q ≤ 12 the decoder
+correctly recovers the state in more than 90% of the cases.
+These simulations show that the 1/ r decoder works very well
+in this example and therefore is a promising practical technique.
+F. The Case of Attacks on Actuators
+In this section we incorporate into our model attacks on
+actuators (in addition to attacks on sensors) and we show to
+extend the decoder of the previous section to this case. Consider
+a plant that evolves according to the equations
+x(t+1) = Ax(t) + B
+U (t) y(0), . . . , y(t)
++ w(t)
+y(t) = Cx(t) + e(t)
+(10)
+where A ∈ Rn×n, B ∈ Rn×m, C ∈ Rp×n, and (U (t))t=0,1,... is
+an output-feedback control law. As before the vectors e(t)
+represent attacks on sensors. The vectors w(t) represent attacks
+on actuators: if actuator j ∈ {1, . . . , m} is not attacked, then
+w(t) = 0, otherwise actuator j is attacked and w(t) can be
+j j
+arbitrary. The set of attacked actuators will typically be denoted
+by L. In this section we will use the letter q to denote the
+total number of attacked nodes (sensors and actuators), q =
+|K| + |L|.
+Our objective is to monitor the state of the plant from the
+observations y(t). More formally if T is some time horizon,
+we wish to reconstruct the sequence5 of states x(0), . . . , x(T −1)
+from the observations y(0), . . . , y(T −1). If such reconstruction
+is possible when the attack vectors e(t)'s and w(t)'s are restricted
+to have less than q nonzero components combined
+(i.e., |K| + |L| ≤ q), we say that q attacks are correctable, or
+equivalently, that the system is resilient against q attacks. More
+formally we have the following definition:
+5Observe that in the previous section where we dealt with attacks on sensors
+only, the objective was to only reconstruct the initial state x(0) since we
+could then simply use the dynamics to propagate the initial condition and
+obtain x(1), x(2), . . . , x(T −1). When considering attacks on actuators, using
+the dynamics to propagate the initial state requires the knowledge of the attacks.
+Hence in this section we explicitly ask for the recovery of the whole sequence
+x(0), . . . , x(T −1−d) where d ∈ N is some delay parameter.
+Definition 2: Let a control system of the form (10) be
+given. We say that q attacks are correctable after T steps (or
+equivalently, that the system is resilient against q attacks after
+T steps with a delay δ if there exists a decoder D : (Rp)T →
+(Rn)T −δ such that for any x(0) ∈ Rn, for any w(0), . . . , w(T −2)
+with supp(w(t)) ⊆ L and any e(0), . . . , e(T −1) with
+supp(e(t)) ⊆ K with |K| + |L| ≤ q we have D(y(0), . . . ,
+y(T −1)) = (x(0), x(1), . . . , x(T −1−δ)).
+a) An explicit decoder: We now consider the problem of
+designing a decoding algorithm that recovers the sequence of
+states despite attacks on sensors and actuators. We show that
+one can formulate the decoding problem as an optimization
+problem, in the same way we did when there were only sensor
+attacks. Indeed assume we have received measurements
+y(0), . . . , y(T −1) and that we wish to reconstruct the sequence
+of states x(0), . . . , x(T −1−δ). Then this can be done by solving
+the following optimization problem:
+minimize
+subject to
+|Kˆ | + |Lˆ|
+supp eˆ(t)
+⊆ Kˆ , supp wˆ(t)
+⊆ Lˆ
+y(t) = Cxˆ(t) + eˆ(t)
+xˆ(t+1) = Axˆ(t) + B u(t) + wˆ(t) . (11)
+The optimization variables are indicated by a “hat” (e.g., xˆ(t),
+etc.); the other variables (namely, y(t) and u(t)) are given.
+The optimization program above finds the simplest possible
+explanation of the received data y(0), . . . , y(T −1), i.e., the one
+with the smallest number of attacked nodes. One can show
+that if the system is resilient against q attacks (in the sense of
+definition 2), and if the number of actual attacks is less than
+q, then the output of the optimization problem above gives
+the correct sequence of states, i.e., xˆ(0) = x(0), . . . , xˆ(T −1−δ) =
+x(T −1−δ).
+Unfortunately though, and as we mentioned earlier, solving
+this optimization problem is hard in general. We can however
+use the same ideas used previously to relax the decoder by
+replacing the “ 0” norm (that measures the cardinality of the
+attack set) by an 1 norm. When considering attacks on actuators
+in addition to attacks on sensors this relaxation leads to the
+following tractable decoder:
+minimize
+subject to
+p
+i=1
+Eˆi r + λ
+ˆ
+Wi r
+m
+i=1
+Eˆi = eˆi(0), . . . , eˆi(T −1)
+Wˆ i =
+wˆ(0), . . . , wˆi(T −2)
+i
+y(t) = Cxˆ(t) + eˆ(t)
+xˆ(t+1) = Axˆ(t) + B u(t) + wˆ(t) . (12)
+For each i the auxiliary variables Eˆi ∈ RT and Wˆ i ∈ RT carry
+the i'th components of the attack vectors over the time horizon
+t = 0, . . . , T − 1. Thus if Eˆi r = 0 then eˆi(t) = 0 for all t =
+0, . . . , T − 1 and the i'th sensor is not attacked, and similarly if
+ˆ
+Wi r = 0 then the i'th actuator is not attacked. Now observe
+1464
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 59, NO. 6, JUNE 2014
+Fig. 4. (Left) Performance of the 1/ 2 decoder (12) (with constant λ = 10)
+on a randomly generated system with n = 15 states, m = 10 actuators and
+p = 10 sensors. Dark color indicates a high success rate and white color
+indicates a low success rate. We observe that when the number of attacked
+sensors and actuators is small enough the decoder correctly recovers the state of
+the system. Also we remark that the resilience with respect to attacked sensors
+decreases as the number of attacked actuators increases, and vice-versa. (Right)
+Performance of the 1/ ∞ decoder (12) (with λ = 10−3) on the IEEE 14-bus
+power network example of Section III-E-2. We observe that when the number
+of attacked sensors is small enough, the decoder correctly recovers the state of
+the system, independently of the number of attacked generators.
+that the objective function ip=1 Eˆi r +λ im=1 Wˆ i r is
+nothing but a weighted sum of the 1 norms of the vectors
+( Eˆi r )i=1,...,p ∈ Rp and ( Wˆ i r )i=1,...,m ∈ Rm. Note that
+we have introduced a tuning parameter λ to control the relative
+weight between the term corresponding to the attacks on
+sensors and the term corresponding to the attacks on actuators.
+b) Numerical simulations: To illustrate the behavior of
+the 1 decoder, we tested it on a synthetic randomly-generated
+system with n = 15 states, m = 10 actuators and p = 10
+sensors.6 Fig. 4(a) shows the performance of the decoder as
+a function of the number of attacked sensors and actuators.
+6The system was generated in the same way as the example of Section III-E:
+the entries of A, B, C are iid standard Gaussian, and A was normalized so it
+has spectral radius 1.
+We see that on this example the 1 decoder correctly recovers
+the state of the system despite the attacks when the number of
+attacked sensors and actuators is small enough.
+Note that the decoder as given in (12) depends on the choice
+of the parameter λ. For the simulations of Fig. 4(a) we used the
+value λ = 10 which we empirically found to be a suitable value
+for the system we considered. It would be interesting however
+to see if there is a simple and systematic way to directly find
+the best value of λ from the data and the parameters of the
+system.
+We also tested the decoder (12) on the power network example
+of Section III-E2. Recall that the IEEE 14-bus network we
+considered is comprised of 5 generators and 14 buses, and is
+modeled by a linear dynamical system with 2 × 5 = 10 states
+(rotor angle δi and frequency ωi = dδi/dt for each generator
+i) and 35 sensors. An attack on an actuator here corresponds
+to an attack on the mechanical power input to a generator i
+and is modeled by an additive input wi affecting the equation
+governing the frequency ωi of generator i [31].
+For different values of |L| (number of attacked generators),
+and |K| (number of attacked sensors), we ran the 1/ ∞
+decoder of (12) and we recorded its success rate7 over 200
+simulations with different initial conditions and attack sets
+that were randomly generated like in the previous examples
+of Section III-E2. The results of the simulations are shown in
+Fig. 4(b). We see that when the number of attacked sensors is
+small enough, the decoder correctly recovers the state of the
+system. We also remark that, unlike the previous example of
+Fig. 4(a), the performance of the decoder is not really affected
+by the number of attacked generators. This suggests that the
+system is highly resilient against attacks on the generators
+since despite these attacks the state of the system can still be
+correctly recovered from the measurements (when the number
+of attacked sensors is small).
+IV. THE CONTROL PROBLEM WITH OUTPUT-FEEDBACK
+In this section we consider general linear control systems
+with output feedback of the form
+x(t+1) = Ax(t) + BU (t)
+y(0), . . . , y(t)
+y(t) = Cx(t) + e(t).
+(13)
+One of the main questions that we address in this section is
+to determine whether for a given system (A, B, C), there exists
+a control law (i.e., a family (U (t))t=0,1,...) that drives the state
+of the system (13) to the origin even if some of the sensors are
+attacked. Observe that the sensor attacks can affect the control
+inputs (since the control inputs are function of the y(t)'s) which
+can in turn deviate the state x(t) from its nominal path.
+7We declare the decoder to be successful after T steps if it correctly recovers
+the whole sequence of states up to time T − 1 (i.e., with a delay of d = 1).
+Indeed, due to the very special structure of the C matrix of the system (the
+sensors only measure the rotor angles and not the frequencies), it is impossible
+to reconstruct the state perfectly without delay.
+for all t = 0, . . . , T − 1. In other words, we have, for all t ∈
+{0, . . . , T − 1}
+CAtxa + C[B, AB, . . . , At−1B] ⎢
+⎣
+⎡ u(at−1) ⎤
+.
+. ⎥ + e(at)
+.
+u(a0) ⎦
+⎡ u(t−1) ⎤
+b
+.
+.. ⎥ + e(bt)
+u(0) ⎦
+b
+1465
+(14)
+FAWZI et al.: SECURE ESTIMATION AND CONTROL FOR CYBER-PHYSICAL SYSTEMS UNDER ADVERSARIAL ATTACKS
+Note that if there were attacks on the actuators then such a
+stabilizing control law does not exist in general, and that is why
+we focus only on sensor attacks in this section.
+It is clear that if q sensor errors are correctable (in the
+sense defined in the previous section, i.e., that it is possible to
+recover the state despite any attacks on q sensors), then one
+can stabilize the system in the presence of attacks: indeed, one
+can simply decode the state (since q errors are correctable),
+and then apply a standard state feedback law of the form
+u = Kx, for example.8 The main contribution of this section
+is to show that the converse of this statement is essentially true.
+More specifically, we show in Theorem 1 that if (U (t))t=0,1,...
+is any feedback law that stabilizes the system (with a fast
+enough decay) despite attacks on any q sensors, then necessarily
+q errors are correctable. This theorem shows that one can
+essentially decouple the problem of estimation and of control
+in the scenario we consider: in other words, there is no loss of
+resilience in searching for an output feedback law that is the
+composition of a decoder with a standard state feedback.
+A. Some Properties
+We start by defining the notion of correctability of q errors
+for systems with output-feedback control inputs. We will see
+in particular that it is independent of the feedback law used.
+Recall that the symbol Eq,T denotes the set of attack sequences
+of length T on any q sensors
+Eq,T =
+e(0), . . . , e(T −1)
+∈ (Rp)T |
+∃K ⊂ {1, . . . , p}, with |K| = q
+s.t. ∀t ∈ {0, . . . , T − 1}, supp e(t)
+⊂ K .
+We also use the notation y(t, x(0), e) to denote the output at
+time t of the control system (13) when the initial state is
+x(0) and for the attack sequence e ∈ Eq,T . We now give the
+definition of correctability of q errors for systems with outputfeedback
+control inputs:
+Definition 3: Let a control system of the form (13) be given.
+We say that q errors are correctable after T steps if there exists a
+function D : (Rp)T → Rn such that for any x(0) ∈ Rn and any
+attack sequence e ∈ Eq,T , we have D(y(0, x(0), e), . . . , y(T 1,
+x(0), e)) = x(0).
+It is not hard to see that, since the systems we consider
+are linear and since the control inputs only depend on the
+measurements, the property of correctability of q errors just
+defined above does not depend on the control law nor on B, and
+in fact only depends on A and C. Indeed, saying that q errors
+are not correctable (after T steps) for the controlled system
+(A, B, C, (U (t))t=0,1,...) means that there exists xa = xb, and
+error vectors ea, eb ∈ Eq,T such that y(t, xa, ea) = y(t, xb, eb)
+8Note that the decoders considered in Section III recover the state x(t−T )
+rather than the current state x(t), where T is the horizon used. Thus if such a
+decoder is used, one would have to propagate x(t−T ) to the current state x(t)
+using the known inputs before feeding it to the controller.
+= CAtxb + C[B, AB, . . . , At−1B] ⎢
+⎣
+where u(aτ) = U (τ)(y(0, xa, ea), . . . , y(τ, xa, ea)) and u(τ) =
+b
+U (τ)(y(0, xb, eb), . . . , y(τ, xb, eb)) for τ = 0, . . . , t − 1. Now
+observe that the terms on the left-hand side and right-hand side
+of (14) with the control inputs are equal (since y(s, xa, ea) =
+y(s, xb, eb) for all s and thus u(aτ) = u(bτ)). Hence the equality
+(14) is equivalent to saying that for all t ∈ {0, . . . , T − 1},
+we have
+CAtxa + e(at) = CAtxb + e(bt).
+And this exactly means that q errors are not correctable for
+(A, C). This therefore shows that the notion of correctability
+does not depend on the control law used.
+In other words, one can use the conditions developed earlier
+for correctability of q errors for linear systems with no
+inputs and apply them to systems with output-feedback control
+inputs. For example we have that q errors are correctable
+for the control system (13) if, and only if, |supp(Cz) ∪ . . . ∪
+supp(CAT −1z)| > 2q for all z = 0.
+B. Main Result: Separation of Estimation and Control
+We are now ready to state our result on separation of estimation
+and control.
+Theorem 1: Let A, B, C be three matrices of appropriate
+sizes and assume that a control strategy given by the
+(U (t))t=0,1,... is such that: for any x(0) ∈ Rn and for any sequence
+of error vectors e ∈ Eq,T , the sequence (x(t)) defined by
+x(t+1) = Ax(t) + BU (t) y(0), . . . , y(t)
+y(t) = Cx(t) + e(t)
+(15)
+satisfies
+x(t)
+≤ καt x(0)
+where κ > 0 and where 0 ≤ α < 1 is small enough: α <
+min{|λ| | λ eigenvalue of A}. Then necessarily q errors are
+correctable after n steps.
+Proof: We proceed by contradiction. Assume that q errors
+are not correctable after n steps. Then this means there exists
+a nonzero initial state x¯ = 0 that is indistinguishable from the
+initial state 0. In other words, there exist ea, eb ∈ Eq,T such
+that the outputs of the control system (15) in the two different
+executions:
+1) x(0) = x¯ and e(t) = e(at); and
+2) x(0) = 0 and e(t) = e(t)
+b
+are equal for all t = 0, . . . , n − 1. But by the Cayley-Hamilton
+theorem, it is not hard to see that the sequences ea and eb can
+1466
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 59, NO. 6, JUNE 2014
+be extended to t ≥ n so that the outputs of the system (15)
+are equal for all t ≥ 0. Observe now that since the control law
+U (t) only depends on the outputs, this means that in these two
+executions, the same sequence of inputs, u(t), will be used.
+Furthermore, since we must have in both cases, x(t) ≤
+καt x(0) , this leads, for the case where x(0) = 0, that x(t) = 0
+for all t ≥ 0, and so necessarily, Bu(t) = x(t+1) − Ax(t) = 0
+for all t ≥ 0. Hence for the first case (when x(0) = x¯), the
+recurrence relation is x(t+1) = Ax(t), which gives x(t) = Atx¯.
+We now get a contradiction since x(t) should decay at rate of
+α, but the eigenvalues of A are all strictly larger than α. This
+completes the proof.
+Remark: Note that the assumption on the decay rate to be
+fast enough is necessary; otherwise the result is not true. Indeed,
+if for example A is already a stable matrix, one cannot deduce
+anything from the mere existence of a stabilizing control law
+(since the system is by itself stable!). For a concrete example,
+take A = 0.5I , B = I , C = I (note that A is stable). We know
+from the characterization of the number of correctable errors
+that even 1 error is not correctable after any number of steps
+(for example if we take x = (1, 0, . . . , 0), then |supp(Cx) ∪
+supp(CAx) ∪ . . . | = 1 > 2q if q > 0). Now if we consider the
+trivial output feedback law U (t) = 0 for all t, the resulting
+system is of course stable despite any number of attacks (the
+state evolution is simply x(t+1) = 0.5x(t) and does not even
+depend on the sensor outputs), but as we just saw one cannot
+even construct a decoder to correct even 1 error!
+V. CONCLUSION
+In this paper we considered the problems of estimation
+and control of linear systems when some of the sensors or
+actuators are attacked. For the estimation problem we gave a
+characterization of the number of attacks that can be tolerated
+so that the state of the system can still be exactly recovered, and
+we showed how one can increase the resilience of the system by
+state-feedback while guaranteeing a certain performance. We
+then showed that there is an explicit (though computationally
+hard) decoder that can correct the maximal number of attacks.
+The decoder was then relaxed to obtain a computationally
+feasible decoding algorithm which we analyzed theoretically
+in Proposition 6, and which looked promising on numerical
+simulations. We then considered the problem of designing an
+output feedback law to stabilize a linear plant where at most q
+sensors are attacked. Our main result was to show that if such a
+resilient output-feedback law exists, then necessarily there also
+exists a decoder that is resilient against q attacks. This shows in
+particular that there is no loss of resilience in searching for an
+output-feedback law that is the composition of a decoder with
+a standard state feedback law.
+In our study of the resilience of a system to attacks, we
+mainly focused on the case of attacks on sensors for the
+interest of space and also because the results in this case are
+especially nice and simple to state. One could extend results
+such as Proposition 2 to the case of attacks on actuators but
+unfortunately they are not as simple to state. For the 1 decoder
+we showed in Section III-F how to extend it to handle both
+attacks on sensors and actuators.
+There are many important open questions which remain
+unanswered in this paper. For example, the question of constructing
+an iterative estimator (where the estimate of the state is
+updated by a simple iterative rule each time a new measurement
+is received), instead of the one-shot 1 estimator in this paper,
+would be interesting in particular from a computational point
+of view. Another subject of interest is to study the effect of exogenous
+noise on the performance of the estimator presented in
+this paper. Also, another interesting question would be to study
+the performance of the proposed decoders from a structural
+systems theory point of view, using graph-theoretic concepts.
+Finally, ideas on how to specialize the techniques proposed here
+to particular applications, by taking into account structural vulnerabilities
+(in terms of sets of sensors and actuators attacked)
+might be of interest.
+REFERENCES
+[1] A. Cardenas et al., “Challenges for securing cyber physical systems,” in
+Workshop Future Directions Cyber-Phys. Syst. Security, Jul. 2009, DHS.
+[Online]. Available: http://chess.eecs.berkeley.edu/pubs/601.html
+[2] N. Adam, “Workshop on Future Directions in Cyber-Physical Systems
+Security,” Department of Homeland Security (DHS), Tech. Rep.,
+Jan. 2010.
+[3] A. Cárdenas, S. Amin, and S. Sastry, “Research challenges for the security
+of control systems,” in Proc. 3rd Conf. Hot Topics Security, 2008, p. 6.
+[4] J. Slay and M. Miller, “Lessons learned from the maroochy water breach,”
+Critical Infrastructure Protection, 2007.
+[5] R. McMillan, “Siemens: Stuxnet worm hit industrial systems,” Computer
+World, 2010. [Online]. Available: http://www.computerworld.com/s/
+article/9185419/Siemens_Stuxnet_worm_hit_industrial_systems?
+taxonomyId=142&pageNumber=1
+[6] M. Massoumnia, G. Verghese, and A. Willsky, “Failure detection and
+identification,” IEEE Trans. Autom. Control, vol. 34, no. 3, pp. 316-321,
+1989.
+[7] M. Blanke, M. Kinnaert, J. Lunze, and M. Staroswiecki, Diagnosis and
+Fault-Tolerant Control. New York, NY, USA: Springer-Verlag, 2006.
+[8] K. Zhou and J. Doyle, Essentials of Robust Control, vol. 104. Englewood
+Cliffs, NJ, USA: Prentice-Hall, 1998.
+[9] L. Schenato, B. Sinopoli, M. Franceschetti, K. Poolla, and S. Sastry,
+“Foundations of control and estimation over lossy networks,” Proc. IEEE,
+vol. 95, no. 1, pp. 163-187, 2007.
+[10] A. Gupta, C. Langbort, and T. Basar, “Optimal control in the presence of
+an intelligent jammer with limited actions,” in Proc. 49th IEEE CDC'10,
+2010, pp. 1096-1101.
+[11] F. Pasqualetti, F. Dorfler, and F. Bullo, “Attack detection and identification
+in cyber-physical systems-Part I: Models and fundamental limitations,”
+Preprint, 2012. [Online]. Available: http://arxiv.org/pdf/1202.6144v1
+[12] F. Pasqualetti, F. Dorfler, and F. Bullo, “Attack detection and identification
+in cyber-physical systems-Part II: Centralized and distributed monitor
+design,” Preprint, 2012. [Online]. Available: http://arxiv.org/pdf/
+1202.6049
+[13] S. Sundaram, M. Pajic, C. Hadjicostis, R. Mangharam, and G. Pappas,
+“The wireless control network: Monitoring for malicious behavior,” in
+Proc. 49th IEEE Conf. Decision Control (CDC'10), 2010, pp. 5979-5984.
+[14] S. Sundaram and C. Hadjicostis, “Distributed function calculation via
+linear iterative strategies in the presence of malicious agents,” IEEE Trans.
+Autom. Control, vol. 56, no. 7, pp. 1495-1508, Jul. 2011.
+[15] A. Teixeira, S. Amin, H. Sandberg, K. Johansson, and S. Sastry, “Cyber
+security analysis of state estimators in electric power systems,” in Proc.
+49th IEEE CDC'10, 2010, pp. 5991-5998.
+[16] E. Candes and T. Tao, “Decoding by linear programming,” IEEE Trans.
+Inform. Theory, vol. 51, no. 12, pp. 4203-4215, 2005.
+[17] F. Pasqualetti, F. Dörfler, and F. Bullo, “Cyber-physical attacks in
+power networks: Models, fundamental limitations and monitor design,”
+arXiv:1103.2795, 2011.
+[18] H. Fawzi, P. Tabuada, and S. Diggavi, “Secure state-estimation for dynamical
+systems under active adversaries,” in Proc. 49th Annu. Allerton
+Conf. Commun., Control, Comp., 2011, pp. 337-344. [Online]. Available:
+http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=6120187
+FAWZI et al.: SECURE ESTIMATION AND CONTROL FOR CYBER-PHYSICAL SYSTEMS UNDER ADVERSARIAL ATTACKS
+1467
+[19] H. Fawzi, P. Tabuada, and S. Diggavi, “Security for control systems under
+sensor and actuator attacks,” in Proc. IEEE 51st Annu. Conf. Decision
+Control (CDC), 2012, pp. 3412-3417.
+[20] H. Fawzi, “Security and Error-Correction for Linear Systems,” M.S. thesis,
+UCLA, Los Angeles, 2011.
+[21] B. Molinari, “Extended controllability and observability for linear systems,”
+IEEE Trans. Autom. Control, vol. 21, no. 1, pp. 136-137, 1976.
+[22] V. Guruswami, J. Lee, and A. Wigderson, “Euclidean sections of 1n with
+sublinear randomness and error-correction over the reals,” in Proc. RANDOM'08,
+2008, pp. 444-454. [Online]. Available: http://link.springer.
+com/chapter/10.1007/978-3-540-85363-3_35
+[23] J. Dion, C. Commault, and J. van der Woude, “Generic properties and
+control of linear structured systems: A survey,” Automatica, vol. 39, no. 7,
+pp. 1125-1144, Jul. 2003
+[24] A. M. Tillmann and M. E. Pfetsch, “The computational complexity of
+rip, nsp, related concepts in compressed sensing,” arXiv:1205.2081, 2012.
+[25] P. Antsaklis and A. Michel, Linear Systems. Boston, MA: Birkhauser,
+2005.
+[26] Y. Mo and B. Sinopoli, “False data injection attacks in control systems,”
+in Proc. First Workshop Secure Control Syst., 2010. [Online]. Available:
+https://www.truststc.org/conferences/10/CPSWeek/papers/scs1_paper_7.
+pdf
+[27] Y. Eldar and H. Bolcskei, “Block-sparsity: Coherence and efficient recovery,”
+in Proc. IEEE ICASSP'09, 2009, pp. 2885-2888.
+[28] M. Davenport, M. Duarte, Y. Eldar, and G. Kutyniok, “Introduction to
+compressed sensing,” in Compressed Sensing: Theory and Applications.
+Cambridge, U.K.: Cambridge Univ. Press, 2011, pp. 1-68.
+[29] M. Grant and S. Boyd, CVX: Matlab software for disciplined convex
+programming, version 1.21. [Online]. Available: http://cvxr.com/cvx
+[30] R. Christie, Power systems test case archive, 2000. [Online]. Available:
+http://www.ee.washington.edu/research/pstca/
+[31] F. Pasqualetti, A. Bicchi, and F. Bullo, “A graph-theoretical characterization
+of power network vulnerabilities,” in Proc. Amer. Control Conf.,
+San Francisco, CA, 2011, pp. 3918-3923.
+Hamza Fawzi received the Diplôme d'Ingénieur
+from Mines ParisTech, Paris, France, in 2010, the
+M.S. degree in electrical engineering from the
+University of California, Los Angeles, in 2011,
+and is currently pursuing the Ph.D. degree at the
+Laboratory for Information and Decision Systems,
+Massachusetts Institute of Technology, Cambridge,
+MA, USA.
+Paulo Tabuada (SM'07) was born in Lisbon,
+Portugal. He received the “Licenciatura” degree
+in aerospace engineering from Instituto Superior
+Tecnico, Lisbon, Portugal, in 1998 and the Ph.D.
+degree in electrical and computer engineering from
+the Institute for Systems and Robotics (a private
+research institute associated with Instituto Superior
+Tecnico), Lisbon, Portugal, in 2002.
+Between January 2002 and July 2003 he was
+a Postdoctoral Researcher at the University of
+Pennsylvania, Philadelphia. After spending three
+years at the University of Notre Dame, as an Assistant Professor, he joined
+the Electrical Engineering Department, University of California, Los Angeles,
+where he established and directs the Cyber-Physical Systems Laboratory. His
+latest book, on verification and control of hybrid systems, was published by
+Springer in 2009.
+Dr. Tabuada received the NSF CAREER award in 2005, the Donald P.
+Eckman award in 2009 and the George S. Axelby award in 2011. In 2009
+he co-chaired the International Conference Hybrid Systems: Computation
+and Control (HSCC'09) and in 2012 he was program co-chair for the 3rd
+IFAC Workshop on Distributed Estimation and Control in Networked Systems
+(NecSys'12). He also served on the editorial board of the IEEE Embedded
+Systems Letters and the IEEE TRANSACTIONS ON AUTOMATIC CONTROL.
+Suhas Diggavi (S'93-M'98-F'13) received the
+B. Tech. degree in electrical engineering from the
+Indian Institute of Technology, Delhi, and the Ph.D.
+degree in electrical engineering from Stanford University,
+Stanford, CA, USA, in 1998.
+After completing his Ph.D., he was a Principal
+Member Technical Staff in the Information Sciences
+Center, AT&T Shannon Laboratories, Florham Park,
+NJ, USA. After that he was on the faculty of the
+School of Computer and Communication Sciences,
+EPFL, where he directed the Laboratory for Information
+and Communication Systems (LICOS). He is currently a Professor, in the
+Department of Electrical Engineering, University of California, Los Angeles,
+CA, USA, where he directs the Information Theory and Systems laboratory.
+His research interests include wireless network information theory, wireless
+networking systems, network data compression and network algorithms.
+Dr. Diggavi received the 2013 IEEE Information Theory Society & Communications
+Society Joint Paper Award, the 2006 IEEE Donald Fink prize paper
+award, 2005 IEEE Vehicular Technology Conference best paper award, the
+Okawa foundation research award and is a Fellow of the IEEE. He has served
+on the editorial board for Transactions on Information Theory, ACM/IEEE
+Transactions on Networking and IEEE. IEEE Communication Letters, a guest
+editor for IEEE Selected Topics in Signal Processing and was the Technical
+Program Co-Chair for 2012 IEEE Information Theory Workshop. He has
+8 issued patents.

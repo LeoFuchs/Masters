@@ -1,0 +1,1752 @@
+Attacks Against Process Control Systems: Risk
+Assessment, Detection, and Response
+Alvaro A. Cárdenasx, Saurabh Aminz, Zong-Syun Liny,
+Yu-Lun Huangy, Chi-Yen Huangy and Shankar Sastryz
+x Fujitsu Laboratories of America
+z University of California, Berkeley
+y National Chiao Tung University, Taiwan
+ABSTRACT
+In the last years there has been an increasing interest in the security
+of process control and SCADA systems. Furthermore, recent
+computer attacks such as the Stuxnet worm, have shown there are
+parties with the motivation and resources to effectively attack control
+systems.
+While previous work has proposed new security mechanisms for
+control systems, few of them have explored new and fundamentally
+different research problems for securing control systems when
+compared to securing traditional information technology (IT) systems.
+In particular, the sophistication of new malware attacking
+control systems-malware including zero-days attacks, rootkits created
+for control systems, and software signed by trusted certificate
+authorities-has shown that it is very difficult to prevent and detect
+these attacks based solely on IT system information.
+In this paper we show how, by incorporating knowledge of the
+physical system under control, we are able to detect computer attacks
+that change the behavior of the targeted control system. By
+using knowledge of the physical system we are able to focus on the
+final objective of the attack, and not on the particular mechanisms
+of how vulnerabilities are exploited, and how the attack is hidden.
+We analyze the security and safety of our mechanisms by exploring
+the effects of stealthy attacks, and by ensuring that automatic
+attack-response mechanisms will not drive the system to an unsafe
+state.
+A secondary goal of this paper is to initiate the discussion between
+control and security practitioners-two areas that have had
+little interaction in the past. We believe that control engineers can
+leverage security engineering to design-based on a combination of
+their best practices-control algorithms that go beyond safety and
+fault tolerance, and include considerations to survive targeted attacks.
+Categories and Subject Descriptors
+C.2.0 [Computer-Communication Network]: Security and Protection;
+B.8.2 [Performance and Reliability]: Performance Analysis
+and Design Aids
+Permission to make digital or hard copies of all or part of this work for
+personal or classroom use is granted without fee provided that copies are
+not made or distributed for profit or commercial advantage and that copies
+bear this notice and the full citation on the first page. To copy otherwise, to
+republish, to post on servers or to redistribute to lists, requires prior specific
+permission and/or a fee.
+ASIACCS '11, March 22-24, 2011, Hong Kong, China.
+Copyright 2011 ACM 978-1-4503-0564-8/11/03 ...$10.00.
+General Terms
+Security
+Keywords
+SCADA, security, IDS, control systems, critical infrastructure protection,
+cyber-physical systems
+1.
+INTRODUCTION
+Control systems are computer-based systems that monitor and
+control physical processes. These systems represent a wide variety
+of networked information technology (IT) systems connected
+to the physical world. Depending on the application, these control
+systems are also called Process Control Systems (PCS), Supervisory
+Control and Data Aquisition (SCADA) systems (in industrial
+control or in the control of the critical infrastructures), Distributed
+Control Systems (DCS) or Cyber-Physical Systems (CPS) (to refer
+to embedded sensor and actuator networks).
+Control systems are usually composed of a set of networked
+agents, consisting of sensors, actuators, control processing units
+such as programmable logic controllers (PLCs), and communication
+devices. For example, the oil and gas industry use integrated
+control systems to manage refining operations at plant sites, remotely
+monitor the pressure and flow of gas pipelines, and control
+the flow and pathways of gas transmission. Water utilities can remotely
+monitor well levels and control the wells pumps; monitor
+flows, tank levels, or pressure in storage tanks; monitor pH, turbidity,
+and chlorine residual; and control the addition of chemicals to
+the water.
+Several control applications can be labeled as safety-critical: their
+failure can cause irreparable harm to the physical system being controlled
+and to the people who depend on it. SCADA systems, in particular,
+perform vital functions in national critical infrastructures,
+such as electric power distribution, oil and natural gas distribution,
+water and waste-water treatment, and transportation systems. They
+are also at the core of health-care devices, weapons systems, and
+transportation management. The disruption of these control systems
+could have a significant impact on public health, safety and
+lead to large economic losses.
+Control systems have been at the core of critical infrastructures,
+manufacturing and industrial plants for decades, and yet, there have
+been few confirmed cases of cyberattacks. Control systems, however,
+are now at a higher risk to computer attacks because their
+vulnerabilities are increasingly becoming exposed and available
+to an ever-growing set of motivated and highly-skilled attackers.
+No other attack demonstrates the threat to control systems as the
+Stuxnet worm [1, 2]. The ultimate goal of Stuxnet is to sabotage
+that facility by reprogramming controllers to operate, most likely,
+out of their specified boundaries [1]. Stuxnet demonstrates that
+the motivation and capability exists for creating computer attacks
+capable to achieve military goals [3].
+Not only can Stuxnet cause devastating consequences, but it is
+also very difficult to detect. Because Stuxnet used zero-day vulnerabilities,
+antivirus software would not have prevented the attack.
+In fact, the level of sophistication of the attack prevented
+some well known security companies such as Kaspersky to detect
+it initially [4]. In addition, victims attempting to detect modifications
+to their embedded controllers would not see any rogue code
+as Stuxnet hides its modifications with sophisticated PLC rootkits,
+and validated its drivers with trusted certificates.
+The main motivation behind this work is the observation that
+while attackers may be able to hide the specific information technology
+methods used to exploit the system and reprogram their
+computers, they cannot hide their final goal: the need to cause an
+adverse effect on the physical system by sending malicious sensor
+or controller data that will not match the behavior expected by a
+supervisory control or an anomaly detection system.
+Therefore, in this paper we explore security mechanisms that detect
+attacks by monitoring the physical system under control, and
+the sensor and actuator values. Our goal is to detect modifications
+to the sensed or controlled data as soon as possible, before the attack
+causes irreversible damages to the system (such as compromising
+safety margins).
+In the rest of the paper we first summarize the vulnerability of
+control systems by discussing known attacks. We then discuss
+the efforts for securing control systems solely from an information
+technology perspective and identify the new and unique research
+problems that can be formulated by including a model of the physical
+system under control. We then develop a new attack detection
+algorithm and study the methodology on how to evaluate anomaly
+detection algorithms and their possible response strategies.
+2.
+THE VULNERABILITY OF CONTROL
+SYSTEMS AND STUXNET
+There have been many computer-based incidents in control systems.
+Computer-based accidents can be caused by any unanticipated
+software error, like the power plant shutdown caused by a
+computer rebooting after a patch [5]. Non-targeted attacks are
+incidents caused by the same attacks that any computer connected
+to the Internet may suffer, such as the Slammer worm infecting the
+Davis-Besse nuclear power plant [6], or the case of a controller being
+used to send spam in a water filtering plant [7].
+However, the biggest threat to control systems are Targeted attacks.
+These attacks are the ones where the miscreants know that
+they are targeting control systems, and therefore, they tailor their
+attack strategy with the aim of damaging the physical system under
+control. Targeted attacks against control systems are not new.
+Physical attacks-for extortion and terrorism-are a reality in some
+countries [8]. Cyber-attacks are a natural progression to physical
+attacks: they are cheaper, less risky for the attacker, are not constrained
+by distance, and are easier to replicate and coordinate.
+A classic computer-based targeted attack to SCADA systems is
+the attack on Maroochy Shire Council's sewage control system in
+Queensland, Australia [9]. There are many other reported targeted
+attacks [10-16]; however, no other attack has demonstrated the
+threats that control systems are subject to as well as the Stuxnet
+worm [1, 2]. Stuxnet has made clear that there are groups with
+the motivation and skills to mount sophisticated computer-based
+attacks to critical infrastructures, and that these attacks are not just
+speculations or belong only in Hollywood movies.
+Stuxnet intercepts routines to read, write and locate blocks on a
+Programmable Logic Controller (PLC). By intercepting these requests,
+Stuxnet is able to modify the data sent to or returned from
+the PLC without the operator of the PLC ever realizing it [1].
+Stuxnet was discovered on systems in Iran in June 2010 by researchers
+from Belarus-from the company VirusBlokAda; however,
+it is believed to have been released more than a year before.
+Stuxnet is a worm that spreads by infecting Windows computers.
+It uses multiple methods and zero-day exploits to spread itself via
+LANs or USB sticks. It is likely that propagation by LAN served as
+the first step, and propagation through removable drives was used
+to reach PCs not connected to other networks-therefore being isolated
+from the Internet or other networks is not a complete defense.
+Once Stuxnet infects a Windows computer, it installs its own
+drivers. Because these drivers have to be signed, Stuxnet used
+two stolen certificates. Stuxnet also installs a rootkit to hide itself.
+The goal of the worm in a Windows computer is to search
+for WinCC/Step 7, a type of software used to program and monitor
+PLCs. (PLCs are the embedded systems attached to sensors and
+actuators that run control algorithms to keep the physical system
+operating correctly. They are typically programmed with a ladder
+logic program: a logic traditionally used to design control algorithms
+for panels of electromechanical relays.)
+If Stuxnet does not find the WinCC/Step 7 software in the infected
+Windows machine, it does nothing; however, if it finds the
+software, it infects the PLC with another zero-day exploit, and then
+reprograms it. Stuxnet also attempts to hide the PLC changes with
+a PLC rootkit.
+The reprogramming is done by changing only particular parts of
+the code-overwriting certain process variables every five seconds
+and inserting rouge ladder logic-therefore it is impossible to predict
+the effects of this change without knowing exactly how the
+PLC is originally programmed and what it is connected to, since
+the PLC program depends on the physical system under control,
+and typically, physical system parameters are unique to each individual
+facility. This means that the attackers were targeting a very
+specific PLC program and configuration (i.e., a very specific control
+system deployment).
+Many security companies, including Symantec and Kaspersky
+have said that Stuxnet is the most sophisticated attack they have
+ever analyzed, and it is not difficult to see the reasons. Stuxnet uses
+four zero-day exploits, a Windows rootkit, the first known PLC
+rootkit, antivirus evasion techniques, peer-to-peer updates, and stolen
+certificates from trusted CAs. There is evidence that Stuxnet kept
+evolving since its initial deployment as attackers upgraded the infections
+with encryption and exploits, apparently adapting to conditions
+they found on the way to their target. The command and
+control architecture used two servers if the infected machines were
+able to access the Internet, or a peer to peer messaging system that
+could be used for machines that are offline. In addition, the attackers
+had a good level of intelligence about their target; they knew all
+the details of the control system configuration and its programs.
+The sophistication of this attack has lead many to speculate that
+Stuxnet is the creation of a state-level sponsored attack. Since Iran
+has an unusually high percentage of the total number of reported
+infections of the worm in the world [1], there has been some speculation
+that their target was a specific industrial control system in
+Iran [2], such as a gas pipeline or power plant.
+We argue that a threat like the Stuxnet worm must be dealt with
+defense-in-depth mechanisms like anomaly detection schemes. While
+traditional anomaly detection mechanisms may have some drawbacks
+like false alarms, we argue that for certain control systems,
+anomaly detection schemes focusing on the physical system-instead
+of using software or network models-can provide good detection
+capabilities with negligible false alarm rates.
+3.
+NEW SECURITY PROBLEMS FOR CONTROL
+SYSTEMS
+3.1
+Efforts for Securing Control Systems
+Most of the efforts for protecting control systems (and in particular
+SCADA) have focused on safety and reliability (the protection
+of the system against random and/or independent faults). Traditionally,
+control systems have not dealt with intentional actions or
+systematic failures. There is, however, an urgent growing concern
+for protecting control systems against malicious cyberattacks [6,
+17-24].
+There are several industrial and government-led efforts to improve
+the security of control systems. Several sectors-including
+chemical, oil and gas, and water-are currently developing programs
+for securing their infrastructure. The electric sector is leading the
+way with the North American Electric Reliability Corporation (NERC)
+cybersecurity standards for control systems [25]. NERC is authorized
+to enforce compliance to these standards, and it is expected
+that all electric utilities are fully compliant with these standards by
+the end of 2010.
+NIST has also published a guideline for security best practices
+for general IT in Special Publication 800-53. Federal agencies
+must meet NIST SP800-53. To address the security of control systems,
+NIST has also published a Guide to Industrial Control System
+(ICS) Security [26], and a guideline to smart grid security in
+NIST-IR 7628. Although these recommendations are not enforceable,
+they can provide guidance for analyzing the security of most
+utility companies.
+ISA (a society of industrial automation and control systems) is
+developing ISA-SP 99: a security standard to be used in manufacturing
+and general industrial controls.
+The Department of Energy has also led security efforts by establishing
+the national SCADA test bed program [27] and by developing
+a 10-year outline for securing control systems in the energy
+sector [21]. The report-released in January 2006-identifies four
+main goals (in order from short-term goals to long-term goals): (1)
+measure the current security posture of the power grid, (2) develop
+and integrate protective measures, (3) implement attack detection
+and response strategies; and (4) sustain security improvements.
+The use of wireless sensor networks in SCADA systems is becoming
+pervasive, and thus we also need to study their security.
+A number of companies have teamed up to bring sensor networks
+in the field of process control systems, and currently, there are
+two working groups to standardize their communications [28, 29].
+Their wireless communication proposal has options to configure
+hop-by-hop and end-to-end confidentiality and integrity mechanisms.
+Similarly they provide the necessary protocols for access control
+and key management.
+All these efforts have essentially three goals: (1) create awareness
+of security issues with control systems, (2) help control systems
+operators and IT security officers design a security policy, and
+(3) recommend basic security mechanisms for prevention (authentication,
+access controls, etc), detection, and response to security
+breaches.
+While these recommendations and standards have placed significant
+importance on survivability of control systems (their ability
+to operate while they are under attack); we believe that they have
+not explored some new research problems that arise when control
+systems are under attack.
+3.2
+Differences
+While it is clear that the security of control systems has become
+an active area in recent years, we believe that, so far, no one has
+been able to articulate what is new and fundamentally different in
+this field from a research point of view when compared to traditional
+IT security.
+In this paper we would like to start this discussion by summarizing
+some previously identified differences and by proposing some
+new problems.
+The property of control systems that is most commonly brought
+up as a distinction with IT security is that software patching and
+frequent updates, are not well suited for control systems. For
+example, upgrading a system may require months of advance in
+planning how to take the system offline; it is, therefore, economically
+difficult to justify suspending the operation of an industrial
+computer on a regular basis to install new security patches. Some
+security patches may even violate the certification of control systems,
+or-as previously mentioned-cause accidents to control systems
+[5].
+Patching, however, is not a fundamental limitation to control systems.
+A number of companies have demonstrated that a careful
+antivirus and patching policy (e.g., the use of tiered approaches)
+can be used successfully [30, 31]. Also, most of the major control
+equipment vendors now offer guidance on both patch management
+and antivirus deployment for their control products. Thus there is
+little reason for SCADA system operators not to have good patch
+and antivirus programs in place today [32].
+Large industrial control systems also have a large amount of
+legacy systems. Lightweight cryptographic mechanisms to ensure
+data integrity and confidentiality have been proposed to secure
+these systems [33, 34]. The recent IEEE P1711 standard is
+designed for providing security in legacy serial links [35]. Having
+some small level of security is better than having no security at all;
+however, we believe that most of the efforts done for legacy systems
+should be considered as short-term solutions. For properly securing
+critical control systems the underlying technology must satisfy
+some minimum performance requirements to allow the implementation
+of well tested security mechanisms and standards.
+Another property of control systems that is commonly mentioned
+is the real-time requirements of control systems. Control systems
+are autonomous decision making agents which need to make decisions
+in real time. While availability is a well studied problem in
+information security, real-time availability provides a stricter operational
+environment than most traditional IT systems. We show
+in this paper that real-time availability requirements depend on the
+dynamics (fast vs. slow) of the physical system.
+Not all operational differences are more severe in control systems
+than in traditional IT systems. By comparison to enterprise
+systems, control systems exhibit comparatively simpler network
+dynamics: Servers change rarely, there is a fixed topology, a stable
+user population, regular communication patterns, and a limited
+number of protocols. Therefore, implementing network intrusion
+detection systems, anomaly detection, and white listing may be easier
+than in traditional enterprise systems [36].
+3.3
+What is new and fundamentally different?
+While all these differences are important, we believe that the major
+distinction of control systems with respect to other IT systems
+is the interaction of the control system with the physical world.
+While current tools from information security can give necessary
+mechanisms for securing control systems, these mechanisms alone
+are not sufficient for defense-in-depth of control systems. When
+attackers bypass basic security defenses they may be able to affect
+the physical world.
+In particular, research in computer security has focused traditionally
+on the protection of information; but it has not considered
+how attacks affect estimation and control algorithms-and ultimately,
+how attacks affect the physical world.
+We believe that by understanding the interactions of the control
+system with the physical world, we should be able to develop a
+general and systematic framework for securing control systems in
+three fundamentally new areas:
+1. Better understand the consequences of an attack for risk assessment.
+While there has been previous risk assessment
+studies on cyber security for SCADA systems [18, 37-39],
+currently, there are few studies on identifying the attack strategy
+of an adversary, once it has obtained unauthorized access
+to some control network devices. Notable exceptions
+are the study of false data-injection attacks to state estimation
+in power grids [40-45], and electricity markets [46]. We
+need further research to understand the threat model in order
+to design appropriate defenses and to invest in securing the
+most critical sensors or actuators.
+2. Design new attack-detection algorithms. By monitoring the
+behavior of the physical system under control, we should be
+able to detect a wide range of attacks by compromised measurements.
+The work closest to ours are the study of false
+data injection attacks in control systems [47] and the intrusion
+detection models of Rrushi [48]-this last work; however,
+does not consider dynamical models of the process control
+system. We need further research on dynamical system
+models used in control theory as a tool for specificationbased
+intrusion detection systems.
+3. Design new attack-resilient algorithms and architectures: we
+need to design and operate control systems to survive an intentional
+cyber assault with no loss of critical functions. Our
+goal is to design systems where even if attackers manage to
+bypass some basic security mechanisms, they will still face
+several control-specific security devices that will minimize
+the damage done to the system. In particular, we need to investigate
+how to reconfigure and adapt control systems when
+they are under an attack to increase the resiliency of the system.
+We are not aware of any other work on designing new
+control algorithms or reconfiguration and control algorithms
+able to withstand attacks, or that reconfigure their operations
+based on detected attacks. There is previous work on safety
+and fault diagnosis; however, as we explain in this paper,
+these systems are not enough for detecting deception attacks
+launched by an intelligent attacker with knowledge on how
+to evade fault detection methods used by the system.
+In the next sections we describe our ideas, experiments, and results
+for (1) risk-assessment, (2) false-data-injection detection, and
+(3) automatic attack-response in process control systems. In each
+section we first present a general theory for approaching the topic,
+and then for experimental validation, we implement our ideas to the
+model of a chemical reactor process.
+4.
+RISK ASSESSMENT
+Risk management is the process of shifting the odds in your favor
+by finding among all possible alternatives, the one that minimizes
+the impact of uncertain events.
+Probably the best well known risk metric is the average loss
+R = E[L] Pi Lipi, where Li is the loss if event i occurs,
+and pi is the probability that event i occurs. Other risk metrics try
+to get more information about the probability distribution of the
+losses, and not only its mean value (R ). For example the variance
+of the losses R = E[L2] R is very useful in finance since it
+gives more information to risk averse individuals. This is particularly
+important if the average loss is computed for a large period of
+time (e.g. annually). If the loss is considered every time there is a
+computer event then we believe the average loss by itself provides
+enough risk information to make a rational decision.
+In this paper we focus on attacks on sensor networks and the
+effects they have on the process control system. Therefore pi denotes
+the likelihood that an attacker will compromise sensor i, and
+Li denotes the losses associated with that particular compromise.
+To simplify our presentation we assume that pi is the same for all
+sensors, therefore our focus in the remaining of this section is to
+estimate the potential losses Li. The results can then be used to
+identify high priority sensors and to invest a given security budget
+in the most cost-effective way.
+4.1
+Attack models
+We consider the case when the state of the system is measured
+by a sensor network of p sensors with measurement vector y(k) =
+fy1(k); : : : ; yp(k)g, where yi(k) denotes the measurement by sensor
+i at time k. All sensors have a dynamic range that defines
+the domain of yi for all k. That is, all sensors have defined minimum
+and maximum values 8k; yi(k) 2 [yimin; yimax]. Let Yi =
+[yimin; yimax]. We assume each sensor has a unique identity protected
+by a cryptographic key.
+Let y~(k) 2 Rp denote the received measurements by the controller
+at time k. Based on these measurements the control system
+defines control actions to maintain certain operational goals. If
+some of the sensors are under attack, y~(k) may be different from
+the real measurement y(k); however, we assume that the attacked
+signals y~i(k) also lie within Yi (signals outside this range can be
+easily detected by fault-tolerant algorithms).
+Let Ka = fks; : : : ; keg represent the attack duration; between
+the start time ks and stop time ke of an attack. A general model for
+the observed signal is the following:
+y~i(k) =
+yi(k)
+ai(k)
+for k 2= Ka
+for k 2 Ka, ai(k) 2 Yi
+where ai(k) is the attack signal. This general sensor attack model
+can be used to represent integrity attacks and DoS attacks. In
+an integrity attack we assume that if attackers have compromised
+a sensor, then they can inject any arbitrary value, therefore in this
+case, ai(k) is some arbitrary non-zero value.
+In a DoS attack, the controller will notice the lack of new measurements
+and will react accordingly. An intuitive response for a
+controller to implement against a DoS attack is to use the last signal
+received: ai(k) = yi(ks), where yi(ks) is the last measurement
+received before the DoS attack starts.
+4.2
+Experiments
+To test our attacks, we use the Tennessee-Eastman process control
+system (TE-PCS) model and the associated multi-loop PI control
+law as proposed by Ricker [49]. We briefly describe the process
+architecture and the control loops in Figure 1. The original process
+model is implemented in FORTRAN and the PI control law is implemented
+in MATLAB. We use this code for our study.
+The chemical process consists of an irreversible reaction which
+occurs in the vapour phase inside a reactor of fixed volume V of
+122 (m3). Two non-condensible reactants A and C react in the
+F4sp
+F4
+Loop 1
+Controller
+Feed 1 F1
+(A+B+C)
+Feed 2 F2
+(pure A)
+Valve
+Valve
+u1
+u2
+yA3sp
+Loop 3
+Controller
+Loop 4
+Controller
+pmax
+p
+Sensor y5 p
+Sensor y7
+yA3
+F3
+Valve
+u3
+Loop 2
+Controller
+Sensor y4
+F4
+Purge
+psp
+Product(D)
+Figure 1: Architecture of the Simplified TE Plant.
+presence of an inert B to form a non-volatile liquid product D:
+A + C
+B
+! D:
+The feed stream 1 contains A, C and trace of B; feed stream 2 is
+pure A; stream 3 is the purge containing vapours of A, B, C; and
+stream 4 is the exit for liquid product D. The measured flow rates
+of stream i is denoted by Fi (kmol h 1). The control objectives
+are
+- Regulate F4, the rate of production of the product D, at a
+set-point F4sp (kmol h 1),
+- Maintain P , the operating pressure of the reactor, below the
+shut-down limit of 3000 kP a as dictated safety considerations,
+- Minimize C, the operating cost measured in (kmol-of-product).
+The cost depends linearly on the purge loss of A and C relative
+to the production rate of D. The cost considerations
+dictate that the pressure be maintained as close as possible to
+3000 kP a.
+The production rate of D, denoted by rD (kmol h 1) is
+rD = k0yAv13yCv23P v3;
+where yA3 and yC3 denote the respective fractions of A and C in
+the purge and v1, v2, v3 are given constants.
+There are four input variables (or command signals) available to
+achieve the above control objectives. The first three input variables,
+denoted as u1, u2 and u3, trigger the actuators that can change
+the positions of the respective valves. The fourth input variable,
+denoted as u4, is the set point for the proportional controller for the
+liquid inventory. The input variables as used by the controller in
+the following way:
+Production rate y4 = F4 is controlled using Feed 1 (u1) by
+loop 1 controller,
+Pressure y5 = P is controlled using the purge rate (u3) by
+loop 2 controller,
+Partial pressure of product A in the purge y7 = yA3 is controlled
+using Feed 2 (u3) by loop 3 controller,
+3000
+2900
+)aP2800
+k
+(
+re2700
+ssu
+re2600
+P
+2500
+24000
+When u3 saturates, the loop 4 controller uses u1 to control the
+pressure P . The controllers for all four loops in figure 1 are proportional
+integral (PI) controllers.
+In steady-state operation, the production rate F4 is 100 kmol h 1,
+the pressure P is 2700 KP a and the fraction of A in the purge is
+47 mol%.
+We study the security issues of control systems by experimenting
+and simulating cyber attacks on sensor signals in the TE-PCS
+model. Because operating the chemical reactor with a pressure
+larger than 3000 kPa is unsafe (it may lead to an explosion or damage
+of the equipment) We.assume that that the goal of the attacker
+is to raise the pressure level of the tank to a value larger than 3000
+kPa. We model an attacker that only has access to a single sensor at
+a given time. We also assume Li > Lj , when an attack i can drive
+the system to an unsafe state and an attack j cannot, and Li = Lj
+if both attacks i and j either do not drive the system to an unsafe
+state, or both can compromise the safety of the sytem.
+From the experimental results, we found that the most effective
+of these attacks were max/min attacks (i.e., when ai(k) = yimin or
+ai(k) = yjmax). However, not all of the max/min attacks were able
+to drive the pressure to unsafe levels. We now summarize some of
+the results.
+By attacking the sensors, a controller is expected to respond
+with incorrect control signals since it receives wrong information
+from the compromised sensors. For example, by forging
+y7 as y7max from t = 0 to 30, the controller believes there
+is a large amount of component A in the tank.
+y5
+y7
+y˜7
+y7
+10
+20
+Time (hour)
+30
+40
+10
+20
+Time (hour)
+30
+40
+Figure 2: Integrity attack y7max from t = 0 to 30. The system
+remains in a safe state for attacks on y7.
+From the experiments, we found that the plant system can go
+back to the steady state after the attack finishes, as illustrated
+in Fig 2. Furthermore, the pressure in the main tank never
+reaches 3000 kPa. In general we found that the plant is very
+resilient to attacks on y7 and y4. Attacks in the limit of the
+sensing range (ymin and ymax) were the more damaging,
+but they did not force the system into an unsafe state.
+By launching attack y5min the controller turns down the purge
+valve to increase the pressure and prevent the liquid products
+from accumulating. We can see that the real pressure of the
+tank (y5 in Fig 3(a)) keeps increasing past 3000 kPa and the
+system operates in an unsafe state. In this experiment, it takes
+about 20 hours (t = 10 to t = 30) to shut down (or cause
+an explosion to) the plant. This long delay in causing an
+effective attack may give defenders the advantage: for physical
+processes with slow-dynamics, it is possible that human
+system operators may have enough time to observe unusual
+phenomenon and take proper actions against the attack.
+We found out that in general DoS attacks do not affect the
+plant. We ran the plant 20 times for 40 hours each and for
+a DoS attack lasting 20 hours the pressure in the tank never
+exceeded 2900kPa.
+)120
+%
+lom100
+(
+e
+rugp 80
+n
+i
+ftoA 60
+n
+u
+oAm 40
+0
+3500
+3000
+)a2500
+(kP2000
+e
+r
+su1500
+se
+rP1000
+500
+00
+y˜5
+y5
+y5
+X: 28.6
+Y: 3002
+20
+Time (hour)
+9(a)
+10
+30
+40
+10
+30
+40
+Figure 3: Safety can be breached by compromising sensor y5
+(3(a)). DoS attacks, on the other hand, do not cause any damage
+(and they are easy to detect.) (3(b)).
+We conclude that if the plant operator wants to prevent an attack
+from making the system operate in an unsafe state, it should prioritize
+defenses against integrity attacks rather than on DoS attacks. If
+the plant operator only has enough budget to deploy advanced security
+mechanisms for one sensor (e.g., tamper resistance, or TPM
+chips), y5 should be the priority.
+5.
+DETECTION OF ATTACKS
+Detecting attacks to control systems can be formulated as an
+anomaly-based intrusion detection problem [50]. One big difference
+in control systems compared to traditional IT systems, is that
+instead of creating models of network traffic or software behavior,
+we can use a representative model of the physical system.
+The intuition behind this approach is the following: if we know
+how the output sequence of the physical system, y(k), should react
+to the control input sequence, u(k), then any attack to the sensor
+data can be potentially detected by comparing the expected output
+y^(k) with the received (and possibly compromised) signal y~(k).
+Depending on the quality of our estimate y^(k) we may have some
+false alarms. We revisit this problem in the next section.
+To formalize the anomaly detection problem, we need (1) a model
+of the behavior of the physical system, and (2) an anomaly detection
+algorithm. In section 5.1 we discuss our choice of linear
+models as an approximation of the behavior of the physical system.
+In section 5.2, we describe change detection theory and the detection
+algorithm we use-a nonparametric cumulative sum (CUSUM)
+statistic.
+5.1
+Linear Model
+To develop accurate control algorithms, control engineers often
+construct a representative model that captures the behavior of the
+physical system in order to predict how the system will react to a
+given control signal. A process model can be derived from first
+principles (a model based on the fundamental laws of physics) or
+from empirical input and output data (a model obtained by simulating
+the process inputs with a carefully designed test sequence).
+It is also very common to use a combination of these two models;
+for example, first-principle models are typically calibrated by
+using process test data to estimate key parameters. Likewise, empirical
+models are often adjusted to account for known process
+physics [51, 52].
+For highly safety-critical applications, such as the aerospace industry,
+it is technically and economically feasible to develop accurate
+models from first principles [51]. However, for the majority of
+process control systems, the development of process models from
+fundamental physics is difficult.
+In many cases such detailed models are difficult to justify eco2760
+)2740
+kaP
+(
+re2720
+ssue
+rP2700
+26800
+y˜5
+y5
+y5
+20
+Time (hour)
+9(b)
+(1)
+(2)
+nomically, and even impossible to obtain in reasonable time due to
+the complex nature of many systems and processes. (The TE-PCS
+system used in our experiments is one of the few cases available in
+the literature of a detailed nonlinear model of an industrial control
+problem; this is the reason why the TE-PCS system has been used
+as a standard testbed in many industrial control papers.)
+To facilitate the creation of physical models, most industrial control
+vendors provide tools (called identification packages) to develop
+models of physical systems from training data. The most
+common models are linear systems. Linear systems can be used to
+model dynamics that are linear in state x(k) and control input u(k)
+x(k + 1) = Ax(k) + Bu(k)
+where time is represented by k 2 Z+, x(k) = (x1(k); : : : ; xn(k)) 2
+Rn is the state of the system, and u(k) = (u1(k); : : : ; um(k)) 2
+Rm is the control input. The matrix A = (aij ) 2 Rn n models the
+physical dependence of state i on state j, and B = (bij ) 2 Rn m
+is the input matrix for state i from control input j.
+Assume the system (1) is monitored by a sensor network with
+p sensors. We obtain the measurement sequence from the observation
+equations
+y^(k) = Cx(k);
+where y^(k) = (y^1(k); : : : ; y^p(k)) 2 Rp, and y^l(k) 2 R is the
+estimated measurement collected by sensor l at time k. Matrix C 2
+Rp n is called output matrix.
+5.2
+Detection Methods
+The physical-model-based attack detection method presented in
+this paper can be viewed as complementary to intrusion detection
+methods based on network and computer systems models.
+Because we need to detect anomalies in real time, we can use
+results from sequential detection theory to give a sound foundation
+to our approach. Sequential detection theory considers the problem
+where the measurement time is not fixed, but can be chosen online
+as and when the measurements are obtained. Such problem formulations
+are called optimal stopping problems. Two such problem
+formulations are: sequential detection (also known as sequential
+hypothesis testing), and quickest detection (also known as change
+detection). A good survey of these problems is given by Kailath
+and Poor [53].
+In optimal stopping problems, we are given a time series sequence
+z(1); z(2); : : : ; z(N ), and the goal is to determine the minimum
+number of samples, N , the anomaly detection scheme should
+observe before making a decision dN between two hypotheses: H0
+(normal behavior) and H1 (attack).
+The difference between sequential detection and change detection
+is that the former assumes the sequence z(i) is generated either
+by the normal hypothesis (H0), or by the attack hypothesis (H1).
+The goal is to decide which hypothesis is true in minimum time.
+On the other hand, change detection assumes the observation z(i)
+starts under H0 and then, at a given ks it changes to hypothesis H1.
+Here the goal is to detect this change as soon as possible.
+Both problem formulations are very popular, but security researchers
+have used sequential detection more frequently. However,
+for our attack detection method, the change detection formulation
+is more intuitive. To facilitate this intuition, we now briefly
+describe the two formulations.
+5.2.1
+Sequential Detection
+Given a fixed probability of false alarm and a fixed probability
+of detection, the goal of sequential detection is to minimize the
+number of observations required to make a decision between two
+hypotheses. The solution is the classic sequential probability ratio
+test (SPRT) of Wald [54] (also referred as the threshold random
+walk (TRW) by some security papers). SPRT has been widely
+used in various problems in information security such as detecting
+portscans [55], worms [56], proxies used by spammers [57], and
+botnets [58].
+Assuming that the observations z(k) under Hj are generated
+with a probability distribution pj , the SPRT algorithm can be described
+by the following equations:
+S(k + 1) = log
++ S(k)
+p1(z(k))
+p0(z(k))
+N = innffn : S(n) 2= [L; U ]g;
+dN
+=
+H1 if S(N )
+H0 if S(N )
+U
+L;
+starting with S(0) = 0. The SPRT decision rule dN is defined as:
+(3)
+(4)
+(5)
+where L ln 1 b a and U ln 1a b , and where a is the desired
+probability of false alarm and b is the desired probability of missed
+detection (usually chosen as small values).
+5.2.2
+Change Detection
+The goal of the change detection problem is to detect a possible
+change, at an unknown change point ks.Cumulative sum (CUSUM)
+and Shiryaev-Roberts statistics are the two most commonly used
+algorithms for change detection problems. In this paper we use the
+CUSUM statistic because it is very similar to the SPRT.
+Given a fixed false alarm rate, the CUSUM algorithm attempts to
+minimize the time N (where N ks) for which the test stops and
+decides that a change has occurred. Let S(0) = 0. The CUSUM
+statistic is updated according to
+S(k + 1) =
+log
+p1(z(k))
+p0(z(k))
++ S(k)
++
+0 and zero otherwise. The stopping time
+where (a)+ = a if a
+is:
+N = innffn : S(n)
+g
+for a given threshold selected based on the false alarm constraint.
+We can see that the CUSUM algorithm is an SPRT test with L =
+0, U = , and whenever the statistic reaches the lower threshold
+L, it re-starts.
+We now describe how to adapt the results of change detection
+theory to the particular problem of detecting compromised sensors.
+In the following, we use the subscript i to denote the sequence corresponding
+to sensor i.
+One problem that we have in our case is that we do not know
+the probability distribution for an attack p1. In general, an adaptive
+adversary can select any arbitrary (and possibly) non-stationary sequence
+zi(k). Assuming a fixed p1 will thus limit our ability to
+detect a wide range of attacks.
+To avoid making assumptions about the probability distribution
+of an attacker, we use ideas from nonparametric statistics. We do
+not assume a parametric distribution for p1 and p0; instead, only
+place mild constraints on the observation sequence. One of the
+simplest constraints is to assume the expected value of the random
+process Zi(k) that generates the sequence zi(k) under H0 is less
+than zero (E0[Zi] < 0) and the expected value of Zi(k) under H1
+is greater than zero (E1[Zi] > 0).
+To achieve these conditions let us define
+zi(k) := ky~i(k)
+y^i(k)k
+bi
+where bi is a small positive constant chosen such that
+E0[ky~i(k)
+y^i(k)k
+bi] < 0:
+The nonparametric CUSUM statistic for sensor i is then:
+Si(k) = (Si(k
+1) + zi(k))+, Si(0) = 0
+and the corresponding decision rule is
+dN;i
+d (Si(k)) =
+H1 if Si(k) > i
+H0 otherwise.
+(7)
+(8)
+(9)
+where i is the threshold selected based on the false alarm rate for
+sensor i.
+Following [59], we state the following two important results for
+Eq. (8)-(9):
+- The probability of false alarm decreases exponentially as the
+threshold i increases,
+- The time to detect an attack, (Ni
+portional to bi.
+ks;i)+, is inversely pro5.3
+Stealthy Attacks
+A fundamental problem in intrusion detection is the existence of
+adaptive adversaries that will attempt to evade the detection scheme;
+therefore, we now consider an adversary that knows about our anomaly
+detection scheme. We take a conservative approach in our models
+by assuming a very powerful attacker with knowledge of: (1) the
+exact linear model that we use (i.e., matrices A,B, and C), the parameters
+( i and bi), and (3) the control command signals. Such
+a powerful attacker may be unrealistic in some scenarios, but we
+want to test the resiliency of our system to such an attacker to guarantee
+safety for a wide range of attack scenarios.
+The goal of the attacker is to raise the pressure in the tank without
+being detected (i.e., raise the pressure while keeping the statistic he
+controls below the corresponding threshold i).
+We model three types of attacks: surge attacks, bias attacks and
+geometric attacks. Surge attacks model attackers that want to achieve
+maximum damage as soon as they get access to the system. A bias
+attack models attackers that try to modify the system discretely by
+adding small perturbations over a large period of time. Finally,
+geometric attacks model attackers that try to shift the behavior of
+the system very discretely at the beginning of the attack and then
+maximize the damage after the system has been moved to a more
+vulnerable state.
+5.4
+Surge Attacks
+In a surge attack the adversary tries to maximize the damage as
+soon as possible, but when the statistic reaches the threshold, it then
+stays at the threshold level: Si(k) = for the remaining time of
+the attack. To stay at the threshold, the attacker needs to solve the
+following quadratic equation:
+Si(k) + p(y^i(k)
+y~i(k))2
+bi = i
+The resulting attack (for y5 and y4) is:
+y~i(k) =
+For y7 we use
+yimin
+y^i(k)
+y~7(k) =
+j i + bi
+Si(k)j
+y7max
+y^7 + j 7 + b7
+Sy7 (k)j
+if Si(k + 1) i
+if Si(k + 1) > i
+if Sy7 (k) 7
+if Sy7 (k) > 7
+(6)
+5.5
+Bias Attacks
+In a bias attack the attacker adds a small constant ci at each time
+step.
+model when the operating conditions are reasonably close to the
+steady-state.
+5.7.2
+Nonparametric CUSUM parameters
+In order to select bi for each sensor i, we need to estimate the
+expected value of the distance jy^i(k) yi(k)j between the linear
+model estimate y^i(k) and the sensor measurement yi(k) (i.e., the
+sensor signal without attacks).
+y~i;k = y^i;k
+ci 2 Yi
+In this case, the nonparametric CUSUM statistic can be written
+as:
+n 1
+Si(n) = X jy^i(k)
+k=0
+y~i(k)j
+nbi
+Assuming the attack starts at time k = 0 and assuming the attacker
+wants to be undetected for n time steps the attacker needs to
+solve the following equation:
+n 1
+X ci = i + nbi
+k=0
+Therefore ci = i=n + b. This attack creates a bias of i=n + bi
+for each attacked signal.
+This equation shows the limitations of the attacker. If an attacker
+wants to maximize the damage (maximize the bias of a signal), the
+attacker needs to select the smallest n it can find. Because y~i 2 Yi
+this attack reduces to an impulse attack.
+If an attacker wants to attack for a long time, then n will be very
+large. If n is very large then the bias will be smaller.
+5.6
+Geometric Attacks
+In a geometric attack, the attacker wants to drift the value very
+slowly at the beginning and maximize the damage at the end. This
+attack combines the slow initial drift of the bias attack with a surge
+attack at the end to cause maximum damage.
+Let 2 (0; 1). The attack is:
+y~i(k) = y^i(k)
+i in k:
+Now we need to find and such that Si(n) = i.
+Assume the attack starts at time k = 0 and the attacker wants to
+be undetected for n time steps. The attacker then needs to solve the
+following equation.
+n 1
+X
+k=0
+n k
+i i
+nbi = i
+This addition is a geometric progression.
+n 1
+X
+k=0
+n 1
+i in k = i in X( i 1)k = i
+k=0
+1
+i
+1
+n
+i
+1
+By fixing the attacker can select the appropriate
+above equation.
+to satisfy the
+5.7
+Experiments
+We continue our use of the TE-PCS model. In this section we
+first describe our selection criteria for matrices A, B, and C for
+the linear model, and the parameters bi and i for the CUSUM
+statistic. We then describe the tradeoffs between false alarm rates
+and the delay for detecting attacks. The section ends with the study
+of stealthy attacks.
+5.7.1
+Linear Model
+In this paper we use the linear system characterized by the matrices
+A, B, and C, obtained by linearizing the non-linear TE-PCS
+model about the steady-state operating conditions. (See Ricker [49].)
+The linear model is a good representative of the actual TE-PCS
+15000
+10000
+5000
+20
+15
+m
+lra10
+a
+lfsea 5
+y4
+X: 0.015
+Y: 9951
+2.5 x 104
+2
+1
+1.5
+0.5
+y5
+X: 1.5
+Y: 1.818e+004
+y7
+X: 0.015
+Y: 1.911e+004
+2.5 x 104
+2
+1
+1.5
+0.5
+−00.1 0 0.1 0.2
+−010 0 10 20 30 −00.1 0 0.1 0.2
+Figure 4: The paramenter of ADM: b. For y4, 9951 bs are
+0:015. The mean value of by4 is 0:0642.
+We run experiments for ten thousand times (and for 40 hours
+each time) without any attacks to gather statistics. Fig 4 shows the
+estimated probability distributions (without normalization).
+To obtain bi, we compute the empirical expected value for each
+distance and then round up to the two most significant units. We
+obtain by4 = 0:065, by5 = 4:1, by7 = 0:042.
+Once we have bi for each sensor, we need to find a threshold i
+to balance the tradeoff between false alarms and detection time.
+False Alarm Rate.
+We run simulations for twenty times without attacks and compute
+the total number of false alarms for different values of (and
+for each sensor). Fig 5 shows the results. Taking y4 as an example,
+we notice that Sy4 alerts frequently if we set y4 < 6.
+y4
+y5
+y7
+20
+15
+m
+lra10
+a
+lfsae 5
+20
+15
+m
+lra10
+a
+lfsae 5
+X: 7
+Y: 1
+00 10 20 tau 30 40 50
+X: 4900
+Y: 1
+00 2500 5t0a0u0 7500 10000
+X: 44
+Y: 1
+00 25 t5a0u 75 100
+Figure 5: The number of false alarms decreases exponentially
+with increasing . This results confirm the theory supporting
+the nonparametric CUSUM algorithm.
+In general, we would like to select as high as possible for each
+sensor to avoid any false alarm; however, increasing increases the
+time to detect attacks.
+Detection Time.
+To measure the time to detect attacks, we run simulations by
+launching scaling attacks (ai(k) = myi(k)) on sensors y4, y5
+and y7. Figs 6 and 7 shows the experimental results.
+The selection of is a trade-off between detection time and the
+number of false alarms. The appropriate value differs from system
+to system. Because the large number of false alarms is one of the
+main problems for anomaly detection systems, and because the TEPCS
+process takes at least 10 hours to reach the unsafe state (based
+on our risk assessment section), we choose the conservative set of
+parameters y4 = 50, y5 = 10000, y7 = 200. These parameters
+allow us to detect attacks within a couple of hours, while not raising
+any false alarms.
+5
+)ru4
+o
+h
+it(e3
+m
+ito2
+n
+c
+e
+te1
+D
+00
+y4
+0.5
+λm
+5
+r)u4
+o
+h
+it(e3
+m
+ito2
+n
+c
+e
+te1
+D
+00
+r)ou2.35
+h
+(
+e
+itm 2
+n
+itco1.5
+e
+tde 1
+e
+g
+rea0.5
+va
+y5
+0.5
+λm
+5
+r)u4
+o
+h
+it(e3
+m
+ito2
+n
+c
+e
+te1
+D
+00
+y7
+0.5
+λm
+1
+1
+1
+Figure 6: Detection time v.s. scaling attack. Note that for im =
+1 there is no alarm.
+y4
+y = y * 0.9
+y = y * 0.7
+y = y * 0.5
+r)0.8
+u
+o
+(eh0.6
+m
+iittceon0.4 YX:: 05.05
+t
+e
+rvgedaea0.020 25 YX:: 05.01t5a0u 75 100
+y5
+y = y * 0.9
+y = y * 0.7
+y = y * 0.5
+X: 5000
+Y: 0.3
+X: 5000
+Y: 1.8
+X: 8000
+Y: 0.5
+00 2500 5000 7500 10000
+tau
+y7
+y = y * 0.9
+y = y * 0.7
+y = y * 0.5
+)rou2.35
+h
+(
+e
+iittcnom1.25 YX:: 2100
+e
+tde 1
+e
+g
+rvaea0.050 50 1ta0u0XY:: 10.040150YX:: 01.560200
+Figure 7: The time for detection increases linearly with increasing
+. This results confirm the theory behind the nonparametric
+CUSUM algorithm.
+5.7.3 Stealthy Attacks
+To test if our selected values for are resilient to stealthy attacks,
+we decided to investigate the effect of stealhty attacks as a function
+of . To test how the attacks change for all threshols we parameterize
+each threshold by a parameter p: itest = p i. Fig. 8 shows the
+percentage of times that geometric stealthy attacks (assuming the
+attacker controls all three sensor readings) were able to drive the
+pressure above 3000kPa while remaining undetected (as a function
+of p).
+Figure 8: Percentage of stealthy attacks that increase the pressure
+of the tank above 3,000kPa as a function of scaling parameter
+p.
+We implemented all stealth attacks starting at time T = 10
+(hrs). We assume the goal of the attacker is to be undetected until
+T = 30 (hrs). For example, Fig. 9 shows the results of attacking
+all three sensors with a geometric attack. The nonparametric
+CUSUM statistic shown in Fig. 10 shows how the attacker remains
+undetected until time T = 30 (hrs).
+We found that a surge attack does not cause significant damages
+because of the inertia of the chemical reactor: by the time the statistic
+reaches the threshold , the chemical reactor is only starting to
+respond to the attack. However, since the attacker can only add
+very small variations to the signal once it is close to the threshold,
+the attack ceases to produce any effect and the plant continues
+operating normally.
+y4
+y˜4
+y4
+y5
+y˜5
+y5
+y7
+y˜7
+y7
+10 Time20(hour)30 40
+10 Time20(hour)30 40
+10 Time20(hour)30 40
+Figure 9: Geometric attacks to the three 3 sensors. The solid
+lines represent the real state of the system, while the dotted lines
+represent the information sent by the attacker.
+105
+)r104
+h
+l/110023
+o
+m
+k
+(101
+te
+a100
+R
+tc99
+u
+od98
+rP97
+960
+60
+50
+40
+30
+20
+10
+3000
+2950
+)2900
+a
+kP2850
+(
+re2800
+u
+s
+se2750
+r
+P
+2700
+2650
+26000
+12000
+10000
+8000
+6000
+4000
+2000
+S4
+S5
+00 5 10 T15ime20(hou25r) 30 35 40
+00 5 10 T15ime20(hou25r) 30 35 40
+)50
+%
+l49
+o
+m
+(48
+regu47
+p
+in46
+A
+f45
+to44
+oun
+m43
+A420
+S7
+220
+200
+180
+160
+140
+120
+100
+80
+60
+40
+20
+00 5 10 T15ime20(hou25r) 30 35 40
+Figure 10: Statistics of geometric attacks with 3 sensors compromised.
+Finally, we assume two types of attackers. An attacker that has
+compromised y5 (but who does not know the values of the other
+sensors, and therefore can only control Sy5 (k)), and an attacker
+that has compromised all three sensors (and therefore can control
+the statistic S(k) for all sensors). We launched each attack 20
+times. The results are summarized in Figure 11.
+Figure 11: Effect of stealthy attacks. Each attack last 20 hours.
+Our results show that even though our detection algorithm fails to
+detect stealthy attacks, we can keep the the plant in safe conditions.
+We also find that the most successful attack strategy are geometric
+attacks.
+6.
+RESPONSE TO ATTACKS
+A comprehensive security posture for any system should include
+mechanisms for prevention, detection, and response to attacks. Automatic
+response to computer attacks is one of the fundamental
+problems in information assurance. While most of the research
+efforts found in the literature focus on prevention (authentication,
+access controls, cryptography etc.) or detection (intrusion detection
+systems), in practice there are quite a few response mechanisms.
+For example, many web servers send CAPTCHAs to the
+client whenever they find that connections resemble bot connections,
+firewalls drop connections that conform to their rules, the execution
+of anomalous processes can be slowed down by intrusion
+detection systems, etc.
+Given that we already have an estimate for the state of the system
+(given by a linear model), a natural response strategy for control
+systems is to use this estimate when the anomaly detection statistic
+fires an alarm. Fig 12 shows our proposed architecture. Specifically:
+for sensor i, if Si(k) > i, the ADM replaces the sensor
+measurements y~i(k) with measurements generated by the linear
+model y^i(k) (that is the controller will receive as input y^i(k) instead
+of y~i(k)). Otherwise, it treats y~i(k) as the correct sensor
+signal.
+Disturbance
++
+Linear
+model
+ADM
+Controller
+Computing Blocks
+Figure 12: An Anomaly Detection Module (ADM) can detect
+an attack and send an estimate of the state of the system to the
+controller.
+Introducing automatic response mechanisms is, however, not an
+easy solution. Every time systems introduce an automatic response
+to an alarm, they have to consider the cost of dealing with false
+alarms. In our proposed detection and response architecture (Fig. 12),
+we have to make sure that if there is a false alarm, controlling the
+system by using the estimated values from the linear system will
+not cause any safety concerns.
+6.1
+Experiments
+The automatic response mechanism works well when we are under
+attack. For example, Fig. (13) shows that when an attack is
+detected, the response algorithm manages to keep the system in a
+safe state. Similar results were obtained for all detectable attacks.
+While our attack response mechanism is a good solution when
+the alarms are indeed an indication of attacks, Our main concern in
+this section is the cost of false alarms. To address these concerns we
+ran the simulation scenario without any attacks 1000 times; each
+X: 10.6
+Y: 1369
+y5
+y˜5
+y5
+3500
+3000
+)
+a
+kP2500
+r(
+e
+u
+ss2000
+eP
+r
+1500
+10000
+y5
+X: 23.2
+Y: 3000
+y˜5
+y5
+40
+3500
+3000
+)
+a
+kP2500
+r(
+e
+u
+ss2000
+eP
+r
+1500
+10000
+10 Time2(0hour) 30
+9(a) Without ADM
+10 Time2(0hour) 30 40
+9(b) ADM detects and responds
+to the attack at T = 10:7 (hr)
+Figure 13: y~5 = y5
+0:5
+Alarms
+0
+Avg y5
+2700.4
+Std Dev
+14.73
+Max y5
+2757
+Table 1: For Thresholds y4 = 50; y5 = 10000; y7 = 200 we
+obtain no false alarm. Therefore we only report the expected
+pressure, the standard deviation of the pressure, and the maximum
+pressure reached under no false alarm.
+time the experiment ran for 40 hours. As expected, with the parameter
+set y4 = 50, y5 = 10000, y7 = 200 our system did
+not detect any false alarm (see Table 1); therefore we decided to
+reduce the detection threshold to y4 = 5, y5 = 1000, y7 = 20
+and run the same experiments again. Table 2 shows the behavior
+of the pressure after the response to a false alarm. We can see
+that while a false response mechanism increases the pressure of the
+tank, it never reaches unsafe levels. The maximum pressure obtained
+while controlling the system based on the linear model was
+2779kP a, which is in the same order of magnitude than the normal
+variation of the pressure without any false alarm (2757kP a).
+In our case, even if the system is kept in a safe state by the automated
+response, our response strategy is meant as a temporary
+solution before a human operator responds to the alarm. Based on
+our results we believe that the time for a human response can be
+very large (a couple of hours).
+7.
+CONCLUSIONS
+In this work we identified three new research challenges for securing
+control systems. We showed that by incorporating a physical
+model of the system we were able to identify the most critical
+sensors and attacks. We also studied the use of physical models
+for anomaly detection and proposed three generic types of stealthy
+attacks. Finally, we proposed the use of automatic response mechanisms
+based on estimates of the state of the system. Automatic
+responses may be problematic in some cases (especially if the response
+to a false alarm is costly); therefore, we would like to emphasize
+that the automatic response mechanism should be considered
+as a temporary solution before a human investigates the alarm.
+A full deployment of any automatic response mechanism should
+take into consideration the amount of time in which it is reasonable
+for a human operator to respond, and the potential side effects of
+y4
+y5
+y7
+Alarms
+61
+106
+53
+Avg y5
+2710
+2705
+2706
+Std Dev
+30.36
+18.72
+20.89
+Max y5
+2779
+2794
+2776
+Table 2: Behavior of the plant after response to a false alarm
+with thresholds y4 = 5; y5 = 1000; y7 = 20.
+responding to a false alarm.
+In our experiments with the TE-PCS process we found several
+interesting results. (1) Protecting against integrity attacks is more
+important than protecting against DoS attacks. In fact, we believe
+that DoS attacks have negligible impact to the TE-PCS process. (2)
+The chemical reactor process is a well-behaved system, in the sense
+that even under perturbations, the response of the system follows
+very closely our linear models. In addition, the slow dynamics of
+this process allows us to be able to detect attacks even with large
+delays with the benefit of not raising any false alarms. (3) Even
+when we configure the system to have false alarms, we saw that the
+automatic response mechanism was able to control the system in a
+safe mode.
+One of our main conclusions regarding the TE-PCS plant, is that
+it is a very resiliently-designed process control system. Design of
+resilient process control systems takes control system design experience
+and expertise. The design process is based on iteratively
+evaluating the performance on a set of bad situations that can arise
+during the operation of the plant and modifying control loop structures
+to build in resilience. In particular, Ricker's paper discusses
+the set of random faults that the four loop PI control is able to withstand.
+We like to make two points in this regard: (1). The PI control
+loop structure is distributed, in the sense that no PI control loop
+controls all actuators and no PI loop has access to all sensor measurements,
+and (2). The set of bad situations to which this control
+structure is able to withstand may itself result from the one or more
+cyber attacks. However, even though the resilience of TE-PCS
+plant is ensured by expert design, we find it interesting to directly
+test this resilience within the framework of assessment, detection
+and response that we present in this article.
+However, as a word of caution, large scale control system designs
+are often not to resilient by design and may become prey to
+such stealth attacks if sufficient resilience is not built by design in
+the first place. Thus, our ideas become all the more relevant for operational
+security until there is a principled way of designing fully
+attack resilient control structures and algorithms (which by itself
+is a very challenging research endeavor and may not offer a cost
+effective design solution).
+Even though we have focused on the analysis of a chemical reactor
+system, our principles and techniques can be applied to many
+other physical processes. An automatic detection and response
+module may not be a practical solution for all control system processes;
+however, we believe that many processes with similar characteristics
+to the TE-PCS can benefit from this kind of response.
+Acknowledgments
+We would like to thank Gabor Karsai, Adrian Perrig, Bruno Sinopoli,
+and Jon Wiley for helpful discussions on the security of control
+systems. This work was supported in part by by the iCAST-TRUST
+collaboration project, and by CHESS at UC Berkeley, which receives
+support from the NSF awards #0720882 (CSR-EHS: PRET)
+and #0931843 (ActionWebs), ARO #W911NF-07-2-0019, MURI
+#FA9550-06-0312, AFRL, and MuSyC.
+8. REFERENCES
+[1] Nicolas Falliere, Liam O Murchu, and Eric Chien.
+W32.Stuxnet Dossier. Symantec, version 1.3 edition,
+November 2010.
+[2] Ralph Langner. Langner communications.
+http://www.langner.com/en/, October 2010.
+[3] Steve Bellovin. Stuxnet: The first weaponized software?
+http://www.cs.columbia.edu/~smb/blog/
+/2010-09-27.html, October 2010.
+[4] Dale Peterson. Digital bond: Weisscon and stuxnet.
+http://www.digitalbond.com/index.php/
+2010/09/22/weisscon-and-stuxnet/, October
+2010.
+[5] Brian Krebs. Cyber Incident Blamed for Nuclear Power
+Plant Shutdown. Washington Post, http:
+//www.washingtonpost.com/wp-dyn/content/
+article/2008/06/05/AR2008060501958.html,
+June 2008.
+[6] Robert J. Turk. Cyber incidents involving control systems.
+Technical Report INL/EXT-05-00671, Idao National
+Laboratory, October 2005.
+[7] Richard Esposito. Hackers penetrate water system
+computers. http://blogs.abcnews.com/
+theblotter/2006/10/hackers_penetra.html,
+October 2006.
+[8] BBC News. Colombia Rebels Blast Power Pylons. BBC,
+http://news.bbc.co.uk/2/hi/americas/
+607782.stm, January 2000.
+[9] Jill Slay and Michael Miller. Lessons learned from the
+maroochy water breach. In Critical Infrastructure Protection,
+volume 253/2007, pages 73-82. Springer Boston, November
+2007.
+[10] Paul Quinn-Judge. Cracks in the system. TIME Magazine,
+9th Jan 2002.
+[11] Thomas Reed. At the Abyss: An Insider's History of the Cold
+War. Presidio Press, March 2004.
+[12] United States Attorney, Eastern District of California.
+Willows man arrested for hacking into Tehama Colusa Canal
+Authority computer system.
+http://www.usdoj.gov/usao/cae/press_
+releases/docs/2007/11-28-07KeehnInd.pdf,
+November 2007.
+[13] United States Attorney, Eastern District of California.
+Sacramento man pleads guilty to attempting ot shut down
+california's power grid. http:
+//www.usdoj.gov/usao/cae/press_releases/
+docs/2007/12-14-07DenisonPlea.pdf,
+November 2007.
+[14] David Kravets. Feds: Hacker disabled offshore oil platform
+leak-detection system. http://www.wired.com/
+threatlevel/2009/03/feds-hacker-dis/,
+March 2009.
+[15] John Leyden. Polish teen derails tram after hacking train
+network. The Register, 11th Jan 2008.
+[16] Andrew Greenberg. Hackers cut cities' power. In Forbes,
+Jaunuary 2008.
+[17] V.M. Igure, S.A. Laughter, and R.D. Williams. Security
+issues in SCADA networks. Computers & Security,
+25(7):498-506, 2006.
+[18] P. Oman, E. Schweitzer, and D. Frincke. Concerns about
+intrusions into remotely accessible substation controllers and
+SCADA systems. In Proceedings of the Twenty-Seventh
+Annual Western Protective Relay Conference, volume 160.
+Citeseer, 2000.
+[19] US-CERT. Control Systems Security Program. US
+Department of Homeland Security, http://www.
+us-cert.gov/control_systems/index.html,
+2008.
+[20] GAO. Critical infrastructure protection. Multiple efforts to
+secure control systems are under way, but challenges remain.
+Technical Report GAO-07-1036, Report to Congressional
+Requesters, September 2007.
+[21] Jack Eisenhauer, Paget Donnelly, Mark Ellis, and Michael
+O'Brien. Roadmap to Secure Control Systems in the Energy
+Sector. Energetics Incorporated. Sponsored by the U.S.
+Department of Energy and the U.S. Department of
+Homeland Security, January 2006.
+[22] Eric Byres and Justin Lowe. The myths and facts behind
+cyber security risks for industrial control systems. In
+Proceedings of the VDE Congress, VDE Association for
+Electrical Electronic & Information Technologies, October
+2004.
+[23] D. Geer. Security of critical control systems sparks concern.
+Computer, 39(1):20-23, Jan. 2006.
+[24] A.A. Cardenas, T. Roosta, and S. Sastry. Rethinking security
+properties, threat models, and the design space in sensor
+networks: A case study in SCADA systems. Ad Hoc
+Networks, 2009.
+[25] NERC-CIP. Critical Infrastructure Protection. North
+American Electric Reliability Corporation,
+http://www.nerc.com/cip.html, 2008.
+[26] K. Stouffer, J. Falco, and K. Kent. Guide to supervisory
+control and data acquisition (SCADA) and industrial control
+systems security. Sp800-82, NIST, September 2006.
+[27] Idaho National Laboratory. National SCADA Test Bed
+Program. http://www.inl.gov/scada.
+[28] Hart. http://www.hartcomm2.org/frontpage/
+wirelesshart.html. WirelessHart whitepaper, 2007.
+[29] ISA. http://isa.org/isasp100. Wireless Systems
+for Automation, 2007.
+[30] Eric Cosman. Patch management at Dow chemical. In ARC
+Tenth Annual Forum on Manufacturing, February 20-24
+2006.
+[31] Patch management strategies for the electric sector. Edison
+Electric Institute-IT Security Working Group, March 2004.
+[32] Eric Byres, David Leversage, and Nate Kube. Security
+incidents and trends in SCADA and process industries. The
+Industrial Ethernet Book, 39(2):12-20, May 2007.
+[33] Andrew K. Wright, John A. Kinast, and Joe McCarty.
+Low-latency cryptographic protection for SCADA
+communications. In Applied Cryptography and Network
+Security (ACNS), pages 263-277, 2004.
+[34] Patrick P. Tsang and Sean W. Smith. YASIR: A low-latency
+high-integrity security retrofit for lecacy SCADA systems. In
+23rd International Information Security Conference (IFIC
+SEC), pages 445-459, September 2008.
+[35] Steven Hurd, Rhett Smith, and Garrett Leischner. Tutorial:
+Security in electric utility control systems. In 61st Annual
+Conference for Protective Relay Engineers, pages 304-309,
+April 2008.
+[36] Steven Cheung, Bruno Dutertre, Martin Fong, Ulf Lindqvist,
+Keith Skinner, and Alfonso Valdes. Using model-based
+intrusion detection for SCADA networks. In Proceedings of
+the SCADA Security Scientific Symposium, Miami Beach,
+FL, USA, 2007 2007.
+[37] PAS Ralston, JH Graham, and JL Hieb. Cyber security risk
+assessment for SCADA and DCS networks. ISA
+transactions, 46(4):583-594, 2007.
+[38] P.A. Craig, J. Mortensen, and J.E. Dagle. Metrics for the
+National SCADA Test Bed Program. Technical report,
+PNNL-18031, Pacific Northwest National Laboratory
+(PNNL), Richland, WA (US), 2008.
+[39] G. Hamoud, R.L. Chen, and I. Bradley. Risk assessment of
+power systems SCADA. In IEEE Power Engineering Society
+General Meeting, 2003, volume 2, 2003.
+[40] Yao Liu, Michael K. Reiter, and Peng Ning. False data
+injection attacks against state estimation in electric power
+grids. In CCS '09: Proceedings of the 16th ACM conference
+on Computer and communications security, pages 21-32,
+New York, NY, USA, 2009. ACM.
+[41] Rakesh Bobba, Katherine M. Rogers, Qiyan Wang,
+Himanshu Khurana, Klara Nahrstedt, and Thomas J.
+Overbye. Detecting false data injection attacks on dc state
+estimation. In Preprints of the 1st Workshop on Secure
+Control Systems, 2010.
+[42] Henrik Sandberg, Teixeira Andre, and Karl H. Johansson. On
+security indices for state estimators in power networks. In
+Preprints of the 1st Workshop on Secure Control Systems,
+2010.
+[43] Oliver Kosut, Liyan Jia, Robert J. Thomas, and Lang Tong.
+Malicious data attacks on smart grid state estimation: Attack
+strategies and countermeasures. In First International
+Conference on Smart Grid Communications
+(SmartGridComm), pages 220-225, 2010.
+[44] Oliver Kosut, Liyan Jia, Robert J. Thomas, and Lang Tong.
+On malicious data attacks on power system state estimation.
+In UPEC, 2010.
+[45] A Teixeira, S. Amin, H. Sandberg, K.H. Johansson, and S.S.
+Sastry. Cyber-security analysis of state estimators in electric
+power systems. In IEEE Conference on Decision and
+Control (CDC), 2010.
+[46] Le Xie, Yilin Mo, and Bruno Sinopoli. False data injection
+attacks in electricity markets. In First International
+Conference on Smart Grid Communications
+(SmartGridComm), pages 226-231, 2010.
+[47] Yilin Mo and Bruno Sinopoli. False data injection attacks in
+control systems. In Preprints of the 1st Workshop on Secure
+Control Systems, 2010.
+[48] Julian Rrushi. Composite Intrusion Detection in Process
+Control Networks. PhD thesis, Universita Degli Studi Di
+Milano, 2009.
+[49] NL Ricker. Model predictive control of a continuous,
+nonlinear, two-phase reactor. JOURNAL OF PROCESS
+CONTROL, 3:109-109, 1993.
+[50] Dorothy Denning. An intrusion-detection model. Software
+Engineering, IEEE Transactions on, SE-13(2):222-232, Feb.
+1987.
+[51] S. Joe Quin and Thomas A. Badgwell. A survey of industrial
+model predictive control technology. Control Engineering
+Practice, 11(7):733-764, July 2003.
+[52] J.B. Rawlings. Tutorial overview of model predictive control.
+Control Systems Magazine, IEEE, 20(3):38-52, Jun 2000.
+[53] T. Kailath and H. V. Poor. Detection of stochastic processes.
+IEEE Transactions on Information Theory,
+44(6):2230-2258, October 1998.
+[54] A. Wald. Sequential Analysis. J. Wiley & Sons, New York,
+1947.
+[55] Jaeyeon Jung, Vern Paxson, Arthur Berger, and Hari
+Balakrishan. Fast portscan detection using sequential
+hypothesis testing. In Proceedings of the 2004 IEEE
+Symposium on Security and Privacy, pages 211-225, May
+2004.
+[56] Stuart Schechter and Jaeyeon Jung Arthur Berger. Fast
+detection of scanning worm infections. In Proc. of the
+Seventh International Symposium on Recent Advances in
+Intrusion Detection (RAID), September 2004.
+[57] M. Xie, H. Yin, and H. Wang. An effective defense against
+email spam laundering. In Proceedings of the 13th ACM
+Conference on Computer and Communications Security,
+pages 179-190, October 30-November 3 2006.
+[58] Guofei Gu, Junjie Zhang, and Wenke Lee. Botsniffer:
+Detecting botnet command and control channels in network
+traffic. In Proceedings of the 15th Annual Network and
+Distributed System Security Symposium (NDSS'08), San
+Diego, CA, February 2008.
+[59] B.E. Brodsky and B.S. Darkhovsky. Non-Parametric
+Methods in Change-Point Problems. Kluwer Academic
+Publishers, 1993.

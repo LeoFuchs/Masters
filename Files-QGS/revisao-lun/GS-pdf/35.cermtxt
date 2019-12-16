@@ -1,0 +1,750 @@
+2476
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 5, SEPTEMBER 2015
+Detecting False Data Injection Attacks
+in AC State Estimation
+Gu Chaojun, Student Member, IEEE, Panida Jirutitijaroen, Senior Member, IEEE, and
+Mehul Motani, Member, IEEE
+Abstract-Estimating power system states accurately is crucial
+to the reliable operation of power grids. Traditional weighted
+least square (WLS) state estimation methods face the rising threat
+of cyber-attacks, such as false data injection attacks, which can
+pass the bad data detection process in WLS state estimation. In
+this paper, we propose a new detection method to detect false
+data injection attacks by tracking the dynamics of measurement
+variations. The Kullback-Leibler distance (KLD) is used to calculate
+the distance between two probability distributions derived
+from measurement variations. When false data are injected into
+the power systems, the probability distributions of the measurement
+variations will deviate from the historical data, thus leading
+to a larger KLD. The proposed method is tested on IEEE 14 bus
+system using load data from the New York independent system
+operator with different attack scenarios. We have also tested
+our method on false data injection attacks that replace current
+measurement data with historical measurement data. Test results
+show that the proposed approach can accurately detect most of
+the attacks.
+Index Terms-False data
+distance (KLD), state estimation.
+injection,
+Kullback-Leibler
+I. INTRODUCTION
+S grid energy management system (EMS) [1]. To perform
+TATE ESTIMATION is an important function in power
+the state estimation, the power system control center gathers
+measurement data from remote terminal units (RTUs). These
+data generally include real and reactive power injections, real
+and reactive power flow in the transmission lines, and voltage
+magnitude at generator buses. The measurement data are converted
+to system state (bus phase angle and voltage magnitude)
+using dc state estimation or ac state estimation.
+Accurately estimating system states is important because the
+system state information from the state estimation is used in
+other functions of EMS, such as transmission stability analysis,
+load shedding, etc. The measurement data gathered from
+the RTUs may contain small random measurement errors,
+which can be caused by noise or inaccuracy of measurement
+equipment [2], [3]. These small measurement errors are generally
+independent from each other. Weighted least square state
+Manuscript received May 16, 2014; revised September 21, 2014; accepted
+December 28, 2014. Date of publication February 6, 2015; date of current
+version August 19, 2015. Paper no. TSG-00463-2014.
+The authors are with the Department of Electrical and Computer
+Engineering, National University of Singapore, Singapore (e-mail:
+a0040186@nus.edu.sg; elejp@nus.edu.sg; elemm@nus.edu.sg).
+Color versions of one or more of the figures in this paper are available
+online at http://ieeexplore.ieee.org.
+Digital Object Identifier 10.1109/TSG.2015.2388545
+estimation can estimate the system state accurately when the
+variances of these small measurement errors are known.
+Apart from the small measurement errors caused by the
+noise and inaccuracy of measurement, it is possible that
+measurement data contain larger errors caused by biased
+meters or telecommunication failure [2]. These larger measurement
+errors are considered independent and can be
+detected using residual analysis of traditional bad data detection
+method [2], [3].
+In recent years, cyber-attacks are emerging threats to the
+secure operation of power systems [4]-[6]. It is found in [7]
+that a new type of cyber-attack called false data injection attack
+can pass the traditional bad data detection in power system
+state estimation. A successful false data injection attack was
+initially illustrated by dc state estimation which relies on linear
+measurement function z = Hx + e where z, x, and e are the
+vectors of measurements, system states, and errors, respectively.
+A manipulated measurement vector zbad = Hxbad + e
+will not be detected by the traditional bad data detection
+process because the measurement residuals with false data
+injection attacks are the same as the measurement residuals
+with no false data injection attacks. Results from [8] show that
+an attack using a dc model may trigger the bad data detector
+in an ac state estimation, but attackers can still inject false data
+into the ac state estimation. Both dc state estimation and ac
+state estimation are prone to the false data injection attacks.
+Several methods have been proposed to alleviate false data
+injection attacks. These methods can be divided into two
+categories: 1) protection-based; and 2) detection-based [9].
+The protection-based methods [9]-[13] which defend against
+the false data injection attacks by protecting certain sensors
+have two drawbacks. The first drawback is the decrease
+of redundancy. This is because only the protected measurements
+are trusted and used. The second drawback is that
+the protection may not be secure all of the time. The state
+estimation would be in danger if attackers can penetrate the
+protection and manipulate the measurements. The detectionbased
+methods [14]-[16], by analyzing the raw measurements,
+are able to detect those abnormal ones that do not fit the
+distribution of historical measurements. However, these methods
+do not have the ability to detect false data that fits
+the distribution of historical measurements, such as previous
+measurement data.
+In [17]-[19], there are many time series anomaly detection
+methods. Most of these methods have specific applications
+and have not been used in power system analysis. In this
+1949-3053 c 2015 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+CHAOJUN et al.: DETECTING FALSE DATA INJECTION ATTACKS IN AC STATE ESTIMATION
+2477
+paper, a new detection-based method is proposed to address the
+limitations of the existing methods. The key idea of the proposed
+method is to track the dynamics of the measurements by
+calculating distance indices between adjacent steps. Distance
+indices can be calculated from historical measurements using
+the Kullback-Leibler distance (KLD) [20]. A threshold of the
+distance index, calculated from historical data, will be used
+to detect potential false data injection attacks. The distance
+index between the current time step k and the previous step
+k − 1 should fall within the threshold when there are no false
+data injection attacks. If the distance index is significantly
+different from historical distance values, the newly received
+measurements are likely to be manipulated.
+The remaining parts of this paper are organized as follows.
+Section II explains the background of state estimation, bad data
+detection, and false data injection attacks. Section III discusses
+the existing methods and our proposed method to detect false
+data injection attacks. Section IV explains how to build the
+test system and calculate the distance index. Section V shows
+the test results of different attacking scenarios. The conclusion
+is drawn in Section VI.
+II. BACKGROUND
+Based on the measurement function that models the measurement
+and system state, there are two ways to perform
+state estimation: 1) dc state estimation; and 2) ac state estimation.
+It is possible to inject false data in both dc and ac state
+estimation.
+A. DC State Estimation
+DC state estimation is based on the following linear measurement
+function:
+z = Hx + e
+where z ∈ Rm×1 is the measurement vector that contains
+m measurements. These m measurements include real power
+injection at buses and real power flow in transmission lines.
+x ∈ Rn×1 is the system state vector. In dc state estimation, x
+consists of phase angles at all the buses except the slack bus
+where the phase angle is set to be zero. H ∈ Rm×n is the linear
+measurement function. H is determined according to the
+physical structure of the power grid. e ∈ Rm×1 is a vector of
+measurement errors. R is the diagonal matrix representing the
+covariance matrix of the measurement errors.
+DC state estimation assumes that bus voltage magnitudes
+are all equal to one. All shunt elements and branch resistances
+are negligible. The real power flow between buses i and j is
+given by Pij = (θi − θj)/xij, where xij is the reactance of the
+branch between buses i and j, θi and θj are the phase angles
+at bus i and j, respectively.
+The estimated system state xˆ from dc state estimation is
+calculated by minimizing the objective function
+The xˆ that minimizes (2) is given by
+F(x) = (z − Hx)T R−1(z − Hx).
+xˆ =
+−1
+HT R−1H
+HT R−1z.
+(1)
+(2)
+(3)
+B. Bad Data Detection and False Data Injection Attacks
+Traditional bad data detection is based on the residual analysis
+of r = z − H xˆ. If the measurement errors are independent
+and follow normal distribution, then the residual ||r|| follow
+a chi-square distribution. To detect the existence of bad data,
+the residual is compared with a threshold value calculated with
+a certain confidence interval. However, this way of detecting
+bad data faces a threat from an newly discovered attack.
+According to [7], an attacker can pass the bad data detection
+test if the attacker has knowledge of the system structure (H)
+and can manipulate multiple measurements at the same time.
+Mathematically, the manipulated measurement zbad = z + a,
+can pass the bad data detection test if a = Hc where a is
+the malicious data added to the original measurements, and c
+is the injected error on the system state. After the false data
+injection, dc state estimation will get an erroneous system state
+xˆbad = xˆ + c from the manipulated measurement data.
+False data injection attacks can pass the traditional bad data
+detection tests because the residual from the false data injection
+attacks, rbad = zbad − H xˆbad = z + a − H( xˆ + c) =
+z − H xˆ = r. This means that the measurement residual will
+not increase after the false data have been injected to the
+system. Thus traditional bad data detection methods cannot
+detect the false data injection attacks.
+C. AC State Estimation False Data Injection
+Different from dc state estimation, ac state estimation uses
+a nonlinear function between measurements and system state.
+The nonlinear measurement function is shown
+z = h(x) + e
+(4)
+where h() is a nonlinear function between the measurement
+vector z and the system state vector x.
+In ac state estimation, system state variables include not
+only bus phase angles, but also bus voltage magnitudes.
+Reference [8] expands the dc false data injection into ac
+false data injection. In that research, it is found that in
+order to pass the ac state estimation bad data detection, the
+attacker needs to know the value of the system state and the
+system configuration. In ac state estimation, the false data
+added to the measurement a can pass bad data detection if
+a = h( xˆ + c) − h( xˆ).
+In this paper, we focus our analysis on false data injection
+attacks on ac state estimation. The proposed method is also
+applicable for dc state estimation. When the attacker wants to
+inject false data into ac state estimation, there are generally two
+targets. One is to manipulate certain system state variables;
+another is to manipulate certain measurements.
+1) Targeting System State Variables: In ac state estimation,
+there are two types of state variables: 1) bus phase angle (θ );
+and 2) bus voltage magnitude (V ). If the attacker targets a
+specific state variable, all the measurements that depend on
+this state variable will be affected. The measurement values
+are related to the system state by the following equations [2].
+1) Real and reactive power injection at bus i
+Pi = Vi
+Vj Gij cos θij + Bij sin θij
+(5)
+j∈ i
+2478
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 5, SEPTEMBER 2015
+Qi = Vi
+Vj Gij sin θij − Bij cos θij .
+j∈ i
+2) Real and reactive power flow from bus i to bus j
+Pij = Vi2 gsi + gij − ViVj gij cos θij + bij sin θij
+Qij = −Vi2 bsi + bij − ViVj gij sin θij − bij cos θij
+(6)
+(7)
+(8)
+where
+Vi voltage at bus i;
+θi phase angle at bus i;
+θij θi − θj;
+Gij + jBij line admittance between bus i and j;
+gsi + jbsi admittance of the shunt branch at bus i;
+i set of buses connected to bus i.
+From (5)-(8), it is clear that to target one state variable, for
+example Vi, the measurements that need to be manipulated
+are Pi, Qi, Pij, and Qij where j ∈ i. If the attacker intends
+to change multiple states at the same time, then the attacker
+needs to manipulate even more measurements. For example, if
+the attacker wants to change Vk where k ∈ Ua is a set of bus
+numbers, then the measurements that need to be manipulated
+are Pk, Qk, Pkj, and Qkj where k ∈ Ua, j ∈ k.
+2) Targeting Certain Measurements: A specific measurement
+in the state estimation is determined by system structure
+and at least two system variables. To change a specific measurement,
+an attacker needs to change at least one state
+variable that controls the targeted measurement. To pass
+the bad data detection, an attacker needs to manipulate all
+the measurements that are affected by the manipulated state
+variable.
+III. METHODOLOGY
+A. Current Defending Methods
+The existing countermeasures can be categorized
+into: protection-based approaches and detection-based
+approaches [9].
+1) Protection-Based Approaches: References [9]-[13] proposed
+to prevent false data injection attacks by protecting
+measurements from certain sensors. It is possible to calculate
+the minimal set of measurements that needs to be protected
+for both dc and ac state estimation. However, there are two
+drawbacks of the protection-based approach. The first drawback
+is that measurement redundancy drops since only the
+protected measurements can be trusted. The second drawback
+is that protecting of measurement may not work 100% of the
+time. If the attacker is capable of penetrating the protection,
+then state estimation is still in great danger.
+2) Detection-Based Approaches: Another type of countermeasure
+proposed by [14]-[16] is to detect potential false data
+injection attacks using Bayesian framework. The Bayesian
+framework assumes that the vector of system states is a random
+vector with Gaussian distribution N (μx, x). The distribution
+is estimated from the historical data. The estimated distribution
+is used as a reference in the hypothesis test for the
+new state. This method will capture the attacks that lead to
+extreme abnormal system states. The drawback of Bayesian
+framework method is that it cannot detect attacks that inject
+measurement data that fit the distribution of historical data. For
+example, if an attacker replaces the current measurement data
+with previous measurement data which fall in the distribution,
+the Bayesian-based method cannot detect the attack.
+In this paper, we propose a new method that can overcome
+the above drawbacks.
+B. Proposed Method
+The proposed method detects false data injection attacks
+by tracking the dynamics of the measurement data. To quantify
+the measurement variation, we use two distance indices:
+1) absolute distance; and 2) KLD. For both distance indices,
+there are two probability distribution p and q. The probability
+distribution q is the distribution of measurement variation
+from the historical data. p is the distribution of measurement
+variation between the current time step and the previous time
+step. When there is no false data injection, the distance index
+would be relatively small. When false data are injected into the
+power systems, the distance index will increase. By comparing
+the distance index of current time step with the historical distance
+index values, we can determine if false data are injected
+in to the power systems.
+1) Absolute Distance: This is a naive way of comparing
+the difference between two probability distributions. We call
+it absolute distance in this paper. The distance is defined as
+follows:
+A(p||q) =
+|p(x) − q(x)|.
+x
+2) KLD: The KLD calculates the difference between two
+probability distributions p(x) and q(x) [20]. The distance is
+defined as follows:
+D(p||q) =
+p(x) ln
+x
+= Ep ln
+p(X)
+q(X)
+.
+p(x)
+q(x)
+(9)
+(10)
+(11)
+In the above definition, we use the convention that
+0 ln 0/q = 0 and p ln p/0 = ∞. The KLD is also called the
+relative entropy. The KLD is not a true distance metric as it is
+not symmetric (D(p||q) may not be equal to D(q||p)), and it
+does not satisfy a triangle inequality. It is always nonnegative
+and is zero if and only if p = q.
+The KLD was introduced by Solomon Kullback and
+Richard Leibler in 1951. It has been used in many applications.
+Reference [21] uses the KLD to retrieve texture. In [22],
+the KLD is used to help improve the audio search. The
+KLD can even indicate nonstationarity change of neurological
+signals [23]. In our problem, we use the KLD to detect
+potential cyber-attacks on power system.
+IV. CASE STUDIES
+A. Test System
+In this section, we discuss how to prepare a test system to
+test the performance of our proposed method. The test system
+CHAOJUN et al.: DETECTING FALSE DATA INJECTION ATTACKS IN AC STATE ESTIMATION
+2479
+Fig. 1. IEEE 14 bus test system.
+Fig. 2. NYISO map of 11 electric power grid regions in New York State,
+USA.
+used in this paper is based on the IEEE 14 bus system, as
+shown in Fig. 1.
+The load data used in the test system are based on the
+New York independent system operator (NYISO) from 2012.
+There are 11 load regions in the NYISO data as shown in
+Fig. 2. The time interval of the load data is five minutes.
+Due to the lack of five minutes system state data, we perform
+the following procedures to generate the system state
+data from NYISO load pattern.
+1) Link each load bus of IEEE 14 bus system with one
+region of NYISO using the following matrix:
+2
+1
+3
+2
+4
+3
+5
+4
+6
+5
+9
+6
+10
+7
+11
+8
+12
+9
+13
+10
+1141 .
+The first row of the matrix is the bus number of IEEE
+14 bus system. The second row is the corresponding
+NYISO region number.
+2) Normalize the load of NYISO to the initial real and reactive
+load of the corresponding IEEE 14 bus, so that the
+test system operates near the initial state of the IEEE
+14 bus system. After this step, we will have real and
+reactive load data for the IEEE 14 bus system. Due
+to lack of reactive load information, we assume that
+the system load has a constant power factor so only
+Fig. 3. Histogram of measurement variation from January to October 2012.
+real power prediction is needed. This assumption can
+be relaxed if the historical data of reactive power is
+available.
+3) Add up the new real power load. Find the ratio of
+the new total load to the IEEE 14 bus initial total
+load. Multiply this ratio to the generations of all the
+generators. Here, we assume that generations from the
+generators increase at the same rate as the total load.
+This assumption can be adjusted according to system
+operators since the system operators know the generation
+plan ahead of the time [24].
+4) Repeat the previous step for the reactive power.
+5) Calculate the system state (x) using power flow analysis.
+6) Calculate the system measurement value z = h(x),
+where h() is the power flow equation derived from the
+system structure.
+B. Simulate False Data Injection Attacks
+To test the proposed method, we simulate false data injection
+attacks by targeting different system state variables.
+The manipulated system state after the attack is denoted
+by xbad = x + c. The corresponding measurement for the
+manipulated system state is zbad = h(xbad).
+For ac state estimation in IEEE 14 bus system, there are
+27 state variables (13 bus phase angles and 14 voltage magnitudes).
+We simulate false data injection attacks on each of
+these 27 state variables.
+C. Measurement Variation
+Power systems are considered as quasi-static systems. The
+power system state changes constantly but slowly. This means
+that measurements gathered from the RTUs should vary
+slowly. The measurement data gathered from RTUs at time
+step k is denoted by z(k). The measurement variation is defined
+as z(k) − z(k − 1). Fig. 3 shows the histogram of measurement
+variation from January 2012 to October 2012 with no
+false data injection attacks. From Fig. 3, we can see that most
+of the measurement variations are small and close to zero.
+This histogram is converted to probability density function q
+in (10).
+When there are no false data injection attacks, the distributions
+of measurement variation are similar between different
+2480
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 5, SEPTEMBER 2015
+Fig. 4. Histogram of measurement variation in November 2012.
+Fig. 6. Histogram of absolute distance on November with no false data
+injection attacks.
+Fig. 5. Histogram of measurement variation with false data injection attacks.
+months. Fig. 4 is the histogram of measurement variation
+in November 2012 with no false data injection attacks.
+Comparing Fig. 3 with Fig. 4, we can see that two histograms
+are quite similar.
+However, when false data are injected to the power system,
+the histogram of the measurement variation will be different.
+To illustrate the impact of false data injection on measurement
+variation, we simulate 10% incremental attack on the first variable
+of the system state (θ2), c = (0.1 ∗ θ2, 0, . . . , 0). We simulate
+this attack for each time step of December. Fig. 5 is the
+histogram of measurement variation (zbad(k) − z(k − 1)) when
+false data are injected into the system. From Figs. 4 and 5,
+we can see that false data injection will affect the distribution
+of measurement variation.
+D. Distance Index
+To quantify the difference between two distributions, we
+test two difference indices. For both indices, there are two
+probability distributions p and q. In this paper, q is derived
+from the historical data of measurement variations (Fig. 3).
+p is derived at each time step. For the IEEE 14 bus system,
+there are 70 measurements at each time step. It includes real
+and reactive power injection, real and reactive power flow in
+the transmission line and voltage magnitude at generator buses.
+The variation of these 70 measurements at each time step is
+used to derive p.
+1) Absolute Distance: We firstly test absolute distance
+between p and q using (9).
+Fig. 7. Histogram of absolute distance on December with false data injection
+attacks.
+Fig. 6 is the histogram of absolute distances for November
+with no false data injection attacks. The absolute distances
+range from 0.1 to 0.6.
+Fig. 7 is the histogram of absolute distance for December
+with false data injection attacks. Compared with absolute distance
+with no attack in Fig. 6, the absolute distances with false
+data injection attacks are mostly larger. However, there is some
+overlapping between Figs. 6 and 7 around 0.4 to 0.6. This
+means that when we get a measurement sample with absolute
+distance between 0.4 and 0.6, this sample can be from either
+no attack or with attack. Thus absolute distance is not an ideal
+candidate to test false data injection attacks.
+2) KLD: KLD is calculated based on (10). Fig. 8 is the
+histogram of KLD for November with no false data injection
+attacks. The histogram shows that the KLD of most samples
+in November are less than 0.45. Fig. 9 is the histogram of
+KLD for December with false data injection attacks. In Fig. 9,
+KLD of all samples are larger than 0.45. By comparing Fig. 8
+with Fig. 9, we can see that false data injection attacks will
+increase KLD.
+Unlike the absolute distance, there is much less overlapping
+in the histograms with the KLD. To detect false data injection
+attacks, we set a KLD threshold from the previous data
+(Fig. 8). This threshold is then compared with every sample
+during runtime (Fig. 9). If the runtime KLD is larger than the
+threshold, it is likely that false data have been injected into
+the system.
+CHAOJUN et al.: DETECTING FALSE DATA INJECTION ATTACKS IN AC STATE ESTIMATION
+2481
+TABLE I
+SUMMARY OF TEST RESULTS FOR DATA INJECTION ATTACKS
+Fig. 8. Histogram of KLD on November with no false data injection attacks.
+Fig. 9. Histogram of KLD on December with false data injection attacks.
+Selecting the proper threshold affects the accuracy of
+detection. Threshold represents the tolerance of measurement
+variation for the detection algorithm. When the threshold is set
+to high, the proposed method will potentially not be able to
+detect certain attacks. When the threshold is set to low, some
+true measurement data may be classified as false data.
+It is possible to use the maximum historical distance as the
+threshold. However, the maximum distance may be too large.
+In Fig. 8, the maximum KLD is 1.19 which is higher than
+most of the samples in Fig. 9. If we use 1.19 as the threshold,
+we cannot detect the false data injection attacks. Please note
+that the extreme large historical distance may be caused by
+the measurement error in the test system data.
+To solve this problem, in this paper, we use a maximum
+KLD from historical data with certain confidence level. For
+example, the 99% confidence level means that the threshold
+value is larger than 99% of the historical data. In Fig. 8, the
+99% confidence maximum KLD is 0.35 which is smaller than
+most of the samples in Fig. 9. This 99% confidence maximum
+is used as threshold to detect potential false data injection
+attacks.
+V. RESULTS AND DISCUSSION
+In this section, the proposed method is tested with two
+different types of false data injection attacks.
+1) Attack on State Variable: One system variable is targeted
+and all measurements linked to that system variable are
+replaced with false data.
+2) Attack Using Previous Measurement Data: The intruder
+replaces the current measurement data with older measurement
+data.
+A. Attack State Variable
+To test the performance of the proposed method, we simulate
+false data injection attacks on each system state variable.
+For each attack, one system state variable is decreased or
+increased by certain percentage of its original value. Table I
+summarizes the test results.
+Each row of Table I represents one system state variable
+that is targeted. For each targeted state variable, we simulate
+five injection amounts, which are 90%, 95%, 100%,
+105%, and 110% of the original value. Ninety percentage
+means that the manipulated system state variable is 10%
+smaller than the true value. Hundred percentage means that
+there is no attack.
+Result for each targeted state variable and injected amount
+is shown in two formats, UD and %. UD stands for undetected
+samples. Percentage indicates the percentage of samples
+that are not detected, which is equal to UD divided by total
+samples. In the case study, there are 8927 samples for each
+attacking scenario.
+The second and third columns of Table I show that when
+the manipulated state variable is 90% of the original value,
+our proposed method can detect most of attack scenarios with
+no undetected sample. When the manipulated state variable is
+95% of its variable, there are slightly more samples that cannot
+be detected. This is because 95% is closer to the original
+value than 90%, thus the attacks have smaller impact on the
+measurements.
+2482
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 5, SEPTEMBER 2015
+Fig. 10. False data injection attacks with replay attacks. Tested on
+8927 samples.
+Table I also shows that it is difficult to detect false data
+injection attacks for certain state variables. In our case study,
+manipulating state variables at buses 3, 7, and 8 are difficult
+to detect. This is because these buses have fewer connections
+to the remaining parts of the grid. Manipulating these state
+variables affect fewer measurements.
+The seventh and eighth columns of Table I are the test
+results when there is no false data injection attacks. The
+test results show that our method will classify 99% of these
+test samples as no attack. This means that our method is not
+likely to classify a good measurement (no attack) as false data.
+B. Attack Using Previous Measurement Data (Replay Attack)
+Another type of false data injection attacks is to replace the
+current measurement data with previous measurement data.
+zbad(k) = z(k − δ) where k is the current time step, δ is the
+time gap. Please note that we are not looking at continuous
+replay attack where zbad(k − 1) = z(k − 1 − δ), zbad(k) =
+z(k − δ), and zbad(k + 1) = z(k + 1 − δ). The proposed method
+is meant to detect injection attack at time step k where there
+is no attack before time step k.
+This type of replay attack does not require the system configuration
+information as long as the system configuration has
+not been changed during δ. The manipulated measurements
+and system states will still fit the distribution of historical
+records. This makes it is difficult to detect using existing
+detection methods.
+However, our method is based on the variation of the measurement,
+not the measurement itself. This means if the time
+gap δ is significant, our method will be able to detect the
+attack. We have tested our method using different time gaps.
+The results from the testing are shown in Fig. 10.
+The time gaps that have been tested vary from 30 m to 24 h.
+Fig. 10 shows that the number of undetected samples decreases
+using KLD when the time gap increases for the first 12 h.
+After 12 h, the number of undetected samples increases. This
+phenomenon is caused by the periodicity of the power system.
+For example, the load at 9 A.M. today is likely to be more
+similar to the load at 9 A.M. yesterday than 9 P.M. yesterday.
+This is the reason why the detection is more accurate when δ
+equals 12 h than 24 h.
+The test results also show that when the time gap is small,
+our method may not be able to detect the attack. However, a
+smaller time gap means that the impact on the measurement is
+also smaller. Comparing KLD approach and absolute distance
+approach, we can see that the KLD approach outperforms the
+absolute distance approach.
+VI. CONCLUSION
+False data injection attacks threaten the secure operation of
+power grids. In this paper, a new detection method is proposed
+to detect false data injection attacks. The detection method
+is based on the KLD which calculates distance between two
+distributions, p and q. In this paper, measurement variation
+from the historical data is used to derive the q. For each time
+step, p is derived from the measurement variation between the
+current time step and the previous time step. Under normal
+conditions with no false data injection attacks, the KLD is
+quite small. When false data are injected into the system, the
+KLD will be larger than normal, allowing for detection of the
+attack.
+We have tested our method using different attacking scenarios.
+Test results show that the proposed method can accurately
+detect most of the attacks. The proposed method is also capable
+of detecting false data injection attacks that use previous
+measurements.
+During the case study, we found it difficult to detect
+false data injection attacks on certain state variables. Besides,
+the proposed method will not work very well for continuous
+small-scale attacks and continuous replay attacks.
+Detecting these attack scenarios is a clear direction for future
+research.
+REFERENCES
+[1] S. W. Blume, “System control centers and telecommunications,”
+in Electric Power System Basics. Hoboken, NJ, USA: Wiley,
+Sep. 2007.
+[2] A. Abur and A. G. Expsito, Power System State Estimation: Theory and
+Implementation, 1st ed. New York, NY, USA: Marcel Dekker, Mar. 2004.
+[3] A. Monticelli, State Estimation in Electric Power Systems:
+A Generalized Approach. New York, NY, USA: Springer, May 1999.
+[4] C.-W. Ten, C.-C. Liu, and G. Manimaran, “Vulnerability assessment of
+cybersecurity for SCADA systems,” IEEE Trans. Power Syst., vol. 23,
+no. 4, pp. 1836-1846, Nov. 2008.
+[5] S. Sridhar, A. Hahn, and M. Govindarasu, “Cyber-physical system
+security for the electric power grid,” Proc. IEEE, vol. 100, no. 1,
+pp. 210-224, Jan. 2012.
+[6] C.-C. Liu, A. Stefanov, J. Hong, and P. Panciatici, “Intruders in the grid,”
+IEEE Power Energy Mag., vol. 10, no. 1, pp. 58-66, Feb. 2012.
+[7] Y. Liu, P. Ning, and M. K. Reiter, “False data injection attacks
+against state estimation in electric power grids,” in Proc. 16th ACM
+Conf. Comput. Commun. Security (CCS), New York, NY, USA,
+2009, Art. ID 21C32. [Online]. Available: http://doi.acm.org/10.1145/
+1653662.1653666
+[8] G. Hug and J. Giampapa, “Vulnerability assessment of AC state estimation
+with respect to false data injection cyber-attacks,” IEEE Trans.
+Smart Grid, vol. 3, no. 3, pp. 1362-1370, Sep. 2012.
+[9] Q. Yang et al., “On false data injection attacks against power system
+state estimation: Modeling and countermeasures,” IEEE Trans. Parallel
+Distrib. Syst., vol. 25, no. 3, pp. 717-729, Mar. 2014.
+[10] R. B. Bobba et al., “Detecting false data injection attacks on DC
+state estimation,” in Proc. Preprints 1st Workshop Secure Control
+Syst. (CPSWEEK), Stockholm, Sweden, 2010.
+[11] M. Talebi, C. Li, and Z. Qu, “Enhanced protection against false data
+injection by dynamically changing information structure of microgrids,”
+in Proc. IEEE 7th Sensor Array Multichannel Signal Process.
+Workshop (SAM), Hoboken, NJ, USA, Jun. 2012, pp. 393-396.
+CHAOJUN et al.: DETECTING FALSE DATA INJECTION ATTACKS IN AC STATE ESTIMATION
+2483
+[12] S. Bi and Y. Zhang, “Defending mechanisms against false-data injection
+attacks in the power system state estimation,” in Proc. IEEE
+GLOBECOM Workshops (GC Wkshps), Houston, TX, USA, Dec. 2011,
+pp. 1162-1167.
+[13] S. Bhattarai, L. Ge, and W. Yu, “A novel architecture against false data
+injection attacks in smart grid,” in Proc. IEEE Int. Conf. Commun. (ICC),
+Ottawa, ON, Canada, Jun. 2012, pp. 907-911.
+[14] O. Kosut, L. Jia, R. Thomas, and L. Tong, “Limiting false data attacks
+on power system state estimation,” in Proc. 44th Annu. Conf. Inf. Sci.
+Syst. (CISS), Princeton, NJ, USA, 2010, pp. 1-6.
+[15] O. Kosut, L. Jia, R. Thomas, and L. Tong, “On malicious data attacks
+on power system state estimation,” in Proc. 45th Int. Univ. Power Eng.
+Conf. (UPEC), Cardiff, U.K., 2010, pp. 1-6.
+[16] L. Liu, M. Esmalifalak, Q. Ding, V. Emesih, and Z. Han, “Detecting
+false data injection attacks on power grid by sparse optimization,” IEEE
+Trans. Smart Grid, vol. 5, no. 2, pp. 612-621, Mar. 2014.
+[17] A. Khatkhate, A. Ray, E. Keller, S. Gupta, and S. Chin, “Symbolic
+time-series analysis for anomaly detection in mechanical systems,”
+IEEE/ASME Trans. Mechatronics, vol. 11, no. 4, pp. 439-447,
+Aug. 2006.
+[18] D. Dasgupta and S. Forrest, “Novelty detection in time series data using
+ideas from immunology,” in Proc. 5th Int. Conf. Intell. Syst., Reno, NV,
+USA, 1996.
+[19] S. Salvador, P. Chan, and J. Brodie, “Learning states and rules for time
+series anomaly detection,” in Proc. 17th Int. FLAIRS Conf., Miami, FL,
+USA, 2004, pp. 306-311.
+[20] T. M. Cover and J. A. Thomas, Elements of Information Theory.
+Hoboken, NJ, USA: Wiley, 1991.
+[21] M. Do and M. Vetterli, “Wavelet-based texture retrieval using generalized
+Gaussian density and Kullback-Leibler distance,” IEEE Trans.
+Image Process., vol. 11, no. 2, pp. 146-158, Feb. 2002.
+[22] H. Lin, Z. Ou, and X. Xiao, “Generalized time-series active search
+with Kullback-Leibler distance for audio fingerprinting,” IEEE Signal
+Process. Lett., vol. 13, no. 8, pp. 465-468, Aug. 2006.
+[23] S. Tong, Z. Li, Y. Zhu, and N. Thakor, “Describing the nonstationarity
+level of neurological signals based on quantifications of timefrequency
+representation,” IEEE Trans. Biomed. Eng., vol. 54, no. 10,
+pp. 1780-1785, Oct. 2007.
+[24] M. Nejati, N. Amjady, and H. Zareipour, “A new stochastic search technique
+combined with scenario approach for dynamic state estimation of
+power systems,” IEEE Trans. Power Syst., vol. 27, no. 4, pp. 2093-2105,
+Nov. 2012.
+Gu Chaojun (S'12) received the B.Eng. degree from the National University
+of Singapore, Singapore, in 2011, where he is currently pursuing the Ph.D.
+degree from the Department of Electrical and Computer Engineering.
+His current research interests include power system cyber security, reliability,
+and forecasting.
+Panida Jirutitijaroen (S'05-M'08-SM'13) received the B.Eng. degree from
+Chulalongkorn University, Bangkok, Thailand, and the Ph.D. degree from
+Texas A&M University, College Station, TX, USA, in 2002 and 2007,
+respectively, both in electrical engineering.
+She was a Post-Doctoral Researcher with the Department of Electrical
+and Computer Engineering, Texas A&M University, in 2007. She is currently
+an Associate Professor with the Department of Electrical and Computer
+Engineering, National University of Singapore, Singapore. Her current
+research interests include power system reliability and optimization.
+Mehul Motani (S'92-M'98) received the B.E. degree from Cooper Union,
+New York, NY, USA; the M.S. degree from Syracuse University, Syracuse,
+NY; and the Ph.D. degree from Cornell University, Ithaca, NY; in 1992, 1995,
+and 2000, respectively, all in electrical and computer engineering.
+He was a Research Scientist at the Institute for Infocomm Research,
+Singapore, for three years, and was a Systems Engineer at Lockheed
+Martin, Syracuse, for four years. He was a Visiting Fellow at Princeton
+University, Princeton, NJ, USA. He is currently an Associate Professor with
+the Department of Electrical and Computer Engineering, National University
+of Singapore (NUS), Singapore. His current research interests include wireless
+networks, information theory, and communications, with applications to
+mobile computing, underwater communications, sustainable development, and
+societal networks.
+Dr. Motani was the recipient of the Intel Foundation Fellowship for
+Ph.D. Research, the NUS Faculty of Engineering Innovative Teaching
+Award, and the NUS Faculty of Engineering Teaching Honors List Award.
+He has served as an Associate Editor of the IEEE TRANSACTIONS ON
+INFORMATION THEORY and an Editor of the IEEE TRANSACTIONS ON
+COMMUNICATIONS. He has also served on the Organizing Committees
+of the IEEE International Symposium on Information Theory, the IEEE
+Wireless Network Coding Conference, the IEEE International Conference
+on Communication Systems, and on the Technical Program Committees of
+the Association for Computing Machinery (ACM) International Conference
+on Mobile Computing and Networking; the IEEE International Conference
+on Computer Communications; the IEEE International Conference on
+Network Protocols; the IEEE Conference on Sensor, Mesh, and Ad Hoc
+Communications and Networks; and several other conferences. He actively
+participates in the IEEE and the ACM, and has served as the Secretary of the
+IEEE Information Theory Society Board of Governors.

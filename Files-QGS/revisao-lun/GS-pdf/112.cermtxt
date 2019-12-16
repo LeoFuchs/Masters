@@ -1,0 +1,972 @@
+Fiftieth Annual Allerton Conference
+Allerton House, UIUC, Illinois, USA
+October 1 - 5, 2012
+Revealing Stealthy Attacks in Control Systems
+Andre´ Teixeira⋆, Iman Shames†, Henrik Sandberg⋆, and Karl H. Johansson⋆
+Abstract- In this paper the problem of revealing stealthy
+data-injection attacks on control systems is addressed. In
+particular we consider the scenario where the attacker performs
+zero-dynamics attacks on the system. First, we characterize
+and analyze the stealthiness properties of these attacks for
+linear time-invariant systems. Then we tackle the problem of
+detecting such attacks by modifying the system's structure.
+Our results provide necessary and sufficient conditions that
+the modifications should satisfy in order to detect the zerodynamics
+attacks. The results and proposed detection methods
+are illustrated through numerical examples.
+I. INTRODUCTION
+Critical-infrastructure security is of utmost importance in
+modern society and has been a major concern in recent
+years. The increasing complexity of these systems and the
+desire to improve their efficiency and flexibility has led
+to the use of heterogeneous IT infrastructures that support
+the timely exchange of data among and across different
+system layers, from the corporate level to the local control
+level. Furthermore, IT infrastructures are composed of
+heterogeneous components from several vendors and often
+use non-proprietary communication networks. Therefore the
+amount of cyber threats to these IT infrastructures has
+greatly increased over the past years, given the larger number
+of possible attack points across the several system layers.
+A good illustration of this phenomena may be found in
+the following article [1] about the search engine Shodan
+that successfully identified several devices connected to the
+internet, including components of industrial control systems.
+Critical-infrastructures are also more vulnerable to cyber
+threats, given their tight coupling to IT infrastructures. There
+are several examples of cyber threats being exploited by
+attackers to disrupt the behavior of physical processes, for instance
+the staged attack on a power generator [2] or the more
+recent Stuxnet virus attack on centrifuges' control system [3],
+[4]. Hence monitoring and mitigating cyber attacks to these
+systems has become of the utmost importance, since they
+may bring disastrous consequences to society. This is well
+illustrated by recalling the consequences of the US-Canada
+2003 blackout [5], partially due to lack of awareness in the
+control center.
+⋆A. Teixeira, H. Sandberg, and K. H. Johansson are with the ACCESS
+Linnaeus Centre, KTH - Royal Institute of Technology, Automatic Control,
+Stockholm, Sweden.
+{andretei,hsan,kallej}@kth.se
+†I. Shames is with the Department of Electrical and Electronic Engineering,
+University of Melbourne, Australia
+{iman.shames}@unimelb.edu.au
+This work was supported in part by the European Commission through
+the HYCON2 project, the Swedish Research Council under Grants 20076350
+and 2009-4565, the Swedish Foundation for Strategic Research, and
+the Knut and Alice Wallenberg Foundation.
+A particular type of complex cyber attack is that of falsedata
+injection, where the attacker introduces corrupted data
+in the communication network. Several instances of this
+scenario have been considered in the context of control
+systems, see [6], [7], [8] and references therein.
+In this paper we address stealthy false-data injection
+attacks that are constructed so that they cannot be detected
+based on control input and measurement data. These attacks
+have been recently addressed from a system theoretic perspective.
+In [9] the author characterizes the set of attack
+policies for covert (stealthy) false-data injection attacks with
+detailed model knowledge and full access to all sensor and
+actuator channels, while [10] described the set of stealthy
+false-data injection attacks for omniscient attackers with fullstate
+information, but possibly compromising only a subset
+of the existing sensors and actuators.
+Recently, an instance of stealthy false-data injection attacks
+has been performed on an experimental networked
+control system testbed [11]. The experiment showed that,
+although the attack is initially hard to detect, it is in fact
+detected when the system dynamics change due to physical
+limitations such input saturation. Hence changes in the
+system dynamics could be used to reveal stealthy falsedata
+attacks. In essence, this approach is similar to the
+method proposed in [12] to detect replay attacks, in which
+an auxiliary signal unknown to the attacker is used to excite
+the system.
+Contributions and outline
+The set of open-loop stealthy attacks is considered in this
+paper. The attack is open-loop in the sense that no online
+information is used to construct the attack. As such the
+attack policy is defined in terms of the available a priori
+information, namely the dynamical model of the system. This
+class of attacks is shown to be characterized by a property
+of the system known as zero-dynamics, thus we denote it as
+the class of zero-dynamics attacks.
+Using a geometric control framework, the system under
+a zero-dynamics attack is characterized as an autonomous
+dynamical system with a given initial condition. Furthermore,
+the attack detectability is cast as an observability property of
+the autonomous system previously derived. These two steps
+provide the basis of our results.
+It is shown that zero-dynamics attacks may not be completely
+stealthy since they require the system to be at a
+non-zero initial condition. The effects of initial condition
+mismatch are then characterized and it is shown that they
+can be made arbitrarily small. The problem of changing the
+system structure to reveal the attacks is then considered.
+978-1-4673-4539-2/12/$31.00 ©2012 IEEE
+1806
+Specifically, we analyze how separately changing the outputs,
+system dynamics, and inputs affects the attacks' stealthiness.
+For each component, we characterize classes of changes
+that reveal attacks, as well as those that do not. Regarding
+changes on the system outputs, we provide an algorithm
+to reveal all attacks by incrementally adding new measurements.
+As for the inputs, we characterize the output effect of
+a scalar multiplicative perturbation to the inputs, assuming it
+remains unknown to the attacker. This particular perturbation
+can be interpreted as a coding or encryption scheme between
+the controller and actuator, having the scalar factor as their
+shared private key. Moreover, the corresponding contribution
+to the output energy is quantified as a function of the
+augmented system state, which can be used to determine
+a suitable scaling factor.
+The outline of the paper is as follows. The control
+system architecture and model under attack are described
+in Section II. Section III follows with a geometric control
+characterization of zero-dynamics attacks and the effects
+of non-zero initial conditions are analyzed in Section IV.
+Different strategies to reveal zero-dynamics attacks are then
+proposed and analyzed in Section V, followed by numerical
+examples illustrating our results. Summary and conclusions
+follow in Section VII.
+II. CONTROL SYSTEM UNDER FALSE-DATA INJECTION
+ATTACKS
+In this section we describe the networked control system
+structure, where we consider three main components: the
+physical plant and communication network, the feedback
+controller, and the anomaly detector.
+The physical plant is modeled in a discrete-time statespace
+form,
+P :
+( xk+1 = Axk + Buk + Baak
+yk = Cxk + Daak
+,
+(1)
+where xk ∈ Rn is the state variable, uk ∈ Rq the control
+actions applied to the process, yk ∈ Rp the measurements
+from the sensors, and ak ∈ Rd the false-data injection
+attack vector at the sampling instant k ∈ Z. The system
+is considered to be in nominal behavior if ak = 0 for all
+k ≥ 0.
+In order to comply with performance requirements in the
+presence of the unknown process and measurement noises,
+we consider that the physical plant is controlled by an appropriate
+linear time-invariant output feedback controller [13]
+described as
+uk = F (yk).
+(2)
+An anomaly detector that monitors deviations from the
+nominal behavior is also considered. The anomaly detector
+is collocated with the controller and therefore it only has
+access to yk and uk to evaluate the behavior of the plant.
+The anomaly detector is then modeled as
+rk = D(uk−1, yk),
+where rk ∈ Rm is the residue that is evaluated in order to
+detect and locate existing anomalies. In particular, an alarm
+is triggered if the residue meets
+krkk ≥ τ,
+(4)
+where τ ∈ R+ is chosen according to a suitable trade-off
+between detection and false alarm rates.
+Since all the system components are linear and timeinvariant,
+the state of the system can be decomposed as
+xk = x¯k + xla, where x¯k is the component of the system
+under no attack and xka the component induced by the attack.
+Furthermore, assuming the attack starts at k = k0 and having
+a
+x¯k0 = xk0 and xk0 = 0, the state component under attack is
+modeled by
+P :
+( xka+1 = Axka + Buka + Baak
+yka = Cxka + Daak
+, xka0 = 0
+(5)
+with uka = F (yka) and uka0 = 0.
+A. Stealthy attacks
+Denoting Akk0f = {ak0 , . . . , akf } as the attack signal, the
+set of stealthy attacks are defined as follows.
+Definition 1: The attack signal Akk0f is α-stealthy with
+respect to D if ||rk|| ≤ α ∀k ≥ k0.
+The particular subset of 0-stealthy attacks is characterized
+in the following lemma:
+Lemma 1: Let yka be the output of the system (5) with
+xka0 = 0 and uka0 = 0. The attack signal Akk0f is 0stealthy
+with respect to any output feedback controller F
+and anomaly detector D if yka = 0, ∀k ≥ k0.
+The set of 0-stealthy attacks satisfying the conditions in
+Lemma 1 results in trajectories of the system that do not
+affect yka, and thus result in uka = 0 for all k ≥ k0.
+For linear systems the 0-stealthy attack signals are related
+to the output zeroing problem or zero-dynamics studied in
+the control theory literature [14], which we revisit in the
+next section. For the sake of notation, in the remainder of
+the paper we drop the superscript when referring to system
+variables under attack. Additionally, the results presented in
+the following sections do not consider the influence of the
+feedback controller. However the results can be generalized
+by considering the augmented system composed by the plant
+and controller dynamics, which is subject to future work.
+B. Attacker model
+In this work we consider the attacker model for zerodynamics
+attacks described in [11]. In this model the attacker
+is also able to inject false data in the actuator channels, which
+is captured by having Ba = B and Da = 0. However,
+the attacker cannot eavesdrop on the sensor and actuator
+data. Hence the corresponding attack policy does not use
+any online data on the system and is further assumed to
+be computed a priori. Therefore it corresponds to an openloop
+type of policy. The attacker also has access to the
+detailed model of the system Σ = (A, B, C), which is used
+to compute the appropriate attack policy as described in the
+following section.
+(3)
+1807
+III. GEOMETRIC CONTROL CHARACTERIZATION OF
+ZERO-DYNAMICS
+Recalling Lemma 1, the zero-dynamics attacks can be
+analyzed by considering the plant dynamics due to the falsedata
+injection attack as described in (5).
+The set of zero-dynamics attacks to (5) with Ba = B
+Da = 0 are now characterized under a geometric control
+framework [15].
+Remark 1: The case for Da 6= 0 can be analyzed in a
+similar fashion.
+The following assumptions on Σ = (A, B, C) are considered.
+Assumption 1: The matrix B is full column-rank and C
+is full row-rank. Moreover Σ is the minimal realization of
+the system.
+We now introduce the necessary concepts from geometric
+control theory [15] to describe the zero dynamics. In the
+following we denote A ⊆ C as the set inclusion of A by C
+and A ⊆ B + C as the set inclusion of A by the union of
+B and C. Furthermore, the range space of B is denoted as
+Im(B) and the null-space of C as ker(C).
+Controlled Invariants
+The first concept is that of controlled invariant subspace.
+Lemma 2: For a given non-empty subspace V for which
+AV ⊆ V + Im(B) holds, there exists a matrix F such that
+(A + BF )V ⊆ V. Furthermore, V is called an (A, Im(B))controlled
+invariant subspace.
+The subset of controlled invariant subspaces contained in
+ker(C) is the basis for characterizing the system's zerodynamics,
+as summarized in the next statement.
+Lemma 3: There exists an initial condition x0 6= 0 and
+control input ak such that yk = 0 ∀k ≥ 0 if and only
+if there exists a non-empty (A, Im(B))-controlled invariant
+subspace V such that V ⊆ ker(C).
+The set of all subspaces V satisfying the conditions of
+Lemma 3 admits a maximum, V⋆, which we denote by the
+maximal output-nulling invariant subspace. A procedure to
+compute V⋆ can be found in [15]. Furthermore we denote the
+eigenvalues of A + BF restricted to the eigenspace spanned
+by V⋆ as the zeros of the system Σ. Denoting λ ∈ C as one
+such eigenvalue, the zero is said to be unstable if |λ| > 1
+and stable otherwise.
+Output-nulling subspace
+The output-nulling inputs of the system (5) can be characterized
+as the output of an autonomous dynamical system
+as stated in the following theorem.
+Theorem 1: The input ak = F zk with zk+1 = (A +
+BF )zk, (A + BF )V⋆ ⊆ V⋆ ⊆ ker(C) and z0 ∈ V⋆ yields
+yk = 0 ∀k ≥ 0 for the initial condition x0 = z0.
+In general the above theorem characterizes only a subset
+of the possible output-nulling inputs, as some inputs may
+be described by a forced dynamical system. The reader is
+referred to [14] for more details.
+Remark 2: Note that the former definition of zerodynamics
+requires the initial condition to be non-zero and
+belong to V⋆. Such requirement contradicts the definition of
+0-stealthy attacks where the initial condition of the system
+component under attack is the origin. The effect of having
+non-zero initial conditions is addressed in the next section.
+The zero-dynamics attack policy readily follows from Theorem
+1.
+Corollary 1: The zero-dynamics attack policy is characterized
+by
+zk+1 = (A + BF )zk
+ak = F zk,
+with z0 ∈ V⋆ and F such that (A + BF )V⋆ ⊆ V⋆.
+IV. EFFECTS OF NON-ZERO INITIAL CONDITION
+Note that the zero-dynamics do not match the definition
+of 0-stealthy attacks, since a non-zero initial condition in (5)
+is required. However, in some cases the effects of the initial
+condition may be made arbitrarily small as discussed below.
+Using Corollary 1, the system under a zero-dynamics
+attack is described by
+with z0 ∈ V⋆. For x0 = z0 it directly follows that yk =
+0 ∀k ≥ 0. Introducing the error variable ek = xk − zk, the
+previous system may be rewritten as
+xk
+zk
+ek
+zk
+(6)
+(7)
+(8)
+xk+1
+zk+1
+= A0
+BF
+A + BF
+xk
+zk
+yk = C
+0
+ek+1
+zk+1
+= A0
+0
+A + BF
+ek
+zk
+yk = C
+0
+with z0 ∈ V⋆ and e0 = x0 − z0. The next result readily
+follows.
+Theorem 2: For a zero initial condition x0 = 0, a zerodynamics
+attack generated by z0 ∈ V⋆ yields the output
+characterized by
+ek+1 = Aek
+yk = Cek
+,
+with e0 = −z0.
+The previous result allows us to characterize conditions
+on which the energy of the output of zero-dynamics attacks
+can be made arbitrarily small.
+Corollary 2: The output of a zero-dynamics attack generated
+by z0 ∈ V⋆ with x0 = 0 has finite energy if and only
+if z0 is orthogonal to the eigenvectors of A associated with
+unstable eigenvalues.
+Proof: Recall that the system is assumed to be observable
+and thus there are no unobservable modes. Thus
+any initial condition exciting an unstable mode affects the
+output. Furthermore initial conditions only exciting stables
+modes induce state trajectories decaying asymptotically to
+zero, thus having finite output energy.
+1808
+Now we analyze the case where z0 is orthogonal to the unstable
+eigenvectors of A. Consider the coordinate transform
+ek = T vk where T = [Ts Tu] is a basis for the eigenspace
+of A and Ts is associated with the stable eigenvalues. The
+dynamics are thus described by vk+1 = Λvk where Λ is the
+Jordan block matrix of A containing its eigenvalues. Given
+the structure of T , Λ can be written as
+Λ =
+Λs
+0
+0
+Λu
+vsk+1 = Λsvsk ,
+yk = CTsvsk
+where Λs contains all the stable eigenvalues. Supposing that
+z0 only excites stable eigenvalues of A, the output may be
+characterized as
+where vk = [vs⊤k vuk ]
+⊤ ⊤ with vs0 = [Is 0u]T −1z0 and vu0 =
+[0s Iu]T −1z0 = 0. This leads to the following result.
+Corollary 3: Consider a zero-dynamics attack generated
+by z0 ∈ V⋆ with z0 orthogonal to the unstable eigenvectors
+of A and x0 = 0. The output energy of such attack is given
+by kykℓ22 = z0⊤Q¯z0 where
+Q¯ = T −⊤ Is
+0u
+Qs Is
+0u T −1
+and Qs is the the solution to
+Λs⊤QsΛs − Qs − Ts⊤C⊤CTs = 0
+.
+Proof: The proof is omitted.
+The output energy of zero-dynamic attacks can thus be
+made arbitrarily small by selecting a sufficiently small initial
+condition z0 ∈ V⋆/Tu to generate the attack, where Tu =
+Im(Tu) and V⋆/Tu denotes the quotient space of V⋆ with
+respect to Tu. Such attacks are particularly dangerous if the
+initial condition z0 excites an unstable eigenvalue of A +
+BF , as illustrated in the numerical example in Section VI.
+This motivates us to broaden the scope and address all zerodynamics
+attacks characterized by Theorem 1.
+V. REVEALING ZERO-DYNAMICS ATTACKS
+In this section we discuss possible methods to reveal the
+zero-dynamics attacks characterized in Section III. The following
+definition of revealed attacks is considered throughout
+this work.
+Definition 2: Consider the system under attack as described
+in (7). The zero-dynamics attack signal Akk0f is said
+to be revealed if yk 6= 0 for some k ≥ k0.
+Remark 3: The former definition can be extended to require
+the output energy to be sufficiently large. Furthermore,
+it can also account for the output feedback controller and
+anomaly detector by considering the closed-loop dynamics
+in (7).
+Given Definition 2, the attack can be revealed if the zerodynamics
+of the system are changed. As it is well-known in
+the control literature [16], this cannot be achieved by stateor
+output-feedback policies. Instead, a possible method is
+to modify the system Σ = (A, B, C) in a certain way to
+Σ˜ = (A˜, B˜, C˜) so that the attack signal (6) is no longer an
+output-nulling input of the resulting system
+xk+1
+zk+1
+˜
+= A
+0
+B˜F
+A + BF
+xk
+zk
+yk = C˜ 0
+xk .
+zk
+(9)
+Since (9) is an autonomous system, the following result
+readily follows.
+Lemma 4: Every zero-dynamics attack is revealed if and
+only if the system (9) is observable for all x0 = z0 ∈ V⋆.
+Proof: By definition of observability, a given subspace
+M is observable if and only if Y = Wow0 6= 0, ∀w0 ∈
+M where Y = [y0⊤ · · · yn⊤]⊤ and Wo ∈ Rnp×n is the
+observability matrix of the augmented system (9). Given
+Definition 2, V⋆ being an observable subspace then implies
+that the attacks are revealed, since Y 6= 0.
+Attacks remaining stealthy after the perturbation can also
+be characterized using similar arguments.
+Corollary 4: Consider a zero-dynamics attack generated
+by x0 ∈ V⋆. The former attack remains stealthy after the
+perturbation if and only if w0 = [x0⊤ x0 ]
+⊤ ⊤ belongs to the
+unobservable subspace of the system (9).
+Proof: Suppose x0 is an eigenvector of A+BF , without
+loss of generality, and consider the augmented system before
+the perturbation as in (7). Since the state trajectories of (7)
+generated by the attack are contained in span(w0), the state
+when the perturbation occurs can be written as w˜0 = αw0,
+for a given α ∈ R. The remaining of the proof follows from
+Definition 2.
+A less restrictive condition for revealing the set of zerodynamics
+attacks associated with unstable zeros follows from
+the above theorem.
+Corollary 5: Every unstable zero-dynamics attack is revealed
+if and only if the system (9) is detectable for all
+x0 = z0 ∈ V⋆.
+A procedure to verify the observability of (9) restricted
+to x0 = z0 ∈ V⋆ is to use the corresponding observability
+matrix Wo and compute
+Xd = ker(Wo)⊥ ∩
+I
+I
+V⋆.
+It follows that [x0⊤ x0⊤]⊤ ∈ Xd belongs to the observable subspace
+and hence x0 can be estimated and the corresponding
+attack signal affects the output.
+Next we propose schemes to reveal the zero-dynamics
+attacks by separately changing A, B, or C.
+A. Modifying the output matrix C
+Here we consider modifications on the output matrix C to
+reveal zero-dynamics attacks. In particular, we consider that
+a new output matrix C˜ is obtained by adding and removing
+measurements. The following result directly follows from
+Theorem 1.
+1809
+Lemma 5: All the zero-dynamics attacks associated with a
+given z0 ∈ V⋆ remain stealthy with respect to Σ˜ = (A, B, C˜)
+if and only if V⋆ ⊆ ker C˜.
+The former statement shows that only removing measurements
+does not reveal any attack. Moreover, attacks are
+revealed by adding measurements if only if V⋆ ∩ ker C˜ is
+empty or a strict subset of V⋆.
+Theorem 3: There exists a z0 ∈ V⋆ generating an stealthy
+attack to Σ˜ = (A, B, C˜) if and only if there exists a nonempty
+(A + BF )-invariant subspace X that is contained in
+V⋆ ∩ ker C˜.
+Proof: First we have that all attack are revealed if V⋆ ∩
+ker C˜ = ∅. Now suppose that X ⊆ V⋆ ∩ ker C˜ 6= ∅ and let
+z0 ∈ X . Observing that X ⊆ ker C˜, from Theorem 1 we
+have that the attack generated by z0 remains stealthy if and
+only if X is (A + BF )-invariant.
+The previous results indicate that one should add measurements
+such that the dimension of X = V⋆ ∩ ker(C˜) is
+reduced as much as possible. In particular, X ⊂ V⋆ indicates
+that a set of the zero-dynamics attacks has been revealed,
+while X = ∅ implies that none of the zero-dynamics attacks
+remains stealthy.
+Based on these arguments, Algorithm 1 can be used to incrementally
+deploy measurements that reveal zero-dynamics
+attacks
+Algorithm 1 Algorithm to deploy additional measurements
+revealing zero-dynamics attacks.
+Initialize M ← {Ci} as the set of additional measurements
+available;
+j ← 0;
+X0 ← V⋆;
+repeat
+for all Ci ∈ M do
+Yi ← Xj ∩ ker Ci;
+end for
+Choose Ci ∈ M such that dim(Yi) is minimized;
+Compute Xj+1 as the maximal (A + BF )-invariant
+contained in Yi;
+j ← j + 1;
+until Xj = ∅ or Xj−1 = Xj
+Note that the proposed algorithm requires the addition of
+at most N = dim(V⋆) new measurements. Furthermore, all
+the zero-dynamics attacks become revealed if and only if the
+output-nulling subspace is empty, i.e. Xj = ∅.
+B. Modifying the system matrix A
+Perturbations to the system dynamics as A˜ = A + ΔA
+are now considered, resulting in the system Σ˜ = (A˜, B, C).
+The following result provides the conditions under which an
+attack remains stealthy.
+Theorem 4: All the zero-dynamics attacks associated with
+a given z0 ∈ V⋆ remain stealthy with respect to Σ˜ =
+(A˜, B, C) if and only if V⋆ ⊆ ker ΔA.
+Proof: Let z0 ∈ V⋆ and recall that w0 = [z0⊤ z0⊤]⊤
+belongs to the unobservable subspace of the augmented
+system (7). From Corollary 4, the attack remains stealthy
+if and only if w0 is also in the unobservable subspace of the
+perturbed system (9). Using the PBH observability test [13],
+this means that there exists a complex number λ such that
+λI − A˜
+ 0
+C
+−BF
+λI − (A + BF )
+0
+
+z0
+ z0
+= 0.
+Thus the attack is stealthy if and only if ΔAz0 = 0, which
+concludes the proof.
+The above result indicates that ΔA should be designed
+so that V 6⊆ ker ΔA for all (A + BF )-invariant subspaces
+V ⊆ V⋆, thus revealing all the zero-dynamics attacks. Below
+we provide a necessary and sufficient condition for all the
+attacks to be revealed.
+Corollary 6: All the zero-dynamics attacks are revealed if
+and only if V⋆ ∩ ker ΔA = ∅.
+C. Modifying the input matrix B
+Here we consider modifications on the input matrix B
+to reveal zero-dynamics attacks. A new input matrix B˜ is
+obtained by adding and removing actuators or perturbing
+the B with ΔB. The following result directly follows from
+Theorem 1.
+Lemma 6: Suppose inputs are added to Σ, i.e. B˜ =
+[B Bi]. Then all the zero-dynamics attacks on Σ remain
+stealthy with respect to Σ˜ = (A, B˜, C).
+Proof: The proof is omitted.
+The former statement shows that only adding inputs does
+not reveal any attack. On the other hand, although removing
+actuators might reveal the zero-dynamics attacks, it also
+reduces the controllability of the system. A less intrusive
+approach is to change the actuator gains i.e., have B˜ = BW
+and u˜k = W −1uk where W is a diagonal matrix unknown to
+the attacker. This can be interpreted as a coding or encryption
+scheme performed by the actuator and controller with W as
+their shared private key. Assuming W is unknown by the
+attacker, we then have the following result.
+Theorem 5: All the zero-dynamics attacks on Σ remain
+stealthy with respect to Σ˜ = (A, BW, C) if and only if
+B(W − I)F V⋆ = ∅.
+Proof: Let z0 ∈ V⋆ and recall that w0 = [z0⊤ z0⊤]⊤ is
+in the unobservable subspace of the perturbed system (9) if
+and only if there exists a complex number λ such that
+λI − A
+ 0
+C
+−BW F
+λI − (A + BF )
+0
+
+z0
+ z0
+= 0.
+Thus the attack is stealthy if and only if B(W − I)F z0 = 0,
+which concludes the proof.
+A necessary and sufficient condition for zero-dynamics attacks
+to be revealed with such perturbations follows directly
+from the previous theorem.
+Corollary 7: All the zero-dynamics attacks are revealed if
+and only if V⋆ ∩ ker(B(W − I)F ) = ∅.
+The former result and the assumption that the system is
+observable can be used to provide a method for choosing W .
+1810
+Lemma 7: Assume that (A, C) is observable. For any
+matrix F such that V⋆ is (A + BF )-invariant, it holds that
+V⋆ ∩ ker(BF ) = ∅.
+Proof: Recall the V⋆ is (A+BF )-invariant and suppose
+that V⋆ ∩ ker(BF ) 6= ∅ i.e., there exists z0 ∈ V⋆ such
+that BF z0 = 0. This then implies that z0 is A-invariant
+and generates an unobservable state trajectory, which is a
+contradiction since the system is observable.
+Since ker(BF ) is not affected by a uniform scaling, a
+possible weight for revealing zero-dynamics attacks is W =
+αI with α ∈ R+ and α 6= 1, resulting in B(W − I)F =
+(α − 1)BF . We now analyze the effects of such perturbation
+on the output energy of the system. Introducing the variable
+x˜k = α−1xk, the perturbed system (9) can be rewritten as
+x˜k+1
+zk+1
+A
+= 0
+BF
+A + BF
+x˜k
+zk
+yk = αC
+0
+x˜k ,
+zk
+(10)
+with x˜0 = α−1z0 and z0 ∈ V⋆. The output of such system
+is characterized as follows.
+Theorem 6: Suppose the augmented system under a zerodynamics
+attack (9) is at the state zk = xk = z when the
+perturbation W = αI is performed. After the perturbation
+the output is described by
+ek+1 = Aek ,
+yk = αCek
+with e0 = (α−1 − 1)z.
+Proof: The proof comes from introducing the variable
+ek = x˜k − zk and rewriting (10) with respect to ek and zk.
+Note that the output energy after the perturbation is
+dependent on z and the scaling α, as summarized in the
+following statements.
+Corollary 8: The perturbation W = αI results in a
+finite-energy output if and only if z is orthogonal to the
+eigenvectors of A associated with unstable eigenvalues.
+Consider the eigenvalue decomposition
+A = T ΛT −1 = Ts
+Tu
+Λs
+0
+0
+Λu
+Ts
+Tu
+−1
+,
+where Λs contains all the stable eigenvalues of A and Ts is
+a basis of the corresponding eigenspace.
+Corollary 9: Consider the output described in Theorem 6
+with z orthogonal to the unstable eigenvectors of A. The
+energy of the output is given by kykℓ22 = z⊤Q¯z where
+Q¯ = T −⊤ Is
+0u
+Qs Is
+0u T −1
+and Qs is the the solution to
+Λs⊤QsΛs − Qs − α2Ts⊤C⊤CTs = 0
+.
+VI. ILLUSTRATIVE EXAMPLE
+To better illustrate the results from the previous sections,
+here we provide an example of a zero-dynamics attack
+on a process control system. Our example consists of the
+Quadruple-Tank Process (QTP) [17]. The continuous-time
+nonlinear plant model is given by
+h˙1(t) = − a1 p2gh1(t) + a3 p2gh3(t) + γ1k1
+A1 A1
+A1
+h˙2(t) = − a2 p2gh2(t) + a4 p2gh4(t) + γ2k2
+A2 A2 A2
+h˙3(t) = − a3 p2gh3(t) + (1 − γ2)k2 u2(t)
+A3
+A3
+h˙4(t) = − a4 p2gh4(t) + (1 − γ1)k1
+A4 A4
+u1(t)
+u1(t)
+u2(t)
+(11)
+where hi are the heights of water in each tank, Ai the crosssection
+area of the tanks, ai the cross-section area of the
+outlet hole, ki the pump constants, γi the flow ratios and g
+the gravity acceleration. The outputs are defined as the water
+levels of tanks 1 and 2, h1 and h2 respectively. The system
+has an adjustable zero with respect to u, which is unstable if
+0 < γ1 +γ2 < 1. In the simulation we consider the linearized
+model at a given operating point, which is sampled with a
+period of Ts = 0.5s. The resulting discrete-time system is
+given by (1) with
+0.975
+0
+A =  0
+
+0
+0.0515
+B = 0.0019
+ 0
+0.0850
+0.2 0
+C = 0 0.2
+0.042
+0
+0.958
+0
+0
+0.977
+0
+0
+0.0016
+0.0447 ,
+0.0737
+0
+00 00 .
+0 
+0.044 ,
+0 
+0.956
+The corresponding maximal (A, Im B)-controlled invariant
+subspace contained in ker(C), V⋆, is spanned by V ⋆
+which is shown below together with a suitable F
+ 0
+V ⋆ = −01
+
+0
+0
+0 ,
+0
+
+1
+0 0
+F = 0 0
+−0.8057
+0.0349
+−00.0.9380424 .
+The system Σ = (A, B, C) has two zeros, λ = 0.89 and
+λ = 1.03, and A has only stable eigenvalues. The unstable
+zero-dynamics corresponding to λ = 1.03 are excited by
+z0 = ǫ[0 0 − 0.72 0.69]⊤ with ǫ 6= 0. The respective
+input signal is depicted in Figure 1. This attack is considered
+in the examples below.
+A. Modifying the output matrix C
+Consider that the possible measurements can be used to
+reveal zero-dynamics attacks
+C3 = 0
+C4 = 0
+0
+0 0
+0.2
+0
+0.2 .
+1811
+Fig. 1. Unstable zero-dynamics attack applied to the system from t = 0s.
+State trajectories of the system under attack and active attack
+Fig. 2.
+detection.
+400
+300
+200
+100
+0
+−100
+−200
+−300
+−400
+0
+u1
+u2
+100
+t(s)
+50
+150
+200
+Applying the algorithm proposed in Section V-A we see
+that adding C3 yields Y = V ⋆ ∩ ker C3 = span([0 0 0 1]⊤),
+which is not (A + BF )-invariant subspace and thus all
+the zero-dynamics attacks to Σ are revealed. In fact Σ˜ =
+(A, B, C˜) with C˜ = [C⊤ C3⊤]⊤ has no zeros. In this
+particular example, adding C4 instead of C3 would also
+reveal all the zero-dynamics attacks.
+B. Modifying the system matrix A
+From Theorem 4 we have that any system perturbation of
+the type
+ΔA =
+Δ
+0
+with Δ ∈ R4×2 leaves all the zero-dynamics attacks stealthy.
+In fact, note that (A + ΔA + BF )V ⋆ ≡ (A + BF )V ⋆
+and therefore the zero-dynamics of Σ and Σ˜ are identical.
+Therefore such perturbations should be avoided.
+On the other hand, the zero-dynamics change for perturbations
+of the type
+ΔA =
+0
+Δ .
+For instance, adding an extra connection from tank 3 to tank
+1 corresponds to
+0
+0
+ΔA = 0
+
+0
+0
+0
+0
+0
+0.0397
+0
+−0.0402
+0
+0
+0 .
+0
+
+0
+The outcome of such perturbation can be seen in Figure 2
+and Figure 3. The attack begins at t = 0s with a initial
+conditions mismatch, leading to a small increase in the output
+energy as initially seen in Figure 3. The change to the system
+dynamics occurs at t = 100s and one immediately observes
+a perturbation in the state trajectory. The extra coupling
+between tanks 3 and 1 changes the zero-dynamics of the
+system and thus the current attack signal affects the water
+level of tank 1. As a result the attack is revealed in the output,
+as illustrated in Figure 3.
+400
+300
+200
+100
+0
+−100
+−200
+−300
+−400
+0
+2
+1.8
+1.6
+1.4
+1.2
+1
+0.8
+0.6
+0.4
+0.2
+0
+0
+50
+50
+100
+t(s)
+100
+t(s)
+h1
+h2
+h3
+h4
+kykℓ22
+150
+200
+150
+200
+Fig. 3. Output energy of the system after connecting tank 3 to tank 1 at
+t = 100s.
+C. Modifying the input matrix B
+Consider the case where the uniform input scaling W =
+0.987I is applied to the system. From the results in
+Section V-C, all the zero-dynamics are revealed, since
+ker (BF ) = ker ((1 − α)BF ) and V ⋆ ∩ ker(BF ) = ∅.
+Moreover, as stated in Corollary 8 the scaling results in a
+finite energy output since A is stable. The output energy
+resulting from the attack an input scaling is depicted in
+Figure 4. As before, the attack begins at t = 0s with a
+mismatch in the initial condition, resulting in a finite output
+energy. The input scaling is applied at t = 100s, which again
+results in a finite increment of the output energy since A is
+stable, as depicted in Figure 4.
+VII. CONCLUSIONS AND FUTURE WORK
+The problem of revealing zero-dynamics attacks on control
+system was tackled. First we studied the effect of initial
+condition mismatch in terms of the resulting increase in the
+output energy. We concluded that for the subset of attacks
+1812
+2
+1.8
+1.6
+1.4
+1.2
+1
+0.8
+0.6
+0.4
+0.2
+0
+0
+kykℓ22
+50
+100
+t(s)
+150
+200
+Fig. 4. Output energy of the system after introducing the input scaling
+BW = 0.987B at t = 100s.
+exciting unstable zero-dynamics, this effect can be made
+arbitrarily small while still affecting the system performance.
+Then we addressed the problem of revealing zero-dynamics
+attacks by modifying the system structure in terms of the
+respective outputs, inputs, and dynamics. For changes in each
+component, we provided necessary and sufficient conditions
+for all attacks to be revealed. Furthermore, we provided an
+algorithm to incrementally add measurements and thus reveal
+attacks. We also proposed a coordinated scaling of the inputs
+by the actuator and controller. For this particular change, we
+quantified the resulting increase in output energy in terms of
+the initial condition and scaling factor. Both these changes
+on the inputs and outputs are able to reveal attacks while not
+affecting the system performance when no attack is present.
+REFERENCES
+[1] W. Shefte, S. Al-Jamea, and R. O'Harrow. (2012, June) Cyber
+search engine shodan exposes industrial control systems to new risks.
+http://www.washingtonpost.com/investigations/cyber-search-engineexposes-vulnerabilities/2012/06/03/gJQAIK9KCV
+story.html. The
+Washington Post.
+[2] J. Meserve, “Sources: Staged cyber attack reveals
+vulnerability in power grid,” CNN, 2007, available at
+http://edition.cnn.com/2007/US/09/26/power.at.risk/index.html.
+[3] Symantec, “Stuxnet introduces the first known rootkit for industrial
+control systems,” Symantec, August 6th 2010, available
+at: http://www.symantec.com/connect/blogs/stuxnet-introducesfirst-known-rootkit-scada-devices.
+[4] T. Rid, “Cyber war will not take place,” Journal of Strategic Studies,
+2011.
+[5] U.S.-Canada PSOTF, “Final report on the August 14th blackout in the
+United States and Canada,” U.S.-Canada Power System Outage Task
+Force, Tech. Rep., April 2004.
+[6] P. Esfahani, M. Vrakopoulou, K. Margellos, J. Lygeros, and G. Andersson,
+“Cyber attack in a two-area power system: Impact identification
+using reachability,” in American Control Conference, 2010, jul 2010,
+pp. 962-967.
+[7] A. Ca´rdenas, S. Amin, Z. Lin, Y. Huang, C. Huang, and S. Sastry,
+“Attacks against process control systems: risk assessment, detection,
+and response,” in Proceedings of the 6th ACM Symposium on Information,
+Computer and Communications Security, ser. ASIACCS '11.
+New York, NY, USA: ACM, 2011, pp. 355-366.
+[8] S. Sundaram and C. Hadjicostis, “Distributed function calculation
+via linear iterative strategies in the presence of malicious agents,”
+Automatic Control, IEEE Transactions on, vol. 56, no. 7, pp. 14951508,
+july 2011.
+[9] R. Smith, “A decoupled feedback structure for covertly appropriating
+networked control systems,” in Proc. of the 18th IFAC World Congress,
+Milano, Italy, August-September 2011.
+[10] F. Pasqualetti, F. Dorfler, and F. Bullo, “Cyber-physical attacks in
+power networks: Models, fundamental limitations and monitor design,”
+in Proc. of the 50th IEEE Conf. on Decision and Control and European
+Control Conference, Orlando, FL, USA, Dec. 2011.
+[11] A. Teixeira, D. Pe´rez, H. Sandberg, and K. Johansson, “Attack models
+and scenarios for networked control systems,” in Proceedings of the
+1st international conference on High Confidence Networked Systems.
+ACM, 2012, pp. 55-64.
+[12] Y. Mo and B. Sinopoli, “Secure control against replay attack,” in
+47th Annual Allerton Conference on Communication, Control, and
+Computing, Oct. 2009.
+[13] K. Zhou, J. C. Doyle, and K. Glover, Robust and Optimal Control.
+Upper Saddle River, NJ, USA: Prentice-Hall, Inc., 1996.
+[14] J. Tokarzewski, Finite zeros in discrete time control systems, ser.
+Lecture notes in control and information sciences. Springer, 2006.
+[15] G. Basile and G. Marro, Controlled and conditioned invariants in
+linear system theory. Prentice Hall, 1992.
+[16] S. Skogestad and I. Postlethwaite, Multivariable Feedback Control:
+Analysis and Design. John Wiley & Sons, 1996.
+[17] K. Johansson, “The quadruple-tank process: a multivariable laboratory
+process with an adjustable zero,” IEEE Transactions on Control
+Systems Technology, vol. 8, no. 3, pp. 456-465, May 2000.
+1813

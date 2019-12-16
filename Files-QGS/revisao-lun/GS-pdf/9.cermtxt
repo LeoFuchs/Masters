@@ -1,0 +1,929 @@
+2014 IEEE/RSJ International Conference on
+Intelligent Robots and Systems (IROS 2014)
+September 14-18, 2014, Chicago, IL, USA
+Attack Resilient State Estimation for Autonomous Robotic Systems
+Nicola Bezzo, James Weimer, Miroslav Pajic, Oleg Sokolsky, George J. Pappas, Insup Lee
+Abstract- In this paper we present a methodology to control
+ground robots under malicious attack on sensors. Within the
+term attack we intend any malicious disturbance injection on
+sensors, actuators, and controller that would compromise the
+safety of a robot. In order to guarantee resilience against
+attacks, we use a control-level technique implemented within a
+recursive algorithm that takes advantage of redundancy in the
+information received by the controller. We use the case study
+of a vehicle cruise-control, however, the strategy we present in
+this work is general for several applications. Our methodology
+relays on redundancy in the sensor measurements: specifically
+we consider N velocity measurements and use a recursive
+filtering technique that estimates the state of the system while
+being resilient against sensor attacks by acting on the variance
+of the measurements noise. Finally, we move our focus on
+hardware validation demonstrating our algorithm through
+extensive outdoor experiments conducted on two unmanned
+ground robots.
+I. INTRODUCTION
+Modern vehicular and robotic systems are equipped with
+several sensors and Electronic Control Units (ECUs) that
+interact with each other over a complex network. This
+availability of technology and especially networking has led
+to an overall higher comfort of driving, an increase of the
+safety of the driver and passengers, and the introduction of
+new services such as remote diagnosis and vehicle-to-vehicle
+communication. However, this increase in functionality and
+communication may introduce security vulnerability and
+compromise the integrity of the system. For instance an
+attacker who is able to spoof the GPS could mislead the
+vehicle to unsafe regions [1]; similarly if a vehicle is in
+cruise control and an attacker compromises the speedometer
+reading, the vehicle speed could change drastically inducing
+an higher probability of collisions and accidents. These risks
+increase even more with the new generation of unmanned
+ground vehicles (UGVs) and self driving cars.
+To address these issues, we have introduced a design
+framework for development of high-confidence vehicular
+control systems that can be used in adversarial environments
+[2]. The framework employs system design techniques that
+guarantee that the vehicle will maintain control, possibly at
+a reduced efficiency, under several classes of attacks. In this
+paper we focus primarily on estimation design schemes and
+address attacks on sensors for autonomous ground vehicles
+(Fig. 1). We utilize a security-aware attack-resilient estimator
+that identifies an attack and allows the controller to pursue
+a mitigation strategy.
+The contribution of this paper is threefold: i) we develop
+an estimator that is easy to implement by using a recursive
+approach, ii) we compare it with other techniques, and iii) we
+run extensive hardware evaluations to validate the proposed
+N. Bezzo, James Weimer, Miroslav Pajic, Oleg Sokolsky, George
+J. Pappas, and Insup Lee are with the PRECISE Center, Department
+of Computer and Information Science, University of Pennsylvania,
+Philadelphia, PA 19104, USA fnicbezzo, weimerj,
+pajic, pappasgg@seas.upenn.edu fsokolsky,
+leeg@cis.upenn.edu
+978-1-4799-6934-0/14/$31.00 ©2014 IEEE
+3692
+technique. Specifically our framework is inspired by the
+Linear Quadratic Estimator in which together with the update
+and predict steps we add a shield procedure to cancel the
+effects due to possible attacks on sensors. Our technique
+adds an extra weighted variance to the measurement error
+whenever there is a mismatch between the updated state and
+the measurement from each of the sensors. By using this
+technique all sensors are always considered, however the one
+that contains a corrupted measurement will have a large error
+variance and thus will count less when estimating the desired
+state.
+Fig. 1. The LandShark robot [3]: one of the platforms used to study
+malicious attacks on sensors.
+A. Related Work
+The study of high assurance vehicular systems is a recent
+topic that is attracting several researchers in both the control
+and computer science communities. Malicious attacks are
+defined as adversarial actions conducted against a system
+or part of it and with the intent of compromising the
+performance, operability, integrity, and safety of the system.
+The main difference between failure and malicious attack is
+that the former is usually not coordinated while an attack is
+usually camouflaged or stealthy and behaves and produces
+results similar or expectable by the dynamics of the systems.
+Attack vectors can be classified in the following groups: i)
+attacks on the vehicle's sensors and actuators; ii) attacks on
+RF communication and over the local network (i.e., shared
+bus); iii) attacks on the system's maintenance mechanisms
+and physical interfaces. The focus of this paper is on controllevel
+defenses (i.e., the first group of attacks). These attacks
+include attacks on sensors measurements transmitted over
+a common bus (network) to other system components, and
+injection of malformed data from corrupted system components
+with access to the bus or a faulty sensor. The ability to
+attack sensors in vehicles was demonstrated in [1] in which a
+GPS was spoofed misguiding a yacht off route. Similarly in
+[4], the authors presented the steps and equipment necessary
+to spoof a GPS. A more general assessment on car security
+was recently performed by authors in [5] in which under
+some circumstances it was demonstrated how to attack
+steering, braking, acceleration, and display on two vehicles.
+Even though this area of study is still at an early stage,
+some preliminary work on vehicular security was performed
+in [6] in which the authors showed through intensive experiments
+on common cars, that an attacker could take
+over a vehicle and compromise its safety. Specifically it
+was shown that the CAN bus system is unprotected and
+several functionality of a car can be controller and accessed
+by different devices in the vehicle. The main attacks on
+sensors in ground vehicles generally involve the speedometer
+and GPS. In our work we will present experimental results
+dealing with attacks on these sensors.
+Standing from a control perspective, authors in [7] propose
+a resilient consensus algorithm based on receding-horizon
+control to deal with replay attacks between an operator and
+a remotely controlled unmanned ground vehicle. In [8] the
+authors use plant models for attack detection and monitor in
+cyber-physical systems. In [9] the authors consider wireless
+sensor networks and the problem of attacks on state estimation
+performed by a Kalman Filter. An ellipsoidal algorithm
+is proposed to estimate the resilience of the system against
+such attacks. Our work in this paper is motivated by the
+previous results in [10] in which a strategy for resilient attack
+detection is formulated based on redundancy in the sensor
+measurements. During the experimental implementation we
+use the Robot Operating System (ROS) by Willow Garage
+[11] on different UGVs. It is worth mentioning that a
+preliminary study and assessment about the security of ROS
+was performed in [12]. The authors showed that a key
+security issue is that messages are not authenticated and can
+be easily decipher and spoofed. In our work we do not solve
+this problem and use it as a motivation and to create attacks
+that compromise the sensors.
+The remainder of this paper is organized as follows.
+In Section II we open our discussion with the problem
+formulation. In Section III we present the recursive estimator
+algorithm. In Section IV we show the architecture and model
+used for the vehicles under analysis followed by simulations
+in Section V. Hardware/software implementations on two
+ground robots are presented in VI and finally we draw
+conclusions in Section VII.
+II. PROBLEM STATEMENT & PRELIMINARIES
+Within this work we are interested in finding a strategy
+to guarantee that a robot under malicious attack can reach a
+desired state without being hijacked.
+We assume that the robotic system is a discrete-time linear
+time-invariant (LTI) of the following form
+xk+1
+zk
+yk
+=
+=
+=
+Axk + wk + Buk;
+Cxk + k;
+zk + k;
+(1)
+with xk 2 Rn and uk 2 Rm are the state vector and
+control inputs at time k respectively. zk is the set of
+measurements without the effects of attack while yk =
+[yk;1; yk;2 : : : yk;N ] 2 RN is the sensor measurements vector
+with attack where yk;i 2 R is the measurement taken by the
+ith sensor at time k. k is the attack vector in which each term
+represents attack of magnitude k k;ik. The attack vector is
+assumed to be arbitrary, i.e., we assume no prior knowledge
+of statistical properties of bounds on the values of the attack
+vector. Finally, both the process noise wk = N (0; W ) and
+the sensor measurement noise k = N (0; V ) are expressed
+as Gaussian random variables.
+Specifically we are interested in designing a linear recursive
+estimator consisting of the following prediction and
+update steps:
+x^kjk 1
+x^kjk
+=
+=
+Ax^k 1jk 1 + Buk 1;
+x^kjk 1 + Kk yk
+Cx^kjk 1 :
+(2)
+We define y^kjk 1 = Cx^kjk 1 + k and such that y^kjk 1 =
+zk +sk where zk is an unknown minimum mean square error
+(MMSE) estimate of zk corresponding to a known covariance
+matrix ^ k 1. sk = C(xk x^k) + k is the deviation of the
+actual measurement estimate from the MMSE estimate and
+it is caused by potential attacks, previous attacks residuals,
+and counter measurements. Ideally we would choose Kk
+such that KkCsk = 0. However this require mixed integer
+programming as demonstrated in [13]. Thus as a relaxation,
+in this work we use a recursive implementation and address
+the following problem
+Problem 2.1: Bounding the Attack Innovation Given sk
+the effect of the attack on the system and a constant small
+positive value, find the optimal gain value Kk such that the
+following inequality holds:
+E kKkskk2
+;
+(3)
+where E[ ] is the expected value and Kksk is the attack
+innovation.
+Through out this work we use the following assumption
+on the maximum number of sensors under attack.
+Assumption 2.2: Attack Feasibility The maximum tolerable
+number of sensors under malicious attack is less than
+N=2.
+III. DESIGN OF A RESILIENT CONTROL SCHEME
+A. Resilient Recursive Adaptive Estimator (RAE)
+Most of the techniques available in the current literature
+are very efficient in detecting and removing sensors under
+attacks if we consider deterministic systems with bounded
+small noise or time invariant sensor models [7], [10]. However,
+in real world applications the sensor noise profile is not
+always fixed and variations due to non-attack effects such as
+biases and environmental effects, can occur. Secondly, often
+some sensors, even if under attack or compromised, can be
+still used and fused to obtain useful information and improve
+the state estimation. Instead of using a binary selection
+criterium, we propose a strategy that assigns weights to each
+sensor based on how close each measurement is from the
+estimated state.
+Before showing our algorithm we introduce an oracle
+estimation to consider the optimal solution in the case that
+everything was known a priori, including the attack vector.
+1) Oracle Estimator: In the literature [14], [15] we find
+that the Linear Quadratic Estimator has been widely used
+in engineering applications because it combines measurements
+of the same variable but from different sensors and
+it combines inexact forecast of a system's state with an
+inexact measurement of the state. However, an adversarial
+attack could destabilize the system and drive the vehicle to
+undesired states. If we are always able to predict a priori
+1 ^ k is known despite zk being unknown since it only depends on the
+number of sensors
+3693
+when and where an attack will happen (e.g., an oracle), the
+prediction step takes the following form:
+x^okjk 1 = Ax^ok 1jk 1 + Buk 1;
+where we have use the upper script o to represent the oracle
+estimation parameters. The predicted estimate covariance
+follows as
+Pkojk 1 = APko 1jk 1AT + W:
+The oracle update will take then the following form
+x^kjk = x^kjk 1 + Kko yk
+o
+Cx^kjk 1 ;
+Pkojk = (I
+KkoC)Pkjk 1;
+with
+Kko = Pkjk 1CQ QT
+CPkjk 1CT + V
+Q
+1
+QT ; (8)
+where Q 2 fQjQQT = I; Qi;j 2 f0; 1gg is the selection
+matrix given by the oracle, where I is the identity matrix
+and Qyk are the non-attacked measurements.
+Clearly in a realistic scenario we will not have an oracle;
+thus, next we propose a strategy that attempts to solve this
+problem by implementing a recursive filter in which, together
+with updating and predicting the state of the vehicle, we
+introduce a resilience step (called Shield) to consider and
+isolate attacks on sensors. The oracle presented above will
+be used later on to prove property of the developed recursive
+resilient state estimator.
+2) Resilient Adaptive Estimator: Our recursive algorithm
+is motivated by the well established results found in
+the Linear Quadratic Estimator implementation with some
+modifications to accommodate the possible presence of an
+attack in one of the sensors.
+The generalized form of our resilient filter is
+PREDICT. The predicted state estimate becomes
+(4)
+(5)
+(6)
+(7)
+x^kjk 1 = Axk 1jk 1 + Buk 1;
+and the predicted estimate covariance follows
+Pkjk 1 = APk 1jk 1AT + W:
+UPDATE. In the update phase, we introduce the following
+modified gain
+^
+Kk = Pkjk 1CT
+CPkjk 1CT + V + Dk
+1
+; (11)
+where D is the Shielding Gain matrix (described below)
+introduced to consider and remove attacks on the sensor
+measurements.
+The updated state and covariance become
+x^kjk = x^kjk 1 + Kk(yk
+Cx^kjk 1);
+Pkjk = (I
+KkC)Pkjk 1:
+SHIELD. If an attack is present and such that one of
+the measurements is corrupted, the goal is to remove
+it or mitigate its effect. Since the attack vector is
+generally unknown, one strategy we can implement is
+to change the covariance matrix associated with the
+measurement error in order to increase the uncertainty
+where the measurement is different from the predicted
+state estimate. To this end, let us define the Shielding
+Gain Dk = diagfdk;1; dk;2; : : : ; dk;N g as a positive
+(9)
+(10)
+(12)
+(13)
+3694
+semidefinite diagonal matrix, then we can write
+dk;j = dk 1;j + k;j
+yk;j
+Cj x^kjk 1
+k;j
+2
+with
+k;j = Cj Pkjk 1CjT + Vjj ;
+where k;j is a gain factor of the measurement error.
+We call dk;j the shielding factor since its purpose is
+to increase the covariance of the measurement noise
+associated with the sensor under attack, thus “shielding”
+the malicious effects on the system. Notice that we
+impose (14) to be always positive semidefinite. In fact, a
+negative value would imply that we are able to improve
+the performance of a sensor (which is not possible).
+!
+1 ;
+(14)
+We are now interested to show that the proposed strategy
+is guaranteed to satisfy Problem 2.1 if we choose correctly
+in (14). Before showing this, we introduce the attack-tonoise
+ratio, a new measure which relates the sensor noise to
+the attack effects on the robotic agent, as follow:
+Definition 3.1: Attack-to-noise Ratio (ANR) We define
+the attack-to-noise ratio as a measure that compares the
+attack effects to the noise level of a sensor. In formula:
+= AN R = (( y + Dk) 1sk)2;
+(15)
+where y = CPkjk 1CT + V (see (11)) and sk is as defined
+in Section II.
+Theorem 3.2: The ANR is bounded For some 0,
+there exists a in (14) independent of sk such that the
+expected value of ANR E[k k] .
+Proof: To prove Theorem 3.2 we start by considering
+the average ANR for the worst case scenario, and then
+calculate its boundaries with respect to . Let's consider the
+expression for ANR in (15):
+k k =
+(( y + Dk) 1sk)2
+(( m2inI + Dk) 1sk)2
+N
+= X
+2
+2
+sk;j
+j=1 ( m2in + dk;j )2
+sk;j
+( m2in+dk;j)
+implies E[k k] is
+: (16)
+Thus, bounding E
+bounded.
+Now we observe that
+E
+"
+2
+2
+To this end, by Jensen's inequality, we have that
+sk;j
+( min + dk;j )
+2#
+sk;j
+E [ m2in + dk;j ]
+2
+:
+(17)
+sk;j
+E [ m2in + dk;j ]
+2
+=
+= 6
+4 E h m2in + dk 1;j + k;j
+= 6
+4 E h m2in + dk 1;j + k;j
+sk;j
+sk;j
+(yk;j Cjx^kjk 1)2
+2
+k;j
+(zk;j zk+sk;j)2
+2
+k;j
+32
+7
+1i 5
+32
+7
+1i 5
+2
+= 6
+4
+sk;j
+( m2in + dk 1;j + k;j
+k;j + s2k;j
+2
+k2;j k2;j
+2
+k;j
+j
+2
+sk;j =
+2
+min + dk 1;j + k;j
+Now substituting s2k;j in (17) we obtain
+E
+"
+2
+sk;j
+( m2in + dk;j )2
+#
+32
+7 = f (s);
+1 5
+(18)
+1
+!!
+: (19)
+2
+k;j
+2
+k;j
+2
+k;j
+4 k;j
+2
+min + dk 1;j + k;j
+2
+k;j
+2
+k;j
+(20)
+1
+where k2;j = E[zk;j zk].
+If we now take the derivative of f (s) with respect to s
+dds f (s) = 0 we obtain a maximum at
+Let
+which does not depend on sk;j , concluding the proof.
+Thus, Theorem 3.2 and the proof above show that there exists
+an upper bound on the ANR that depends on k;j in the
+recursive adaptive estimator defined in (9) - (14).
+We are now ready to show that Problem 2.1 holds, given
+the bounds calculated on the ANR in Theorem 3.2.
+Lemma 3.3: Bounded Attack Innovation Given the recursive
+adaptive estimator outlined in (9) - (14) there exists
+a 0 such that
+E kKkskk2
+y =
+(CPkjk 1CT + V ) and
+a Dk such that the following equality is satisfied
+Q QT
+CPkjk 1CT + V
+Q
+1 QT =
+= CPkjk 1CT + V + Dk
+Py = (CPkjk 1CT + V ) =
+then the left hand side of (26) becomes
+Q(QT PyQ) 1QT =
+Now for the right hand side, let us select
+Dk =
+0 0
+0 rI
+with r a constant. Then it follows that
+(Py + D) 1 =
+=
+Pn 1
+Pn 1Pnd
+Pn 1PnTd
+Pn
+PnTd
+1P1 nTdPn 1
+Pnd
+Pd + rI
+1
+=
+1PndPn 1
+1;
+where = Pd + rI.
+Choosing r very large is equivalent to unselecting the
+sensors that are under attack, thus leaving us with only the
+correct measurements. Therefore, as r goes to infinity we
+obtain
+lim (Py + D) 1 =
+r!1
+Pn 1
+0
+0
+0
+which is equivalent to the left hand side in (28).
+Lemma 3.5: Expectation of the Shielding Gain Given
+the recursive algorithm described in (9) - (14), if the magnitude
+of the attacks is always non-zero, then the expected
+value of the shield factor is always non-negative and nondecreasing.
+In formula, given N the number of sensors
+under attack and j = 1; : : : N
+8 N
+N=2; if k k;j k > 0 then E[Dk]
+Dk 1:
+(32)
+Proof: The proof is straightforward. In the presence of
+an attack:
+Pn
+PnTd
+Pn 1
+0
+;
+1
+:
+Pnd
+Pd
+0
+0
+(26)
+(27)
+(28)
+(29)
+(30)
+(31)
+(34)
+2
+:
+:
+;
+;
+E kKkskk2
+=E k xy( y + Dk) 1skk
+2
+k xyk2E k( y + Dk) 1skk
+2
+=k xyk2E[ ];
+where we notice that the second part of equation (22) is the
+ANR, = (( y + Dk) 1sk)2.
+Given that
+j =
+2
+min + dk 1;j
+1 k2;j
+k;j
+is substituted into (20) and summed over all the sensors, then
+(21) is satisfied when
+Proof:
+Given
+xy = Pkjk 1CT ,
+If (24) is not satisfied, then we need to reset the estimator
+by assigning ^ k = k.
+B. Properties of the Shielding Gain
+In the following lines we present some other properties of
+the proposed recursive algorithm focusing primarily on the
+existence, expectation, and evolution of the shielding factors.
+Lemma 3.4: Existence of the Shielding Gain Given the
+recursive implementation composed of the prediction, shield,
+and update steps of (9) - (14), there exists a shielding gain
+such that the estimated state is equivalent to the oracle one.
+In formula
+9Dk s.t. 8Pkjk 1; K^k = Kko:
+(25)
+Proof: Given K^ defined in (11) and assuming Ko in
+(8) is the optimal gain, we would like to show that there is
+h
+T r ( min2 I + Dk 1) 1 ( ^ k
+k) ( min2 I + Dk 1) 1i :
+E[Dkjattack] = Dk 1 +
+1 +
+sk
+k;j
+!
+1 =
+(21)
+(22)
+(23)
+(24)
+3695
+sk
+k;j
+2!
+= Dk 1 +
+Dk 1;
+(33)
+proving the statement of the lemma.
+Lemma 3.6: Probabilistic Evolution of the Shielding
+Factors Given an attack j , by using the recursive algorithm
+(9)-(14), the probability P that dk dk 1 increases by
+increasing .
+Proof: To prove Lemma 3.6 we show that the probability
+that dk dk 1 under attack depends on in (14).
+P [dk 1
+dkjattack]
+= dk 1E [1=dk]
+E
+=
+dk 1
+dk
+dk 1
+E [dk]
+1
+1 + dk 1 k skk;j k2
+(34) demonstrates that the probability that dk 1 dk
+under attack is inversely proportional to . In particular, we
+notice that for ! 1 the probability in (34) goes to 0,
+which, in turns, means that the probability of increasing dk
+at every step converges to 1.
+In the following sections we discuss simulation results and
+experimental implementations on ground wheeled robots.
+First we give an overview of the architecture of our control
+system and the robots dynamical model used during the
+simulations and hardware implementations.
+IV. SYSTEM ARCHITECTURE
+Our formulation is hierarchical and use feedback to control
+the motion of the vehicle and achieve the desired state.
+Fig. 2 shows a block diagram representing all the control
+components used in our framework.
+Fig. 2. Block diagram representing the control system architecture employed
+for secure cruise control.
+A. Dynamical Model
+We illustrate the development framework on a design
+of secure cruise control of two fully electric unmanned
+ground vehicles (UGV): the Black-I LandShark [3] shown
+in Fig. 1, and a custom made robot built at the University of
+Pennsylvania (UPenn) which we call MiniShrak, shown in
+Fig. 3(a). Both vehicles are equipped with encoders, IMUs,
+GPS, and vision sensors. From a computation perspective,
+both UGVs are equipped with quad-core processors running
+Ubuntu with ROS.
+To obtain a dynamical model of the vehicle we have used
+the standard differential drive vehicle model (Fig. 3(b)) [16].
+Here, Fl and Fr denote forces on the left and right set of
+wheels respectively and Br is the mechanical resistance of
+the wheels to rolling. The vehicle position is specified by
+its px and py coordinates, denotes the heading angle of
+the vehicle measured from the x axis, while v is the speed
+of the vehicle in this direction. Both the vehicles in our
+testbed employs skid steering, meaning that in order to make
+a turn it is necessary to generate enough torque to overcome
+the sticking force Sl. Consequently, if we assume that the
+wheels do not slip, the dynamical model of the vehicle can
+be specified as:
+v_ =
+!_ =
+_ = !
+1 (Fl + Fr
+m
+1 (Fl + Fr
+m
+J1t ( B2 (Fl
+0;
+(Bs + Br)v; if turning
+Brv; if not turning
+Fr)
+Bl!;
+if turning
+if not turning
+p_x = v sin( ); p_y = v cos( )
+(35)
+3696
+Also, w = 0 if the vehicle is not turning. Finally, to estimate
+the state of the vehicle for cruise control (i.e., its speed) we
+use three sensors: typically the wheel encoders on both sets
+of wheel, inertial sensors such as the IMU, and the GPS.
+We have also derived a 6-state linear model of the low-level
+electromechanical system, which is then used to derive a
+local controller that provides the desired Fl; Fr levels.
+(a)
+(b)
+Fig. 3. Skid-steering ground vehicle; (a) The MiniShark unmanned ground
+vehicle; (b) Coordinate system and variables used to derive the model.
+V. SIMULATION RESULTS
+In this section we show simulation results for the resilient
+adaptive estimator discussed in Section III in comparison
+with a well established resilient state estimator presented in
+[17], [18].
+A. Overview of the Resilient State Estimator (RSE)
+To illustrate our development framework we compare our
+technique with the work from [17], [18], where recent results
+on error correction over the reals and compressed sensing are
+used to derive a technique to develop secure state estimators
+when system sensors or actuators are under attack.
+In [17] it is shown that for linear systems the state estimate
+can be obtained from the previous N sensor measurements
+and actuator inputs as the minimization argument of the
+following optimization problem:
+xm2iRnn kY N
+N xkl1=l2 :
+(36)
+Here, for a matrix M 2 Rp N , kM kl1=l2 denotes
+the sum of l2 norms of the rows of the matrix, and
+N = CxjCAxj : : : jCAxN 1 . Furthermore, Y N =
+[y~k N +1jy~k N +2j : : : jy~k] aggregates the sensor measurements
+while taking into account applied inputs - i.e., y~k =
+yk Pik=k N +1 CAiBuk 1 i.
+B. Software Implementations
+For ease of discussion we abbreviate the resilient adaptive
+estimator as RAE and the resilient state estimator in [17],
+[18] as RSE. In all simulations presented in this section the
+robot is set to first maintain a cruise control speed of 4 m/s
+and after 50 seconds to switch to 10 m/s. The state space
+representation of the vehicle has been deduced from careful
+measurements on the real robot.
+Following the architecture and the dynamical model for
+skid-steering vehicles described in Section IV we developed
+a ROS based simulator that emulates the same electromechanical
+and dynamical behavior of the real robot. The top
+subfigure in Fig. 4 displays the normalized voltage supplied
+to the motors. The middle plot shows the true velocity of
+the simulated robot, and finally on the bottom of Fig. 4
+the three sensor measurements with applied an attack on the
+GPS measurement are displayed. The attack in this case is
+modeled as a 10 Hz pulse with pick amplitude of 5 m/s.
+Fig. 4. Rqt-plot of the results from the ROS Simulator with GPS data
+corrupted.
+The developed ROS simulator was used in debugging
+phase before using the real robot. Notice that both the
+simulator and the real robots use exactly the same ROS code.
+We now show a comparison between the RAE and the
+RSE, with simulations run in Matlab/Simulink. The same
+simulation of Fig. 4 was run with the RSE. In Fig. 5 we report
+the error between reference and true velocity values for both
+strategies. Each strategy behaves correctly converging to 0
+every time we select a new reference velocity.
+Fig. 5. Comparison between RSE and RAE state estimation errors for low
+noise situation.
+Fig. 6 displays the state estimation error comparison
+between RSE and RAE when the sensor noise is increased
+( = 1 m/s). The attack on the GPS is modeled as a pulse
+with amplitude alternating between 3 m/s and 0 m/s every
+10 s. Again we notice that both estimators errors converge
+to 0 within the noise profile of the sensors. The RAE has
+slightly less oscillations than the RSE.
+Fig. 6. Comparison between RSE and RAE state estimation errors for noisy
+measurements with large attacks
+Finally, in the simulation displayed in Fig. 7 we increase
+the noise of each sensor to = 2 m/s. In this case we hide
+the attack within the noise profile of the GPS measurement
+but keep it around the boundary of the noise, that is, the
+attack is a pulse with magnitude alternating between 2 m/s
+and 0 m/s every 10 s. Because the noise is large and the
+attack is within the noise profile and on its boundary, we see
+that the error grows when an attack is inserted and decreases
+when it is removed creating oscillation in the velocity.
+Fig. 7. Comparison between RSE and RAE state estimation errors for large
+noisy measurements with attacks within the noise profile.
+Table I shows numerical results that compare four different
+strategies: an Oracle estimator (Oracle), a Kalman Filter
+(KF), the Resilent State Estimator (RSE) of [17], [18], and
+the Resilient Adaptive Estimator (RAE) proposed in this
+paper. We use the same three case studies run above within
+Figs. 5-7. Each entry on the table contains two values: the
+upper number is the average error between estimated and
+true state, while the lower number is the ratio between the
+estimated and the oracle errors. As expected, the Kalman
+Filter approach is not able to deal with attacks whose value
+exceeds the noise profile of the sensor measurements, while it
+can be used in the case that the attack is camouflaged within
+the error noise of the sensor (last column of the table). As
+already discussed, the RAE behaves slightly better than the
+RSE with a maximum recorded error of 18% against the 21%
+of the RSE in the case of noisy measurements with attack
+vector outside the noise profile (second column of the table).
+TABLE I
+STATE ESTIMATE ERROR UNDER ATTACK
+Approach
+Oracle
+KF
+RSE
+RAE
+= 0:01
+= 5
+0.005
+1.00
+1.67
+334
+0.005
+1.00
+0.005
+1.00
+= 1
+= 3
+0.13
+1.00
+0.99
+7.62
+0.21
+1.62
+0.18
+1.38
+= 2
+= 2
+0.18
+1.00
+0.35
+1.94
+0.32
+1.78
+0.28
+1.56
+VI. HARDWARE/SOFTWARE IMPLEMENTATION
+The resilient state estimator and the recursive adaptive
+estimator strategies have been implemented through several
+experiments on the two robots described in Section IV-A and
+on different types of surfaces. To facilitate the experimental
+evaluation, we have built a remote User Interface (UI) (see
+subfigures inside Figs. 8 and 9) which allows us to start/stop
+processes, attack each sensor, read/save data, and visualize
+plots of important information such as the speed calculated
+from the sensor measurements and the input sent to the
+3697
+actuators. For these hardware implementations we decided
+to use GPS and the left and right encoders to obtain three
+independent speed measurements.
+In Fig. 8 it is shown a snapshot of a cruise control
+experiment run on the LandShark on a tiled pathway inside
+the UPenn campus. As noted from the UI, the robot can
+reach and maintain the desired reference speed even when
+one of the sensors is under attack. Next experiment in
+Fig. 9(a) displays the MiniShark running with the resilient
+state estimator described in Section V-A. Finally in Fig. 9(b)
+we present a snapshot of the implementation of the recursive
+estimator derived in Section III-A, showing similar results as
+with the LandShark in Fig. 8. Once an attack is injected in
+one of the sensors, a weight is added to the noise variance
+of the corrupted measurement decreasing its trustworthiness.
+All experimental results show that the two methods can be
+used to efficiently estimate the state of the system, although
+the RAE is computationally more efficient and does not
+require a history of measurements and control inputs.
+Fig. 8. Experimental result. Snapshot of the deployment of the LandShark
+on a tiled pathway inside the University of Pennsylvania. The picture in the
+picture displays the user interface used during the experiments.
+(a)
+(b)
+Fig. 9. Snapshots of the deployment of the MiniShark UGV on a grass field
+inside the University of Pennsylvania. The robot is in cruise control and
+one by one each sensor is compromised with a constant attack. Figure (a)
+shows the implementation of the RSE, while (b) depicts the RAE strategy.
+VII. CONCLUSION & FUTURE WORK
+In this paper we have presented a method to estimate the
+state of a system under malicious attack on the sensors on
+a vehicle. The proposed recursive state estimator compares
+the estimated state with redundant measurements coming
+from different sources and returns a higher variance of
+the measurement noise if a sensor is under attack. This
+strategy allows to consider noisy measurements to estimate
+the correct state of the system and can be used for attacks that
+act outside the noise profile of the sensors. However there
+are few limitations: the algorithm needs an accurate selection
+of the noise profile and weights in order to converge to the
+correct state. A too small bound on the error noise implies
+that the estimator may reject most of the measurements while
+a too large bound on the error can lead more attacks going
+through the system because within the error noise profile. In
+real applications these boundaries on the noise profiles are
+usually given or can be calculated through hardware testing.
+Future work will be centered on: i) implementing the
+proposed strategies on unstable systems (e.g., quadrotors)
+and more evolved experiments involving obstacle avoidance
+and way-point navigation; ii) running more complex coordinated
+attacks, and iii) developing supervisory capabilities to
+alternate between different strategies.
+ACKNOWLEDGMENTS
+This work is based on research sponsored by DARPA
+under agreement number FA8750-12-2-0247.
+The authors would like to thank Prof. Paulo Tabuada for
+useful discussions about the resilient state estimator, Peter
+Gebhard for creating the UI used in the experiments, and
+Prof. Daniel Lee and his students for their help in building
+the MiniShark robot.
+REFERENCES
+[1] “Spoofers Use Fake GPS Signals to Knock a Yacht Off
+Course. http://www.technologyreview.com/news/517686/spoofers-usefake-gps-signals-to-knock-a-yacht-off-course.”
+[2] M. Pajic, N. Bezzo, J. Weimer, R. Alur, R. Mangharam, N. Michael,
+G. J. Pappas, O. Sokolsky, P. Tabuada, S. Weirich et al., “Towards
+synthesis of platform-aware attack-resilient control systems,” in Proceedings
+of the 2nd ACM international conference on High confidence
+networked systems. ACM, 2013, pp. 75-76.
+[3] “Black-I Robotics LandShark UGV.
+http://www.blackirobotics.com/LandShark UGV UC0M.html.”
+[4] J. S. Warner and R. G. Johnston, “A simple demonstration that the
+global positioning system (gps) is vulnerable to spoofing,” Journal of
+Security Administration, vol. 25, no. 2, pp. 19-27, 2002.
+[5] “Car Hacking http://blog.ioactive.com/2013/08/car-hackingcontent.html.”
+[6] S. Checkoway, D. McCoy, B. Kantor, D. Anderson, H. Shacham,
+S. Savage, K. Koscher, A. Czeskis, F. Roesner, and T. Kohno,
+“Comprehensive experimental analyses of automotive attack surfaces,”
+in Proc. of USENIX Security, 2011.
+[7] M. Zhu and S. Martinez, “On resilient consensus against replay attacks
+in operator-vehicle networks,” in American Control Conference (ACC),
+2012. IEEE, 2012, pp. 3553-3558.
+[8] F. Pasqualetti, F. Do¨rfler, and F. Bullo, “Attack detection and identification
+in cyber-physical systems,” IEEE Transactions on Automatic
+Control, 2012, submitted.
+[9] Y. Mo, E. Garone, A. Casavola, and B. Sinopoli, “False data injection
+attacks against state estimation in wireless sensor networks,” in 49th
+IEEE Conference on Decision and Control (CDC), 2010. IEEE, 2010,
+pp. 5967-5972.
+[10] H. Fawzi, P. Tabuada, and S. Diggavi, “Secure estimation and control
+for cyber-physical systems under adversarial attacks,” arXiv preprint
+arXiv:1205.5073, 2012.
+[11] “Robotic Operating System. http://www.ros.org.”
+[12] J. McClean, C. Stull, C. Farrar, and D. Mascaren˜as, “A preliminary
+cyber-physical security assessment of the robot operating system
+(ros),” in SPIE Defense, Security, and Sensing. International Society
+for Optics and Photonics, 2013, pp. 874 110-874 110.
+[13] J. Weimer, N. Bezzo, M. Pajic, O. Sokolsky, and I. Lee, “Attackresilient
+minimum-variance estimation,” in American Control Conference
+(ACC), 2014 (to appear). IEEE, 2014.
+[14] M. S. Grewal and A. P. Andrews, Kalman filtering: theory and practice
+using MATLAB. Wiley. com, 2011.
+[15] D. Simon, Optimal state estimation: Kalman, H infinity, and nonlinear
+approaches. Wiley. com, 2006.
+[16] J. J. Nutaro, Building Software for Simulation: Theory and Algorithms,
+with Applications in C++. Wiley, 2010.
+[17] H. Fawzi, P. Tabuada, and S. Diggavi, “Secure state-estimation for
+dynamical systems under active adversaries,” in Proceedings of the
+2011 49th Annual Allerton Conference on Communication, Control,
+and Computing (Allerton), 2011, pp. 337-344.
+[18] --, “Security for control systems under sensor and actuator attacks,”
+in Proceedings of the 51st IEEE Conference on Decision and Control,
+2012.
+3698

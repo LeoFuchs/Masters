@@ -1,0 +1,1751 @@
+2930
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 11, NOVEMBER 2015
+Input-to-State Stabilizing Control
+Under Denial-of-Service
+Claudio De Persis and Pietro Tesi
+Abstract-The issue of cyber-security has become ever more
+prevalent in the analysis and design of networked systems. In
+this paper, we analyze networked control systems in the presence
+of denial-of-service (DoS) attacks, namely attacks that prevent
+transmissions over the network. We characterize frequency and
+duration of the DoS attacks under which input-to-state stability
+(ISS) of the closed-loop system can be preserved. To achieve ISS,
+a suitable scheduling of the transmission times is determined. It is
+shown that the considered framework is flexible enough so as to
+allow the designer to choose from several implementation options
+that can be used for trading-off performance versus communication
+resources. Examples are given to substantiate the analysis.
+Index Terms- Cyber-physical systems , networked control systems
+, switched systems.
+I. INTRODUCTION
+R cyber-physical systems (CPSs), i.e., systems with a tight
+ECENT years have witnessed a growing interest towards
+conjoining of computational and physical resources. Their field
+of application is immense, ranging from autonomous vehicles
+and supply chains to power and transportation networks. Many
+of these applications are safety-critical. This has triggered
+considerable attention to networked systems in the presence
+of attacks, bringing the question of cyber-security into filtering
+and control theories [1], [2].
+As argued in [1] and [2], security in CPSs drastically differs
+from security in general-purpose computing systems. In CPSs,
+attacks can in fact cause disruptions that transcend the cyber
+realm and affect the physical world. For instance, if a critical
+process is open-loop unstable, failures in the plant-controller
+communication network can result in environmental damages.
+Control theory, on the other hand, is typically concerned with
+well-defined uncertainties or faults. In fact, most of networked
+control approaches assume that the communication failures
+follow a given class of probability distributions [3], [4], which
+is hardly justified in case of a malicious adversary.
+Manuscript received July 1, 2014; revised November 14, 2014; accepted
+March 5, 2015. Date of publication March 27, 2015; date of current version
+October 26, 2015. This work was supported by the Dutch Organization for
+Scientific Research (NWO) under the auspices of the project QUICK (QUantized
+Information Control for formation Keeping) and by the Technology
+Foundation STW under the auspices of the project Robust Design of Cyberphysical
+Systems. Recommended by Associate Editor V. Gupta.
+The authors are with the ITM, Faculty of Mathematics and Natural Sciences,
+University of Groningen, 9747 AG Groningen, The Netherlands (e-mail:
+c.de.persis@rug.nl; p.tesi@rug.nl).
+Color versions of one or more of the figures in this paper are available online
+at http://ieeexplore.ieee.org.
+Digital Object Identifier 10.1109/TAC.2015.2416924
+In a networked control system, attacks to the communication
+links can be classified as either deception attacks or denial-ofservice
+(DoS) attacks. The former affect the trustworthiness of
+data by manipulating the packets transmitted over the network;
+see [5]-[9] and the references therein. DoS attacks are instead
+primarily intended to affect the timeliness of the information
+exchange, i.e., to cause packet losses; see for instance [10], [11]
+for an introduction to the topic.
+This paper is concerned with DoS attacks We consider
+a sampled-data control system in which the plant-controller
+communication is networked; the attacker objective is to induce
+instability in the control system by denying communication on
+measurement (sensor-to-controller) and control (controller-toactuator)
+channels. Under DoS attacks, the process evolves in
+open-loop according to the last transmitted control sample. The
+problem of interest is that of finding conditions under which
+closed-loop stability, in some suitably defined sense, can be
+preserved.
+A basic question for this problem is concerned with the
+modeling of the DoS attacks. As previously noted, it is hard
+to justify the incentive for an attacker to follow a probabilistic
+packet drop model. In this paper, no assumption is made
+regarding the DoS attack underlying strategy. We consider a
+general attack model that only constrains the attacker action in
+time by posing limitations on the frequency of DoS attacks and
+their duration. This makes it possible to capture many different
+types of DoS attacks, including trivial, periodic, random and
+protocol-aware jamming attacks [11]-[14].
+One contribution of this paper is an explicit characterization
+of the frequency and duration of DoS attacks under which
+closed-loop stability can be preserved. The result is intuitive
+as it relates stability with the ratio between the on/off periods
+of jamming. The analysis taken here is reminiscent of stability
+problems for switching systems [15], a modeling tool which has
+already proved effective in networked systems [16]-[18]. In this
+paper, however, the peculiarity of the problem under study leads
+to specific design solutions.
+In this paper, in fact, the design of the transmission times
+turns out to be key. To get stability, the transmission times
+are selected in such a way that, whenever communication is
+possible, the closed-loop trajectories satisfy a suitable norm
+bound. Such a choice has two main advantages: i) it can ensure
+global exponential input-to-state stability (ISS) with respect to
+process disturbances even in the presence of DoS; and ii) it
+is flexible enough so as to allow the designer to choose from
+several implementation options that can be used for tradingoff
+performance versus communication resources. The design
+of the network transmission times has interesting and perhaps
+0018-9286 © 2015 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+DE PERSIS AND TESI: INPUT-TO-STATE STABILIZING CONTROL UNDER DENIAL-OF-SERVICE
+2931
+surprising connections with the event-based sampling approach
+of [19], though substantial modifications are needed to account
+for the presence of DoS and disturbances. More specifically, the
+adoption of sampling rules that suitably constrain the closedloop
+trajectories is crucial for achieving a simple Lyapunovbased
+analysis of the ISS property during the on/off periods
+of DoS.
+In the control literature, contributions to this research topic
+have been reported in [20]-[25]. In [20] and [21], the authors
+consider the problem of finding optimal control policies when
+DoS attacks either evolve according to a Bernoulli process
+or follow a hidden Markov process model. As noted, such a
+problem is however more close to classical networked control
+systems literature. A scenario more similar to the present one
+is considered in [22] and [23], where the problem is to find
+optimal control and attack strategies assuming a maximum
+number of jamming actions over a prescribed (finite) control
+horizon. There are two main differences with respect to our
+framework: in [22] and [23], the authors consider a pure
+discrete-time setting, while here we deal with sampled-data
+networked systems and the performance analysis is concerned
+with the continuous-time process state. Second, we do not
+formulate the problem as an optimal control design problem.
+The controller can be designed according to any suitable design
+method, robustness against DoS attacks being achieved thanks
+to the design of the network transmission times.
+Perhaps, the closest references to our work are [24] and [25].
+In that papers, the authors consider DoS attacks in the form of
+pulse-width modulated signals. The goal is to identify salient
+features of the DoS signal such as maximum on/off cycle in
+order to suitably scheduling the transmission times. For the
+case of periodic jamming (of unknown period and duration), an
+identification algorithm is derived which makes it possible to
+de-synchronize the transmission times from the on periods of
+DoS. This framework should be therefore looked at as complementary
+more than alternative to the present one, since dealing
+with cases where the jamming signal is “well-structured” so
+that de-synchronization from attacks can be achieved. Such
+a feature is conceptually impossible to achieve in scenarios
+such as the one considered in this paper, where the jamming
+strategy is not prefixed (the attacker can modify on-line the
+attack strategy).
+The remainder of this paper is organized as follows. In
+Section II, we describe the framework of interest and formulate
+the control problem. In Section III, we introduce a class of
+sampling logics that achieve ISS in the absence of DoS. The
+main results along with a characterization of the considered
+class of DoS signals are given in Section IV. Simplifications
+that arise in the disturbance-free case are also discussed. In
+Section V, we discuss implementation issues and present a
+number of sampling strategies that can be used for tradingoff
+performance versus communication resources. A discussion
+of the results is given in Section VI along with a number of
+examples. Section VII ends the paper with concluding remarks.
+Notation: We denote by R the set of reals. Given α ∈ R, we
+let R>α(R≥α) denote the set of reals greater than (greater than
+or equal to) α. We let N denote the set of natural numbers and
+define N0 := N ∪ {0}. Given a vector v ∈ Rn, v is its EuTABLE
+I
+TABLE OF NOTATIONS
+Fig. 1. Block diagram of the closed-loop system.
+clidean norm. Given a matrix M , M is its transpose and M
+is its spectral norm. Given two sets A and B, we denote by B\A
+the relative complement of A in B, i.e., the set of all elements
+belonging to B, but not to A. Given a set A and a function
+f : A → R≥0, we use the convention supx∈A f (x) = 0 when
+A is empty. Given a measurable time function f : R≥0 → Rn
+and a time interval [0, t) we denote the L∞ norm of f (·) on
+[0, t) by ft ∞ := ess sups∈[0,t) f (s) . Finally, we denote by
+L∞(R≥0) the set of measurable and essentially bounded time
+functions on R≥0.
+Table I summarizes the notation most frequently used
+throughout the remainder of the paper.
+II. THE FRAMEWORK
+A. Process Dynamics and Ideal Control Action
+The framework of interest is schematically represented in
+Fig. 1. The process to be controlled is described by the differential
+equation
+d
+dt
+x(t) = Ax(t) + Bu(t) + w(t)
+(1)
+where t ∈ R≥0; x ∈ Rn is the state and u ∈ Rm is the control
+input; A and B are matrices of appropriate size; w ∈ Rn is an
+unknown disturbance: it accounts for process input disturbances
+as well as noises on control (controller-to-actuator) and measurement
+(sensor-to-controller) channels.
+The control action is implemented over a sensor/actuator
+network. We assume that (A, B) is stabilizable and that a
+state-feedback matrix K has been designed in such a way that
+all the eigenvalues of A + BK have negative real part. The
+control signal is sampled using a sample-and-hold device. Let
+{tk}k∈N0 , where t0 := 0 by convention, represent the sequence
+of time instants at which it is desired to update the control
+action. Accordingly, whatever the logic generating the sequence
+{tk}k∈N0 , in the ideal situation where data can be sent and
+received at any desired instant of time, the control input applied
+to the process is given by
+uideal(t) = Kx(tk)
+for all t ∈ Ik := [tk, tk+1[.
+B. DoS and Actual Control Action
+We refer to Denial-of-Service (DoS) as the phenomenon that
+may prevent (2) from being executed at each desired time. In
+principle, this phenomenon can affect measurement and control
+channels separately. In this paper, we consider the case of
+DoS simultaneously affecting both measurement and control
+channels. This amounts to assuming that, in the presence of
+DoS, data can be neither sent nor received. Specifically, let
+{hn}n∈N0 , where h0 ≥ 0, denote the sequence of DoS off/on
+transitions, i.e., the time instants at which DoS exhibits a
+transition from zero (communication is possible) to one (communication
+is interrupted). Then
+Hn := {hn} ∪ [hn, hn + τn[
+represents the nth DoS time-interval, of a length τn ∈ R≥0,
+over which communication is not possible. If τn = 0, the nth
+DoS takes the form of a single pulse at time hn.
+In the presence of DoS, the actuator generates an input that is
+based on the most recently received control signal. Given τ, t ∈
+R≥0 with t ≥ τ , let
+Ξ(τ, t) :=
+Hn
+[τ, t]
+n∈N0
+Θ(τ, t) := [τ, t] \ Ξ(τ, t).
+In words, for each interval [τ, t], Ξ(τ, t) and Θ(τ, t) represent
+the sets of time instants where communication is denied
+and allowed, respectively. The reason for considering generic
+intervals [τ, t] rather than simply [0, t] will become clear in
+Section IV. Accordingly, for each t ∈ R≥0, the control input
+applied to the process can be expressed as
+u(t) = Kx tk(t)
+2932
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 11, NOVEMBER 2015
+(2)
+(3)
+(4)
+(5)
+(6)
+where
+k(t) :=
+−1, if Θ(0, t) = ∅
+sup{k ∈ N0 | tk ∈ Θ(0, t)} , otherwise.
+(7)
+In words, for each t ∈ R≥0, k(t) represents the last successful
+control update. Notice that h0 = 0 implies k(0) = −1, which
+raises the question of assigning a value to the control input
+when communication is not possible at the process start-up. In
+this respect, we assume that when h0 = 0 then u(0) = 0, and
+let x(t−1) := 0 for notational consistency.
+C. Control Objectives
+The problem of interest is that of finding sampling logics
+that achieve robustness against DoS, while ensuring that the
+control inter-execution times are bounded away from zero.
+While robustness is concerned with stability and performance
+of the closed-loop system, positive inter-execution times are
+required for the control scheme to be physically implementable
+over a network.
+The following definitions reflect the stated goals.
+Definition 1: (cf. [26]) Let Σ be the control system resulting
+from (1) under a control signal as in (6). System Σ is said
+to be input-to-state stable (ISS) if there exist a KL-function
+β and a K∞-function γ such that, for each w ∈ L∞(R≥0)
+and x(0) ∈ Rn
+x(t) ≤ β ( x(0) , t) + γ ( wt ∞)
+for all t ∈ R≥0. If (8) holds when w ≡ 0, then Σ is said to be
+globally asymptotically stable (GAS).
+Definition 2: A control update sequence {tk}k∈N0 is said to
+have the finite sampling rate property if there exists Δ ∈ R>0
+such that
+Δk := tk+1 − tk ≥ Δ
+for all k ∈ N0.
+Here and in the sequel, it is understood that the network can
+send information at the sample rate induced by Δ.
+III. STABILIZING CONTROL UPDATE POLICIES
+We first introduce a class of control update policies ensuring
+ISS in the absence of DoS. The results will serve as a basis for
+the developments of Section IV.
+Consider the closed-loop system resulting from (1) under a
+control signal as in (6). As a first step, we rewrite it in a form
+that is better suited for analysis purposes. Let
+e(t) := x tk(t) − x(t)
+where t ∈ R≥0, represent the error between the value of the
+process state at the last successful control update and the value
+of the process state at the current time. The closed-loop system
+can be therefore rewritten as
+d
+dt
+x(t) = Φx(t) + BKe(t) + w(t)
+(8)
+(9)
+(10)
+(11)
+DE PERSIS AND TESI: INPUT-TO-STATE STABILIZING CONTROL UNDER DENIAL-OF-SERVICE
+where Φ := A + BK.
+The closed-loop system now depends on the control update
+rule through e, which enters the dynamics as an additional
+disturbance term. It is then intuitively clear that stability will
+not be destroyed if one adopts control update rules that keep
+e small in a suitable sense. The notion of “smallness” here
+considered, which characterizes the control update rules of
+interest, is expressed in terms of the following boundedness
+inequality:
+e(t) ≤ σ x(t) + σ wt ∞
+(12)
+where σ ∈ R>0 is a suitable design parameter. We anticipate
+that (12) is not the control update rule we are going to implement,
+because of its dependence on the supremum norm
+of the disturbance w, that in general unknown. We will rather
+adopt different update rules that guarantee that (12) is always
+satisfied. Such different update rules, motivated by Lemma 1
+below, are discussed in detail in Section V.
+As next result shows, provided that σ is suitably chosen, any
+control update rule that restricts e to satisfy (12) is stabilizing.
+This can be proved by resorting to standard Lyapunov arguments.
+Given any positive definite matrix Q = Q ∈ Rn×n, let
+P be the unique solution of the Lyapunov equation
+Φ P + P Φ + Q = 0.
+Then, by taking V (x) = x P x as a Lyapunov function, and
+computing it along the solution of (11), it is simple to verify
+that
+α1 x(t) 2 ≤ V (x(t)) ≤ α2 x(t) 2
+d
+dt
+V (x(t)) ≤ −γ1 x(t) 2 + γ2 x(t)
+e(t)
++ γ3 x(t)
+w(t)
+(13)
+(14a)
+(14b)
+hold for all t ∈ R≥0, with α1 and α2 equal to the smallest
+and largest eigenvalue of P , respectively, γ1 equal to the
+smallest eigenvalue of Q, γ2 := 2P BK and γ3 := 2P . It
+is then immediate to see that, under (12), the second of (14)
+does always satisfy a dissipation-like inequality whenever σ is
+chosen small enough.
+Theorem 1: Consider the control system Σ composed of (1)
+and control input (6), where K is such that all the eigenvalues of
+Φ = A + BK have negative real part. Given any positive symmetric
+definite matrix Q ∈ Rn×n, let P be the unique solution
+of the Lyapunov equation Φ P + P Φ + Q = 0. Let V (x) =
+x P x. Consider any control update sequence occurring at a
+finite sampling rate and satisfying (12) for all t ∈ R≥0, with
+σ such that
+γ1 − σγ2 > 0
+(15)
+where γ1 and γ2 are as in (14b). Then, Σ is ISS.
+Proof: See the Appendix.
+Inequality (15) can always be satisfied by selecting σ sufficiently
+small in that γ1 > 0. Given any σ satisfying (15),
+the only question that arises is on the possibility of designing
+sampling logics that guarantee (12) with finite-sampling rate.
+2933
+(16)
+(17)
+(18)
+As next result shows, in the absence of DoS, this is always
+possible. Given a matrix M ∈ Rn×n, let
+μM := max λ| λ ∈ spectrum
+(M + M )
+2
+denote the logarithmic norm of M [27].
+Lemma 1: Consider the same notation as in Theorem 1.
+Then, in the absence of DoS, any control update rule with intersampling
+times smaller than or equal to
+Δ¯ σ :=
+σ
+1 + σ
+1
+max { Φ , 1}
+when μA ≤ 0, and
+Δ¯σ :=
+1
+μA
+log
+σ
+1 + σ
+1
+max { Φ , 1}
+μA + 1
+when μA > 0, satisfies (12) for all t ∈ R≥0.
+Proof: See the Appendix.
+Remark 1: A boundedness inequality similar to (12) was
+considered by [19] in the context of event-based control for
+disturbance-free processes. The difference here lies in the
+bound imposed on e, which is dictated by the need to take
+into account w. With Lemma 1, we explicitly determine intersampling
+times that ensure (12) without prior knowledge of
+an upper-bound on w. A detailed discussion on sampling logic
+based on Lemma 1 is given in Section V.
+IV. INPUT-TO-STATE STABILITY UNDER
+DENIAL-OF-SERVICE
+The analysis of Section III relies on the possibility to satisfy
+condition (12) for all t ∈ R≥0. According to Lemma 1, in the
+absence of DoS, this is always possible. In the presence of DoS
+the analysis becomes more involved since certain control update
+attempts need not be successful, no matter how we sample.
+Failing to reset e may cause (12) to be violated and stability
+can be lost in that (14b) need no longer satisfy a dissipationlike
+inequality. Thus, a natural question arises on how the
+conclusions of Theorem 1 can be extended so as to account for
+the presence of DoS. The remainder of this section is devoted to
+address this question. In Section IV-A, we introduce and discuss
+the class of DoS signals under consideration. The main result is
+given in Section IV-B. An interesting simplification arising in
+the disturbance-free case is discussed in Section IV-C.
+A. Assumptions-Time-Constrained Denial-of-Service
+The first question to be addressed is that of determining the
+amount of DoS that a system can tolerate before undergoing
+instability. In this respect, it is simple to see that such an amount
+is not arbitrary, and that suitable conditions must be imposed
+on both DoS frequency and duration. To maintain continuity, a
+detailed discussion on the assumptions to follow is postponed
+to Section VI.
+1) DoS Frequency: Consider first the frequency at which
+DoS can occur, and let Λn := hn+1 − hn, n ∈ N0, denote the
+time elapsing between any two successive DoS triggering. One
+immediately sees that if Λn ≤ Δ for all n ∈ N0 (DoS can
+2934
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 11, NOVEMBER 2015
+Fig. 2. Example of DoS signal. Off/on transitions are represented as ↑,
+while on/off transitions are represented as ↓. Off/on transitions occur at
+3 s, 9 s, and 18.5 s and the corresponding DoS intervals have duration 3 s, 4 s,
+and 1.5 s, respectively. This yields for instance: n(0, 1) = 0, n(1, 10) = 2
+and n(10, 20) = 1, while Ξ(0, 1) = ∅, Ξ(1, 10) = [3, 6[∪[9, 10[, and
+Ξ(10, 20) = [10, 13[∪[18.5, 20[.
+occur at the same rate as the minimum possible sampling rate
+Δ) then stability can be lost regardless of the adopted control
+update policy. It is intuitively clear that, in order to get stability,
+the frequency at which DoS can occur must be sufficiently
+small compared to the minimum sampling rate. As discussed
+in Section VI, a natural way to express this requirement is via
+the concept of average dwell-time, as introduced by [28]. Given
+τ, t ∈ R≥0 with t ≥ τ , let n(τ, t) denote the number of DoS
+off/on transitions occurring on the interval [τ, t[.
+Assumption 1-(DoS Frequency): There exist η ∈ R≥0 and
+τD ∈ R>Δ such that
+n(τ, t) ≤ η +
+t − τ
+τD
+for all τ, t ∈ R≥0 with t ≥ τ .
+2) DoS Duration: In addition to the DoS frequency, one
+also need to constrain the DoS duration, namely the length of
+the intervals over which communication is interrupted. To see
+this, consider for example a DoS sequence consisting of the
+singleton {h0}. Assumption 1 is clearly satisfied with η ≥ 1.
+However, if H0 = R≥0 (communication is never possible) then
+stability is lost regardless of the adopted control update policy.
+Recalling the definition of Ξ(τ, t) in (4), the assumption that
+follows provides a quite natural counterpart of Assumption 1
+with respect to the DoS duration.
+Assumption 2-(DoS Duration): There exist κ ∈ R≥0 and
+T ∈ R>1 such that
+|Ξ(τ, t)| ≤ κ +
+t − τ
+T
+for all τ, t ∈ R≥0 with t ≥ τ .
+Fig. 2 exemplifies values of n(τ, t) and Ξ(τ, t) for a given
+DoS pattern.
+Remark 2: Assumption 1 and 2 specify the class of DoS
+signals that will be considered throughout the remainder of this
+paper. It is worth noting that no assumption is made on the
+information available to the attacker about the process dynamics,
+state-feedback matrix and sampling logic. The assumptions
+do only constrain DoS in terms of its frequency and duration.
+Limiting the DoS frequency and duration, in addition to render
+the control problem meaningful, does also have a practical
+motivation. In fact, there are several provisions that can be
+taken in order to mitigate DoS attacks, including spreading
+techniques and high-pass filtering; e.g., see [10], [13], [14].
+(19)
+(20)
+These provisions decrease the chance that a DoS attack will
+be successful, and, as such, limit in practice the frequency and
+duration of the time intervals over which communication is
+effectively denied.
+B. ISS Under Denial-of-Service
+We are now in position to derive the main result of this section,
+which can be expressed in words as follows: any control
+update rule attaining the conditions of Lemma 1 preserves ISS
+for any DoS signal that satisfies Assumption 1 and 2 with τD
+and T sufficiently large. Although the proof of this result is
+rather involved, the underlying approach is very intuitive. We
+decompose the time axis into intervals where it possible to
+satisfy (12) and intervals where, due to the occurrence of DoS,
+(12) need not hold. We then analyze the closed-loop dynamics
+as a system switching between stable and unstable modes, and
+determine values of τD and T under which the stable behavior
+is predominant with respect to the unstable one.
+Consider a sequence {tk}k∈N0 of sampling times, along with
+a DoS sequence {hn}n∈N0 . Let
+S :=
+k ∈ N0 | tk ∈
+n∈N0
+Hn
+denote the set of integers related to a control update attempt
+occurring under DoS.
+The following result holds.
+Theorem 2: Consider the control system Σ composed of (1)
+and control input (6), where K is such that all the eigenvalues of
+Φ = A + BK have negative real part. Given any positive symmetric
+definite matrix Q ∈ Rn×n, let P be the unique solution
+of the Lyapunov equation Φ P + P Φ + Q = 0. Let V (x) =
+x P x. Consider any control update sequence occurring at a
+finite sampling rate and with inter-sampling times smaller than
+or equal to Δ¯ σ as in Lemma 1, with σ satisfying (15). Consider
+any DoS sequence satisfying Assumption 1 and 2 with arbitrary
+η and κ, and with τD and T such that
+where Δ∗ is a nonnegative constant satisfying
+Δ
+τD
+∗ +
+1
+T
+<
+ω1
+ω1 + ω2
+ks∈uSp Δk ≤ Δ∗
+(21)
+(22)
+(23)
+Δk is as in (9), ω1 := (γ1 − γ2σ)/2α2 and ω2 := 2γ2/α1,
+where α1, α2, γ1 and γ2 are as in (14). Then, Σ is ISS.
+Proof: See the Appendix.
+In connection with (23), we note that, in accordance with the
+adopted notation, supk∈S Δk = 0 when S = ∅.
+Remark 3-(Performance Bounds): The considered class
+of sampling logics provides quite strong stability properties,
+namely exponential ISS with linear bounds on the disturbanceto-state
+map. In particular, from the proof of Theorem 2 one has
+x(t) ≤
+α2 e κ∗(ω1+ω2) e−( β2∗ )t x(0)
+2
+α1
++ δ∗ 1 + 2eκ∗(ω1+ω2)
+eβ∗τDη
+1 − e−β∗τD
+1
+2
+wt ∞. (24)
+δ∗ :=
+(γ3 + γ2σ)2
+(γ1 − γ2σ)
+max
+α2
+,
+α1(γ1 − γ2σ) 4γ2
+1
+with α1, α2, γ1, γ2 and γ3 as in (14). One sees that the convergence
+rate of the closed-loop dynamics as well as the amount
+of DoS that one can tolerate can be increased by decreasing
+the sampling rate upon the DoS occurrence, i.e., by decreasing
+Δ . We will discuss a number of sampling logics exploiting this
+∗
+property in Section V.
+Remark 4-(DoS-Induced Actuation Delay): Decreasing Δ∗
+can also by viewed as reducing the DoS-induced actuation delay.
+Assume for instance that the kth sampling instant belongs
+to S . Since tk ∈ S , the process will evolve in open-loop under
+out-of-date control up to time tk+1, even if DoS ceases before
+tk+1. Thus decreasing Δ∗ has the effect of reducing the delay
+in the actuation of the new control sample. In general, due
+to the finite sampling rate, such a delay is non-zero. In fact,
+Δ∗ = 0 only in two cases. The first one is when S = ∅. Such
+a case is not interesting since if S = ∅, then DoS is ineffective
+and ISS follows directly from Theorem 1. The second case
+is when S = ∅ and, for each DoS interval Hn containing a
+tk, the control update is scheduled exactly at hn + τn. This
+case is, however, unrealistic since hn and τn are unknown. The
+case S = ∅ and Δ∗ = 0 becomes of interest when considering
+control under DoS in a purely continuous-time framework. In
+fact, if the control action is continuous then Δ∗ = Δ¯ σ = 0.
+Under such circumstances, (22) reduces to 1/T < ω1/(ω1 +
+ω2), which is independent of τD. In fact, in a continuous-time
+setting, slow-on-the-average DoS in the form of pulses has no
+effect on closed-loop stability.
+C. Disturbance-Free Case
+An interesting simplification arises in the disturbance-free
+case. Specifically, when w ≡ 0 then Assumptions 1 and 2 can
+be relaxed as follows (to maintain continuity, a discussion on
+these relaxations is postponed to Section VI).
+Assumption 3-(DoS Frequency-Disturbance-Free Case):
+There exist η ∈ R≥0 and τD ∈ R>Δ such that
+for all t ∈ R≥0.
+Assumption 4-(DoS Duration-Disturbance-Free Case):
+There exist κ ∈ R≥0 and T ∈ R>1 such that
+n(0, t) ≤ η +
+t
+τD
+t
+|Ξ(0, t)| ≤ κ + T
+(25)
+(26)
+(27)
+(28)
+(29)
+Φ = A + BK have negative real part. Given any positive symmetric
+definite matrix Q ∈ Rn×n, let P be the unique solution
+of the Lyapunov equation Φ P + P Φ + Q = 0. Let V (x) =
+x P x. Consider any control update sequence occurring at a
+finite sampling rate and with inter-sampling times smaller than
+or equal to Δ¯ σ as in Lemma 1, with σ as in (15). Consider any
+DoS sequence satisfying Assumption 3 and 4 with arbitrary η
+and κ, and with τD and T satisfying (22). Then, Σ is GAS.
+Proof: See the Appendix.
+Following the same lines as in Remark 3, it is easy to
+see that the convergence rate of the closed-loop trajectories is
+exponential.
+V. RESILIENT CONTROL LOGICS
+The considered framework is flexible enough so as to allow
+the designer to choose from several implementation options
+that can be used to tradeoff performance versus communication
+resources. Although the solutions described in the sequel
+originate from fundamentally different logics, they exhibit the
+common feature of resilience, by which we mean the ability
+to adapt the sampling rate to the occurrence of DoS and,
+sometimes, to the closed-loop behavior. Hereafter, only few
+sampling logics will be discussed. Combinations and variants
+thereof can be easily envisaged.
+A. Periodic Sampling Logics
+The simplest architecture one can think of for implementing
+the control action is through periodic sampling. In accordance
+with Theorem 2, the sampling rate affects the amount of DoS
+that one can tolerate via (22). Since (22) does only depend on
+the sampling rate which is adopted during DoS, a convenient
+strategy consists in making use of a two-mode switching rule,
+where, upon DoS, the sampling rate is increased so as to reduce
+the DoS-induced delay.
+Proposition 1: Let δ1 and δ2 be positive constants such that
+δ1 ≤ δ2 ≤ Δ¯σ, where Δ¯σ is as in Lemma 1. For each k ∈ N0,
+let the sampling times be given by
+tk+1 =
+tk + δ1,
+tk + δ2,
+if k ∈ S
+otherwise
+(30)
+where S is as in (21). If the conditions of Theorem 2 hold true
+with Δ∗ = δ1, then the control system Σ composed of (1) and
+(6) is ISS. Moreover, the inter-sampling times are bounded from
+below by Δ = δ1.
+Proof: By (30), the control update occurs at finite time
+with inter-sampling time not larger than δ2 ≤ Δ¯ σ. Hence, ISS
+descends immediately from Theorem 2. The bounds on Δ∗ and
+Δ hold by construction.
+DE PERSIS AND TESI: INPUT-TO-STATE STABILIZING CONTROL UNDER DENIAL-OF-SERVICE
+2935
+where
+κ∗ := κ + (1 + η)Δ∗
+β∗ := ω1 − (ω1 + ω2)
+Δ
+τD
+∗ +
+1
+T
+for all t ∈ R≥0.
+The following result holds.
+Corollary 1: Consider the control system Σ composed of (1)
+and control input (6), where K is such that all the eigenvalues of
+B. Event-Based/Periodic Sampling Logics
+As discussed in [19], [29], and [30], event-based sampling is
+a very effective solution for saving communication resources.
+The basic idea is that periodic sampling can be relaxed by
+2936
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 11, NOVEMBER 2015
+triggering the control updates only when certain conditions
+(events) are met. In its basic formulation, this is achieved by
+measuring continuously the state x and triggering a control
+update whenever
+x(tk) − x(t) = σ x(t)
+(31)
+where σ is as in (15). In the disturbance-free case, this allows
+for less frequent sampling, while preserving the existence of
+a lower bound Δ on the inter-execution times, which can be
+computed as the time satisfying φ(Δ) = σ, where φ(t) is the
+unique solution of the generalized scalar Riccati equation
+d
+dt
+φ(t) =
+Φ + ( Φ + BK ) φ(t) + BK φ2(t) (32)
+with initialization φ(0) = 0. A similar reasoning, though with
+some noticeable differences, can be adopted also in the present
+context. Specifically, a suitable strategy still consists of a twomode
+switching rule: in the absence of DoS, sampling is based
+on (31); upon DoS occurrence, the sampling rate is increased
+so as to reduce the DoS-induced delay. Notice that in this case
+there is no need to enforce the upper-bound Δ¯σ on the sampling
+rate since (31) automatically implies (12). However, since (31)
+in general guarantees nonzero inter-execution times only in the
+absence of disturbances, a lower-bound on the sampling rate
+must be imposed a priori.
+Let
+ρk := inf {t ∈ R>tk : x(tk) − x(t) = σ x(t) }
+(33)
+for all k ∈ N0. We have at once the following result:
+Proposition 2: Let δ1 and δ2 be positive constants such that
+δ1 ≤ δ2 ≤ Δ¯ σ, where Δ¯σ is as in Lemma 1. For each k ∈ N0,
+let the sampling times be given by
+tk+1 =
+tk + δ1,
+tk + δ2,
+ρk,
+if k ∈ S
+if k ∈ S ∨ ρk < tk + δ2
+otherwise
+where S is as in (21). If the conditions of Theorem 2 hold true
+with Δ∗ = δ1, then the control system Σ composed of (1) and
+(6) is ISS. Moreover, the inter-sampling times are bounded from
+below by Δ = δ1.
+Proof: The inter-sampling times associated with (34) are
+equal to δ1, δ2, or ρk − tk. By (34), the sampling time tk+1
+equals ρk only if k ∈ S . Under such circumstances, since tk
+does not belong to any DoS interval, e(t) = x(tk) − x(t) for
+all t ∈ [tk, tk+1[, with e(tk) = 0. Hence, if tk+1 = ρk we have
+from (33) that e(t) ≤ σ x(t) for all t ∈ [tk, tk+1[ since e
+in continuous on [tk, tk+1[ and e(tk) = 0. Thus (34) guarantees
+that either the inter-sampling times equal δ1 or δ2, in which case
+they are not larger than Δ¯ σ, or they are equal to ρk in which
+case (12) is satisfied. In view of this fact, a minor variation of
+Theorem 2 shows the thesis. The bounds on Δ and Δ hold by
+∗
+construction.
+Interestingly, a logic similar to (34) has been recently considered
+in [31] for achieving finite sampling rate in the context
+of nonlinear output feedback for event-based controllers.
+C. Self-Triggering Sampling Logics
+Event-based sampling has the positive feature of potentially
+saving communication resources but requires the continuous
+monitoring of the process state, and, hence, hardware specifically
+available for this purpose. An alternative way to relax
+periodic implementations consists in selecting Δk based on the
+value of the process state at the measurement instants. Logics
+of this kind are typically referred to as “self-triggering” in that
+the next update instant is computed directly by the control unit;
+e.g., see [30], [32].
+Given t, τ ∈ R≥0 with t ≥ τ , let
+χ(t, τ ) := ⎣
+⎡
+eA(t−τ) +
+⎤
+eA(t−s)BK ds x(τ ).
+⎦
+τ
+t
+(35)
+Thus, χ(tk, tk(tk)) provides a prediction of x(tk) based on
+the last successful measurement of the process state. Notice
+that since the disturbance is not available for measurements,
+this prediction cannot take into account the influence of the
+disturbance and is an approximate estimate of the actual state.
+Define
+z(tk) =
+χ tk, tk(tk)
+x(tk) ,
+,
+if k ∈ S
+otherwise.
+(36)
+The idea is then to schedule the next control update based on
+z(tk), where χ(tk, tk(tk)) replaces x(tk) when the latter is not
+available: the larger z(tk) the smaller Δk and vice versa, which
+corresponds to increasing the sampling rate as the distance of
+the process state from the origin gets larger.1
+Proposition 3: Let δ1 and δ2 be positive constants such that
+δ1 ≤ δ2 ≤ Δ¯ σ, where Δ¯σ is as in Lemma 1. For each k ∈ N0,
+let the sampling times be given by
+where ϕ : R≥0 → [0, 1] is an arbitrary class K function. If the
+conditions of Theorem 2 hold true with Δ∗ = δ2, then the
+control system Σ composed of (1) and (6) is ISS. Moreover,
+the inter-sampling times are bounded from below by Δ = δ1.
+Proof: By definition, ϕ takes value in the interval [0, 1]
+and therefore the inter-sampling time induced by the control
+update rule (37) ranges in the interval [δ1, δ2]. This implies that
+the bounds on Δ∗ and Δ hold true. Thus ISS descends directly
+from Theorem 2.
+Compared with (30), (37) achieves larger bounds on Δ ,
+∗
+hence larger DoS-induced actuation delays. However, it potentially
+decreases the number of control updates since, upon DoS,
+the sampling rate is not set to δ1 but is chosen depending on the
+inferred process state magnitude.
+1We have implicitly assumed that the sampling logic is located at the
+controller side. In case the sampling logic is located at the process side, then
+(37) simplifies. In fact, under such circumstances, x can always be assumed to
+be available for measurements so that z(tk) reduces to x(tk).
+(34)
+tk+1 = tk + δ2 − (δ2 − δ1)ϕ (z(tk))
+(37)
+DE PERSIS AND TESI: INPUT-TO-STATE STABILIZING CONTROL UNDER DENIAL-OF-SERVICE
+2937
++ n(τ + mγ, t)
+γ/f (τ + kγ, τ + (k + 1)γ)
++ n(τ + mγ, t) ≤ mγ/τD + γ/Pmin
+(42)
+as it follows from (41) and the definition of m. Then the claim
+follows by recalling that mγ < t − τ . As for Assumption 2,
+let D(τ, t) := |Ξ(τ, t)|/(t − τ ), which can be thought of as the
+VI. DISCUSSION AND EXAMPLES
+In this section, we discuss in more details the considered
+assumptions and provide examples in order to substantiate the
+analysis.
+A. Slow-on-the-Average DoS: Discussion and Examples
+As noted in Section IV-A, both Assumptions 1 and 2 pose
+constraints on DoS that are reminiscent of average dwell-time
+conditions [28]. In the present context, the rationale behind
+Assumption 1 is that occasionally DoS can occur at the same
+rate as (even faster than) Δ, i.e., Λn = hn+1 − hn ≤ Δ for
+some n ∈ N0, but the average interval between consecutive
+DoS triggering is greater than Δ. By (19), one may in fact
+have intervals where Λn ≤ Δ; hence, intervals where n(τ, t)
+is greater than or equal to the maximum number (t − τ )/Δ
+of control updates that can be executed over [τ, t[. However,
+over large time windows, i.e., when the term (t − τ )/τD is
+predominant compared to η, the number of DoS triggering
+is at most of the order of (t − τ )/τD, hence smaller than
+(t − τ )/Δ .
+Assumption 2 expresses a similar requirement with respect
+to the DoS duration. In fact, it expresses the property that, on
+the average, the time instants over which communication is
+interrupted do not exceed a certain fraction of time, as specified
+by the constant T ∈ R>1. Similarly to η, the constant κ ∈ R≥0
+plays the role of a regularization term. It is needed because
+during a DoS interval, one has |Ξ(hn, hn + τn)| = τn > τn/T
+since T > 1. Hence, κ serves to make (20) consistent.
+The considered assumptions are general enough to capture
+several different situations, as exemplified hereafter. More complex
+scenarios can be easily envisaged.
+Example 1: In analogy with [23], consider the situation
+where, on every interval which contains N communication
+attempts, a number M < N of these attempts can be denied. A
+simple way to account for this situation is to regard the DoS as
+a train of pulses, M of which are superimposed to the sampling
+times. This implies that Assumption 2 holds true with κ = 0
+and T = ∞. As for Assumption 1, assume a lower bound Δ on
+the control executions. One sees that
+n(τ, t) ≤
+t − τ
+ΔN
+M
+(38)
+for all τ, t ∈ R≥0 with t ≥ τ . Then, for each N , (19) holds
+true with η = M and τD = ΔN/M . In connection with
+Theorem 2, this means that stability is preserved whenever
+(ΔN )/(Δ∗M ) > (ω1 + ω2)/ω1. Using logics that sample at
+rate Δ upon DoS, then stability is preserved whenever N/M >
+(ω1 +ω2)/ω1. For instance, this means that if (ω1 +ω2)/ω1 = 5,
+then up to the 20% of the communication attempts can be
+denied without destroying stability. The value of N affects both
+closed-loop performance and robustness against DoS: the larger
+N is, the larger is the number of consecutive communication attempts
+that can be denied without destroying stability. However,
+this potentially results in larger overshoots since η = M .
+Example 2: Another interesting scenario is when DoS is
+sustained. One can account for this situation by modeling the
+m−1
+k=0
+=
+m−1
+k=0
+DoS signal as a rectangular wave of a (possibly) variable
+period and duty cycle [13]. Let Pn and Dn = τn/Pn denote
+the period and duty cycle of the nth DoS attack, respectively.
+Also let Pmin := infn∈N0 Pn, Dmax := supn∈N0 Dn and
+τmax := supn∈N0 τn. Suppose that Pmin > Δ, Dmax < 1 and
+τmax < ∞. Since the maximum number of off/on transitions
+of DoS during the interval [τ, t[ can be upper bounded as
+n(τ, t) ≤ (t − τ )/Pmin , Assumption 1 holds true with η = 1
+and τD = Pmin. Let now
+n(t) :=
+−1, if t < h0
+sup{ n ∈ N0|hn ≤ t }, otherwise
+(39)
+where τ−1 := 0. For any τ, t ∈ R≥0 with t ≥ τ , it is possible to
+write
+|Ξ(τ, t)| ≤ max 0, hn(τ) + τn(τ) − τ
++ min t − hn(t), τn(t) + Dmax
+Pn. (40)
+n∈N0;
+hn(τ)<hn;
+hn<hn(t)
+Hence, one sees that Assumption 2 holds true with κ = 2τmax
+and T = Dm−1ax. This example includes as a special case the socalled
+periodic jamming where both period and duty cycle are
+constant.
+Example 3: In connection with Example 2, we pointed out in
+Section IV-A that the requirements Pmin > Δ and Dmax < 1
+are in a wide-sense necessary for closed-loop stability unless
+other conditions are imposed on DoS (as for τmax < ∞, cf.
+Section IV-C). These conditions, however, rule out for example
+the possibility of DoS signals with off/on transitions occasionally
+faster than the maximum transmission rate. Consider
+first Assumption 1 and suppose that Pmin > 0. Let f (τ, t) :=
+(t − τ )/n(τ, t) represent the average dwell-time of DoS off/on
+transitions on [τ, t[. Assume that for some τD ∈ R>Δ, there
+exists a γ ∈ R>0 such that
+f (τ, τ + γ) ≥ τD
+(41)
+for all τ ∈ R≥0, which implies that the DoS off/on transitions
+are slower than Δ on every sufficiently large time-interval.
+Then, it is easy to verify that Assumption 1 holds true with
+η = γ/Pmin . In fact, if t − τ ≤ γ then n(τ, t) ≤ n(τ, τ + γ)
+where n(τ, τ + γ) ≤ γ/Pmin . If instead t − τ > γ, let m
+denote the largest integer m such that mγ < t − τ . Then
+n(τ, t) =
+n (τ + kγ, τ + (k + 1)γ)
+2938
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 11, NOVEMBER 2015
+Fig. 3. Simulation example for system (46) under state feedback (48) and sampling logic (37) with δ1 = 0.01, δ2 = 0.1 and ϕ(·) = 2/π arctan(·). Top:
+closed-loop state response under initial conditions x = [1 − 1] , disturbance w uniformly distributed in [−1, 1], and sustained DoS attack with variable period
+and duty cycle, generated randomly, with Pmin = 0.01 s and Pmax = 10 s. The resulting DoS signal has an average duty cycle of ∼42%. The vertical grey
+stripes represent the time-intervals over which DoS is active. Bottom: inter-sampling times determined by the logic (37). In terms of regulation performance, very
+similar results are obtained with the other logics described in Section V.
+average DoS duty cycle over [τ, t]. Assume that for some T ∈
+R>1, there exists a δ ∈ R>0 such that
+D(τ, τ + δ) ≤ 1/T
+for all τ ∈ R≥0. Reasoning as before, it is simple to verify
+that Assumption 2 holds true with κ = δ. In connection with
+Example 2, the conditions just stated allows one to consider
+more general DoS classes. For instance, let
+τave := lim
+m→∞ m + 1 n=0
+m
+Dave := lim
+m→∞ m + 1 n=0
+Dn
+1
+1
+m
+(hn+1 − hn)
+(43)
+(44)
+(45)
+denote the average dwell-time of DoS off/on transitions and
+the average DoS duty cycle, respectively. Then (41) and (43)
+with τD = τave and T = Da−v1e are sufficient to conclude that
+the DoS signal is also slow-on-the-average in the sense of
+Assumptions 1 and 2 with respect to τave and Dave.
+B. A Numerical Example
+For the sake of clarity, a numerical example illustrating the
+theory as well as the discussion of Section VI-A is reported.
+Consider the following open-loop unstable system [33]
+d
+dt
+x(t) =
+1 1
+0 1
+x(t) + u(t) + w(t)
+under LQR gain
+K =
+−2.1961
+−0.7545
+−0.7545 .
+−2.7146
+Solution of the Lyapunov equation Φ P + P Φ + Q = 0 with
+Q = I2 yields α1 = 0.2779, α2 = 0.4497, γ1 = 1, and γ2 =
+2.1080. From this we deduce that we must select σ such that
+σ < 0.4744. Picking for instance σ = 0.26, Lemma 1 yields
+Δ¯ σ = 0.1005, where Φ = 1.9021 and μA = 1.5. Δ¯σ specifies
+the inter-sampling time of maximal length that guarantees
+ISS. Further, ω1/(ω1 + ω2) = 0.0321. This latter value determines
+the DoS signals which are admissible in accordance
+with the present analysis. In connection with Example 1 in
+Section VI-A, this means a maximum of ∼3% of communication
+denials on the average. As for Example 2 (Example 3),
+this implies a maximum (average) duty cycle of ∼3% in case of
+a sustained DoS attack. The value obtained for ω1/(ω1 + ω2) is
+conservative: as shown in Fig. 3, the bounds can in practice be
+much smaller than the theoretical one. This was also confirmed
+by extensive simulations.
+(46)
+(47)
+DE PERSIS AND TESI: INPUT-TO-STATE STABILIZING CONTROL UNDER DENIAL-OF-SERVICE
+Fig. 4. Maximum inter-sampling time and value of ω1/(ω1 + ω2) versus
+choice of σ using the LQR gain and Q = I2.
+The conservativeness of the bound comes from two main
+sources: i) the bounds on the growth of the Lyapunov function
+under DoS (cf. (72)-(79)). In this respect, the approach in [34]
+which does not rely on Lyapunov functions (albeit restricted
+to the disturbance-free case) can provide a possible alternative
+to the present analysis; and ii) the generality of the considered
+scenario. In fact, tighter bounds are likely to be obtained when
+more “structure” is assumed for the DoS. In this respect, interesting
+results in case of periodic jamming have been recently
+reported in [24], [25].
+It is interesting to observe that the value of ω1/(ω1 + ω2)
+also depends on a number of design parameters. In fact, it
+depends on the Lyapunov equation Φ P + P Φ + Q = 0, and,
+as such, on Q and the state-feedback matrix K. For instance, a
+choice
+K =
+−4.5
+0
+−1
+−6
+(48)
+achieves a bound ω1/(ω1 + ω2) = 0.0971, thus allowing for an
+average duty cycle ∼10% in case of a sustained attack. This
+suggests investigation of analytic or numeric methods to find
+the Q and K that could maximize robustness against DoS.
+In practice, another possibility for increasing ω1/(ω1 + ω2) is
+to reduce the value of σ. This, however, has to be traded-off
+against the inter-sampling times. For instance, using the LQR
+gain and letting Q = I2, the choice σ = 0.1 is sufficient to
+increase ω1/(ω1 + ω2) to 0.0547. As an offset, Δ¯σ drops to
+0.0462. This phenomenon is illustrated in Fig. 4.
+C. Slow-on-the-Average DoS: Disturbance-Free Case
+We close with few remarks on the results of Section IV-C.
+In the disturbance-free case, both Assumptions 1 and 2 can
+be relaxed. In fact, while Assumptions 3 and 4 are similar in
+concept, they pose constraints on DoS frequency and duration
+which must hold on [0, t) only, rather than on each sub-interval
+[τ, t) of [0, t). This makes it possible to face more general DoS
+2939
+(49)
+classes, including DoS signals that deny communication for
+unbounded periods of time.
+Consider for instance the example of Section VI-B along
+with a DoS signal given by
+hn = (n + 1) +
+τn =
+(n + 1)
+1
+α
+1 1
+2 n(n + 1) − α (n + 1)
+where n ∈ N0 and α ∈ R>1. It is straightforward to verify that
+the resulting DoS signal satisfies Assumptions 3 and 4 with η =
+τD = 1, κ = 0, and T = α. Picking Δ¯σ = 0.01 and recalling
+that ω1/(ω1 + ω2) = 0.0321, one sees that (22) holds true for
+α ≥ 50. Since the conditions of Corollary 1 are satisfied, then
+the closed-loop system is GAS despite the fact that the length
+of the DoS intervals grows unbounded with n. This is possible
+since, the closer the state is to the origin, the less the effect
+of DoS.
+In the presence of disturbances, the situation just described
+is no longer true since w may always cause the state to deviate
+from its nominal trajectory. It is in fact easy to see that for openloop
+unstable systems, no sampling logic exists that achieve
+ISS in the presence of unbounded DoS. As for Theorem 2,
+boundedness of the DoS intervals is implicit in Assumption 2.
+In fact, (4) with τ = hn and t = hn + τn implies supn∈N0 τn ≤
+κT /(T − 1).
+VII. CONCLUDING REMARKS
+We have investigated stability of networked systems in the
+presence of DoS attacks. One contribution of this paper is an
+explicit characterization of the frequency and duration of DoS
+attacks under which closed-loop stability can be preserved. The
+result is intuitive as it relates stability with the ratio between the
+on/off periods of jamming. An explicit characterization of sampling
+rules that achieve ISS was given. This characterization
+is flexible enough so as to allow the designer to choose from
+several implementation options that can be used for trading-off
+performance versus communication resources.
+The results lend themselves to many possible extensions.
+As for the framework considered here, identifying optimal
+attack and counter-attack strategies with respect to some prescribed
+performance objective, represents an interesting research
+venue. Moreover, we have not investigated the effect of
+possible limitations on the information, such quantization and
+delays. As additional future research topics, we also envision
+the use of similar techniques to handle output feedback controllers
+as well as nonlinear systems. As for the latter case,
+preliminary results have been reported in [35]. Finally, an
+interesting research line is to address the case where control
+and measurement channels can be interrupted asynchronously.
+In this respect, the self-triggering logic described in Section VI,
+which relies on predictions of the process state, appears as a
+convenient tool for updating the control action in case of DoS
+of the measurement channel.
+One of the main motivations for considering control over
+networks descends from problems of distributed coordination
+and control of large-scale systems [36]-[40]. Investigating our
+approach to control under DoS for self-triggered coordination
+2940
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 11, NOVEMBER 2015
+problems such as those in [40] does also represent an interesting
+research venue.
+Observe now that f (0) = 0 and f (t − tk) is monotonically
+increasing with t. Accordingly, for any positive real Δ such that
+APPENDIX
+Proof of Theorem 1: Substituting (12) into (14b) yields
+d
+dt
+V (x(t)) ≤ −γ4 x(t) 2 + γ5 x(t) v(t)
+(50)
+where v(t) := sup{ w(t) , wt ∞}, γ4 := (γ1 − σγ2) and
+γ5 := (γ3 + σγ2). Here, we recall that γ1 is the minimal
+eigenvalue of Q, γ2 = 2P BK , γ3 = 2P , and σ < γ1/γ2.
+Observe that for any positive real δ, the Young's inequality (e.g.,
+see [41]) yields
+By letting δ := γ5/γ4, we get
+1
+2 x(t) v(t) ≤ δ
+d γ4
+dt V (x(t)) ≤ − 2
+x(t) 2 + δv2(t).
+x(t) 2 + γ6v(t)2
+≤ − ω1V (x(t)) + γ6v(t)2
+where ω1 := γ4/(2α2) and γ6 := γ52/(2γ4). Note now that
+vt ∞ = wt ∞ for any t ∈ R>0. Thus, standard comparison
+results for differential inequalities yield
+V (x(t)) ≤ e−ω1tV (x(0)) + γ7 wt ∞
+2
+where γ7 := γ6/ω1. Using (14a), we get
+x(t) 2
+α2 e−ω1t x(0) 2 + γ7
+≤ α1 α1
+2 .
+wt ∞
+Since a2 + b2 ≤ (a + b)2 for any pair of positive reals a and b,
+we finally get
+x(t) ≤
+α2 e−( ω21 )t x(0) +
+α1
+γ7
+α1
+wt ∞
+which yields the desired result.
+Proof of Lemma 1: In the absence of DoS, any control
+update attempt is successful. Thus, in accordance with (10), the
+dynamics of e satisfies
+d
+dt
+e(t) = −Ax(t) − BKx(tk) − w(t)
+= Ae(t) − Φx(tk) − w(t)
+for all t ∈ Ik and for all k ∈ N0, where e(tk) = 0. Recall now
+that eAt ≤ eμAt for all t ∈ R≥0. Using this property we then
+have
+(51)
+(52)
+(53)
+(54)
+(55)
+(56)
+t
+tk
+e(t) ≤ κ1
+eμA(t−s) [ x(tk) + w(s) ] ds
+(57)
+for all t ∈ Ik and all k ∈ N0, where κ1 := max{ Φ , 1}. Let
+f (t − tk) := ttk eμA(t−s)ds. Using the fact that x(tk) = e(t) +
+x(t), we obtain
+e(t) ≤ κ1f (t − tk) e(t)
++κ1f (t − tk) ( x(t) + wt ∞) . (58)
+H¯n := {hn} ∪ [hn, hn + λn + Λn[
+(59)
+(60)
+(61)
+(62)
+(63)
+(64)
+(65)
+(66)
+(67)
+1 σ
+f (Δ) ≤ κ1 (1 + σ)
+then any control update rule such that Δk ≤ Δ will satisfy (12)
+for all t ∈ R≥0. To conclude the proof, we derive an explicit
+expression for Δ. Let first μA ≤ 0. In this case, f (Δ) ≤ Δ, so
+that (17) yields the desired result. If instead μA > 0, we have
+f (Δ) =
+μA
+1 (eμAΔ − 1)
+and (18) yields the desired result.
+Proof of Theorem 2: As pointed out in Section III, the idea
+is to decompose the time axis into intervals where it possible to
+satisfy (12) and intervals where, due to the occurrence of DoS,
+(12) need not hold. We then analyze the closed-loop dynamics
+as a system that switches between stable and unstable modes.
+For clarity of exposition, the proof is divided into three steps.
+Step I. Modeling of the Intervals Related to Stable and
+Unstable Dynamics: In this step we characterize the intervals
+of time where (12) holds and those where it need not hold.
+During these intervals, the closed-loop system evolves obeying
+to stable and possibly unstable dynamics, respectively. The
+characterization of these intervals is essential for the Lyapunovbased
+analysis we carry out in the forthcoming steps and can be
+formalized as follows:
+Lemma 2: For any τ, t ∈ R≥0, with 0 ≤ τ ≤ t, the interval
+[τ, t] is the disjoint union of Θ¯ (τ, t) and Ξ¯(τ, t), where Θ¯ (τ, t)
+(respectively, Ξ¯(τ, t)) is the union of sub-intervals of [τ, t] over
+which (12) holds (respectively, need not hold). Specifically,
+there exists two sequences of non-negative and positive real
+numbers {ζm}m∈N0 , {vm}m∈N0 such that
+Ξ¯(τ, t) :=
+Θ¯ (τ, t) :=
+m∈N0
+m∈N0
+Zm ∩ [τ, t]
+Wm−1 ∩ [τ, t]
+where
+Thus,
+Zm := {ζm} ∪ [ζm, ζm + vm[
+Wm := {ζm + vm} ∪ [ζm + vm, ζm+1[
+and where ζ−1 = v−1 := 0.
+Proof of Lemma 2: Let Sn := {k ∈ N0|tk ∈ Hn} denote
+the set of integers related to a control update attempt occurring
+over Hn, n ∈ N0. Define
+λn :=
+Λn :=
+τn,
+tsup{k∈N0:k∈Sn} − hn, otherwise
+if Sn = ∅
+0, if Sn = ∅
+Δsup{k∈N0:k∈Sn}, otherwise.
+ζ0 := h0
+specifies the nth time interval where (12) need not hold, which
+consists of Hn plus the corresponding DoS-induced actuation
+delay. Note that λn + Λn ≥ τn for all n ∈ N0. Notice now that
+the intervals H¯n and H¯n+1 may overlap each other in that hn+1
+may belong to H¯n. For analysis purposes, it is convenient to
+regard these overlapping intervals as a single interval of the
+form (63). This can be done by defining an auxiliary sequence
+{ζm}m∈N0 , which is recursively defined from {hn}n∈N0 as
+follows:
+ζm+1 := inf{ hn > ζm | hn > hn−1 + λn−1 + Λn−1} (69)
+DE PERSIS AND TESI: INPUT-TO-STATE STABILIZING CONTROL UNDER DENIAL-OF-SERVICE
+2941
+(75)
+(76)
+for all m ∈ N0. Hence,
+x tk(ζm) − x(ζm)
+≤ σ x(ζm) + σ wζm ∞
+and (72) follows by applying the triangular inequality.
+Substituting (72) into (14b) yields
+d
+dt
+V (x(t)) ≤ (γ2 − γ1) x(t) 2
++ γ2(1 + σ) x(t) x(ζm)
++ (γ3 + σγ2) x(t) v(t)
+where v(t) := sup{ w(t) , wt ∞}. We then proceed as in
+the proof of Theorem 1. Using (51) with δ = (γ3 + γ2σ)/
+(γ1 − σγ2), simple calculations yield
+V (x(t)) ≤ γ2(1 − σ) x(t) 2
++γ2(1 + σ) x(t)
+x(ζm) + γ6v2(t) (77)
+where we recall that γ6 = (γ3 + γ2σ)2/(2(γ1 − σγ2)). Note
+that
+V (x(t)) ≤ ω2 max{V (x(t)) , V (x(ζm))} + γ6v2(t) (78)
+where ω2 := 2γ2/α1. Since vt ∞ =
+we then have
+wt ∞ for any t ∈ R≥0,
+V (x(t)) ≤ eω2(t−ζm)V (x(ζm)) + γ8eω2(t−ζm) wt ∞
+2
+(79)
+for all t ∈ Zm, where γ8 := γ6/ω2.
+Combining (71) and (79), we can prove the following result.
+Lemma 3: For all t ∈ R≥0, the Lyapunov function satisfies
+V (x(t)) ≤ e−ω1| Θ¯(0,t)|eω2|Ξ¯(0,t)|V (x(0))
++γ∗⎢ 1+2
+⎣
+m∈N0;
+ζm≤t
+⎤
+e−ω1| Θ¯(ζm+vm,t)|eω2|Ξ¯(ζm,t)|⎥
+⎦
+2
+wt ∞
+(80)
+for all m ∈ N, and letting
+vm :=
+|Hn\H¯n+1|
+¯
+n∈N0;
+ζm≤hn<ζm+1
+for all m ∈ N0. Given τ, t ∈ R≥0, define Ξ¯(τ, t) as in (61).
+Hence, by construction, Ξ¯(τ, t) represents the union of subintervals
+of [τ, t] where, due to the occurrence of DoS, (12) need
+not hold.
+Let Wm be as in (64). Given τ, t ∈ R≥0, let Θ¯ (τ, t) as in
+(62). Note that over each [τ, t], the sets Ξ¯(τ, t) and Θ¯ (τ, t)
+are complementary since their union equals [τ, t] and their
+intersection is the empty set. Also notice that Θ¯ (τ, t) represents
+the union of sub-intervals of [τ, t] where (12) holds true. In fact,
+by construction, for each m ∈ N0, a successful control update
+necessarily occurs at ζm + vm and there is no DoS over Wm.
+Step II. Lypaunov Function Analysis: Consider the intervals
+Wm, m ∈ N0, where (12) holds true by construction. From (53)
+we get
+V (x(t)) ≤ e−ω1(t−ζm−vm)V (x (ζm + vm)) + γ7 wt ∞
+2
+(71)
+for all t ∈ Wm and all m ∈ N0. Here and in the sequel, all the
+relevant constants are as in the proof of Theorem 1. In particular,
+we recall that γ7 = α2(γ3 + σγ2)2/(γ1 − σγ2)2 with
+σ < γ1/γ2.
+Consider next the intervals Zm, m ∈ N0, over which the
+inequality (12) does not necessarily hold. To derive a bound
+on the growth of V (x(t)) in this case, some intermediate steps
+are needed. We first prove that for each m ∈ N0
+e(t) ≤ (1 + σ) x(ζm) + x(t) + σ wt ∞
+for all t ∈ Zm. Recall that
+e(t) = x tk(ζm) − x(t)
+for all t ∈ Zm, where x(tk(ζm)) represents the value of the
+process state at the last successful control update up to ζm. If
+ζ0 = 0, then x(tk(ζ0)) = 0 by definition so that (72) is valid.
+Consider next the case ζ0 > 0. By construction, (12) holds true
+for all t ∈ Wm. Hence, by continuity of x one has
+(72)
+(73)
+(68)
+(70)
+d
+dt
+d
+dt
+⎡
+⎡
+where γ∗ := max{γ7, γ8}.
+Hereafter, in accordance with (62), it is understood that
+|Θ¯ (ζm + vm, t)| = 0 whenever t < ζm + vm.
+Proof of Lemma 3: We use an induction argument. First,
+we show that the inequality holds true over W−1 = [0, ζ0]. If
+ζ0 = 0, the claim trivially holds. Suppose ζ0 > 0. Over W−1
+the Lyapunov function obeys (71); thus, (80) follows by noting
+that |Θ¯ (0, t)| = t and |Ξ¯(0, t)| = 0 for all t ∈ W−1 and the sum
+term in (80) is zero.
+Assume next that (80) holds true over the interval [0, ζp],
+where p ∈ N0. By hypothesis, and since V (x) is continuous,
+we have
+V (x(ζp)) ≤ e−ω1| Θ¯(0,ζp)|eω2|Ξ¯(0,ζp)|V (x(0))
++ γ∗ ⎣⎢ 1 + 2
+m∈N0;
+ζm<ζp
+e−ω1| Θ¯(ζm+vm,ζp)|eω2|Ξ¯(ζm,ζp)|⎥
+⎦
+⎤
+2 .
+wζp ∞
+(81)
+e(ζm) ≤ σ x(ζm) + σ wζm ∞
+(74)
+Then, consider first the interval Zp. Over Zp, the Lyapunov
+function obeys (79) with
+2942
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 11, NOVEMBER 2015
+V (x(t)) ≤ eω2(t−ζp)V (x(ζp)) + γ∗eω2(t−ζp) wt 2∞. (82)
+Notice that t − ζp = |Ξ¯(ζp, t)| for all t ∈ Zp. Hence,
+Ξ¯(0, t) = t − ζp + Ξ¯(0, ζp)
+Θ¯ (0, t) =
+Θ¯ (0, ζp)
+(83)
+(84)
+for all t ∈ Zp. Thus, multiplying eω2(t−ζp) by the first term on
+the right-hand side (RHS) of (81) we get the first term on the
+RHS of (80). In addition, multiplying eω2(t−ζp) by the sum term
+in (81), we obtain
+eω2(t−ζp)
+e−ω1|Θ¯ (ζm+vm,ζp)|eω2|Ξ¯(ζm,ζp)|
+m∈N0;
+ζm<ζp
+=
+m∈N0;
+ζm<ζp
+e−ω1| Θ¯(ζm+vm,t)|eω2|Ξ¯(ζm,t)|
+(85)
+= 2γ∗
+= 2γ∗
+m∈N0;
+ζm≤ζp
+m∈N0;
+ζm≤t
+for all t ∈ Zp because |Θ¯ (ζm + vm, ζp)| = |Θ¯ (ζm + vm, t)|
+and t − ζp + |Ξ¯(ζm, ζp)| = |Ξ¯(ζm, t)| for all t ∈ Zp. Overall,
+the factor multiplying the disturbance term can be therefore
+rewritten as
+2γ∗eω2(t−ζp) + 2γ∗
+e−ω1|Θ¯ (ζm+vm,t)|eω2|Ξ¯(ζm,t)|
+m∈N0;
+ζm<ζp
+e−ω1| Θ¯(ζm+vm,t)|eω2|Ξ¯(ζm,t)|
+e−ω1| Θ¯(ζm+vm,t)|eω2|Ξ¯(ζm,t)|
+(86)
+where the first equality follows from |Θ¯ (ζp + vp, t)| = 0 and
+t − ζp = |Ξ¯(ζp, t)| for all t ∈ Zp, while the second equality
+holds because condition ζm ≤ ζp is equivalent to ζm ≤ t for
+all t ∈ Zp. Hence, (80) holds true for all t ∈ [0, ζp + vp].
+Consider next the interval Wp. Over Wp, the Lyapunov
+function obeys (71). In particular,
+V (x(t)) ≤ e−ω1(t−ζp−vp)eω2vp V (x(ζp))
++γ∗ 1 + e−ω1(t−ζp−vp)eω2vp
+2
+wt ∞
+(87)
+for all t ∈ Wp, with V (x(ζp)) as in (81). To see that this
+implies again (80), notice that t − ζp − vp = |Θ¯ (ζp + vp, t)|
+and |Θ¯ (0, ζp)| = Θ¯ (0, ζp + vp)|. Hence,
+Θ¯(0, t) = t − ζp − vp + Θ¯ (0, ζp)
+for all t ∈ Wp. Moreover, vp = |Ξ¯(ζp, ζp + vp)| and |Ξ¯(ζp +
+vp, t)| = 0 for all t ∈ Wp. Hence,
+Ξ¯(0, t) = vp + Ξ¯(0, ζp)
+(88)
+(89)
+m∈N0;
+ζm<ζp
+=
+m∈N0;
+ζm<ζp
++ 2γ∗
+m∈N0;
+ζm<ζp
+for all t ∈ Wp. Thus, multiplying e−ω1(t−ζp−vp)eω2vp by the
+first term on the RHS of (81) we get the first term on the RHS
+of (80). Moreover, multiplying e−ω1(t−ζp−vp)eω2vp by the sum
+term in (81), we obtain
+e−ω1(t−ζp−vp)eω2vp
+e−ω1|Θ¯ (ζm+vm,ζp)|eω2|Ξ¯(ζm,ζp)|
+e−ω1| Θ¯(ζm+vm,t)|eω2|Ξ¯(ζm,t)|.
+(90)
+Overall, the factor multiplying the disturbance term can be
+therefore rewritten as
+γ∗ 1 + 2e−ω1(t−ζp−vp)eω2vp
+e−ω1| Θ¯(ζm+vm,t)|eω2|Ξ¯(ζm,t)|
+= 2γ∗
+= 2γ∗
+m∈N0;
+ζm≤ζp
+m∈N0;
+ζm≤t
+e−ω1| Θ¯(ζm+vm,t)|eω2|Ξ¯(ζm,t)|
+e−ω1| Θ¯(ζm+vm,t)|eω2|Ξ¯(ζm,t)|.
+(91)
+As before, the second equality holds because, for all t ∈ Wp,
+condition ζm ≤ ζp is equivalent to ζm ≤ t. Thus (80) holds true
+for all t ∈ [0, ζp+1], which concludes the proof.
+Step III. Bounds on DoS Frequency and Duration: In order
+to conclude the proof, we need to bound the sum term in (80).
+The following can be proven:
+Lemma 4: Under Assumptions 1 and 2 and condition (22),
+the sum
+e−ω1|Θ¯ (ζm+vm,t)|eω2|Ξ¯(ζm,t)|
+m∈N0;
+ζm≤t
+is bounded from above by
+e(ω1+ω2)κ∗
+eβ∗τDη
+1 − e−β∗τD
+where the constants ω1, ω2, τD, κ∗ and β∗, are defined in Theorem
+2, (25) and (26).
+Proof of Lemma 4: First notice that
+Ξ¯(τ, t) ≤ |Ξ(τ, t)| + (1 + n(τ, t)) Δ∗
+for all τ, t ∈ R≥0 with t ≥ τ . In words, |Ξ¯(τ, t)| can be upper
+bounded by the total length of DoS over [τ, t] plus the maximum
+actuation delay Δ , which may occur once at the beginning of
+∗
+the interval [τ, t] (as a result of a previous DoS) plus n(τ, t)
+times, where n(τ, t) represents the number of off/on transitions
+of DoS occurring over [τ, t[. Using Assumptions 1 and 2 we
+have
+Ξ¯(τ, t) ≤ κ + t − τ + 1 + η + t − τ
+T τD
+Δ∗
+(92)
+(93)
+(94)
+(95)
+= : κ∗ +
+t − τ
+T∗
+Ξ¯(ζm, t) ≤ κ∗ +
+t − ζm
+T∗
+for all t ∈ R
+have
+≥ζm , m ∈ N0. Consider next |Θ¯ (ζm + vm, t)|. We
+Θ¯(ζm + vm, t) = t − ζm − Ξ¯(ζm, t)
+for all t ∈ R
+Zm. For all t ∈ Zm, we have |Ξ¯(ζm, t)| = t − ζm so that (97)
+holds true since, by definition, |Θ¯ (ζm + vm, t)| = 0 whenever
+t < ζm + vm. For all t ∈ R≥ζm+vm we have
+≥ζm , m ∈ N0. To see this, consider first the interval
+Θ¯ (ζm + vm, t) = t − ζm − vm − Ξ¯(ζm + vm, t)
+= t − ζm − Ξ¯(ζm, t)
+where the second equality follows because
+Ξ¯(ζm + vm, t) = Ξ¯(ζm, t) − Ξ¯(ζm, ζm + vm)
+= Ξ¯(ζm, t) − vm
+for all t ∈ R
+≥ζm+vm , m ∈ N0. Hence,
+e−ω1| Θ¯(ζm+vm,t)|eω2|Ξ¯(ζm,t)|
+m∈N0;
+ζm≤t
+m∈N0;
+ζm≤t
+m∈N0;
+ζm≤t
+≤ e(ω1+ω2)κ∗
+e−[ω1−(ω1+ω2)/T∗](t−ζm)
+= e(ω1+ω2)κ∗
+e−β∗(t−ζm)
+m(t)
+m=0
+e−β∗τDn(ζm,t) =
+e−β∗τD(m(t)−m)
+m(t)
+m=0
+m(t)
+m=0
+=
+e−β∗τDm
+1
+≤ 1 − e−β∗τD
+DE PERSIS AND TESI: INPUT-TO-STATE STABILIZING CONTROL UNDER DENIAL-OF-SERVICE
+where κ∗ := κ + (1 + η)Δ∗ and T∗ := τDT /(τD + T Δ∗). then
+With this in mind, we can now analyze the sum term in (92).
+From the above inequality, we have
+(96)
+(97)
+(98)
+(99)
+(100)
+(101)
+(102)
+(103)
+(104)
+(105)
+2943
+.
+(106)
+The relations (100), (102), (104), (106) yield the desired
+bound (93).
+We can now finalize the proof of Theorem 2. First observe
+that the first term on the RHS of (80) is bounded by
+eκ∗(ω1+ω2)e−(ω1− ω1T+ω2 )tV (x(0))
+∗
+(107)
+where we have exploited the equality |Θ¯ (0, t)| = t − |Ξ¯(0, t)|,
+and the inequality (95). Moreover, β∗ = ω1 − (ω1 + ω2)/T∗.
+Hence, from (80) and (93), one sees that the Lyapunov function
+V (x) computed along any trajectory x(t) satisfies
+V (x(t)) ≤ eκ∗(ω1+ω2)e−β∗tV (x(0))
++γ
+∗
+1 + 2eκ∗(ω1+ω2)
+eβ∗τDη
+1 − e−β∗τD
+2 . (108)
+wt ∞
+Letting δ∗ := γ∗/α1 we readily get
+x(t) ≤
+α1
+α2 e κ∗(ω12+ω2) e−(β∗/2)t x(0)
+eβ∗τDη
+1−e−β∗τD
+1
+2
++
+δ∗ 1+2eκ∗(ω1+ω2)
+wt ∞. (109)
+Note that δ∗ = ((γ3 + γ2σ)2/(γ1 − γ2σ)) max{(α2/(α1(γ1 γ2σ))),
+(1/4γ2)} is a positive constant, i.e., independent of
+the process initial condition and the disturbance w. Since
+Δ∗ is a positive constant, then also κ∗ = κ + (1 + η)Δ∗ and
+β∗ = ω1 − (ω1 + ω2)((Δ∗/τD) + (1/T )) are independent of
+the process initial condition and w. Thus ISS follows at once.
+Proof of Corollary 1: It follows directly from the one of
+Theorem 2 by: i) noting that the rightmost term in (80) is zero;
+and ii) exploiting the equality |Θ¯ (0, t)| = t − |Ξ¯(0, t)|, and the
+inequality (95) with τ = 0, where the sets Ξ¯(τ, t) and Θ¯ (τ, t)
+are defined in (61) and (62), respectively.
+REFERENCES
+[1] A. Càrdenas, S. Amin, and S. Sastry, “Secure control: Towards survivable
+cyber-physical systems,” in Proc. 28th Int. Conf. Distrib. Comput. Syst.
+Workshops, 2008.
+[2] Y. Mo, T. H.-J. Kim, K. Brancik, D. Dickinson, H. Lee, A. Perrig, and B.
+Sinopoli, “Cyber-physical security of a smart grid infrastructure,” Proc.
+IEEE, vol. 100, no. 1, pp. 195-209, Jan. 2012.
+[3] L. Schenato, B. Sinopoli, M. Franceschetti, K. Poolla, and S. Sastry,
+“Foundations of control and estimation over lossy networks,” Proc. IEEE,
+vol. 95, no. 1, pp. 163-185, Jan. 2007.
+[4] J. Hespanha, P. Naghshtabrizi, and Y. Xu, “A survey of recent results in
+networked control systems,” Proc. IEEE, vol. 95, no. 1, pp. 138-162,
+Jan. 2007.
+[5] Y. Liu, M. Reiter, and P. Ning, “False data injection attacks against state
+estimation in electric power grids,” in Proc. ACM Conf. Computer and
+Commun. Security, Chicago, IL, USA, 2009.
+where β∗ = ω1 − (ω1 + ω2)/T∗. Under condition (22), we
+have β∗ > 0. Moreover, Assumption 1 yields
+t − ζm ≥ τDn(ζm, t) − τDη.
+e−β∗(t−ζm) ≤ eβ∗τDη
+e−β∗τDn(ζm,t).
+This implies
+Let
+Since
+m∈N0;
+ζm≤t
+m(t) :=
+m∈N0;
+ζm≤t
+We then have
+−1, if t < ζ0
+sup{m ∈ N0|ζm ≤ t}, otherwise.
+m∈N0;
+ζm≤t
+m(t)
+m=0
+e−β∗τDn(ζm,t) =
+e−β∗τDn(ζm,t).
+n(ζm, t) ≥ m(t) − m
+2944
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 11, NOVEMBER 2015
+[6] G. Dan and H. Sandberg, “Stealth attacks and protection schemes for
+state estimators in power systems,” in Proc. IEEE Int. Conf. Smart Grid
+Commun., Gaithersburg, MD, USA, 2010, pp. 214-219.
+[7] H. Fawzi, P. Tabuada, and S. Diggavi, “Secure state-estimation for dynamical
+systems under active adversaries,” in Proc. Annu. Allerton Conf.
+Commun., Control, Comput., 2011.
+[8] F. Pasqualetti, F. Dorfler, and F. Bullo, “Attack detection and identification
+in cyber-physical systems,” IEEE Trans. Autom. Control, vol. 58, no. 11,
+pp. 2715-2729, Nov. 2013.
+[9] Y. Fujita, T. Namerikawa, and K. Uchida, “Cyber attack detection and
+faults diagnosis in power networks by using state fault diagnosis matrix,”
+in Proc. Eur. Control Conf., Zurich, Switzerland, 2013.
+[10] W. Xu, K. Ma, W. Trappe, and Y. Zhang, “Jamming sensor networks:
+Attack and defense strategies,” IEEE Network, vol. 20, no. 3, pp. 41-47,
+May-Jun. 2006.
+[11] D. Thuente and M. Acharya, “Intelligent jamming in wireless networks
+with applications to 802.11b and other networks,” in Proc. 25th
+IEEE Commun. Soc. Military Commun. Conf., Washington, DC, USA,
+2006.
+[12] W. Xu, W. Trappe, Y. Zhang, and T. Wood, “The feasibility of launching
+and detecting jamming attacks in wireless networks,” in Proc. ACM Int.
+Symp. Mobile Ad-Hoc Netw. Comput., 2005.
+[13] B. DeBruhl and P. Tague, “Digital filter design for jamming mitigation in
+802.15.4 communication,” in Proc. Int. Conf. Comput. Commun. Netw.,
+Maui, HI, USA, 2011.
+[14] P. Tague, M. Li, and R. Poovendran, “Mitigation of control channel jamming
+under node capture attacks,” IEEE Trans. Mobile Comput., vol. 8,
+no. 9, pp. 1221-1234, Sep. 2009.
+[15] G. Zhai, B. Hu, K. Yasuda, and A. Michel, “Stability analysis of switched
+systems with stable and unstable subsystems: An average dwell time
+approach,” in Proc. Amer. Control Conf., Chicago, IL, USA, 2000,
+pp. 200-205.
+[16] W. Zhang and L. Yu, “Modelling and control of networked control systems
+with both network-induced delay and packet-dropout,” Automatica,
+vol. 44, pp. 3206-3210, 2008.
+[17] X. Sun, G. Liu, D. Rees, and W. Wang, “Stability of systems with
+controller failure and time-varying delay,” IEEE Trans. Autom. Control,
+vol. 53, no. 10, pp. 2391-2391, Oct. 2008.
+[18] W. Zhang and L. Yu, “Stabilization of sampled-data control systems with
+control inputs missing,” IEEE Trans. Autom. Control, vol. 55, no. 2,
+pp. 447-452, Feb. 2010.
+[19] P. Tabuada, “Event-triggered real-time scheduling of stabilizing control
+tasks,” IEEE Trans. Autom. Control, vol. 52, no. 9, pp. 1680-1685,
+Sep. 2007.
+[20] G. Befekadu, V. Gupta, and P. Antsaklis, “Risk-sensitive control under
+a class denial-of-service attack models,” in Proc. Amer. Control Conf.,
+San Francisco, CA, USA, 2011.
+[21] G. Befekadu, V. Gupta, and P. Antsaklis, “Risk-sensitive control under
+a markov modulated denial-of-service attack model,” in Proc. IEEE
+Conf. Decision Control and Eur. Control Conf., Orlando, FL, USA, 2011,
+pp. 5714-5719.
+[22] S. Amin, A. Càrdenas, and S. Sastry, “Safe and secure networked control
+systems under denial of-service attacks,” in Proc. Hybrid Syst.: Comput.
+Control, 2009, pp. 31-45.
+[23] A. Gupta, C. Langbort, and T. Bas¸ar, “Optimal control in the presence
+of an intelligent jammer with limited actions,” in Proc. 49th IEEE Conf.
+Decision Control, Atlanta, GA, USA, 2010, pp. 1096-1101.
+[24] H. Shisheh Foroush and S. Martínez, “On event-triggered control of linear
+systems under periodic denial of service attacks,” in Proc. IEEE Conf.
+Decision Control, Maui, HI, USA, 2012, pp. 2551-2556.
+[25] H. Shisheh Foroush and S. Martínez, “On multi-input controllable linear
+systems under unknown periodic dos jamming attacks,” in Proc.
+SIAM Conf. Control and its Applications, San Diego, CA, USA,
+2013.
+[26] E. Sontag, “Input to state stability: Basic concepts and results,”
+Nonlinear and Optimal Control Theory Lecture Notes in Math., vol. 1932,
+pp. 163-220, 2008.
+[27] T. Strom, “On logarithmic norms,” SIAM J. Numer. Anal., vol. 12,
+pp. 741-753, 1975.
+[28] J. Hespanha and A. Morse, “Stability of switched systems with average
+dwell-time,” in Proc. 38th IEEE CDC, Orlando, FL, USA, 1999,
+pp. 2655-2660.
+[29] J. Lunze and D. Lehmann, “A state-feedback approach to event-based
+control,” Automatica, vol. 46, pp. 211-215, 2010.
+[30] W. Heemels, K. Johansson, and P. Tabuada, “An introduction to eventtriggered
+and self-triggered control,” in Proc. 51th IEEE Conf. Decision
+and Control, Maui, HI, USA, 2012, pp. 3270-3285.
+[31] M. Abdelrahim, R. Postoyan, J. Daafouz, and D. Nešic´, “Stabilization of
+nonlinear systems using event-triggered output feedback laws,” in Proc.
+21th Int. Symp. Math. Theory of Netw. Syst., 2014.
+[32] M. Mazo, A. Anta, and P. Tabuada, “An ISS self-triggered implementation
+of linear controllers,” Automatica, vol. 46, pp. 1310-1314, 2010.
+[33] F. Forni, S. Galeani, D. Nešic´, and L. Zaccarian, “Lazy sensors for the
+scheduling of measurement samples transmission in linear closed loops
+over networks,” in Proc. IEEE Conf. Decision Control and Eur. Control
+Conf., Atlanta, GA, USA, 2010, pp. 6469-6474.
+[34] C. De Persis and P. Tesi, “Resilient control under denial-of-service,” in
+Proc. IFAC World Conf., Cape Town, South Africa, 2014.
+[35] C. De Persis and P. Tesi, “On resilient control of nonlinear systems
+under denial-of-service,” in Proc. IEEE Conf. Decision and Control,
+Los Angeles, CA, USA, 2014, pp. 5254-5259.
+[36] X. Wang and M. Lemmon, “Event-triggering in distributed networked
+control systems,” IEEE Trans. Autom. Control, vol. 56, no. 3,
+pp. 586-601, Mar. 2011.
+[37] C. De Persis, R. Sailer, and F. Wirth, “Parsimonious eventtriggered
+distributed control: A Zeno free approach,” Automatica, vol. 49,
+pp. 2116-2124, 2013.
+[38] G. Seyboth, D. Dimarogonas, and K. Johansson, “Event-based broadcasting
+for multi-agent average consensus,” Automatica, vol. 49, pp. 245-252,
+2013.
+[39] C. Stöcker and J. Lunze, “Distributed event-based control of physically
+interconnected systems,” in Proc. IEEE Conf. Decision Control, Florence,
+Italy, 2013, pp. 7376-7383.
+[40] C. De Persis and P. Frasca, “Robust self-triggered coordination with
+ternary controllers,” IEEE Trans. Autom. Control, vol. 58, no. 12,
+pp. 3024-3038, Dec. 2013.
+[41] G. Hardy, J. Littlewood, and G. Polya, Inequalities. Cambridge, U.K.:
+Cambridge Univ. Press, 1952.
+Claudio De Persis received the Laurea degree (cum
+laude) in electrical engineering and the Ph.D. degree
+in system engineering from Sapienza University of
+Rome, Rome, Italy, in 1996 and 2000, respectively.
+He is currently a Professor at the Institute of
+Technology and Management, Faculty of Mathematics
+and Natural Sciences, University of Groningen,
+Groningen, The Netherlands. He is also affiliated
+with the Jan Willems Center for Systems and Control.
+Previously he was with the Department of Mechanical
+Automation and Mechatronics, University
+of Twente and with the Department of Computer, Control, and Management
+Engineering, Sapienza University of Rome. He was a Research Associate at
+the Department of Systems Science and Mathematics, Washington University,
+St. Louis, MO, USA, in 2000-2001, and at the Department of Electrical
+Engineering, Yale University, New Haven, CT, USA, in 2001-2002. His main
+research interest is in control theory, and his recent research focuses on
+dynamical networks, cyberphysical systems, smart grids and resilient control.
+He was an Editor of the International Journal of Robust and Nonlinear Control
+(2006-2013), and is currently an Associate Editor of the IEEE TRANSACTIONS
+ON CONTROL SYSTEMS TECHNOLOGY (2010-present), of the IEEE
+TRANSACTIONS ON AUTOMATIC CONTROL (2012-present), and of Automatica
+(2013-present).
+Pietro Tesi received the Laurea and Ph.D. degrees in
+computer and control engineering from the University
+of Florence, Florence, Italy, in 2005 and 2010,
+respectively.
+During the Ph.D. degree, he was a Visiting Scholar
+at the University of California, Santa Barbara, CA,
+USA. Thereafter, he held a postdoctoral position
+at the University of Genoa, Genoa, Italy. He also
+worked in the automation industry on research and
+development of networked SCADA systems. He is
+currently an Assistant Professor at the Faculty of
+Mathematics and Natural Sciences, University of Groningen, Groningen, The
+Netherlands, Since 2014, he has been an Associate Editor of the IEEE Control
+Systems Society Conference Editorial Board. His main research interests include
+adaptive control, hybrid systems, networked control, and adaptive optics.

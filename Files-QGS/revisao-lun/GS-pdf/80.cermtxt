@@ -1,0 +1,708 @@
+2015 IEEE 54th Annual Conference on Decision and Control (CDC)
+December 15-18, 2015. Osaka, Japan
+Dual Rate Control for Security in Cyber-physical Systems
+Mohammad Naghnaeian, Nabil Hirzallah and Petros G. Voulgaris
+Abstract- We consider malicious attacks on actuators and
+sensors of a feedback system which can be modeled as additive,
+possibly unbounded, disturbances at the digital (cyber) part
+of the feedback loop. We precisely characterize the role of
+the unstable poles and zeros of the system in the ability to
+detect stealthy attacks in the context of the sampled data implementation
+of the controller in feedback with the continuous
+(physical) plant. We show that, if there is a single sensor that
+is guaranteed to be secure and the plant is observable from
+that sensor, then there exist a class of multirate sampled data
+controllers that ensure that all attacks remain detectable. These
+dual rate controllers are sampling the output faster than the
+zero order hold rate that operates on the control input and as
+such, they can even provide better nominal performance than
+single rate, at the price of higher sampling of the continuous
+output.
+I. INTRODUCTION
+Security of cyber-physical systems has caught a lot of attention
+lately. Recent papers along with successful attacks on
+critical infrastructure together revealed many vulnerabilities
+in the practiced methods of control. For instance, [1] showed
+that if a hacker can access the cyber-space of the power grid,
+then it is easy for him to change the power state estimates
+without being detected by the traditional bad data detection
+methods provided that he knows the grid configuration. This
+led to many research papers investigating the security of
+the state estimates and suggesting protective measures in
+addition to investigating attacks on the actuators and/or the
+plant itself. For example, [2], [3] introduce security indices
+which quantify the minimum effort needed to change the
+state estimates without triggering bad-data detectors with
+perfect and imperfect knowledge of the system as constraints.
+In [4] the authors considered attacks on control system
+measurements that are not necessarily bounded or follow
+a certain distribution and without prior knowledge of the
+system. They show that it is impossible to reconstruct the
+states of the system if more than half of the sensors are
+attacked, generalizing some earlier results in [5]. However,
+an NP-hard problem has to be solved to detect the attacks. In
+[6], [7], the authors inject a signal (unknown to the attacker)
+into the system to detect replay attacks at the expense of
+M. Naghnaeian is a PhD candidate with the Mechanical Science
+and Engineering Department, University of Illinois, Urbana, IL, USA
+naghnae2@illinois.edu
+N. Hirzallah is a PhD candidate with the Electrical and Computer
+Engineering Department, University of Illinois, Urbana, IL, USA
+hirzall2@illinois.edu
+P. G. Voulgaris is with the Aerospace Engineering Department and the
+Coordinated Science Laboratory, University of Illinois, Urbana, IL, USA
+voulgari@illinois.edu
+This work was supported in part by the National Science Foundation
+under NSF Award NSF ECCS 10-27437 and AFOSR under award AF FA
+9550-12-1-0193
+increasing the cost of the LQG controller. However, if the
+plant has an unstable zero then it can be shown that an
+undetectable attack can still be designed. In [8], the authors
+suggest the use of dynamic filters that continuously monitor
+the states of the system at every instance of time. However,
+the filters have a serious limitation in that they cannot detect
+zero dynamics attacks. In [9], the authors investigate the class
+of zero dynamics attacks and suggest adding extra sensors
+or even perturbing the plant by adding extra connections to
+remove the unstable zeros. However this may not always be
+feasible in practice.
+In this paper we focus on attacks on actuators and sensors,
+represented as additive and unbounded disturbances
+on the digital (i.e., “cyber”) part of the controlled system.
+We examine from an input-output perspective the exact
+conditions under which such attacks can be stealthy, which
+brings up the pivotal role of unstable zeros and poles of
+the open loop, continuous time, physical plant. A key point
+that the paper brings is the sampled-data (SD) nature of
+a controlled cyberphysical system which consists of the
+continuous physical dynamics and the digital controller. The
+importance of the SD nature lies in the fact that typically, to
+ensure good intersample behavior, the rate of the sample and
+hold mechanism has to be high enough. It is known however
+that high sampling rate can lead to unstable zeros in the
+discrete plant dynamics. In particular, even if a continuous
+LTI plant Pc has no unstable zeros, its discrete representation
+P obtained by the sampled and hold operations will introduce
+unstable zeros if the relative degree of Pc is greater than
+two (e.g., [10]) and the sampling period T ! 0 (see Figure
+1). Therefore, a SD implementation of the controller may
+create additional vulnerability to stealthy attacks and so, it
+is important to have ways that secure the safety of the system
+while achieving the required performance. As one such way,
+we propose a dual rate sampling approach, a special case of
+multirate sampling (MR), whereby the output is sampled at
+a multiple of the hold rate.
+Multirate sampling has been studied extensively in the
+context of sampled-data control in the past and many relevant
+analysis and synthesis results were obtained in the mid 80s
+to mid 90s era (e.g., [11], [12], [13], [14], [15] to mention
+only a few). An interesting property of multi-rate sampling
+is its ability to remove certain unstable zeros of the discretetime
+system when viewed in the lifted LTI domain, which in
+turn allows for fulfilling certain potential design requirements
+such as gain margin levels, or, strong stabilization, that are
+not possible to satisfy with single rate. It is precisely this
+property that we utilize and study in detail in the context of
+stealthy attack detection. We show that dual rate control is
+978-1-4799-7886-1/15/$31.00 ©2015 IEEE
+1415
+Fig. 1: The standard SD system
+sufficient to remove all the vulnerabilities to stealthy actuator
+attacks. Of course, if all sensors are attacked as well then
+there is no way to detect attacks. On the other hand, we
+show that if a single measurement output remains secure,
+and if the modes of the system are observable from this
+output, then dual rate systems always provide the ability to
+detect combined sensor-actuator attacks.
+Some standard notation we use is as follows: Z+, Rn,
+Cn and Rn m denote the sets of non-negative integers,
+n-dimensional real vectors, n-dimensional complex vectors
+and n m dimensional real matrices, respectively. For any
+Rn or Cn vector x we denote x0 its transpose and jxj :=
+maxi pxi2 where x0 = [x1; x2; :::; xn]; for a sequence of
+real n-dimensional vectors, x = fx(k)gk2Z+ we denote
+jjxjj := supk jx(k)j; for a sequence of real n m dimensional
+real matrices G = fGkgk2Z+ we denote its -transform
+G( ) := Pk1=0 Gk k: For a -transform x( ) of a sequence
+x of n-dimensional vectors jjx( )jj = jjxjj.
+II. SYSTEM MODEL
+We consider the physical, continuous-time, LTI plant Pc =
+[Ac; Bc; Cc; Dc] of Figure 1 that is controlled by a digital
+controller K using the standard zero order hold and sampling
+devices H and S respectively . In particular, in the absence
+of any disturbances da and ds, the digital controller input
+u = fu(k)g converts to the continuous time input uc(t) =
+(Hu)(t) = u(k) for kT t < (k + 1)T where T is the
+hold period, and the digital output y = fy(k)g sequence
+is obtained by sampling the continuous time output yc with
+the same period T , i.e., y(k) = (Syc)(k) = yc(kT ): The
+corresponding discrete time LTI plant P is defined by the
+relation y = P u, i.e., P = SPcH, and has a description
+P = [Ad; Bd; Cd; Dd] where the state space matrices are
+obtained from the corresponding continuous time as
+Ad := eAcT 2 Rn n;
+Cd := Cc 2 Rny n;
+Z T
+Bd :=
+0
+Dd := Dc 2 Rny nu :
+eAc Bcd
+2 Rn nu ;
+(1)
+We assume that the employed realization of the continuous
+plant Pc is minimal, which implies that the same holds
+true for the discrete plant P in the absence of pathological
+sampling (e.g., [10],) i.e., for almost all periods T .
+Also in this figure, we consider the possibility of attacks
+in terms of additive disturbances da and ds respectively at
+the digital input u and at the output y of P . These attacks
+on the digital part of the system can be on actuators only
+(ds = 0), sensors only (da = 0), or on both, coordinated or
+not. As they act on the cyber part of the system we allow
+them to be unbounded sequences.
+We assume that there is an attack detection mechanism in
+place that monitors u and y and can detect an attack only if
+the effect of da and/or ds on these signals is beyond a given
+noise level threshold > 0, i.e., only if uy (k) > for
+some k. Note that we implicitly assume that there are other
+inputs such as noise, not shown in Figure 1, that have some
+effect on u and y which is what relates to the nonzero noise
+level . Accordingly, a stealthy attack will be the case when
+the attack inputs da and/or ds can grow unbounded while
+maintaining their effect on u and y below the detection limit.
+Specifically, if d represents any of da or ds, then the attack is
+stealthy if lim supk!1 jd(k)j = 1 while uy (k)
+all k = 0; 1; 2; : : : . In the sequel we consider various attack
+scenarios and analyze the conditions of their detectability.
+III. ACTUATOR ATTACKS
+We start with the case when only actuator attacks da are
+present (ds = 0) and proceed in characterizing their effect
+on the monitoring vector uy . Towards this end, let P
+be factored as P = M~ 1N~ = N M 1 where N~ ; M~ and
+N; M are left and right coprime respectively, and consider
+the controller K with a similar coprime factorization as K =
+X~ 1Y~ = Y X 1. The mappings from da to y and u are
+given respectively as (I P K) 1P and K(I P K) 1P .
+Given that K stabilizes P , it holds that M~ X N~ Y =: W
+is a stable and stably invertible map (unit). Moreover, it can
+be easily checked that
+y
+u
+=
+X
+Y
+W N~ da:
+(2)
+As X and Y are right coprime and W is a unit, it
+follows that a stealthy attack is possible if and only if
+N~ da is bounded for an unbounded da. That is, when
+y
+lim supk!1 jda(k)j = 1 it holds that u < 1 if
+and only if N~ da < 1. The following proposition is a
+direct consequence of the previous analysis.
+Proposition 1: Let P be a “tall” system, i.e., the number
+of outputs is greater or equal to the number of inputs. Assume
+further that P ( ) has no zero on the unit circle j j = 1.
+Then, an (unbounded) actuator stealthy attack is possible if
+and only if P ( ) has a non-minimum phase zero other than
+at = 0, i.e., a zero for 0 < j j < 1.
+Proof: The proof is omitted and can be found in [16].
+Remark 2: We remark here that if P has zeros on the
+boundary j j = 1 with no multiplicity but no other unstable
+zeros (other than at = 0,) then stealth attacks are not
+possible. Indeed, if z0 is a simple zero with jz0j = 1, then the
+corresponding input that can be masked (“zeroed out”) is of
+the form da(k) = d0z0 k which is bounded with jda(k)j <
+, and becomes undetected for small enough . But this case
+1416
+is uninteresting, as the disturbance has a level of noise (which
+can be taken care by any reasonably robust controller.) On
+the other hand, if there are multiplicities, stealthy attacks
+are possible. For example, if P is SISO and z0 = 1 is a
+zero with multiplicity 2, then an unbounded input of the
+form da(k) = k, k = 0; 1; : : : remains undetected for small
+enough : More generally, in the MIMO case when a zero at
+the boundary has multiplicity, one has to check the SmithMcMillan
+form of P ( ) for invariant factors with multiplicity
+corresponding to these zeros: stealthy attacks are possible if
+and only if there are such factors.
+Remark 3: When there is a zero of P at = 0 there is
+no corresponding (causal) input signal to be “zeroed out.”
+The case when P is “fat”, i.e. when the number of outputs
+y is less than the number of inputs u, is always conducive
+to stealthy attacks as one input can mask the effect of the
+other. Indeed, consider a two input one output P = [P1 P2];
+the effect of attacks at the individual control channels da1
+and da2 on the output y is y = P1da1 + P2da2 + [P1 P2]u
+and thus, picking for example, da2 = P2 1P1da1 with da1
+arbitrary and unbounded leads to y = [P1 P2]u, i.e. complete
+masking of the attacks. 1
+IV. SENSOR ATTACKS
+The case of sensor only attack ds 6= 0; da = 0 can
+be viewed in a similar spirit. In particular, by considering
+coprime factorizations for P and K as before, the effect of
+ds on the monitor vector is as
+y
+u
+=
+(I
+K(I
+P K) 1
+P K) 1
+ds =
+X
+Y
+W M~ ds: (3)
+Therefore, using the same rationale as in the previous
+case, we can claim that an attack is detectable if and only
+if there are no ds with kdsk = 1 and M~ ds < 1. This
+in turn means that attacks are detectable if and only if M~
+has no unstable zeros, which is equivalent that P is a stable
+system. More specifically, we have the following which can
+be proved as in the Proposition 1.
+Proposition 4: Assume that P ( ) has no pole on the unit
+circle j j = 1. Then, a sensor stealthy attack is possible if
+and only if P ( ) has a pole with 0 < j j < 1, i.e., an
+unstable pole other than = 0.
+Regarding poles of P ( ) on the boundary j j = 1 similar
+remarks hold as in the actuator attack case. Namely, if these
+poles are simple then there is no stealthy attack. If they have
+multiplicities, then their multiplicities in the corresponding
+invariant factors in the Smith-McMillan form determine
+whether stealthy attacks are possible.
+V. COORDINATED ACTUATOR SENSOR ATTACKS
+In the case when a coordination of actuator and sensor
+attack is possible, stealthy attacks are always possible even
+in the case where P is stable and minimum phase. Indeed,
+in this case the effect of da can be completely masked by
+has1Satrziecrtloyastpea=kin0g;,bPut2o1nemcaayn naolwtaeyxsisptiicfkPd2a1is( s)tri=ctlydpar1o(pe)r ,wii.teh.,dPa12
+unbounded and make (P2 1P1da1)( ) meaningful.
+Fig. 2: A dual rate SD system
+canceling its effect at the output via ds: just pick ds = P da
+with da arbitrary and unbounded, then y = P u. Therefore,
+unless there are outputs that are not attacked, this situation is
+not of interest as there is no hope to detect the attack. If there
+are such attack-free outputs, then the problem reverts to the
+actuator only attack case, with these outputs used for analysis
+and design. As a consequence, in the sequel we consider the
+actuator only attack case where the secure sensor outputs are
+assumed to provide an observable continuous time system
+Pc.
+VI. DUAL RATE CONTROL
+In this paper, we focus on a particular MR scheme that
+allows attacks to be detected by ensuring that there are no
+relevant unstable zeros in the lifted system. This scheme
+is similer to the single rate one with periodic controller
+obtained in the context of gain margin maximization in [17].
+More specifically, we consider the SD scheme of Figure 2
+(temporarily without any disturbances) where the output is
+sampled with period T =m where m is a sufficiently large
+integer, i.e., y(k) = (Smyc)(t) := yc(kT =m). A similar
+scheme has been used in [11] in the context of strong
+stabilization. Herein, we provide certain properties of the
+unstable zeros of the lifted system that guarantee detectability
+of actuator attacks.
+To this end, let the corresponding discrete-time system
+mapping u to y be
+G = SmPcH:
+mG = G
+For this MR discrete system we have that
+where is the 1-step right shift operator on discrete sequences
+fx(k)g, i.e., ( x)(k + 1) = x(k) with ( x)(0) = 0.
+Using standard lifting techniques (e.g., [10]) one can obtain a
+shift invariant (LTI) description G~ of the discrete dynamics
+by grouping the plant input and output signals as u~(k) =
+u(k) and y~(k) = [yc0(kT =m) yc0((k+1)T =m) : : : yc0((k+m
+1)T =m)]0 (similarly for d~a and d~s.) A state space description
+for G~ can be obtained as follows:
+Define state space matrices
+Z T =m
+B :=
+0
+D := Dc 2 Rny nu :
+eAc Bcd
+2 Rn nu ;
+G~ =
+~
+A
+~
+C
+~
+B
+~
+D
+;
+(4)
+A := eAcT =m 2 Rn n;
+C := Cc 2 Rny n;
+Then
+1417
+where
+Fig. 3: The lifted system
+A~ =
+m 1
+Am 2 Rn n; B~ = X AkB 2 Rn nu ;
+2
+C~ = 666
+4
+2
+= 666
+4
+~
+D
+k=0
+3
+777 2 Rmny n;
+5
+C
+CA
+.
+.
+.
+CAm 1
+D
+CB + D
+.
+.
+.
+C Pkm=02 AkB + D
+3
+7
+77 2 Rmny nu :
+5
+Also, it becomes useful to define a discrete-time system
+A B
+Pm := C D . This system corresponds to the singlerate
+sampling and hold scheme of the original plant Pc with
+a period of T =m, i.e., Pm = SmPcHm where Hm is accordingly
+generating a continuous signal uc from the discrete u
+as uc(t) = (Hmu)(t) = u(k) for kT =m t < (k + 1)T =m.
+It is clear that Pm has the same dimension as Pc, i.e. it
+maps nu inputs to ny outputs. Moreover, given that Pc holds
+a controllable and observable realization, and the sampling
+is not pathological, it follows that the inherited realization
+of Pm is also controllable and observable. Based on our
+assumptions on the sampling, it is also easily verified that
+the realization of G~ as above is controllable and observable.
+Let M~ G~ and N~G~ be the left coprime factors of G~. We will
+use the state-space realization of N~G~ as
+~
+NG~ =
+A~ + HC~
+~
+C
+B~ + HD~
+~
+D
+;
+(5)
+where H is chosen such that A~ + HC~ is Schur stable. It is
+easy to show that G~ and N~G~ have the same non-minimum
+phase zeros. We consider now the closed loop in the lifted
+domain in Figure 3 where the controller is K~ and proceed
+to argue that the lifted loop is not susceptible to stealthy
+actuator attacks d~a, and thus the original MR loop of Figure 2
+is not susceptible either. To this end, the integer m is chosen
+such that the following assumptions are satisfied.
+Assumption 5: The matrix B is full column rank.
+2 C 3
+Assumption 6: The matrix O : = 6646 C...A 7757 is full
+CAm 2
+column rank.
+The first assumption is standard and holds generically if
+Bc is full column rank in the continuous system. The second
+assumption holds for large enough m, in particular m =
+n + 1, if the pair (A; C) is observable, which is true as Pm
+is minimal. It can also hold however, even with a small m
+generically. Also, if Assumption 6 holds, G~ is a tall system.
+Then the following lemma characterizes the zeros of G~.
+Lemma 7: Consider the lifted system G~ as in (4) together
+with Assumptions (5) and (6). Then G~ has at most one nonminimum
+zero and is located at = 1.
+Proof: The proof is omitted and can be found in [16].
+According to Lemma 7, the lifted system, G~, has no zeros
+inside the unit circle. However, it may have a zero at =
+1. Based on Proposition 1 and Remark 2, an (unbounded)
+actuator stealthy attack will not possible if = 1 is zero of
+G~ with multiplicity of at most one. Indeed, this is the case
+as it is proved in the following theorem:
+Theorem 8: Consider the dual rate SD scheme as in
+Figure 3. Then, there does not exist any (unbounded) actuator
+stealthy attack if Assumptions 5 and 6 are met.
+Proof: The proof is omitted and can be found in [16].
+As a final comment from the previous analysis, we offer
+conditions when G~ has a zero = 1. We note that, as proved
+in the previous theorem, these zeros are not a problem since
+they cannot generate stealthy attacks.
+Proposition 9: Let Pc be “tall.” Then G~ has a zero at
+= 1 if and only if Pm does.
+Proof: The proof can be found in [16].
+Proposition 10: Let Pc be “fat.” Then G~ has always a zero
+at = 1.
+Proof: The proof can be found in [16].
+Remark 11: We would like to point out that an equivalent
+way of obtaining the same results, i.e., ability to detect
+zero attacks, is to hold the control input longer rather than
+sampling the output faster. That is, if we consider a dual
+rate system where the hold operates with a period of mT
+while the output is sampled with T , then the corresponding
+lifted system will enjoy the same properties as before in
+terms of unstable zeros. Obviously, the (nominal) controller
+performance will be reduced as the control is slower. On
+the other hand, there is a potential benefit of lower cost of
+actuation in this case. An example offered in the next session
+illustrates this point.
+VII. EXAMPLE
+In this section we provide an example of a system that
+is insecure under zero dynamics attacks, then we apply the
+techniques presented in the previous sections to defend the
+system.
+A. Automatic Voltage Regulator
+The system is the automatic voltage regulator (AVR) or
+the generator excitation control. AVR specifies the terminal
+voltage magnitude of a synchronous generator by controlling
+the reactive power. A simplified block diagram of a linearized
+1418
+Fig. 4: A simplified automatic voltage regulator block diagram
+AVR is shown in Figure 4 [18]. An increase in the reactive
+power load of the generator results in a drop in the voltage
+magnitude across its terminals. The voltage drop is sensed by
+a potential transformer which then is rectified and compared
+to the reference voltage magnitude. The error signal is
+then amplified and raises the generator terminal voltage by
+controlling the excitation field. The open loop state space
+representation of the single rate system after discretization
+at a sample rate T = 0:5secs is
+2 0:0105 0:3949
+0:0057 0:1817
+Ad = 4 0:00117 0:03359
+0:00092 0:03197
+2 0:0057383
+0:001174
+Bd = 4 0:0009193 5 ; Cd = [0
+0:0002165
+3:86
+1:369
+0:1793
+0:3163
+2:869 3
+0:587
+0:45975 ;
+0:8918
+0 0
+5000] ; Dd = [0]
+which has an unstable zero at = 0:7045. We note
+that although the continuous system has no unstable zeros,
+sampling at the relative slow rate of 0.5secs per sample
+created an unstable zero. Next we consider an attack input
+of the form da(k) = z0 k where is a small number and
+z0 is the zero of the system. Figures 5a-5c shows a plot
+of the attack held at T = 0:5secs along with the states and
+the sampled output of the system. We can notice that while
+the states of the system are exploding, the sampled output
+remains zero and no attack is detected.
+Next, we change the single rate block diagram to a
+multirate architecture to move the unstable zero to the safe
+region. We sample faster at rate T =m = 0:5=2 = 0:25secs
+per sample while keeping the hold at rate T = 0:5secs. The
+resulting open loop state space representation after lifting is
+A~ = Ad; B~ = Bd;
+C~ = h2:1085 860:13
+0
+1092
+45900020i ; D~ = h0:1096i
+The resulting open loop system has no unstable zeros. We
+note that only a small m is enough to accomplish our goal,
+i.e., m = 2. In fact, Assumption 6, a sufficient condition for
+Theorem 1 to hold, is not even satisfied in this case and yet
+the unstable zeros are removed. We consider the same attack
+input as above and simulate the system. The sampled output
+at rate T = 0:25sec is shown in Figure 5d. It is obvious that
+the multirate scheme detects the attack on the system
+B. Optimal LQG Control
+In this section we revisit the automatic voltage regulation
+system previously discussed in order to investigate trade
+offs in the controller design. In particular, we will close the
+(a) Zero order hold of zero dy- (b) States of AVR under zero
+namics attack da dynamics attack
+(c) Sampled output of AVR us- (d) Sampled output of AVR using
+single rate control ing dual rate control
+Fig. 5: Figures 5a-5c Show simulation of zero dynamics
+attack on a sampled-data AVR system under signle rate
+control. Figure 5d Show the sampled output under dual rate
+control
+control loop by designing linear quadratic Gaussian (LQG)
+controllers for the dual rate system and compare the cost
+with single rate LQG controllers. We set up a baseline LQG
+formulation for the dynamics of the open loop AVR with
+sampled measurements of period s as
+dx(t)
+y(k)
+=
+=
+Acx(t)dt + Bc!c(t)dt + Bcuc(t)dt;
+Ccx(ks) + v(k); k = 0; 1; : : :
+We assume that the process noise f!c(t); t 0g is a
+Brownian motion with E fd!c(t)d!c(t)0g = c, the observation
+noise fv(k); k = 0; 1:::g is a zero mean white
+Gaussian sequence with covariance = E fv(k)v(k)0g,
+and x(0) is zero mean Gaussian with covariance S0 =
+E fx(0)x(0)0g. Moreover, it is assumed that the random
+variables x(0); v(k); !c(t) are independent. We assume that
+the hold period is h. The objective is to minimize the
+following cost
+Z kh
+J = E lim sup(1=kh) (x0Qcx + ucRcu0c)dt
+k!1 0
+with the usual positive definiteness conditions Qc = Q0c
+and Rc = Rc0 > 0, which transforms to
+J = E
+1
+lim sup(1=k) X(x0kQxk + 2x0kSuk + u0kRuk)
+k!1 k=0
+0
+with xk := x(kh), uk := uc(kh) and
+Q = R0h eA0c QceAc d
+S = R0h eA0ctQc R t eAc(t )Bcd
+0
+R = R0h R0t Bc0eA0c(t )d
+Qc
+R t eAc(t )Bcd
+0
+= R0s eAc(s )Bc cBc0eA0c(s )d
+dt
++ Rc dt
+1419
+TABLE I: LQG Cost
+snh
+0.25
+0.5
+1
+0.5
+0.6704
+0.6868
+1
+0.6877
+0.7047
+The hold and sample periods h and s are assumed to be
+integer related and in particular h = ms with m = 1; 2; : : : .
+In this synchronous dual rate case, rather than using lifting
+techniques to solve the problem, we take the separation principle
+approach which applies also to asynchronous sampling
+(e.g., [19]) to find the optimal cost by computing
+Jo = trace P F 0(R + Bh0X )BhF + X
+where X and P are the unique positive semidefinite symmetric
+solutions of the algebraic Riccati equations
+X = A0hX Ah
+(S + A0hBhX )(R + Bh0X Bh) 1
+) 1CsP A0s +
+(X Bh0Ah + S0) + Q
+P = AsP A0s
+AsP Cs0(CsP Cs0 +
+and
+F = (Bh0X Bh + R) 1(Bh0X Ah + S0)
+where the various A; B; C -matrices above are corresponding
+to the matrices in Equation (1) for T = h and T = s, i.e.,
+Ah = eAch, As = eAcs, etc. Table I summarizes the LQG
+cost for different single rate and dual rate sample and hold for
+the case c = 103, = 10, Qc = I4 and Rc = I . We notice
+that, because of faster sampling, we get better performance in
+dual rate control than single rate control. Also, as expected,
+we get better performance between dual rate controllers when
+we increase the rate of sampling rather than decreasing the
+rate of the zero order hold. Faster sampling however may
+require more expensive devices and so a trade-off is present.
+VIII. CONCLUSION
+We presented a simple dual rate sampled data scheme
+which guarantees detectability of actuator and/or sensor
+attacks, if a secure output that maintains observability of
+the open loop modes is available. The main observation
+is that the sampled data nature in the implementation of
+the cybephysical system cannot be ignored as sampling can
+generate additional vulnerabilities due to the extra unstable
+zeros it may introduce, particularly if high rates are necessary
+to achieve certain performance level. The proposed method
+takes care of this issue by the use of multirate sampling
+that ensures that zeros exist only in harmless locations in
+the lifted domain. We gave certain precise conditions on the
+detectability of stealthy attacks in terms of the open loop
+unstable poles and zeros and showed how the vulnerabilities
+can be eradicated by the use of the dual rate scheme. An
+example was also presented.
+Several other possibilities can be studied in this context.
+The use of asynchronous sampling (e.g., [19], [20]) can
+provide alternative ways to detect stealthy attacks; or even
+the network's random delays can be helpful in that respect;
+the speed of detecting however needs to be brought into
+consideration, even if the attack is detectable. The methods of
+generalized holds [21] are also relevant as they move zeros,
+and with careful analysis of their robustness properties (e.g.,
+[22]) can provide acceptable and simple solutions as well. All
+of these are subjects of current investigations by the authors
+and are documented in forthcoming publications.
+REFERENCES
+[1] Y. Liu, M. K. Reiter, and P. Ning. “False data injection attacks against
+state estimation in electric power grids”. ACM Conference on Computer
+and Communications Security, Chicago, IL, USA, Nov. 2009, pp. 21,32.
+[2] H. Sandberg, A. Teixeira, and K. H. Johansson. “On security indices for
+state estimators in power networks”. First Workshop on Secure Control
+Systems, Stockholm, Sweden, 2010.
+[3] A. Teixeira, S. Amin, H. Sandberg, K. H. Johansson, and S. Sastry.
+“Cyber security analysis of state estimators in electric power systems”.
+IEEE Conference on Decisions and Control, Atlanta, GA, USA, Dec.
+2010.
+[4] H. Fawzi, P. Tabuada, P. Diggavi. “Secure Estimation and Control for
+Cyber-Physical Systems Under Adversarial Attacks”. IEEE Transactions
+on Automatic Control, vol.59, no.6, pp.1454,1467, June 2014.
+[5] S. Sundaram, C.N. Hadjicostis. “Distributed Function Calculation via
+Linear Iterative Strategies in the Presence of Malicious Agents”. IEEE
+Transactions on Automatic Control, vol.56, no.7, pp.1495,1508, July
+2011.
+[6] Y. Mo and B. Sinopoli. “Secure control against replay attacks”. Allerton
+Conf. on Communications, Control and Computing, Monticello, IL, USA,
+Sept. 2010, pp. 911-918.
+[7] R. Chabukswar, Y. Mo, and B. Sinopoli. “Detecting Integrity Attacks
+on SCADA Systems”. IEEE Transactions on Control Systems Technology:
+a Publication of the IEEE Control Systems Society, vol.22, no.4,
+pp.1396,1407, July 2014.
+[8] F. Pasqualetti and F. Dorfler and F. Bullo. “Attack Detection and Identification
+in Cyber-Physical Systems”. IEEE Transactions on Automatic
+Control, vol.58, no.11, pp.2715-2729, 2013.
+[9] A. Teixeira, I. Shames, H. Sandberg, and K. H. Johansson. “Revealing
+Stealthy Attacks in Control Systems”. Allerton Conf. on Communication,
+Control, and Computing, Allerton, IL, USA, 2012.
+[10] T. Chen and B. Francis. Optimal Sampled-Data Control Systems.
+(errerta). Springer, 1995.
+[11] T. Hagiwara, M. Araki, “Design of a stable state feedback controller
+based on the multirate sampling of the plant output”. IEEE Transactions
+on Automatic Control, vol.33, no.9, pp.812,819, Sep 1988.
+[12] P.G. Voulgaris, M.A. Dahleh and L.S. Valavani. “H1 and H2 optimal
+controllers for periodic and multirate systems”. Automatica, vol. 30, no.
+2, pp. 252-263, 1994.
+[13] P.G. Voulgaris, B. Bamieh. “Optimal H1 and H2 control of hybrid
+multirate systems”. Systems and Control Letters, no. 20, pp. 249-261,
+1993.
+[14] T. Chen., L. Qiu. “H1 design of general multirate sampled-data
+control systems”. IEEE Transactions on Automatic Control, vol.39,
+no.12, pp.2506-2511, 1994.
+[15] L. Qiu, T. Chen. “H2 optimal design of multirate sampled-data
+systems”. Automatica, Volume 30, Issue 7, July 1994, Pages 1139-1152.
+[16] M. Naghnaeian, N. Hirzallah, and P. G. Voulgaris. “Dual Rate Control
+for Security in Cyber-physical Systems”. arXiv:1504.07586, 2015.
+[17] B.A. Francis,, T.T. Georgiou. “Stability theory for linear time-invariant
+plants with periodic digital controllers”. IEEE Transactions on Automatic
+Control, vol.33, no.9, pp.820,832, Sep 1988.
+[18] H. Saadat. Power System Analysis. McGraw-Hill Companies, 2002.
+[19] P.G. Voulgaris. “Control of asynchronous sampled-data systems”.
+IEEE Transactions on Automatic Control, vol. 39, no. 7, pp. 1451-1455,
+July 1994.
+[20] M. F. Sagfors, H. T. Toivonen. “H1 and LQG control of asynchronous
+sampled-data systems”. Automatica, Volume 33, Issue 9, September
+1997, Pages 1663-1668.
+[21] P.T. Kabamba. “Control of linear systems using generalized sampleddata
+hold functions”. IEEE Transactions on Automatic Control, vol.32,
+no.9, pp.772,783, Sep 1987.
+[22] J.S Freudenberg, R.H. Middleton, J.H. Braslavsky. “Robustness of zero
+shifting via generalized sampled-data hold functions”. IEEE Transactions
+on Automatic Control, vol.42, no.12, pp.1681,1692, Dec 1997.
+1420

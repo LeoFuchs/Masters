@@ -1,0 +1,825 @@
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 4, APRIL 2015
+1145
+Secure Estimation in the Presence of Integrity Attacks
+Yilin Mo and Bruno Sinopoli
+Abstract-We consider the estimation of a scalar state based
+on m measurements that can be potentially manipulated by an
+adversary. The attacker is assumed to have full knowledge about
+the true value of the state to be estimated and about the value of
+all the measurements. However, the attacker has limited resources
+and can only manipulate up to l of the m measurements. The
+problem is formulated as a minimax optimization, where one seeks
+to construct an optimal estimator that minimizes the “worst-case”
+expected cost against all possible manipulations by the attacker.
+We show that if the attacker can manipulate at least half the
+measurements (l ≥ m/2), then the optimal worst-case estimator
+should ignore all measurements and be based solely on the a-priori
+information. We provide the explicit form of the optimal estimator
+when the attacker can manipulate less than half the measurements
+(l < m/2), which is based on m2l local estimators. We further
+prove that such an estimator can be reduced into simpler forms for
+two special cases, i.e., either the estimator is symmetric and monotone
+or m = 2l + 1. Finally we apply the proposed methodology
+in the case of Gaussian measurements.
+Index Terms-Estimation, fault tolerance, robustness, security.
+I. INTRODUCTION
+The increasing use of networked embedded sensors to monitor
+and control critical infrastructures provides potential malicious agents
+with the opportunity to disrupt their operations by corrupting sensor
+measurements. Supervisory Control And Data Acquisition (SCADA)
+systems, for example, run a wide range of safety critical plants
+and processes, including manufacturing, water and gas treatment and
+distribution, facility control and power grids. The first-ever SCADA
+system malware (called Stuxnet) was found in July 2010 and rose
+significant concern about SCADA system security [1], [2]. The research
+community has acknowledged the importance of addressing the
+challenge of designing secure estimation and control systems [3].
+We consider a secure estimation problem inspired by security
+concerns that arise from the possible manipulation of sensor data.
+We focus our attention on the estimation of a scalar state x from
+measurements collected by m sensors, with the caveat that some of
+these measurements can be manipulated by a malicious third party. The
+attacker is assumed to have full information about the true value of x
+and all the measurements and use this information to manipulate the
+data available to the estimator. Limitations in the resources available
+to the attacker enable him to only manipulate l of the m sensors.
+Manuscript received October 9, 2013; revised April 7, 2014 and August 13,
+2014; accepted August 15, 2014. Date of publication August 21, 2014; date
+of current version March 20, 2015. This work was supported in part by the
+National Science Foundation (NSF) Grants CNS-1135895 and ECCS-0955111.
+Recommended by Associate Editor C. Hadjicostis.
+Y. Mo is with the Department of Control and Dynamical Systems, California
+Institute of Technology, Pasadena, CA 91125 USA (e-mail: yilinmo@caltech.
+edu).
+B. Sinopoli is with the Electrical and Computer Engineering Department,
+Carnegie Mellon University, Pittsburgh, PA 15213 USA (e-mail: brunos@ece.
+cmu.edu).
+Digital Object Identifier 10.1109/TAC.2014.2350231
+However, the attacker has total control over the corrupted sensors, as it
+can change the measurements of the compromised sensors arbitrarily.
+To minimize the estimator's performance degradation in the presence
+of such attacks, we construct minimax estimator that minimize the
+“worst-case” expected cost.
+We start by considering the case l ≥ m/2, in which the attacker
+can manipulate at least half the measurements. We show that in
+such a scenario the optimal worst-case estimators should ignore
+all m measurements and be based solely on the a-priori distribution
+of x. This result provides a fundamental limitation on the estimation
+performance in adversarial environment and is in sharp contrast with
+non-adversarial estimation theory where even very noisy data can
+provide some information.
+For the case l < m/2, in which the attacker can manipulate less than
+half the sensors, we provide the explicit form of the optimal estimator,
+which is based on m2l local estimators. Therefore, the search space
+of the optimal estimator is reduced from all possible functions to a
+special class of functions. We also prove that the expected “worstcase”
+estimation performance is a convex functional with respect to the
+local estimators provided that cost function is convex. Hence, convex
+optimization techniques can be used to compute the optimal estimator
+when the local estimators are finite-degree polynomials. For general
+cases, such an estimator may be computationally hard to implement,
+as it needs to compute all m2l local estimates. However, we prove
+that under two special cases, i.e., either the estimator is symmetric
+and monotone or m = 2l + 1, the optimal estimator can be reduced to
+simpler form, the computational complexity of which is O(m log m).
+Related Work: Robust estimators such as M-estimator, L-estimator,
+R-estimator, etc. have also been extensively studied in the literature
+[4]-[6]. However, such kinds of approaches usually assume that the
+outliers of the data are generated independently by some other probability
+distribution different from the model assumptions. Furthermore,
+the robustness are usually measured by breakdown points [7], [8] or
+influence functions [9]. In this technical note, we assume that the
+attacker generates the optimal “outliers” to destroy the estimation
+performance. Since the attacker can take control over multiple sensors,
+the compromised measurements from these sensors are jointly selected
+by the adversary to maximize the estimation error. Furthermore, the
+security of an estimator is measured by the worst-case Mean Squared
+Error(MSE). Hence, a robust estimator may not necessarily be secure
+and thus the techniques developed for robust estimation need to be
+reexamined before they can be applied in the context of security.
+For dynamical systems, robust estimation techniques such as H∞
+estimators have also been an active research area for the past decades.
+The H∞ estimator can be seen as the worst-case estimator when the
+disturbance is in the L2 space or of bounded power spectral density, as
+the H∞ norm can be interpreted as an induced norm [10]. In security
+settings, we feel that the sparsity of the disturbance is a better way
+to characterize the capability of the adversary, since it can change the
+compromised sensor readings arbitrarily.
+Furthermore, bad data detection and identification techniques,
+which is based on truncating the “atypical” data, have been widely
+used in large scaled systems such as power grid [11]. While such
+approaches are very successful in detecting and removing random
+failures, they are not effective against integrity attacks. Liu et al.
+[12] illustrate how an adversary can inject a stealthy input into the
+0018-9286 © 2014 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+1146
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 4, APRIL 2015
+measurements to change the state estimation, without being detected
+by the bad data detector. Sandberg et al. [13] consider how to find a
+sparse stealthy input, which enables the adversary to launch an attack
+with a minimum number of compromised sensors. Xie et al. [14]
+further illustrate that the stealthy integrity attacks on state estimation
+can lead to a financial gain in the electricity market for the adversary.
+This technical note generalizes our previous works on secure estimation
+[15], which only consider designing the optimal symmetric
+estimator which minimizes the “worst-case” MSE. In this technical
+note, we derive the optimal estimator (not necessarily symmetric),
+which minimizes an arbitrary quasiconvex cost function. Furthermore,
+this technical note extends our previous work on hypothesis testing in
+adversarial environment [16], where the system needs to make a binary
+decision (instead of real valued state estimation) on which hypothesis
+is true based on the potentially compromised sensory information.
+The rest of technical note is organized as follows: In Section II
+we formulate the problem of secure estimation with l manipulated
+measurements from m total measurements. In Section III, we consider
+the optimal estimator design for the cases l ≥ m/2. In Section IV,
+we provide an explicit form of the optimal estimator when l < m/2.
+Furthermore, in Section V, we discuss two special cases, i.e., either
+the estimator is symmetric and monotone or m = 2l + 1, and prove
+that the optimal estimator can be further reduced to simpler forms.
+In Section VI we provide a numerical example of Gaussian measurements.
+Finally, Section VII concludes the technical note.
+II. PROBLEM FORMULATION
+The goal is to estimate a random variable x ∈ R from a vector
+y =Δ [y1, . . . , ym]T ∈ Rm consisting of m sensor measurements yi ∈
+Δ
+R, where the index i ∈ S = {1, 2, . . . , m}. We assume that x and y
+follow the following joint distribution:
+P ((x, y) ∈ S) = μ(S)
+where S ⊆ Rm+1 is a Borel-measurable set and μ is a probability
+measure on Rm+1.
+We assume that an attacker wants to disturb the state estimation.
+To this end, the attacker has the ability to manipulate up to l of the
+m sensor measurements. Formally, this means that our estimate has to
+rely on a vector yc ∈ Rm of manipulated measurements defined by
+yc = y + γ ◦ ya
+where ◦ is element-wise multiplication and the sensor-selection vector
+γ taking values in
+(1)
+(2)
+(3)
+(4)
+(5)
+Δ
+Sγ =
+γ ∈ Rm : γi = 0 or 1,
+m
+i=1
+γi = l
+and the bias vector ya taking values in Rm. By selecting which values
+of γ are nonzero, the attacker chooses which of the n sensors will be
+manipulated. The “level” of manipulation is determined by ya.
+Define the estimated state based on yc to be xˆ ∈ R. Now we give a
+formal definition of the estimator.
+Definition 1: An estimator f : Rm → R is a mapping from the
+compromised sensor measurements yc to the state estimate xˆ, i.e.,
+xˆ = f (yc) = f (y + γ ◦ ya).
+Given the state and corresponding state estimation, the error e is
+defined as
+e =Δ x − xˆ.
+We further define the cost associated with error e to be
+(6)
+(7)
+cost = c(e)
+where c : R → R is the cost function, which is assumed to be a
+quasiconvex function with respect to e. In other words, the following
+inequality holds for all e1 ≤ e2 ≤ e3,
+c(e2) ≤ max (c(e1), c(e3)) .
+Some typical quasiconvex cost functions include the squared error
+(c(e) = e2) and the absolute error (c(e) = |e|).
+The estimation problem is formalized as a minimax problem where
+the system operator wants to select an optimal estimator so as to
+minimize the expected cost, for the worst case manipulation by the
+adversary. Following Kerckhoffs' Principle [17] that security should
+not rely on the obscurity of the system, our goal is to design the
+estimator f assuming that f is known to the attacker. We also take
+the conservative approach that the attacker has full information about
+the state of the system. Namely, the underlying x and all the measurements
+y1, . . . , ym are assumed to be known to the attacker. However,
+due to limited resources, the attacker can only manipulate l of the m
+sensors. We assume that the system operator knows how many sensors
+l can be attacked, but cannot identify them.
+Remark 1: The parameter l can also be interpreted as a design
+parameter for the system operator. In general, increasing l will increase
+the resilience of the estimator under attack. However, as is shown
+in the rest of the technical note, a large l will result in performance
+degradation during normal operation when no sensor is compromised,
+as more measurements are discarded. Therefore, there exists a tradeoff
+between resilience and efficiency (under normal operation), which
+can be tuned by choosing a suitable parameter l.
+Remark 2: We take the conservative approach by assuming that
+the attacker has full information. In practice, if the sensory data is
+authenticated by not encrypted, then it is reasonable to assume that the
+adversary knows y (and can potentially have a very accurate estimate
+of x), but can only change l sensor readings.
+To compute the worst-case expected cost that we seek to minimize,
+let us first consider that the adversary compromised a subset I ⊆ S of
+sensors. We have the following definitions.
+Definition 2: Define the cardinality |I| of set I as the number of
+elements in I.
+Definition 3: Define the complement of an index set I ⊆ S as Ic =Δ
+{x ∈ S : x ∈ I}. The difference between two index sets K and I is
+defined as
+K\I =Δ K ∩ Ic.
+Definition 4: Define vector γI =Δ [γ0, . . . , γm]T ∈ Rm, where
+γi = 1 if i ∈ I and γi = 0 otherwise.
+andDfefiI−ni:tiRonm5→:GRivaesn the estimator f , define function fI+ : Rm → R
+Δ
+f +(y) =
+I
+sup f (y + γI ◦ ya)
+ya∈Rm
+Δ
+fI−(y) = yai∈nRfm f (y + γI ◦ ya).
+Let us further define the following functions:
+f +(y) =Δ max f +(y),
+|I|=l I
+Δ
+f −(y) = min f −(y).
+|I|=l I
+Remark 3: f + (f −) can be seen as the maximum (minimum)
+state estimate xˆI thatI the attacker can enforce when the attacker
+compromised sensors in a fixed set I. Hence, f + (f −) indicates the
+(8)
+(9)
+(10)
+(11)
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 4, APRIL 2015
+maximal(minimum) state estimation xˆ that an attacker can enforce
+with the worst possible set of compromised sensors.
+By (7), for all γ ∈ Sγ , ya ∈ Rm, the following inequality holds:
+c (x−f (y +γ ◦ ya)) ≤ max c x−f +(y) ,
+c x−f −(y)
+(12)
+which indicates that the maximum cost is achieved either when xˆ =
+f +(y) or xˆ = f −(y). Thus, given values of x, y and an estimator f ,
+an optimal policy for the attacker can be described as follows.
+The attacker computes f +(y) and f −(y) and compare them with
+x. If c(x − f +(y)) ≥ c(x − f −(y)), then the attacker chooses γ and
+ya such that f (y + γ ◦ ya) equals f +(y) (or as close as possible).
+Otherwise, the attacker chooses γ and ya such that f (y + γ ◦ ya)
+equals f −(y) (or as close as possible).
+Under this worst-case attacker policy, we can define the worst-case
+expected cost C for an estimator f 1:
+C(f ) =Δ E
+max c x − f +(y) , c x − f −(y)
+.
+(13)
+Before continuing on, we would like to state the following theorem
+regarding the optimality of an estimator f , which will be used in future
+analysis.
+Theorem 1: For any estimator f , if there exist functions h+, h− and
+g+, g−, such that
+g+ ≥ f + ≥ h+ ≥ h− ≥ f − ≥ gC(f
+) ≥ E
+C(f ) ≤ E
+max c x − h+(y) , c x − h−(y)
+max c x − g+(y) , c x − g−(y)
+.
+Proof: We only prove (15), as (16) follows the same argument.
+Since c is quasiconvex, it is easy to see that
+c x − h+(y)
+≤ max c x − f +(y) , c x − f −(y)
+c x − h−(y)
+≤ max c x − f +(y) , c x − f −(y)
+which implies that
+max c x − f +(y) , c x − f −(y)
+≥ max c x − h+(y) , c x − h−(y)
+. (17)
+By taking expectation on both sides, we can conclude the proof.
+The following corollary can be immediately proved by Theorem 1.
+Corollary 1: For two estimators f1 and f2, if the following inequalities
+hold:
+Therefore
+f +
+1 ≥ f2+ ≥ f2− ≥ f1C(f1)
+≥ C(f2).
+(14)
+(15)
+(16)
+(18)
+(19)
+1147
+(20)
+(21)
+III. OPTIMAL ESTIMATOR DESIGN FOR l ≥ m/2
+In this section, we consider the case when half or more of the
+measurements can be manipulated by the attacker. We show that,
+in this case, the attacker can render the information provided by
+the manipulated measurement vector y useless, forcing the optimal
+estimate to be determined exclusively from the a priori distribution
+of x, which is formalized as the following theorem.
+Theorem 2: If l ≥ m/2, then the optimal estimator2 f ∗ is given
+as f ∗ = δ∗, where δ∗ is the solution of the following optimization
+problem:
+minimize
+δ∈R
+E [c(x − δ)] .
+The rest of the section is devoted to the proof of Theorem 2, which
+requires an intermediate result.
+Lemma 1: If I ∪ J = S, then there exists a constant δ independent
+of y, such that
+f +(y) ≥ δ ≥ f −(y),
+I J
+∀y.
+Proof: We will prove Lemma 1 by contradiction. It is easy to see
+that (21) is equivalent to
+f +(y) ≥ f −(y ),
+I J
+∀y, y ∈ Rm.
+Suppose that on the contrary, there exist y = [y1, . . . , ym]T and y =
+[y1, . . . , ym]T , such that f +(y) < f −(y ). Now consider another
+yo ∈ Rm, such that I J
+yio =
+yyii iiff ii ∈∈ IIc.
+Since I ∪ J = S, Ic ⊆ J . It is easy to verify that
+yo = y + γI ◦ (yo − y),
+yo = y + γJ ◦ (yo − y ).
+Therefore, from the definition of f + and f −, we have
+I J
+f (yo) ≤ f +(y) < f −(y ) ≤ f (yo)
+I J
+which is impossible.
+Now we are ready to prove Theorem 2.
+Proof of Theorem 2: Since l ≥ m/2, for any set I with cardinality
+l, we could always find another set J , such that |J | = l
+asuncdhIth∪atJ = S. By Lemma 1, there exist two constants δI+ and δJ−,
+then
+then
+Theorem 1 implies that in order to find the optimal f , we should
+make f +(y) and f −(y) as “close” as possible to each other.
+1Even if the function f is measurable, f + and f − may not be necessarily
+measurable. In that case, we can use upper Darboux integral instead of
+Lebesgue integral to define the expected cost. However, all the discussion in
+this technical note will hold regardless.
+By Corollary 1, the expected cost of the estimator f1(y) = δ is less
+than or equals to f (y). Hence, the optimal estimator is a constant
+estimator and it is straight forward to see, from the definition of the
+expected cost, that the optimal δ is the solution of (20).
+2The optimal estimators discussed in this section and later sections may not
+necessarily be unique.
+Thus, we could always find a constant δ, such that
+f +(y) ≥ δI ≥ δJ− ≥ f −(y).
++
+I J
+f +(y) = max f +(y) ≥ max δ+,
+|I|=l I |I|=l I
+f −(y) = min f −(y) ≤ min δ−.
+|I|=l I |I|=l I
+f +(y) ≥ δ ≥ f −(y).
+1148
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 4, APRIL 2015
+IV. OPTIMAL ESTIMATOR DESIGN FOR l < m/2
+Since the cost function c is quasiconvex
+We now consider the case when less than half the measurements can
+be manipulated by the attacker, i.e., l < m/2.
+Definition 6: Let I = {i1, . . . , ik} ⊆ {1, . . . , m} be a subset of S.
+Define the projection function ProjI : Rm → Rk as
+Δ
+ProjI (y) = yi1 , . . . , yik
+T .
+Definition 7: Let K be a subset of S with cardinality 2l. An
+estimator ϕK : Rm → R is called a local estimator if the following
+equality holds:
+ϕK(y) = ϕK(y + γK ◦ ya),
+∀ya ∈ Rm.
+Remark 4: The locality of ϕK is based on the fact that ϕK only
+depends on those measurements whose indices are not in K. It is trivial
+to prove that a local estimator ϕK can be written as a function of
+projected measurements
+ϕK(y) =Δ ΦK (ProjKc (y))
+where ΦK : Rm−2l → R.
+We are now ready to state the main theorem, which relates the
+optimal estimator f ∗ with a set of local estimators.
+Theorem 3: If l < m/2, then the optimal estimator f ∗ is of the
+following form
+f ∗(y) = min max
+|I|=l |J |=l,J ∩I=∅
+ϕ∗I∪J (y)
+where {ϕ∗K} is a set of m2l local estimators, given by the solution of
+the following optimization problem:
+minimize
+{ϕK} set of local estimators
+E
+max c (x−ϕK(y)) .
+|K|=2l
+The rest of the section is devoted to proving Theorem 3, which
+requires several intermediate results.
+Lemma 2: If l < m/2, then for any estimator f , there exists a set
+of local estimators {ϕK}, such that
+C(f ) ≥ E
+max c (x − ϕK(y)) .
+|K|=2l
+Proof: Let f be an arbitrary estimator and K be a subset of S
+with cardinality 2l. Let us find a subset I ⊂ K with cardinality l and
+define subset
+(22)
+(23)
+(24)
+(25)
+(26)
+(27)
+Δ
+J = K\I.
+Now define functions ϕK, ϕ− to be
+K
+ϕK(y) =Δ iynbf syuap f (y + γI ◦ ya + γJ ◦ yb)
+ϕK−(y) =Δ syuap iynbf f (y + γI ◦ ya + γJ ◦ yb).
+It is easy to see that ϕK is a local estimator, since it does not
+depend on measurement yi, where i ∈ I ∪ J . Moreover, we have the
+following inequalities:
+f + ≥ fI+ ≥ ϕK ≥ ϕK− ≥ fJ− ≥ f −.
+(28)
+Hence, we could find m2l local estimator ϕKs, such that the following
+inequalities hold:
+f + ≥ ϕK ≥ f −,
+∀|K| = 2l.
+max c x−f +(y) , c x−f −(y)
+≥ c(x−ϕK(y)) , ∀|K| = 2l
+which implies that
+max c x−f +(y) , c x − f −(y)
+≥ max [c (x − ϕK(y))] .
+|K|=2l
+By taking the expectation on both sides, we can conclude the proof.
+Remark 5: Lemma 2 provides a lower bound for the expected cost
+of any estimator, while the following lemma, which can be seen as the
+converse of Lemma 2, indicates that such a lower bound is achievable.
+Lemma 3: For an arbitrary set of local estimators {ϕK}, define the
+following estimator f to be:
+The expected cost of f satisfies the following inequality:
+f (y) = min max
+|I|=l |J |=l,J ∩I=∅
+ϕI∪J (y) .
+C(f ) ≤ E
+max c (x − ϕK(y)) .
+|K|=2l
+Proof: The proof is divided into four steps:
+1) We first prove the following inequality:
+f (y) ≥ max min
+|J |=l |I|=l,J ∩I=∅
+ϕI∪J (y)
+which is equivalent to the following inequality:
+max
+|J |=l,J ∩I0=∅
+ϕI0∪J (y) ≥
+min
+|I|=l,I∩J0=∅
+ϕI∪I0 (y)
+for all index sets |I0| = |J0| = l. Let us find an index set K,
+such that I0 ⊂ K, J0 ⊂ K and |K| = 2l. Therefore, we have
+ϕK(y) = ϕI0∪(K\I0)(y) = ϕ(K\J0)∪J0 (y).
+Hence, for all |I0| = |J0| = l
+max
+|J |=l,J ∩I0=∅
+ϕI0∪J (y) ≥ ϕK(y) ≥
+min
+|I|=l,I∩J0=∅
+ϕI∪J0 (y)
+which implies (32) and hence (31).
+2) By (29) and (31), it is easy to verify that for arbitrary sets
+I0, J0 ⊆ S with cardinality l, the following inequalities hold:
+f (y) ≤
+f (y) ≥
+max
+|J |=l,J ∩I0=∅
+min
+|I|=l,J0∩I=∅
+ϕI0∪J (y)
+ϕI∪J0 (y).
+3) As a result of (33)
+fI+0 (y) = sup f (y + γI0 ◦ ya)
+ya
+Similarly, one can prove that
+≤ sup max
+ya |J |=l,J ∩I0=∅
+ϕI0∪J (y + γI0 ◦ ya)
+=
+max
+|J |=l,J ∩I0=∅
+ϕI0∪J (y).
+fI−0 (y) ≥
+min
+|J |=l,J ∩I0=∅
+ϕI0∪J (y).
+(29)
+(30)
+(31)
+(32)
+(33)
+(34)
+(35)
+(36)
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 4, APRIL 2015
+1149
+f +(y) = max f +(y) ≤ max max
+|I|=l I |I|=l |J |=l,J ∩I=∅
+ϕI∪J (y)
+= |Km|a=x2l ϕK(y).
+4) By (35)
+Similarly
+f −(y) ≥ |Km| =in2l ϕK(y).
+Thus, (30) holds by Theorem 1.
+Now we are ready to prove Theorem 3.
+Proof of Theorem 3: Let {ϕ∗K} be the optimal solution of (26).
+By Lemma 2, the expected cost of the estimator f ∗ satisfies
+C(f ∗) ≤ E
+max c (x − ϕ∗K(y)) .
+|K|=2l
+On the other hand, by Lemma 2, for any estimator f , there exists a set
+of local estimators {ϕK}, such that
+C(f ) ≥ E
+max c (x − ϕK(y)) .
+|K|=2l
+Since {ϕ∗K} is the optimal solution of (26)
+E
+max c (x − ϕ∗K(y))
+|K|=2l
+≤ E
+max c (x − ϕK(y))
+|K|=2l
+which implies that
+C(f ∗) ≤ C(f ).
+Therefore, we can conclude the proof.
+By Theorem 3, in order to derive the optimal estimator f ∗, one
+needs to solve the optimization problem (26), the convexity of which
+is proved by the following theorem.
+Theorem 4: Let {ϕK}, {ψK} be two sets of local estimators. Define
+a new set of local estimators {ρK}, such that for every K
+ρK = αϕK + βψK
+where α, β ≥ 0 and α + β = 1. If the cost function c is convex in e,
+then the following inequality holds:
+E
+max c (x − ρK(y))
+|K|=2l
+≤ αE
+max c (x − ϕK(y)) + βE
+|K|=2l
+max c (x − ψK(y)) .
+|K|=2l
+(37)
+Proof: Since we restrict the cost function c to be convex,
+c (x − ρK(y)) ≤ αc (x − ϕK(y)) + βc (x − ψK(y)) .
+Thus
+max c(x−ρK(y)) ≤ max [αc (x−ϕK(y))+βc (x−ψK(y))]
+|K|=2l |K|=2l
+≤ α max c (x − ϕK(y)) + β max c (x − ψK(y)) .
+|K|=2l |K|=2l
+By Theorem 4, we know that the objective function of (26) is a
+convex functional with respect to ϕK provided that c is convex. If
+we further assume that ϕK belongs to some finite dimensional linear
+space, e.g., all polynomials of degree less than k, then ϕK can be
+written as
+ϕK = a1φ1 + a2φ2 + . . . + akφk
+where ais are scalars and {φ1, . . . , φk} is the basis of the space, then
+(26) becomes a convex optimization problem. As a result, algorithms
+such as interior point method [18] can be used to find the optimal ais
+and thus the optimal ϕK.
+It is also worth noticing that even if we could derive the optimal
+ϕK, (25) is still computationally hard. In particular, to determine f (y),
+we need to compute all m2l different ϕK(y)s, which could be a huge
+burden if m is large. In the next section, we consider two special cases,
+under which (25) can be simplified and thus computed efficiently.
+V. SPECIAL CASES
+In this section, we prove that under certain conditions, (25) can
+be simplified. We first consider the case where the estimator f is
+symmetric and monotone, which is given by the following definition.
+Definition 8: f (y) is symmetric if
+f (y1, . . . , ym) = f (yi1 , . . . , yim )
+for any permutation (i1, . . . , im) of S.
+Definition 9: f (y) is monotonically increasing if the following
+inequality hold:
+f (y1, . . . , ym) ≥ f (y1, . . . , ym), if yi ≥ yi, ∀i.
+f is monotonically decreasing if −f is monotonically increasing.
+f is monotone if it is either monotonically increasing or monotonically
+decreasing.
+Remark 6: The symmetry assumption is reasonable if the joint
+distribution of x and y is also symmetric on y, which implies that the
+sensors are statistically identical.
+We further define the following function.
+Definition 10: Define the function Medl : Rm → Rm−2l as a symmetric
+function, which satisfies3
+Medl [y1, . . . , ym]T
+=Δ [yl+1, . . . , ym−l]T
+(38)
+when y1 ≤ . . . ≤ ym.
+Remark 7: The Medl function can be computed by removing the
+largest l measurements and smallest l measurements. In particular, if
+m = 2l + 1, then Medl(y) is simply the median of y.
+The following theorem characterizes the optimal symmetric and
+monotone estimator f .
+Theorem 5: If l < m/2, then the optimal symmetric and monotone
+estimator is of the following form:
+f ∗(y) = Φ∗ (Medl(y))
+(39)
+where Φ∗ : Rm−2l → R is the solution of the following optimization
+problem:
+minimize
+Φ symmetric and monotone
+E
+max c [x − Φ (ProjKc (y))] . (40)
+|K|=2l
+By taking the expectation on both sides, we can finish the proof.
+3Due to symmetry, we only need to define the function when y1 ≤ . . . ≤ ym.
+1150
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 4, APRIL 2015
+Before proving Theorem 5, we need the following lemma.
+Lemma 4: Let Φ : Rm−2l → R be a symmetric and monotone
+function. If each local estimator ϕK satisfies
+ϕK(y) = Φ (ProjKc (y))
+then the corresponding estimator f (y) given by
+f (y) = min max
+|I|=l |J |=l,J ∩I=∅
+ϕI∪J (y)
+satisfies the following equality:
+f (y) = Φ (Medl(y)) .
+(41)
+Proof: We will assume that Φ is monotonically increasing, since
+the case where Φ is monotonically decreasing can be proved by
+similar arguments. We can further assume that y1 ≤ . . . ≤ ym due to
+symmetry.
+Let us define I0 = {m − l + 1, . . . , m} and J0 = {1, . . . , l}. It is
+clear that
+f (y) = min max
+|I|=l |J |=l, J ∩I=∅
+ϕI∪J (y)
+≤
+max
+|J |=l,J ∩I0=∅
+ϕI0∪J (y).
+Now by monotonicity of Φ, we know that
+max
+|J |=l,J ∩I0=∅
+ϕI0∪J (y) = ϕI0∪J0 (y) = Φ (Medl(y))
+which implies that f (y) ≤ Φ(Medl(y)). On the other hand, we know
+that
+f (y) = min max
+|I|=l |J |=l,J ∩I=∅
+ϕI∪J (y)
+≥ max min
+|J |=l |I|=l,I∩J =∅
+ϕI∪J (y)
+≥
+min
+|I|=l,I∩J0=∅
+ϕI∪J0 (y).
+By monotonicity of ϕ, we have that
+min
+|I|=l,I∩J0=∅
+ϕI∪J0 (y) = ϕI0∪J0 (y) = Φ (Medl(y))
+which implies that f (y) ≥ Φ(Medl(y)). Thus, f (y) = Φ(Medl(y)),
+which concludes the proof.
+We are now ready to prove Theorem 5.
+Proof: Denote the local estimators for the optimal symmetric and
+monotone estimator f ∗ as ϕ∗ . Recall that from the definition of local
+K
+estimators, there exists Φ∗ , such that the following equality holds:
+K
+ϕ∗K(y) = Φ∗ (ProjKc (y)) .
+K
+By similar argument as in the proof of Lemma 2, we know that Φ∗ is
+K
+identical, symmetric and monotone. Therefore, by Lemma 4, we can
+conclude the proof.
+Now we consider the optimal estimator for the boundary case, where
+m = 2l + 1.
+Theorem 6: If m = 2l + 1, then the optimal estimator f ∗(y) can be
+expressed as
+f ∗(y) = Median (τ1∗(y1), . . . , τ m∗(ym))
+(42)
+where τi : R → R and solves the following optimization problem:
+minimize E
+τ1,...,τm
+max c (x − τi(yi)) .
+i
+Proof: Let f ∗ be the optimal estimator with local estimator ϕ∗ s.
+K
+From the definition of local estimators, there exists Φ∗ , such that
+K
+ϕ∗K(y) = Φ∗ (ProjKc (y)). Since m = 2l + 1, we could define
+K
+τi∗(yi) = Φ∗K(yi)
+where {i} = Kc. Now consider a function Φ : R → R, such that
+Φ(t) = t and the corresponding local estimators
+ϕK(y) = Φ (ProjKc (y)) = ProjKc (y).
+Define an estimator g as
+g(y) =Δ min max
+|I|=l |J |=l,J ∩I=∅
+Proj(I∪J )c (y) .
+By Lemma 4 and the fact that m = 2l + 1, g(y) = Medl(y) =
+Median(y). Furthermore, it is easy to verify that
+f ∗(y) = g (τ1∗(y1), . . . , τ m∗(ym)) .
+Hence, f ∗(y) = Median(τ1∗(y1), . . . , τ m∗(ym)).
+Remark 8: It is worth noticing that given the optimal Φ∗ or {τi∗},
+the computational complexity of (39) and (42) is O(m log m), which
+is the complexity of sorting m numbers.
+(43)
+(44)
+VI. NUMERICAL EXAMPLES: GAUSSIAN CASE
+We assume the state x ∼ N (0, 1) is normal distributed with zero
+mean and unit variance. The measurements equation for sensor i is
+given as yi = x + vi, where vi ∼ N (0, 1) is also normal distributed
+with zero mean and unit variance. We further assume that x and vis
+are independent. The cost function c(e) = e2. We first consider the
+case where m = 3, l = 1. By Theorem 6, the optimal f (y) is of the
+following form f (y) = Median(τ1(y1), τ2(y2), τ3(y3)).
+We seek to find the optimal τis over all polynomials of degree less
+than 5. We will approximate C(f ) by Monte-Carlo method. To be
+specific, we first randomly generate a set of (x(k), y1(k), y2(k), y3(k)),
+where k = 1, . . . , N , based on the Gaussian assumption. The expected
+cost C(f ) is then approximated by
+1
+C(f ) ≈ N
+N
+k=1
+max
+i=1,2,3
+x(k) − τi yi(k)
+2
+.
+We use gradient descent to find the optimal aks, such that τi(yi) =
+4
+k=0 akyik. In this simulation, we choose the size of the training set
+to be N = 100000. The optimal τi found by gradient descent is given
+by τi(yi) = 0.29yi, and the worst case cost is C(f ) = 0.91. On the
+other hand, if no sensor is compromised, then the optimal estimator
+is xˆ = (y1 + y2 + y3)/4, which has an MSE of 0.25. Thus, there is
+a more than threefold increase in the expected cost caused by the
+attacker. Further, the expected cost of a constant estimator xˆ = Ex = 0
+is 1. Hence, it can be seen that one compromised sensor can potentially
+cause a large degradation in the estimation performance.
+It is also worth noticing that the optimal τis are linear (within
+the numerical error). However, as we only search over the space of
+polynomials of degree less than 5, it is still an open problem to find the
+true optimal τis.
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 60, NO. 4, APRIL 2015
+1151
+TABLE I
+OPTIMAL C(f ) FOR ESTIMATORS WITH A
+SYMMETRIC AND LINEAR Φ WHEN l = 1
+Next we consider C(f ) when m increases and l = 1 is fixed. By
+Theorem 5, the optimal estimator is of the following form f ∗(y) =
+Φ∗(Medl(y)). In this technical note, we only consider a symmetric
+and linear Φ. In other words, we only consider f ∗(y) of the following
+form: f (y) = a1T Medl(y), where 1 is an all one vector of proper
+dimension and a is a constant. The optimal C(f ) for estimators with
+a symmetric and linear Φ function is listed in Table I. Comparing
+the results with the MSE (m + 1)−1 of the optimal estimator f =
+1T y/(m + 1) for the no adversary case, one can still see a more than
+threefold increase in the MSE for all m from 3 to 10.
+VII. CONCLUSION AND FUTURE WORK
+In this technical note, we consider the problem of designing estimator
+able to minimize the mean squared error in the presence
+of l corrupted measurements due to integrity attacks on a subset of
+the sensor pool. The problem is posed as a minimax optimization
+where the goal is to design the optimal estimator against all possible
+attacker's strategies. We show that if the attacker can manipulate at
+least half of the m measurements (l ≥ m/2) then the optimal worstcase
+estimator should ignore all m measurements and be based solely
+on the a-priori information. When the attacker can manipulate less
+than half of the measurements (l < m/2), we show that the optimal
+estimator is based on m2l local estimators. We further prove that such
+an estimator can be reduced into simpler forms for two special cases.
+We are planning to expand our research to the case of multidimensional
+state estimation in the future.
+REFERENCES
+[1] T. M. Chen, “Stuxnet, the real start of cyber warfare? [editor's note],”
+IEEE Network, vol. 24, no. 6, pp. 2-3, 2010.
+[2] D. P. Fidler, “Was stuxnet an act of war? decoding a cyberattack,” IEEE
+Security & Privacy, vol. 9, no. 4, pp. 56-59, 2011.
+[3] A. A. Cárdenas, S. Amin, and S. Sastry, “Research challenges for the
+security of control systems,” in HOTSEC'08: Proc. 3rd Conf. Hot topics
+in Security, 2008, pp. 1-6, Berkeley, CA, USA: USENIX Association.
+[4] S. A. Kassam and H. V. Poor, “Robust techniques for signal processing:
+A survey,” Proc. IEEE, vol. 73, no. 3, pp. 433-481, Mar. 1985.
+[5] R. A. Maronna, D. R. Martin, and V. J. Yohai, Robust Statistics: Theory
+and Methods. Wiley, 2006.
+[6] P. J. Huber and E. M. Ronchetti, Robust Statistics. New York: Wiley,
+2009.
+[7] F. R. Hampel, “A general qualitative definition of robustness,” Ann.
+Mathemat. Statist., vol. 42, no. 6, pp. 1887-1896, Dec. 1971.
+[8] D. L. Donoho and P. J. Huber, “The notion of breakdown point,”
+A Festschrift for Erich L. Lehmann, pp. 157-184, 1983.
+[9] F. R. Hampel, “The influence curve and its role in robust estimation,”
+J. Amer. Statist. Assoc., vol. 69, no. 346, pp. 383-393, 1974.
+[10] K. Zhou, J. C. Doyle, and K. Glover, Robust and Optimal Control,
+vol. 272. Englewood Cliffs, NJ: Prentice-Hall, 1996.
+[11] A. Abur and A. G. Expósito, Power System State Estimation: Theory and
+Implementation. Boca Raton, FL: CRC Press, 2004.
+[12] Y. Liu, M. Reiter, and P. Ning, “False data injection attacks against state
+estimation in electric power grids,” in Proc. 16th ACM Conf. Computer
+and Communications Security, 2009.
+[13] H. Sandberg, A. Teixeira, and K. H. Johansson, “On security indices for
+state estimators in power networks,” in 1st Workshop on Secure Control
+Systems, 2010.
+[14] L. Xie, Y. Mo, and B. Sinopoli, “Integrity data attacks in power market
+operations,” IEEE Trans. Smart Grid, vol. 2, no. 4, pp. 659-666, 2011.
+[15] Y. Mo and B. Sinopoli, “Robust estimation in the presence of integrity
+attacks,” Proc. 52nd IEEE Conf. Decision and Control, 2013.
+[16] Y. Mo, J. Hespanha, and B. Sinopoli, “Resilient detection in the presence
+of integrity attacks,” IEEE Trans. Signal Process., vol. 62, no. 1, pp. 3143,
+Jan. 2014.
+[17] A. Kerckhoffs, “La cryptographie militairie,” J. des Sciences Militaires,
+vol. IX, pp. 5-38, Jan. 1883.
+[18] S. Boyd and L. Vandenberghe, Convex Optimization. Cambridge, MA:
+Cambridge University Press, 2004.

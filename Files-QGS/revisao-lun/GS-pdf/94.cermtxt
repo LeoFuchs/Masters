@@ -1,0 +1,828 @@
+2014 American Control Conference (ACC)
+June 4-6, 2014. Portland, Oregon, USA
+An Abrupt Change Detection Heuristic
+with Applications to Cyber Data Attacks on Power Systems
+Borhan M. Sanandaji,? Eilyan Bitar,
+Kameshwar Poolla,? and Tyrone L. Vincent
+Abstract- We present an analysis of a heuristic for abrupt
+change detection of systems with bounded state variations. The
+proposed analysis is based on the Singular Value Decomposition
+(SVD) of a history matrix built from system observations. We
+show that monitoring the largest singular value of the history
+matrix can be used as a heuristic for detecting abrupt changes
+in the system outputs. We provide sufficient detectability conditions
+for the proposed heuristic. As an application, we consider
+detecting malicious cyber data attacks on power systems and
+test our proposed heuristic on the IEEE 39-bus testbed.
+I. INTRODUCTION
+Fault detection and supervisory control are essential to
+ensure that a dynamical system is operating in normal
+conditions. These monitoring mechanisms are of higher
+importance for critical systems such as power systems. Any
+propagation of faults in a power system may have severe
+consequences in the electricity generation, transmission, or
+distribution. To this end, Supervisory Control and Data
+Acquisition (SCADA) systems are designed for controlling
+and monitoring different parts of a power grid. Traditionally,
+within SCADA or other conventional supervisory control and
+monitoring centers, the state of the system under study is
+estimated at every sample time. The condition of the system
+is then tested by monitoring a metric based on the estimated
+state. An abrupt change in that metric is an indicator of the
+occurrence of some malfunctioning in the system dynamics.
+A. Designated Data Attacks
+In power systems, as an example, changes of the system
+dynamics have been traditionally considered as a result of
+meter aging and malfunctioning, electrical breakdown, or
+natural causes such as storm, lightening, etc. However, such
+changes might be the result of a designated cyber data attack
+to the system. In particular, with the emergence of smart grids
+and its smart hardware and software components such as
+smart meters, Phasor Measurement Units (PMUs), intelligent
+?Borhan M. Sanandaji and Kameshwar Poolla are with Department of
+Electrical Engineering and Computer Sciences, University of California,
+Berkeley, CA 94720, USA, email: fsanandaji, poollag@berkeley.edu.
+Eilyan Bitar is with the School of Electrical and Computer Engineering,
+Cornell University, Ithaca, NY 14850, USA, email: eyb5@cornell.edu.
+Tyrone L. Vincent is with the Department of Electrical Engineering and
+Computer Science, Colorado School of Mines, Golden, CO 80401, USA,
+email: tvincent@mines.edu.
+This work was supported in part by EPRI and CERTS under subaward
+09-206; PSERC S-52; NSF under Grants EECS-1129061, CPS1239178,
+and CNS-1239274; the Republic of Singapore National Research
+Foundation through a grant to the Berkeley Education Alliance for Research
+in Singapore for the SinBerBEST Program; Robert Bosch LLC through its
+Bosch Energy Research Network funding program.
+control devices, etc., power systems (and other similar largescale
+dynamical systems) are more vulnerable to such malicious
+data attacks. In fact, it has been recently shown that an
+attacker can design attacks that do not appear in the detection
+metrics and can pass conventional detection algorithms. Such
+attacks, namely called unobservable attacks, require a careful
+compromise of meter readings by the attacker. Altogether,
+these have motivated a great amount of research to address
+cyber data attack detection within smart grids.
+B. Related Work
+Recently, Liu et al. [1] considered scenarios in which an
+attacker designs attacks carefully such that the conventional
+bad data detection algorithms are not capable of detecting
+them. Inspired by their work, many other papers targeted this
+problem [1]-[9]. An adversary attack has an impact on the
+real-time and day-ahead electricity markets. Such situations
+have been studied by [10], [11], among others.
+Kosut et al. [5] assume a Bayesian model on the state
+variables and consider a binary detection problem. In particular,
+they assume that the state variables have a zero-mean
+Gaussian distribution. Fawzi et al. [2] impose a linear statespace
+representation on the power system state evolution
+and propose a decoder that corrects for the compromised
+meters. In their plant model, they assume they know the
+state transition and measurement matrices.
+C. Main Contributions
+In this paper, we assume no a-priori distribution on the
+attack vector. We assume that the state variations (under
+normal conditions) are unknown but bounded within an `2norm.
+The time of attack (modeled as an abrupt change added
+to the unknown systems dynamics under normal conditions)
+and its magnitude is unknown to us as well. We present a
+heuristic for detecting such changes. The proposed heuristic
+is based on the Singular Value Decomposition (SVD) of a
+history matrix built form system observations. We show that
+monitoring the largest singular value of the history matrix is
+a good heuristic for detecting abrupt changes in the system
+outputs. In particular, we provide sufficient detectability
+conditions for the proposed heuristic. While the results of
+this paper can be applied to any system with a similar linear
+model with bounded state variations and generic faults, of
+our particular interest are power systems and unobservable
+attacks where such fault detection schemes play an important
+role in maintaining the safety and stability of the system.
+978-1-4799-3274-0/$31.00 ©2014 AACC
+5056
+D. Notation
+A column vector is shown as x 2 RN with boldface
+letters. An element of a vector is shown as x(i). A matrix
+is shown with a capital letter as A 2 RM N . The elements
+of a matrix is shown as A(i; j). The transpose and pseudoinverse
+of A are denoted by AT and Ay, respectively. All
+variables are real-valued unless mentioned otherwise.
+II. SETUP
+While the proposed analysis can be applied to any system
+with a linear model, we present our problem formulation
+based on the DC power flow model of a power system and
+a transmission network.
+A. Measurement Model
+Let yt 2 RM contain the injected power measurements of
+n + 1 buses and line power measurements of m branches of
+a transmission network at time t, where M := m + n + 1.
+Under a DC power flow model assumption over a finite time
+interval t = ti; : : : ; tf , one can consider a linear relation
+between the measurements yt and the power systems state
+vector xt 2 RN as:
+yt = Hxt + et; t = ti; : : : ; tf ;
+(1)
+where xt 2 RN is the state of the system at time t
+containing the relative bus phase angles1 and et contains the
+measurement noise. The matrix H relates the state variables
+and the meter measurements and in general, is affected by
+the grid topology and link impedances. It is the job of the
+control center to construct H. In this paper, we assume H
+is given and fixed over time and both the attacker and the
+control center have access to it. We assume the measurement
+noise is Gaussian with et N (0; ). In order to incorporate
+the attack in the model, one can extend (1) as:
+yt = Hxt
+ta + et; t = ti; : : : ; tf ;
+where a is the attack vector and t is an indicator variable.
+B. Attack Model
+The attacker abruptly changes the meter readings at time
+t = ta where ta is the time of attack. The indicator variable
+t is defined as:
+t =
+0; t < ta;
+1; t ta:
+(2)
+(3)
+Remark 1: In a more general setting, one can consider an
+arbitrary function s(t; tai ; taf ) as the signature of the attack
+where tai is when an attack starts and taf is when an attack
+reaches its final value. Apparently, there exists a trade-off for
+the attacker between the detectability of the attack (in this
+case, function s should be smooth and gradually increasing
+rather than a step function) and the harmfulness of the attack
+(a step function has a larger harmful impact).
+1The key state variables in a power grid contain bus voltage magnitudes
+and angles. However, in a DC power flow model the state variables are
+usually the bus voltage angles only.
+where
+where
+C. Systems with Bounded State Variations
+In this paper, we are interested in linear systems whose
+state variations are bounded within an `2-norm ball. Formally,
+we consider systems with
+for any t; t0 2 fti; : : : ; tf g and for some
+> 0.
+kxt
+xt0 k2
+;
+III. STATE ESTIMATION
+A. Before Attack
+Let's consider the attack model (2)-(3). Note that at any
+given time t before the attack (i.e., ti t < ta), we have
+yt = Hxt + et. A state estimate, xbt, can be found by
+minimizing the cost function associated with a Weighted
+Least Squares (WLS) estimator as:
+xt = argmin J (xt);
+b xt
+J (xt) := (yt
+Hxt)T
+1(yt
+Hxt):
+It is trivial to find the minimizer of J (xt). We have
+(4)
+(5)
+(6)
+(7)
+(8)
+yta H xbta = yt H xbt:
+pTahsusse,saatneyacdhetesacmtiopnlemtiemtreict(,ei.fg.t,hkeyrtesidHuaxbltrkt2):,=thyetresiHduxbatl
+under attack rta := yta H xbta would pass that criteria, and
+consequently such an attack is unobservable from the view
+point of the control center. To this end, such detection algorithms
+are namely referred to as “bad” detection algorithms.
+5057
+xt = Kyt;
+b
+K := (HT
+1H) 1HT
+1:
+Substituting the measurement model yt = Hxt + et in (5),
+xt = Kyt = KHxt + Ket = xt + Ket;
+b
+where we used the fact that KH = IN .
+B. After the Attack
+After the attack, we have yta := yt + a = Hxt + et. A
+WLS estimate of the state under the attack can be found as:
+xbta = Kyta = Kyt + Ka
+= xbt + (HT
+1H) 1HT
+1a:
+There has been a recent interest in the so-called unobservable
+malicious data attacks on the power system [1]. From (7),
+one can see that if there exists a vector c 2 RN such that
+then we have
+and consequently,
+a = Hc;
+xbta = xbt + c
+IV. ANALYSIS OF AN SVD-BASED HEURISTIC FOR
+ABRUPT CHANGE DETECTION
+In this section, we analyze an SVD-based heuristic which
+can be used for abrupt change detection of systems with
+bounded state variations. In our proposed approach, we
+collect a trace of the measurements over a finite time window.
+A. History Matrix
+t
+Given the measurements yt over a finite horizon of time, at
+any given time t one can build a history matrix that contains
+the changes of the measurements as:
+2 (yt
+6 (yt
+t = 6
+6
+4
+(yt
+yt 1)T 3T
+yt 2)T 7
+... 775
+yt w)T
+2 RM w;
+(9)
+where w is the size of the considered time window. Define
+2etT 3T
+6etT 7
+Et := 6664et...T 7757
+2 (xt
+6 (xt
+Xt := 6
+6
+4
+(xt
+2 et 1T 3T
+2 RM w; Gt := 66664 eett... w2TT 77775
+xt 1)T 3T
+xt 2)T 7
+... 775
+xt w)T
+6 aT 7
+2 RN w; and A := 6 . 7 ;
+64 .. 75
+aT
+2 RM w;
+2 aT 3T
+where
+` :=
+for any t. It is trivial to see that
+t can be decomposed as
+At t = ta (i.e., when the attack happens),
+Similarly, at t = ta + 1, we have
+t = Et + Gt + HXt;
+(8t < ta):
+ta = Eta + Gta + HXta + A:
+2 0T 3T
+6 aT 7
+ta+1 = Eta+1 + Gta+1 + HXta+1 + 6 . 7
+46 .. 57
+aT
+and for t
+ta + w,
+t = Et + Gt + HXt;
+(t
+ta + w):
+Note that the structure of the history matrix for t
+in (13) is similar to the one for t < ta given in (10).
+B. Singular Value Analysis on
+t
+Based on the structure of t and how it changes over time
+(before and after the attack), one can consider a heuristic for
+detecting abrupt changes in yt. While the rank of t (the
+number of non-zero singular values) does not change before
+and after the attack, the distribution of the singular values of
+t changes (due to the addition of a rank-1 matrix) after the
+attack. In particular, there exists a large jump in the largest
+singular value of the history matrix at the time of attack
+(10)
+(11)
+(12)
+(13)
+ta + w
+and afterwards.2 In what follows, we monitor this jump and
+provide bounds on its magnitude before and after the attack.
+In particular, note that Eta and A are rank-1 matrices. Our
+goal is to exploit such a structure (rank-1 structure of A and
+Eta ) in evaluating the changes in the first singular value of
+t. In order to keep the paper self-contained, we provide all
+required lemmas and theorems in proving the main theorems.
+Let i( t) denote the ith singular value of t. The
+following theorems present probability tail bounds on 1( t)
+(the largest singular value of t). The first theorem shows
+that the largest singular value of t is bounded from above
+with exponentially high probability when t < ta.
+Theorem 1: Let > 0 and > 0. Consider a linear
+system described by (2) and with bounded state variations
+as described by (4). Let M be the number of measurements
+and w be the window size. Assume a be an unknown attack
+vector and et N (0; 2). Let t and Gt be defined as in
+section IV-A. Then, for t < ta
+P
+1( t)
+`
+2 exp (
+) + (1 + )e
+pwpM (1 + ) + (pM + pw + ) +
+M=2;
+pwkHk:
+P
+where
+Proof: See Appendix.
+The second theorem shows that 1( ta ) is bounded from
+below with exponentially high probability.
+Theorem 2: Let > 0 and > 0. Consider a linear
+system described by (2) and with bounded state variations as
+described by (4). Let M be the number of measurements and
+w be the window length. Assume a be an unknown attack
+vector and et N (0; 2). Assume kak2 keta k2. Let ta
+and Gta be defined as in section IV-A. Then,
+1( ta )
+u
+2 exp (
+) + (1 + )e
+M=2;
+u =: pwkak2
+`;
+2
+2
+2
+2
+and ` is as defined in Theorem 1.
+Proof: See Appendix.
+Remark 2: Theorems 1 and 2 provide probability tail
+bounds on 1( t) before and at the time of attack, respectively.
+The results have a probabilistic notion with exponential
+bounds. When we say “with high probability” it refers to
+such exponential behavior. With reasonable choices of and
+)feor aMg=iv2ecnanMb,ethpeusphreodbatobilbietyvteerrymcl2oesxepto( 0.22 ) + (1 +
+Based on these results, a detection rule can be considered
+as follows. For any given ` and u such that ` < u, if
+1( t) < ` for all ti t < ta and 1( ta ) > u, then
+an attack has happened at time ta. Based on this detection
+rule, we can derive the detection probability as follows.
+2While it is still noticeable, this jump starts to decrease at later times
+after the attack and vanishes at t = ta + w.
+5058
+2
+2
+M
+Theorem 3: Let > 0 and > 0. Consider a linear
+system described by (2) and with bounded state variations as
+described by (4). Let M be the number of measurements and
+w be the window length. Assume a be an unknown attack
+vector and et N (0; 2). Let ` and u be as defined in
+Theorems 1 and 2, respectively. Then, an attack a can be
+detected at ta with detection probability
+1
+2 2 exp (
+) + (1 + )e
+M=2 :
+P fdetectiong
+if
+kak2 > 2
+p
+1
+M (1 + + pw + p
+1
++ pM pw ) + kHk :
+Proof: See Appendix.
+Remark 3: Theorem 3 provides a sufficient condition on
+kak2 for detectability. The derived bound illustrates how
+different factors affect the detectability. For example, the
+larger the noise level (i.e., large value), the harder the
+detection. The number of measurements M and the window
+size w are also affecting the detectability. Detection of abrupt
+changes in systems with smaller state variations (i.e., smaller
+) is also easier as can be interpreted from this result.
+V. CASE STUDY - IEEE 39-BUS TESTBED
+In this section, we examine our proposed heuristic and detection
+condition on the IEEE 39-bus testbed [12]. Consider
+a 4-sparse unobservable attack happening at ta = 129. Fig. 1
+illustrates how 1( t) evolves over time, where M = 85 and
+w = 16. As an alternative to measurements, one could build
+the history matrix based on the state estimates as given by
+(5). To this end, we consider two cases. Once we construct
+the history matrix based on the measurmenets (Fig. 1(a))
+and once based on the state estimates (Fig.1(b)). As can be
+seen, the jump in 1( ta ) is more distinguishable when the
+history matrix is built based on the measurements. In all of
+the simulations of this section, we assume = 0. However,
+similar results can be achieved for the case with 6= 0.
+Also, note that how 1( t) starts to decrease at times
+after the attack (i.e., t 129). In fact, this can be understood
+by looking at the structure of t at times after the attack.
+As shown in (12), the first column of the change matrix is
+zero at t = ta + 1. This makes the Frobenius norm (and
+consequently `2-norm) of the history matrix smaller. This
+decrease in 1( t) continues on until t = ta + w. The
+effect of the attack disappears for t ta + w when the
+characteristics of t are similar to the ones at t < ta.
+Fig. 2 illustrates how tight are the probability tail bounds
+of Theorems 1 and 2. As mentioned earlier, a 4-sparse
+unobservable attack with kak2 = 2 has occurred at ta =
+129. With a given number of measurements M = 85, we
+choose = 4 and = 0:75 to make the probability term
+2 exp ( 22 ) + (1 + )e M=2 = 6:7 10 4. We stick
+to these values in all simulations provided in this section.
+However, different values of and can be chosen to achieve
+a desired tail probability. A window size of w = 8 and a
+noise level of = 0:01 are considered in Fig. 2(a). We repeat
+8
+7
+6
+e5
+d
+u
+i 4
+t
+n
+g
+a
+3
+M
+2
+1
+0
+10
+8
+e
+d
+u
+itn 6
+g
+a
+M
+4
+2
+0
+50
+50
+(a)
+100
+150
+Time Sample (t)
+(b)
+200
+250
+100
+150
+Time Sample (t)
+200
+250
+Fig. 1. Illustration of how 1( t) changes over time when an attack
+happens. In this example, an unobservable attack happens at t = 129. A
+window size of w = 16 and a noise level with = 0:05 are considered. The
+history matrix is built based on (a) measurements and (b) state estimates.
+the simulations for 300 realizations at each sample time. A
+window size of w = 64 and a noise level of = 0:04 are
+considered in Fig. 2(b). As can be seen, the gap between the
+provided bounds and the actual 1( t) magnitude is larger
+for cases with larger noise levels.
+Fig. 3 shows how different parameters affect the detectability
+condition proposed in Theorem 3. We first assume
+kak = 2, M = 85, = 4, and = 0:75, and we are
+interested in the relation between window size w and noise
+level such that the sufficient condition of Theorem 3 is
+satisfied. Fig. 3(a) shows the result. As can be seen, for larger
+values of , larger window sizes w should be considered
+such that the attack can be detected with exponentially high
+probability. In another scenario, we consider the case where
+= 0:05, M = 85, = 4, and = 0:75 are fixed and
+we are interested in finding the relation between window
+size w and kak2. Fig. 3(b) shows the result. For any kak2,
+the curve determines the minimum required window size for
+having detectability. For example, when kak2 = 2 one need
+to construct the history matrix t with w 22 such that the
+sufficient detectability condition of Theorem 3 is satisfied. In
+other words, attacks with larger magnitude may be detected
+5059
+5
+4
+e
+d
+it 3
+u
+n
+g
+a
+M
+2
+1
+0
+16
+14
+12
+ed10
+u
+itgn 8
+a
+M 6
+4
+2
+0
+lower bound l
+lower bound l
+(a)
+Time Sample (t)
+(b)
+Time Sample (t)
+upper bound u
+upper bound u
+(a)
+(b)
+Fig. 2. Illustration of the performance of the provided bounds of
+Theorems 1 and 2. A 4-sparse unobservable attack with kak2 = 2 has
+occurred at ta = 129. Plots depict 300 iterations at each sample time. (a)
+A window size of w = 8 and a noise level of = 0:01 are considered. (b)
+A window size of w = 64 and a noise level of = 0:04 are considered.
+Fig. 3. Illustration of how different parameters affect the detectability
+condition of Theorem 3. (a) kak2 = 2 is fixed. One needs to increase w as
+noise level increases. (b) = 0:05 is fixed. For any kak2, the curve
+determines the minimum required window size for having detectability.
+Attacks with larger magnitudes may be detected with smaller window sizes.
+with smaller window sizes and similarly, one one needs to
+increase the window size as kak2 gets smaller.
+APPENDIX
+Proof of Theorem 1 Considering the measurement model
+given in (2), for t < ta (i.e., before the attack), we have
+t = Gt + Et + H X t;
+(t < ta):
+We are interested in showing that there exists an ` such that
+P f 1( t) `g is very small for 8t < ta. We have
+1( t) =
+1(Et + Gt + H X t)
+1(Et) +
+pwketk2 +
+1(Gt) +
+1(Gt) +
+1(H X t)
+pwkH k;
+(14)
+where we used the assumption that kxt xt t0 k , for all
+t and t0 2 fti; : : : ; tf g. Given ; ; ; M; w, and any t < ta,
+let's define event A as
+E (A) :=
+1(Gt) <
+(pM + pw + )
+and event B as
+E (B) :=
+ketk2 <
+pM (1 + ) :
+It is trivial to see that if events E (A) and E (B) happen, then
+event C defined as
+E (C) :=
+pwketk2 +
+1(Gt) +
+pwkH k < `
+happens where
+` := pwpM (1 + ) +
+(pM + pw +
+) +
+pwkH k:
+Using results from Concentration of Measure (CoM) phenomenon
+of random processes [13]-[15], we first show that
+for any t, random variables 1(Gt) and ketk2 are highly
+concentrated around their expected value. The following
+lemmas provide such CoM bounds.
+Lemma 1: ( [15], [16, Lemma 2]) Let e be a vector in RM
+whose entries are independent Gaussian random variables
+with zero mean and 2 variance. Then for every 0,
+P n
+kek2
+pM (1 + )o
+(1 + )e
+M=2:
+Lemma 2: ( [17]) Let G be an M w matrix whose entries
+are independent Gaussian random variables with zero mean
+5060
+) + (1 + )e
+M=2
+;
+kak2 > 2
+and
+2 variance. Then for every
+0,
+P
+n
+1(G)
+p
+(
+p o
+M + w + )
+2 exp (
+2
+2
+):
+Using Lemma 1 and Lemma 2, and noting that P fE (C)cg
+P fE (A)cg + P fE (B)cg, we have
+P
+1(
+t)
+`
+t
+wke k2 +
+t
+1(G )
+`
+p
+P
+2 exp (
+2
+2
+where we used (14) in showing the first inequality.
+Proof of Theorem 2 First we need a lower bound on
+1( ta ). Modifying [18, Theorem 6], we can derive a lower
+bound on the first singular value of ta as
+1(
+ta ) =
+1(Eta + Gta + H X ta + A)
+for all 1
+1(
+1(
+i
+ta )
+ta )
+Assuming
+1(Eta + A) >
+1(Gta + H X ta ), we have
+i(Eta + A)
+i(Gta + H X ta )
+minfM; wg. In particular, for i = 1
+1(Eta + A)
+1(Gta + H X ta ) :
+(15)
+(16)
+p
+p
+wketa + ak2
+wketa + ak2
+1(Gta + H X ta )
+1(Gta )
+p
+wkH k;
+where we used the fact that
+and 1(Gta + H X ta )
+1(Eta + A) = pwketa + ak2
+1(Gta ) +
+1(H X ta ). Assuming
+kak2
+keta k2 and using the reverse triangle inequality,
+keta + ak2
+kak2
+k
+eta
+k2
+= kak2
+k
+eta k2:
+Therefore, from (16)
+1(
+ta )
+p
+p
+wketa + ak2
+wkak2 pwketa k2
+1(Gta )
+1(Gta )
+p
+wkH k
+p
+E (A) :=
+Given ; ; ; M; w, and ta, let's define event A as
+1(Gta ) < (pM + pw + )
+and event B as E (B) := keta k2 < M (1 + ) . It is
+trivial to see that if events E (A) and E (B) happen, then
+event C defined as
+p
+E (C) :=
+p
+wkak2
+pwketa k2
+happens where u := pwkak2
+` and
+` =
+p p
+w
+p
+M (1 + ) + (
+p
+M + w +
+) +
+1(Gta )
+p
+wkH k > u
+p
+wkH k:
+Using Lemma 1 and Lemma 2, and noting that P fE (C)cg
+P fE (A)cg + P fE (B)cg, we have
+(17)
+(18)
+wkH k:
+P
+1(
+p
+P
+ta )
+u
+wkak2
+pwketa k2
+1(Gta )
+u
+2 exp (
+) + (1 + )e
+2
+2
+M=2
+;
+where we used (18) in showing the first inequality.
+Proof of Theorem 3 For any ` and u such that ` < u,
+P fdetectiong = P
+1(
+t) < ` and
+1(
+ta ) > u :
+Using similar techniques as used in the proof of Theorems 1
+and 2, we have
+P fnot detectiong
+P
+1(
+t)
+2 2 exp (
+2
+` + P
+1(
+ta )
+) + (1 + )e
+M=2
+u
+;
+2
+where ` and u are chosen as given in Theorems 1 and 2,
+respectively. If
+p
+M (1 +
+1
++ pw + p
+1
+M
++ p
+M pw
+) +
+kH k2 ;
+then ` < u and this completes the proof.
+REFERENCES
+[1] Y. Liu, P. Ning, and M. K. Reiter, “False data injection attacks against
+state estimation in electric power grids,” ACM Trans. on Information
+and System Security (TISSEC), vol. 14, no. 1, p. 13, 2011.
+[2] H. Fawzi, P. Tabuada, and S. Diggavi, “Secure state-estimation for
+dynamical systems under active adversaries,” Proceedings of the
+49-th Annual Allerton Conference on Communication, Control, and
+Computing, pp. 337-344, 2011.
+[3] F. Pasqualetti, F. Dorfler, and F. Bullo, “Cyber-physical attacks in
+power networks: Models, fundamental limitations and monitor design,”
+Proceedings of the 50-th IEEE Conference on Decision and Control
+and European Control Conference (CDC-ECC), pp. 2195-2201, 2011.
+[4] A. Giani, E. Bitar, M. Garcia, M. McQueen, P. Khargonekar, and
+K. Poolla, “Smart grid data integrity attacks: characterizations and
+countermeasures ,” Smart Grid Communications (SmartGridComm),
+2011 IEEE International Conference on, pp. 232-237, 2011.
+[5] O. Kosut, L. Jia, R. J. Thomas, and L. Tong, “On malicious data attacks
+on power system state estimation,” Proc. of the 45-th International
+Universities Power Engineering Conference, pp. 1-6, 2010.
+[6] T. T. Kim and H. V. Poor, “Strategic protection against data injection
+attacks on power grids,” IEEE Transactions on Smart Grid, vol. 2,
+no. 2, pp. 326-333, 2011.
+[7] D. Gorinevsky, S. Boyd, and S. Poll, “Estimation of faults in dc electrical
+power system,” Proceedings of American Control Conference,
+pp. 4334-4339, 2009.
+[8] R. B. Bobba, K. M. Rogers, Q. Wang, H. Khurana, K. Nahrstedt,
+and T. J. Overbye, “Detecting false data injection attacks on dc
+state estimation,” Preprints of the First Workshop on Secure Control
+Systems, 2010.
+[9] H. Sandberg, A. Teixeira, and K. H. Johansson, “On security indices
+for state estimators in power networks,” Preprints of the First Workshop
+on Secure Control Systems, 2010.
+[10] L. Jia, R. J. Thomas, and L. Tong, “Malicious data attack on real-time
+electricity market,” Proc. of the 2011 IEEE International Conf. on
+Acoustics, Speech and Signal Processing, pp. 5952-5955, 2011.
+[11] L. Xie, Y. Mo, and B. Sinopoli, “False data injection attacks in
+electricity markets,” Proceedings of the 2010 IEEE International
+Conference on Smart Grid Communications, pp. 226-231, 2010.
+[12] R. D. Zimmerman, C. E. Murillo-Sa´nchez, and R. J. Thomas, “MATPOWER:
+Steady-state operations, planning and analysis tools for
+power systems research and education,” IEEE Transactions on Power
+Systems, vol. 26, no. 1, pp. 12-19, 2011.
+[13] M. Ledoux, The concentration of measure phenomenon. Amer
+Mathematical Society, 2001.
+[14] G. Lugosi, “Concentration-of-measure inequalities,” Lecture Notes,
+2004.
+[15] B. M. Sanandaji, T. L. Vincent, and M. B. Wakin, “Concentration of
+measure inequalities for Toeplitz matrices with applications,” IEEE
+Transactions on Signal Processing, vol. 61, no. 1, pp. 109-117, 2013.
+[16] B. M. Sanandaji, T. L. Vincent, K. Poolla, and M. B. Wakin, “A tutorial
+on recovery conditions for compressive system identification of sparse
+channels,” Proceedings of the 51-th IEEE Conference on Decision and
+Control (CDC), pp. 6277-6283, 2012.
+[17] R. Vershynin, “Introduction to the non-asymptotic analysis of random
+matrices,” Arxiv preprint arxiv:1011.3027, 2011. [Online]. Available:
+http://arxiv.org/abs/1011.3027
+[18] J. K. Merikoski and R. Kumar, “Inequalities for spreads of matrix
+sums and products,” Applied Mathematics E-Notes, vol. 4, pp. 150159,
+2004.
+5061

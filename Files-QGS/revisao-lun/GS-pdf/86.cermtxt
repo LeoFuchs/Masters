@@ -1,0 +1,1480 @@
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 58, NO. 11, NOVEMBER 2013
+2715
+Attack Detection and Identification in
+Cyber-Physical Systems
+Fabio Pasqualetti, Student Member, IEEE, Florian Dörfler, Student Member, IEEE, and Francesco Bullo, Fellow, IEEE
+Abstract-Cyber-physical systems are ubiquitous in power
+systems, transportation networks, industrial control processes,
+and critical infrastructures. These systems need to operate reliably
+in the face of unforeseen failures and external malicious attacks.
+In this paper: i) we propose a mathematical framework for
+cyber-physical systems, attacks, and monitors; ii) we characterize
+fundamental monitoring limitations from system-theoretic and
+graph-theoretic perspectives; and ii) we design centralized and
+distributed attack detection and identification monitors. Finally,
+we validate our findings through compelling examples.
+Index Terms-Cyber-physical systems, descriptor systems, distributed
+control, fault detection, geometric control, graph theory,
+networks, security.
+I. INTRODUCTION
+C computational resources, and communication capabiliYBER-PHYSICAL
+systems integrate physical processes,
+ties. Examples of cyber-physical systems include transportation
+networks, power generation and distribution networks, water
+and gas distribution networks, and advanced communication
+systems. As recently highlighted by the Maroochy water breach
+in March 2000 [1], multiple recent power blackouts in Brazil
+[2], the SQL Slammer worm attack on the Davis-Besse nuclear
+plant in January 2003 [3], the StuxNet computer worm in
+June 2010 [4], and by various industrial security incidents [5],
+cyber-physical systems are prone to failures and attacks on
+their physical infrastructure, and cyber attacks on their data
+management and communication layer.
+Concerns about security of control systems are not new, as
+the numerous manuscripts on systems fault detection, isolation,
+and recovery testify [6], [7]. Cyber-physical systems, however,
+suffer from specific vulnerabilities which do not affect classical
+control systems, and for which appropriate detection and identification
+techniques need to be developed. For instance, the
+reliance on communication networks and standard communication
+protocols to transmit measurements and control packets
+Manuscript received February 27, 2012; revised August 20, 2012, January
+30, 2013, and May 09, 2013; accepted May 09, 2013. Date of publication June
+21, 2013; date of current version October 21, 2013. This work was supported
+in part by the National Science Foundation (NSF)under Grant CNS-1135819
+and in part by the Institute for Collaborative Biotechnologies under Grant
+W911NF-09-0001 from the U.S. Army Research Office. Recommended by
+Associate Editor P. Tabuada.
+The authors are with the Center for Control, Dynamical Systems, and Computation,
+University of California at Santa Barbara, Santa Barbara, CA 93101
+USA (e-mail: fabiopas@engineering.ucsb.edu; dorfler@engineering.ucsb.edu;
+bullo@engineering.ucsb.edu).
+Color versions of one or more of the figures in this paper are available online
+at http://ieeexplore.ieee.org.
+Digital Object Identifier 10.1109/TAC.2013.2266831
+increases the possibility of intentional and worst case attacks
+against physical plants. On the other hand, information security
+methods, such as authentication, access control, and message
+integrity, appear inadequate for a satisfactory protection of
+cyber-physical systems. Indeed, these security methods do not
+exploit the compatibility of the measurements with the underlying
+physical process or the control mechanism, and they are
+therefore ineffective against insider attacks targeting the physical
+dynamics [1].
+Related Work: The analysis of vulnerabilities of cyber-physical
+systems to external attacks has received increasing attention
+in the last years. The general approach has been to study the
+effect of specific attacks against particular systems. For instance,
+in [8] deception and denial of service attacks against
+a networked control system are defined, and, for the latter
+ones, a countermeasure based on semi-definite programming is
+proposed. Deception attacks refer to the possibility of compromising
+the integrity of control packets or measurements, and
+they are cast by altering the behavior of sensors and actuators.
+Denial of service attacks, instead, compromise the availability
+of resources by, for instance, jamming the communication
+channel. In [9], false data injection attacks against static state
+estimators are introduced. False data injection attacks are
+specific deception attacks in the context of static estimators.
+It is shown that undetectable false data injection attacks can
+be designed even when the attacker has limited resources.
+In a similar fashion, stealthy deception attacks against the
+Supervisory Control and Data Acquisition system are studied,
+among others, in [10]. In [11], the effect of replay attacks
+on a control system is discussed. Replay attacks are cast by
+hijacking the sensors, recording the readings for a certain
+amount of time, and repeating such readings while injecting an
+exogenous signal into the system. It is shown that these attacks
+can be detected by injecting a signal unknown to the attacker
+into the system. In [12], the effect of covert attacks against
+control systems is investigated. Specifically, a parameterized
+decoupling structure allows a covert agent to alter the behavior
+of the physical plant while remaining undetected from the original
+controller. In [13], a resilient control problem is studied,
+in which control packets transmitted over a network are corrupted
+by a human adversary. A receding-horizon Stackelberg
+control law is proposed to stabilize the control system despite
+the attack. Recently, the problem of estimating the state of a
+linear system with corrupted measurements has been studied
+[14]. More precisely, the maximum number of tolerable faulty
+sensors is characterized, and a decoding algorithm is proposed
+to detect corrupted measurements. Finally, security issues of
+specific cyber-physical systems have received considerable
+0018-9286 © 2013 IEEE
+2716
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 58, NO. 11, NOVEMBER 2013
+attention, such as power networks [15]-[19], linear networks
+with misbehaving components [20], [21], and water networks
+[22], [23].
+Contributions: The contributions of this paper are as follows.
+First, we describe a unified modeling framework for
+cyber-physical systems and attacks (Section II). Motivated by
+existing cyber-physical systems and existing attack scenarios,
+we model a cyber-physical system under attack as a descriptor
+system subject to unknown inputs affecting the state and the
+measurements. For our model, we define the notions of detectability
+and identifiability of an attack by its effect on output
+measurements. Informed by the classic work on geometric control
+theory [24], [25], our framework includes the deterministic
+static detection problem considered in [9] and [10], and the
+prototypical deception and denial of service [8], stealth [16],
+(dynamic) false-data injection [26], replay attacks [11], and
+covert attacks [12] as special cases.
+Second, we show the fundamental limitations of a class of
+monitors (Section III-A). This class includes the widely-studied
+static, dynamic, and active monitors. We prove that 1) a cyberphysical
+attack is undetectable by our monitors if and only if
+the attackers' signal excites uniquely the zero dynamics of the
+input/output system, and 2) that undetectable and unidentifiable
+attacks can be cast without knowing monitoring signals or the
+system noise.
+Third, we provide a graph-theoretic characterization of
+undetectable attacks (Section III-B). We borrow some tools
+from the theory of structured systems, and we identify conditions
+on the system interconnection structure for the existence
+of undetectable attacks. These conditions are generic, in the
+sense that they hold for almost all numerical systems with
+the same structure, and they can be efficiently verified. As a
+complementary result, we extend a result of [27] on structural
+left-invertibility to regular descriptor systems. Finally, with
+respect to [20] and our earlier work [21], we consider continuous-time
+descriptor systems, and we include parameters
+constraints.
+Fourth, we design centralized and distributed monitors
+(Section IV). Our centralized monitors and our distributed
+detection monitor are complete, in the sense that they detect
+and identify every (detectable and identifiable) attack. Our
+centralized monitors are designed by leveraging on tools from
+geometric control theory, while our distributed detection monitor
+relies upon techniques from distributed control and parallel
+computation. Additionally, we characterize the computational
+complexity of the attack identification problem.
+Fifth and finally, we illustrate the potential impact of our
+theoretical findings through compelling examples. In particular,
+1) we design an undetectable state attack to destabilize the
+WSSC 3-machine 6-bus power system, 2) we characterize the
+resilience to output attacks of the IEEE 14 bus system, 3) we
+show the detection performance of our distributed monitor on
+the IEEE 118 bus system, and 4) we use the RTS 96 network
+model to illustrate that our methods are effective also in the
+presence of system noise, nonlinearities, and modeling uncertainties.
+Through these examples we show the advantages of
+dynamic monitors against static ones, and we provide insight
+on the design of attacks.
+II. PROBLEM SETUP AND PRELIMINARY RESULTS
+In this paper, we model cyber-physical systems under attack
+as linear time-invariant descriptor systems subject to unknown
+inputs. This simplified model neglects system nonlinearities and
+the presence of noise in the dynamics and the measurements.
+Nevertheless, such a simplified model has long proven useful in
+studying stability, faults, and attacks in, for instance, power networks,
+sensor networks, and water networks. It is our premise
+that more detailed models are unlikely to change the basic conclusions
+of this work.
+Model of Cyber-Physical Systems Under Attack: We consider
+the descriptor system1
+(1)
+where , , , ,
+, , , and . Here the matrix
+is possibly singular, and the inputs and are unknown
+signals describing disturbances affecting the plant. Besides reflecting
+the genuine failure of systems components, these disturbances
+model the effect of attacks against the cyber-physical
+system. Without loss of generality, we assume that each state
+and output variable can be independently compromised by an
+attacker, and we let and .
+The attack signal depends upon the specific
+attack strategy. In particular, if is the
+attack set, with , then all (and only) the entries of indexed
+by are nonzero over time, that is, for each , there
+exists a time such that , and for all
+and at all times. To underline this sparsity relation, we sometimes
+use to denote the attack signal, that is the subvector
+of indexed by . Accordingly, the pair , where
+and are the submatrices of and with columns in
+, denotes the attack signature. Hence, ,
+and . In the absence of attacks, that is, for
+, the descriptor system (1) features no external inputs.
+Since the matrix may be singular, we make the following assumptions
+on system (1):
+A1) the pair is regular, that is, the determinant
+does not vanish identically;
+A2) the initial condition is consistent, that is,
+; and
+A3) the input signal is smooth.
+Assumption A1) ensures the existence of a unique solution
+to (1). Assumptions A2) and A3) guarantee smoothness
+of the state trajectory and the measurements , [28,
+Lemma 2.5]. If assumptions A2) and A3) are dropped, then
+there are inconsistent initial conditions and impulsive inputs by
+which a powerful attacker can avoid detection; see Remark 4.
+Throughout the paper, the cardinality of the attack set, or an
+upper bound, is assumed to be known.
+Remark 1: (Examples of Cyber-Physical Systems Requiring
+Advanced Security Mechanisms): Future power grids will combine
+physical dynamics with a sophisticated coordination infra1The
+results stated in this paper for continuous-time descriptor systems hold
+also for discrete-time descriptor systems and nonsingular systems. Moreover,
+due to linearity of (1), known inputs do not affect our results.
+PASQUALETTI et al.: ATTACK DETECTION AND IDENTIFICATION IN CYBER-PHYSICAL SYSTEMS
+2717
+Fig. 1. Block diagram illustration of prototypical attacks is here reported.
+In Fig. 1(a), the attacker corrupts the measurements with the signal
+. Notice that in this attack the dynamics of the system are not
+considered. In Fig. 1(b), the attacker affects the output so that
+. The covert attack in Fig. 1(c) is a feedback
+version of the replay attack, and it can be explained analogously. In Fig. 1(d),
+the attack is such that the unstable pole is made unobservable. (a) Static stealth
+attack. (b) Replay attack. (c) Covert attack. (d) Dynamic false data injection.
+in [10], [11], and [17]. In the interest of brevity we simply use
+the terminology monitor instead of consistent monitor.
+The objective of a monitor is twofold:
+Definition 1: (Attack Detection and Identification): Consider
+system (1) with nonzero attack , and a monitor
+with input and output
+is detected by
+structure. The cyber-physical security of the grid has been identified
+as an issue of primary concern, see [19], [29] and [10],
+[16]-[18], [30], and [31].
+Mass transport networks are cyber-physical systems, such
+as gas transmission and distribution networks [32], large-scale
+process engineering plants [33], and water networks. Examples
+of water networks include open channel flows [34] for irrigation
+purposes and municipal water networks [35], [36]. The vulnerability
+of open channel networks to cyber-physical attacks has
+been studied in [12], [22], and municipal water networks are
+also known to be susceptible to attacks on the hydraulics [1]
+and biochemical contamination threats [23].
+Power networks and mass transport network under attack can
+be modeled by descriptor systems with unknown inputs. For instance,
+the small-signal version of the classical structure-preserving
+power network model reads as [30], [31]
+(2)
+where and denote the generator rotor angles and frequencies,
+are the voltage angles at the buses
+. The attack
+the monitor if True. The attack
+is identified by the monitor if .
+is the network susceptance matrix, and are the diagonal An attack is undetectable (respectively, unidentifiable) if no
+matrices of the generator inertial and damping coefficients, and monitor detects (respectively, identifies) the attack. Of course,
+and are power injections at the generators and buses. We an undetectable attack is also unidentifiable, since it cannot be
+refer to [35], [36] for the modeling of water networks. distinguished from the zero attack. An attack set is undeModel
+of Monitors: A monitor is a deterministic algorithm tectable (respectively, unidentifiable) if there exists an undewith
+access to continuous-time measurements and knowledge tectable (respectively, unidentifiable) attack .
+of the system dynamics. In other words, for the system (1) with Model of Attacks: In this work, we consider colluding omattack
+input , the input of a monitor is niscient attackers with the ability of altering the cyber-physical
+. The output of a monitor is , dynamics through exogenous inputs. In particular, we let the atwith
+True False , and . tack in (1) be designed based on knowledge of
+In particular, the output reveals the presence of attacks, the system structure and parameters , , , and the full state
+while corresponds to the attack set. at all times. Additionally, attackers have unlimited compuLet
+be the output signal of (1) generated from the tation capabilities, and their objective is to disrupt the physical
+initial state by the attack input . Then the monitoring input state or the measurements while avoiding detection or identifiequals
+at all times, where is the system ini- cation. Note that specific attacks may be cast by possibly weaker
+tial state and is the attack signal of the attack set . Hence, attackers.
+the monitor input Remark 2: (Existing Attack Strategies as Subcases): The
+depends on the attack set , and so does the monitor output following prototypical attacks can be modeled and analyzed
+. Since we consider deterministic through our theoretical framework:
+cyber-physical systems, we focus on consistent monitors, that i) stealth attacks defined in [16] correspond to output attacks
+is: compatible with the measurements equation;
+i) True only if the attack set is nonempty ii) replay attacks defined in [11] are state and output attacks
+( False, otherwise); which affect the system dynamics and reset the measureii)
+if and only if False; ments;
+iii) only if is the (unique) smallest subset iii) covert attacks defined in [12] are closed-loop replay atsatisfying
+for tacks, where the output attack is chosen to cancel out the
+some initial state and at all times ( effect on measurements of the state attack;
+, otherwise). iv) (dynamic) false-data injection attacks defined in [26] are
+Observe that, if , then there always exists an output attacks rendering an unstable mode (if any) of the
+attack signal satisfying . system unobservable.
+Our consistency assumption ensures that false-alarms are not A possible implementation of the above attacks in our model is
+triggered by our monitors. Examples of monitors can be found illustrated in Fig. 1.
+2718
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 58, NO. 11, NOVEMBER 2013
+To conclude this section we remark that our modeling framework
+captures failures and attacks against power networks and
+water supply networks. Possible genuine failures include variations
+in demand and supply of power or water, line outages
+or pipe leakages, and failures of sensors and actuators. Possible
+cyber-physical attacks include measurements corruption
+[9], [10], [22] and attacks on the control architecture or the physical
+state [1], [15], [18], [19].
+III. FUNDAMENTAL MONITORING LIMITATIONS
+In this section, we highlight fundamental monitoring limitations
+from system-theoretic and graph-theoretic perspectives.
+A. System-Theoretic Monitoring Limitations
+Following the discussion in Section II, an attack is undetectable
+if the measurements due to the attack coincide with the
+measurements due to some nominal operating condition.
+Lemma 3.1: (Undetectable Attack): For the descriptor system
+(1), the nonzero attack is undetectable if and
+only if for some initial states
+and for all .
+Proof: (If) Let . Since
+monitors are deterministic, the identical monitor inputs
+, with , and
+, with , yield the
+same output . Since monitors are consistent, we have
+False for the input . Hence, False also for the
+input , and the attack is undetectable.
+(Only if) Suppose that
+every initial states and
+for
+. Then the monitor inputs
+and
+are not identical, and the attack is distinguishable
+from nominal operating conditions via the system
+output (see Theorem 4.1 for a complete detection monitor).
+Hence, the attack is detectable.
+Analogous to detectability, the identifiability of an attack is
+the possibility to distinguish from measurements between the
+action of two distinct attacks. We measure the strength of an
+attack through the cardinality of the corresponding attack set.
+Since an attacker can independently compromise any state variable
+or measurement, every subset of the states and measurements
+of fixed cardinality is a potential attack set.
+Lemma 3.2: (Unidentifiable Attack): For the descriptor
+system (1), the nonzero attack is unidentifiable
+if and only if for some initial
+states , , attack with and
+, and for all .
+A proof of Lemma 3.2 follows the same reasoning as the
+proof of Lemma 3.1. We now elaborate on the above lemmas to
+derive fundamental detection and identification limitations. For
+a vector , let , and
+let denote the number of nonzero entries.
+Theorem 3.3: (Detectability of Cyber-Physical Attacks): For
+the descriptor system (1) and an attack set , the following
+statements are equivalent:
+i) the attack set is undetectable;
+ii) there exist , , and , with
+such that and .
+Moreover, there exists an undetectable attack set with
+if and only if there exist and such that
+.
+Proof: By Lemma 3.1 and linearity of system (1), the attack
+is undetectable if and only if there exists such that
+for all , that is, if and only if system
+(1) features zero dynamics. For a linear descriptor system with
+smooth input and consistent initial condition, the existence of
+zero dynamics is equivalent to the existence of invariant zeros
+as in ii), see [28, Th. 3.2 and Prop. 3.4]. The equivalence of
+statements i) and ii) follows. The last statement follows from
+ii), and the fact that and .
+Following Theorem 3.3, an attack is undetectable
+if it excites only zero dynamics for the dynamical
+system (1). Moreover, the existence of undetectable attacks for
+the attack set is equivalent to the existence of invariant zeros
+for the system . For the notions of zero dynamics
+and invariant zeros we refer the reader to [25], [28]. The
+following theorem shows that analogous statements hold for the
+identifiability of attacks.
+Theorem 3.4: (Identifiability of Cyber-Physical Attacks): For
+the descriptor system (1) and an attack set , the following
+statements are equivalent:
+i) the attack set is unidentifiable;
+ii) there exists an attack set , with and ,
+, , , and , with
+, such that
+and .
+Moreover, there exists an unidentifiable attack set with
+if and only if there exists an undetectable attack set with
+.
+Proof: Due to linearity of the system (1), the unidentifiability
+condition in Lemma 3.2 is equivalent to the condition
+, for some initial conditions
+, and attack signals . The equivalence between
+statements i) and ii) follows then analogously to the proof of
+Theorem 3.3. Finally, the last statement follows from Theorem
+3.3, and the fact that and .
+Theorem 3.4 shows that the existence of an unidentifiable
+attack set of cardinality is equivalent to the existence
+of invariant zeros for the system , with
+.
+Remark 3: (Static and Active Monitors, and Noisy Dynamics):
+A particular monitor is the so-called static monitor
+which verifies the consistency of the measurements without
+knowledge of the system dynamics and without exploiting relations
+among measurements taken at discrete time instants. For
+instance, the bad data detector in [9], [37] is a static monitor.
+Then, an attack is undetectable by a static
+monitor if and only if, for some state trajectory
+and for all times it holds . Note
+that state attacks are undetectable by static monitors [17].
+An active monitor injects an auxiliary input to reveal
+attacks [11]. Since auxiliary inputs do not alter the invariant
+zeros of system (1), active monitors share the same fundamental
+limitations of our monitors.
+An analogous reasoning shows that the existence of unde,
+tectable attacks for a noise-free system implies the existence of
+undetectable attacks for the same system driven by noise. The
+PASQUALETTI et al.: ATTACK DETECTION AND IDENTIFICATION IN CYBER-PHYSICAL SYSTEMS
+2719
+converse does not hold, since attackers may remain undetected
+by injecting a signal compatible with the noise statistics.
+Remark 4: (Inconsistent Initial Conditions and Impulsive Attacks):
+If the consistency assumption (A2) is dropped, then
+discontinuities in the state may affect the measurements
+. For instance, for index-one systems, inconsistent
+initial conditions lead to initial jumps for the algebraic
+equations to be satisfied. Consequently, the inconsistent initial
+value cannot be recovered through
+measurements.
+Assumption (A3) requires the attack signal to be sufficiently
+smooth such that and are at least continuous. Suppose
+that assumption (A3) is dropped and the input belongs to
+the class of impulsive smooth distributions
+, that is, loosely speaking, the class of functions given by
+the linear combination of a smooth function on (denoted
+by ) and Dirac impulses and their derivatives at
+(denoted by ) [28]. In this case, an attacker commanding
+an impulsive input can reset the initial state and evade detection.
+The discussion in the previous two paragraphs can be formalized
+as follows. Let be the subspace of points
+of consistent initial conditions for which there exists an input
+and a state trajectory to the descriptor
+system (1) such that for all . Let (respectively
+) be the subspace of points for which there
+exists an input (respectively, ) and a state
+trajectory (respectively, ) to the descriptor
+system (1) such that for all . From [28, Th.
+3.2 and Prop. 3.4] it is known that .
+In this work, we focus on the smooth output-nulling subspace
+, which is exactly space of zero dynamics identified in Theorems
+3.3 and 3.4. Hence, for inconsistent initial conditions, the
+results presented in this section are valid only for strictly positive
+times. On the other hand, if an attacker injects impulsive
+signals, then it can avoid detection for initial conditions in .
+B. Graph-Theoretic Monitoring Limitations
+In this section, we derive detectability conditions based upon
+a connectivity property of a graph associated with the dynamical
+system. For the ease of notation, in this subsection we drop the
+subscript from , , and . Let
+,
+,
+be the tuple of structure matrices associated with the system (1)
+[27]. We associate a directed input/state/output graph
+with . The vertex set
+consists of input, state, and output vertices given by
+, , and ,
+respectively. The set of directed edges is
+, where
+,
+, and . In
+the latter, the expression means that the th entry
+of is a free parameter. For the graph , a set of mutually
+disjoint and simple paths between two sets of vertices is
+called linking of size from to . Finally, the matrix
+is structurally non-degenerate if the determinant
+for a generic realization of and , that is,
+holds in the whole parameter space of elements of and with
+exception of a low dimensional variety [24], [38].
+Since our applications of interest-power networks, mass
+transport systems, and sensor networks-feature conserved
+quantities, such as energy, mass, and average information, we
+depart from the classical structural analysis by constraining the
+admissible parameters space. In particular, we let an admissible
+realization of the structured system be
+constrained in a Laplacian-type polytope defined by
+1) Row constraints: for
+a (possibly empty) subset of indices
+, , and ;
+2) Symmetry constraints: for a (possibly empty)
+subset of indices , ; and
+3) Sign-definiteness: and
+for a (possibly empty) subset of indices ,
+.
+These constraints are sufficiently general to include all mentioned
+applications in Remark 1 as well as unconstrained
+systems.
+Example 1: (Power
+Consider the power
+where, being the
+Network Structural Analysis):
+network illustrated in Fig. 2,
+th canonical vector, we take
+,
+, , , and equal to the
+equation shown at bottom of the page. The digraph associated
+with the structure matrices is in Fig. 3,
+2720
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 58, NO. 11, NOVEMBER 2013
+Fig. 2. WSSC power system with three generators and six buses. The numerical
+value of the network parameters can be found in [30].
+Fig. 3. Digraph associated with the network in Fig. 2. The self-loops of the
+vertices , , and are not drawn. The inputs
+and affect, respectively, the bus and the bus . The measured
+variables are the rotor angle and frequency of the first generator.
+and the entries of pertaining to the network susceptance
+matrix satisfy Laplacian-type constraints.
+Recall from Lemma 3.1 that an attack is undetectable if
+for some initial states and . In
+the following result, we consider the particular case that the
+system initial state is known. Hence, an attack is undetectable
+if for some initial state . Equivalently,
+the system fails to be left-invertible [25]. We say that
+the structured system is structurally
+left-invertible if every admissible realization
+is left-invertible with exception, possibly, of a low dimensional
+variety.
+Theorem 3.5: (Structurally Undetectable Attack): Let the parameters
+space of the structured system
+define a Laplacian-type polytope in for some . Assume
+that is structurally non-degenerate. The system
+is structurally left-invertible if and only
+if there exists a linking of size from to .
+Theorem 3.5 extends the structural left-invertibility results
+known for nonsingular systems to regular descriptor systems,
+and its proof relies on classical concepts from structural analysis,
+algebraic geometry, and graph theory.
+Lemma 3.6: (Polytopes and Algebraic Varieties): Let
+be a polytope, and let be an algebraic variety. Then,
+either the set , or the set is generic in .
+Proof: Let be the algebraic variety described
+by the locus of common zeros of the polynomials
+, with , . Then if and
+only if every polynomial vanishes identically on . Suppose
+that some polynomials, say , do not vanish identically on
+. Then, , and is
+nowhere dense in , since its closure has empty interior [39].
+Hence, is a meagre subset of , and its complement
+is a generic subset of [39].
+In Lemma 3.6 interpret the polytope as the admissible parameters
+space of a structured cyber-physical system. Then we
+have shown that left-invertibility of a cyber-physical system is
+a generic property even when the admissible parameters space
+is a polytope of the whole parameters space. Consequently, for
+a structured cyber-physical system, if the initial state is known,
+either every admissible realization admits undetectable attacks,
+or there is no undetectable attack for every realization, except
+possibly for those lying on a low-dimensional variety.
+Proof Theorem 3.5: Because of Lemma 3.6, we need to show
+that, if there are disjoint paths from to , then there exists
+admissible left-invertible realizations. Conversely, if there are at
+most disjoint paths from to , then every admissible
+realization is not left-invertible.
+(If) Let , with , be an admissible
+realization, and suppose there exists a linking of size
+from to . Notice that , and select outputs on
+a linking of size from to (let and be the submatrices
+of and associated with the smaller set of outputs).
+Observe that left-invertibility of implies
+left-invertibility of . For the left-invertibility of
+we need
+and hence we need . Notice that
+corresponds to the transfer matrix of the
+cyber-physical system. Since there are independent paths
+from to , the matrix can be made
+nonsingular and diagonal by removing some connection lines
+from the network. In particular, for a given linking of size
+from to , a nonsingular and diagonal transfer matrix is obtained
+by setting to zero the entries of and corresponding
+to the edges not in the linking. Notice that this construction is
+possible within Laplacian-type constraints, since they can be
+satisfied by assigning the value of the diagonal entries and
+and without affecting the input-output linking. Then there
+exist admissible left-invertible realizations, and thus the systems
+and are structurally
+left-invertible.
+(Only if) Take any subset of
+maximum size of a linking from
+and be such that
+to
+output vertices, and let the
+be smaller than . Let
+where and are the structured output matrices corresponding
+to the chosen output vertices. Consider the graph
+, that consists of vertices, and
+an edge from vertex to if or . Notice
+that a path from to in the digraph associated with the
+structured system corresponds, possibly after relabeling the
+output variables, to a cycle in involving input/output vertices
+in . Observe that there are only such
+(disjoint) cycles. Hence, there is no cycle family of length ,
+PASQUALETTI et al.: ATTACK DETECTION AND IDENTIFICATION IN CYBER-PHYSICAL SYSTEMS
+and the system fails to be structurally
+left-invertible [40, Th. 1]. Since the same reasoning holds for
+every set of output vertices, every realization of the pencil
+has no invertible minor of size , and the claimed statement
+follows.
+If the system initial state is unknown, then an undetectable
+attack is characterized by the existence of a pair of initial conditions
+and such that , or, equivalently,
+by the existence of invariant zeros for the given cyberphysical
+system. We will now show that, provided that a cyberphysical
+system is left-invertible, its invariant zeros can be computed
+by simply looking at an associated nonsingular state space
+system. Let the state vector of the descriptor system (1) be
+partitioned as , where corresponds to the dynamic
+variables. Let the network matrices , , , , and be partitioned
+accordingly, and assume that the descriptor system (1)
+is given in semi-explicit form, that is, ,
+where is nonsingular.2 In this case, the descriptor system
+(1) reads as
+A. Centralized Attack Detection
+The output of the attack detection filters developed in this
+subsection will be a residual signal . If each
+monitor is equipped with such an attack detection filter and if
+the attack is detectable, then the outputs of the monitor and the
+filter are related as follows: True if and only if
+for all . We next present a centralized attack detection
+filter based on a modified Luenberger observer.
+Theorem 4.1: (Centralized Attack Detection Filter): Consider
+the descriptor system (1) and assume that the attack set
+is detectable, and that the network initial state is known.
+Consider the centralized attack detection filter
+where and the output injection matrix
+is such that the pair is regular and Hurwitz.3 Then
+at all times if and only if at all
+times . Moreover, in the absence of attacks, the filter
+error is exponentially stable.
+Proof: Consider the error between the filter (5)
+and system (1). The error system with output is
+2Interesting cyber-physical systems, such as power and mass-transport networks
+(2), are readily given in semi-explicit form.
+3For a regular pair
+. The pair
+, let
+is Hurwitz if
+for each
+.
+Consider now the associated nonsingular state space system
+which is obtained by regarding as an external input to the
+descriptor system (3) and the algebraic constraint as output:
+(3)
+(4)
+Theorem 3.7: (Equivalence of Invariant Zeros): Consider the
+structurally left-invertible system . The
+invariant zeros of every admissible realization (3) coincide with
+those of the associated nonsingular system (4), except, possibly,
+for realizations lying on a low dimensional variety of the parameters
+space.
+Proof: In the interest of space we omit the proof, which
+follows from Theorem 3.5, [41, Prop. 8.4] and a manipulation
+of the system pencil.
+Following Theorem 3.7, under the assumption of structural
+left-invertibility, classical results can be used to investigate the
+presence of undetectable attacks in structured system with unknown
+initial state; see [38] for a survey of results on generic
+properties of linear systems.
+IV. MONITOR DESIGN FOR ATTACK DETECTION
+AND IDENTIFICATION
+We now design centralized and distributed filters for attack
+detection and identification.
+where . To prove the theorem we show that the error
+system (6) has no invariant zeros, that is, for all
+if and only if for all . Since the
+initial condition and the input are assumed to be consistent
+(A2) and non-impulsive (A3), the error system (6) has
+no invariant zeros if and only if [28, Prop. 3.4] there exists no
+triple satisfying
+The second equation of (7) yields . By substituting
+by in the first equation of (7), we obtain
+Note that a solution to (8) would yield an invariant
+zero, zero state, and zero input for the descriptor system (1). By
+the detectability assumption, the descriptor system (1) has no
+invariant zeros and the matrix pencil in (8) necessarily has full
+rank. It follows that the triple is observable, can
+be chosen to make the pair Hurwitz [42], and the
+error system (6) is stable without zero dynamics.
+Notice that, if the initial state is not available, then an arbitrary
+initial state can be chosen. In this case, since
+is Hurwitz, the filter (5) converges asymptotically,
+and the residual (in the absence of attacks) becomes zero
+only in the limit as . Additionally, the dynamics and
+the measurements of (1) may be affected by modeling uncertainties
+and noise with known statistics. Hence, in a practical
+2721
+(5)
+(6)
+(7)
+(8)
+2722
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 58, NO. 11, NOVEMBER 2013
+implementation the output injection matrix should be chosen
+to optimize the sensitivity of the residual to attacks versus the
+effect of noise, or to optimize the transient behavior of the filter.
+Statistical hypothesis testing techniques [7] can subsequently be
+used to analyze the residual for sufficiently large but finite
+. We remark that, attacks hiding in the transient dynamics or
+attacks aligned with the noise statistics may remain undetected.
+Finally, if the filter (5) is implemented only over a finite interval
+of time, then the condition for all , with
+, is equivalent to for all . This is due
+to smoothness of and , and consistency of the system initial
+condition.4
+B. Distributed Attack Detection
+Notice that a direct implementation of the filter (5) requires
+continuous communication of measurements to a central processor,
+which needs to integrate the possibly large-scale system
+(5). In what follows, we will exploit the sparsity of the filter matrices
+to develop a distributed detection filter.
+Assume that control centers are geographically deployed in
+a large-scale cyber-physical system to operate the whole plant
+via distributed computation; see Fig. 4. Let be the
+directed sparsity graph associated with the pair , where
+the vertex set corresponds to the system state, and the
+set of directed edges or is
+induced by the sparsity pattern of and . Let be partitioned
+into disjoint subsets as , with ,
+and let be the th subgraph of with vertices
+and edges . According to this partition, and
+possibly after relabeling the states, the system matrix in (1)
+can be written as
+.
+.
+.
+.
+.
+.
+.
+.
+.
+Fig. 4. Partition of IEEE 118 bus system into five areas. Each area is monitored
+and operated by a control center. These control centers cooperate to estimate the
+state and to assess the functionality of the whole network.
+presence of a control center in each subnetwork with the following
+capabilities:
+A6) the th control center knows the matrices , as
+well as the neighboring matrices , ;
+A7) the th control center can transmit an estimate of its state
+to the th control center if .
+Before presenting our distributed attack detection filter, we
+need the following result on a decentrally stabilized filter.
+Lemma 4.2: (Decentralized Stabilization of the Attack Detection
+Filter): Consider the descriptor system (1), and assume that
+the attack set is detectable and that the network initial state
+is known. Consider the attack detection filter
+where and are the state and output of the th subsystem
+and are the in-neighbors
+of subsystem . We also define the set of out-neighbors as
+. We assume the
+4For the case of state space systems with one measurement and one attacker,
+the attack detectability condition implies that the system can be written in inputoutput
+normal form [43] as the chain of integrators ,
+, and . Clearly, for if and only if
+for
+.
+A reasoning analogous to that in the proof of Theorem 4.1 shows
+the absence of zero dynamics. Hence, for at all times
+if and only if at all times .
+To show stability of the error dynamics in the absence of attacks,
+we employ the small-gain approach to large-scale systems
+and rewrite the error dynamics (12) as the closed-loop interconnection
+of the two subsystems
+and . When regarded as input-output
+systems with respective input/output pairs and , both
+where
+A4) the matrices
+, , and
+. We make the following assumptions:
+are block-diagonal, that is,
+,
+and ;
+is regular, and each triple
+where
+A5) each pair
+is observable.
+Given the above structure and in the absence of attacks, the descriptor
+system (1) can be written as the interconnection of
+subsystems of the form
+,
+where
+that
+(9)
+and is such
+is regular and Hurwitz. Assume that
+for all
+where denotes the spectral radius operator. Then
+all times if and only if at all times
+Moreover, in the absence of attacks, the filter error
+is exponentially stable.
+Proof: The error
+obeys the dynamics
+(10)
+(11)
+at
+.
+(12)
+PASQUALETTI et al.: ATTACK DETECTION AND IDENTIFICATION IN CYBER-PHYSICAL SYSTEMS
+(14)
+(15)
+(16)
+and are causal and internally stable. Hence, by [44, Th.
+4.11], the overall error dynamics (12) are stable if the loop
+transfer function satisfies the spectral radius condition
+for all . The latter condition is
+equivalent to (11).
+An implementation of the decentrally stabilized filter (10)
+under assumptions A1)-A7) requires the input and
+hence continuous communication among control centers. To
+overcome this continuous communication obstacle we rely on
+waveform relaxation methods [45], [46] developed for parallel
+numerical integration. The Gauss-Jacobi waveform relaxation
+applied to the filter (10) yields the waveform relaxation
+iteration
+where denotes the iteration index, is the
+integration interval for some uniform time horizon ,
+and is a trajectory with initial condition
+for each . Notice that (13) is a descriptor
+system with state , and known input , since the
+value of at iteration is used. The iteration (13) is initialized
+with an initial profile .
+The iteration (13) is said to be (uniformly) convergent if
+where is the solution of the non-iterative dynamics (10). In
+order to obtain a distributed detection scheme, we use the waveform
+relaxation iteration (13) to iteratively approximate the decentralized
+filter (10).
+Theorem 4.3: (Distributed Attack Detection Filter): Consider
+the descriptor system (1) and assume that the attack set is detectable,
+and the network initial state is known. Let the
+assumptions A1) through A7) be satisfied and consider the distributed
+attack detection filter
+where
+all
+,
+, and
+for some
+is regular, Hurwitz, and
+,
+for
+is such that the pair
+Then
+at all times
+if and only if
+at all times
+Proof: Since
+that the solution
+to the solution
+.
+, it follows from [46, Th. 5.2]
+of the iteration (15) converges, as ,
+of (10) if
+for all
+Hence, we have uniform convergence (in the sense of (14)) of
+the solution and output of the distributed filter
+(15) to the solution and output of the decentrally
+stabilized filter. Due to the detectability assumption, it follows
+from Lemma 4.2 that at all times
+if and only if at all times .
+The waveform relaxation iteration (13) can be implemented
+in the following distributed fashion. Assume that control center
+is able to numerically integrate the descriptor system
+2723
+(18)
+(13)
+over a time interval
+, measurements
+, with initial condition
+, and the neighboring filter states
+as external inputs. Let be an initial guess of the signal .
+Each control center performs the following operations assuming
+at start:
+1) set , and compute the signal by integrating
+the local filter (18);
+2) transmit to the th control center if ;
+3) update the input with the signal received from the th
+control center, with , and iterate.
+Following Theorem 4.3, for sufficiently large, the local residuals
+can be used to detect attacks. A related
+large-scale example is given in Section V-C.
+Remark 5: (Implementation of Distributed Attack Detection
+Filter): When implementing the distributed attack detection
+filter (15) in the interval , control center needs to transmit
+the signal with at each iteration . In practice,
+only an approximation or a finite basis representation
+can be transmitted. We refer to [47] for a detailed discussion
+of implementation aspects, convergence rates, and error bounds
+for finite horizon and finite number of waveform iterations.
+C. Complexity of the Attack Identification Problem
+In this subsection, we study the problem of attack identification,
+that is, the problem of identifying from measurements the
+state and output variables corrupted by the attacker. We start our
+discussion by showing that this problem is generally NP-hard.
+For a vector-valued signal , let
+, and consider the following cardinality minimization
+problem: given a descriptor system with matrices ,
+, and and a measurement signal ,
+find the minimum cardinality input signals and
+and an arbitrary initial condition that
+explain the data , that is,
+for all
+(17)
+subject to
+where , is the least upper bound on the real
+part of the spectrum of , and is such that the signal
+, , and all its derivatives exist
+and are bounded. Since the pair is Hurwitz and
+is smooth by assumptions A2) and A3), we have that ,
+and the convergence condition (17) equals condition (16).
+(19)
+Lemma 4.4: (Problem Equivalence): Consider the system (1)
+with identifiable attack set . The optimization problem (19)
+coincides with the problem of identifying the attack set given
+the system matrices , , , and the measurements , where
+.
+if it is identifiable for the following descriptor system without
+corrupted measurements:
+Proof: Due to the identifiability hypothesis, there exists no
+attack set with and , , ,
+, and such that
+where we added an additional (redundant) output equation (see
+Theorem 3.4). A multiplication of (22) from the left by the
+projectors
+yields
+(20)
+The variable can be eliminated in the first redundant (corrupted)
+output equation according to
+Proof: Due to the identifiability of , the attack identification
+problem consists of finding the smallest attack set capable
+of injecting an attack that generates the given
+measurements for the given dynamics , , , and some
+initial condition; see Lemma 3.2. The statement follows since
+and in (1), so that
+.
+As it turns out, the optimization problem (19), or equivalently
+our identification problem, is generally NP-hard [48].
+Corollary 4.5: (Complexity of the Attack Identification
+Problem): Consider the system (1) with identifiable attack set
+. The attack identification problem given the system matrices
+, , , and the measurements is NP-hard.
+Proof: Consider the NP-hard [49] sparse recovery problem
+, where and are given
+and constant. In order to prove the claimed statement, we show
+that every instance of the sparse recovery problem can be cast
+as an instance of (19). Let , , , and
+at all times. Notice that and
+. The problem (19) can be written as
+.
+, problem (20)
+can be equivalently written as
+By Corollary 4.5 the general attack identification problem is
+combinatorial in nature, and its general solution will require
+substantial computational effort. In the next subsection we propose
+a complete identification algorithm.
+D. Centralized Attack Identification
+The identification of the attack set requires a combinatorial
+procedure, since, a priori, is one of the possible attack
+sets. The following centralized attack identification procedure
+consists of designing a residual filter to determine whether a
+predefined set coincides with the attack set. Analogously to the
+attack detection filter developed in Sections IV-A and IV-B, the
+output of the attack identification filter for the attack set will
+be a residual signal . If each monitor is equipped with such an
+attack identification filter and if the attack is identifiable, then
+the outputs of the monitor and the filter are related as follows:
+if and only if for all .
+The design of this residual filter consists of three steps: an
+input-output transformation, a state transformation, and an
+output injection and definition of a specific residual. We start
+by showing that the identification problem can be carried out
+for a modified system without corrupted measurements.
+Lemma 4.6: (Attack Identification With Safe Measurements):
+Consider the descriptor system (1) with attack set . The attack
+set is identifiable for the descriptor system (1) if and only
+2724
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 58, NO. 11, NOVEMBER 2013
+(21)
+(22)
+(23)
+(24)
+where
+problem (20) with
+. Notice that there exists a minimizer to
+for all . Indeed, since
+Thus,
+has no solution, where
+is
+The statement follows.
+The second design step of our attack identification monitor relies
+on the concept of conditioned invariant subspace. We refer
+to [24], [25], [28], [50] for a comprehensive discussion of geometric
+control theory. Let be the conditioned invariant subspace
+associated with the system , that is, the
+smallest subspace of the state space satisfying
+and let
+be an output injection matrix satisfying
+Notice that the conditioned invariant and an output injection
+satisfying (23) and (24) always exist (for instance, take
+). We transform the descriptor system (21) into a set of
+canonical coordinates representing and its orthogonal complement.
+For a nonsingular system such an equivalent
+state representation can be achieved by a nonsingular transformation
+of the form . However, for a singular
+system different transformations need to be applied in the domain
+and codomain such as for nonsingular
+and .
+PASQUALETTI et al.: ATTACK DETECTION AND IDENTIFICATION IN CYBER-PHYSICAL SYSTEMS
+2725
+Lemma 4.7: (Input Decoupled System Representation): For
+system (21), let and be as in (23) and (24), respectively.
+Define the unitary matrices and
+. Then
+The attack set is identifiable for the descriptor system (1) if
+and only if it is identifiable for the descriptor system
+(25)
+Proof: Let and . Notice that
+by the invariance property of [28], [50]. It
+follows that and are a pair of right deflating subspaces for
+the matrix pair [51], that is,
+and . The sparsity pattern in the descriptor
+and dynamic matrices and of (25) arises by construction of
+the right deflating subspaces and [51, Eq. (2.17)], and the
+sparsity pattern in the input matrix arises due to the invariance
+properties of containing . The statement follows because
+the output injection , the coordinate change ,
+and the left-multiplication of the dynamics by does not affect
+the existence of zero dynamics.
+For the ease of notation and without affecting generality, the
+third and final design step of our attack identification filter is
+presented for the preconditioned system (25).
+Theorem 4.8: (Attack Identification for Attack Set ): Consider
+the preconditioned system (25) associated with the descriptor
+system (1). Assume that the attack set is identifiable,
+the network initial state is known, and the assumptions A1)
+through A3) are satisfied. Consider the attack identification filter
+for the attack signature
+where , and is such that
+is Hurwitz. Then for all times
+and only if coincides with the attack set.
+Proof: Let , where
+Consider the filter error
+, and notice that
+with
+(26)
+if
+obeys
+onto
+(27)
+where . Notice that is
+not affected by the input , so that, since due
+to , the residual is identically zero when
+is the attack set. In order to prove the theorem we are left to
+show that for every set , with and ,
+every attack mode results in a nonzero residual . From
+Theorem 3.4 and the identifiability hypothesis, for any ,
+there exists no solution to
+A projection of the equation
+the image of and its orthogonal complement yields
+Due to the identifiability hypothesis the set of equations (27)
+features no solution with .
+Observe that, for every and , there exists
+such that the third equation of (27) is satisfied.
+Furthermore, for every and , there exist
+and such that the first equation of
+(27) is satisfied. Indeed, since and
+, the invariance of implies that
+, or equivalently in new
+coordinates, . Finally note that
+is of full row rank due to the controllability
+of the subspace [28]. We conclude that there exist
+no vectors and such that
+and and the statement
+follows.
+The design of the attack identification filter (26) is summarized
+as follows:
+1) from system (1) define the system (21);
+2) compute and for system (21) as in (23) and (24), and
+apply , , and as in Lemma 4.7 leading to system (25);
+3) for system (25), define and apply the output injection
+as in (26).
+Remark 6: (Literature Comparison): Our identification
+filter extends classical results concerning the design of unknown-input
+fault detection filters. In particular, our filter
+generalizes the construction of [6] to descriptor systems with
+direct feedthrough matrix. Additionally, we guarantee the absence
+of invariant zeros in the residual dynamics. By doing so,
+our attack identification filter is sensitive to every identifiable
+attack strategy. Notice that classical fault detection filters, for
+instance those presented in [6], are guaranteed to detect and
+isolate signals that do not excite exclusively zero dynamics.
+Finally, an equivalent attack identification filter for nonsingular
+or index-one systems is presented in our previous work [17].
+Remark 7: (Complexity of Centralized Identification): Our
+centralized identification procedure assumes the knowledge of
+2726
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 58, NO. 11, NOVEMBER 2013
+Fig. 5. We show that there is no linking of size 2 from the input to the output
+vertices. Indeed, the vertices and belong to every path from to
+. Two input to output paths are depicted in red.
+the cardinality of the attack set, and it achieves identification
+by constructing a residual generator for possible attack
+sets. Thus, our procedure constructs filters. If only
+an upper bound on the cardinality of the attack set is available,
+identification can be achieved by constructing filters,
+and by intersecting the attack sets generating zero residuals.
+In Section IV-C we show that this non-polynomial complexity
+is inherent to the identification problem.
+V. ILLUSTRATIVE EXAMPLES
+A. An Example of State Attack Against a Power Network
+Consider the power network model analyzed in Example 1
+and illustrated in Fig. 2. We consider a load altering attack [18]
+affecting the power demand at the load buses 4 and 5. Assume
+that the variables and are affected by the unknown
+and unmeasurable signals and . Suppose that a monitoring
+unit measures the state variables of the first generator, that is,
+and .
+Notice from Fig. 5 that the maximum size of a linking from
+the failure to the output vertices is 1, so that, by Theorem 3.5,
+there exists a structural vulnerability. In other words, for every
+choice of the network matrices, there exist nonzero and
+that are not detectable through the measurements.5
+We now consider a numerical realization of this system. Let
+the input matrices be and , the mea5When
+these ouput-nulling inputs , are regarded as additional loads,
+then they are entirely sustained by the second and third generator.
+Fig. 6. Velocities and are driven unstable by the inputs
+are undetectable from the measurements of and .
+and
+, which
+surement matrix be
+as in Remark 1 with
+bottom of the page. Let
+form of the attack signals
+, and the system matrix be
+,
+, and as shown in the equation at the
+and be the Laplace transand
+, and let
+for some arbitrary nonzero signal . Then it can be verified
+that the attack cannot be detected through the measurements .
+In fact, the transfer matrix mapping to coincides with
+the null space of the input/output transfer matrix. An example
+is in Fig. 6, where the second and the third generator are driven
+unstable by the attack, but the first generator does not deviate
+from its nominal operating condition.
+Suppose now that the rotor angle of the first generator and
+the voltage angle at the sixth bus are measured, that is,
+. Then, there exists a linking of size 2 from to ,
+and the system is left-invertible. Following Theorem
+3.7, the invariant zeros of the power network can be computed
+by looking at its reduced system, and they are
+and . Consequently, if the network
+state is unknown at the failure time, there exists vulnerabilities
+that an attacker may exploit to affect the network while remaining
+undetected. Finally, we remark that such state attacks
+are entirely realizable by cyber attacks [18].
+B. Example of Output Attack Against a Power Network
+Consider the IEEE 14 bus power network (Fig. 7) modeled
+as a descriptor system as in Section II. Following [9], let the
+measurements be given by the real power injections
+at all buses, of the real power flows of all branches, and one
+generator rotor angle (or one bus angle). We assume that an
+PASQUALETTI et al.: ATTACK DETECTION AND IDENTIFICATION IN CYBER-PHYSICAL SYSTEMS
+2727
+Fig. 7. For the IEEE 14 bus system in Fig. 7, if the voltage angle of one bus is
+measured exactly, then a cyber attack against the measurements data is always
+detectable by our dynamic detection procedure. In contrary, as shown in [9], a
+cyber attack may remain undetected by a static procedure if it compromises as
+few as four measurements.
+attacker can compromise all the measurements, independently
+of each other, except for one referring to the rotor angle.
+Let be the cardinality of the attack set. It is known
+that an attack undetectable to a static detector exists if
+[9]. In other words, due to the sparsity pattern of , there exists
+a signal , with (the same) four nonzero entries at all times,
+such that at all times. Hence, the attack set
+remains undetected by a static detector through the attack
+input . On the other hand, following Theorem 3.3, it can be
+verified that, for the same output matrix , and independent of
+the value of , there exists no undetectable (output) attacks for
+a dynamic monitor. It should be noticed that this result relies
+on the fact that the rotor angle measurement is known to be
+correct, because, for instance, it is protected using sophisticated
+and costly security methods [29]. Since the state of the IEEE 14
+bus system can be reconstructed by means of this measurement
+only (the system turns out to be observable by measuring one
+generator rotor angle), the output attack is easily identified
+as , where is the reconstructed system state
+at time .
+C. Example of Distributed Detection
+The IEEE 118 bus system shown in Fig. 4 is composed of
+118 buses and 54 generators, and its parameters can be found in
+[52]. Following Section II, a linear continuous-time descriptor
+model of the system under attack takes the form (1).
+For estimation and detection purposes, we partition the IEEE
+118 system into 5 disjoint areas, we assign a control center to
+each area, and we implement our detection procedure via the
+filter (15); see Fig. 4 for a graphical illustration. Suppose that
+each control center continuously measures the angle of the generators
+in its area, and suppose that an attacker compromises
+the measurements of all the generators of the first area. In particular,
+starting at time 30 s, the attacker compromises all measurements
+in area 1 by adding a signal . It can be verified
+that the attack set is detectable, see Theorem 3.3. According
+to assumption (A3), the attack signal needs to be continuous
+to guarantee a continuous state trajectory (since the associated
+descriptor model is of index 1). To show the robustness of our
+Fig. 8. Distributed detection of an output attack in the IEEE 118 system: The
+attacker compromises the measurements of all generators in area 1 from time
+30 s with a signal uniformly distributed in the interval [0, 0.5]. The residuals in
+Fig. 8 show that the attack is correctly detected, because the residual functions
+do not decay to zero. For the simulation, we run iterations of the attack
+detection method.
+Fig. 9. The plot in Fig. 9 represents the error of our waveform relaxation based
+filter (15) with respect to the corresponding decentralized filter. As predicted by
+Theorem 4.3, the error is convergent.
+detection filter (15), we let be discontinuous and randomly
+distributed in the interval .
+The control centers implement the distributed attack detection
+procedure described in (15), with . It can be
+verified that the pair is Hurwitz stable, and that
+for all . As predicted
+by Theorem 4.3, our distributed attack detection filter is convergent;
+see Fig. 8. For completeness, in Fig. 9 we illustrate the
+convergence rate of our waveform relaxation-based filter as a
+function of the number of iterations . Notice that the number
+of iterations directly reflects the communication complexity of
+our detection scheme.
+D. Example of Detection and Identification in the Presence of
+Noise and Model Uncertainties
+We apply our centralized attack detection and identification
+methods to the IEEE RTS96 power network [53]. In particular,
+we first consider the nominal case, in which the power network
+dynamics evolve as linear time-invariant descriptor system, as
+described in Section II. Second, we consider the case of additive
+state and measurement noise, and we show the robustness
+of the attack detection and identification monitors. Third, we
+consider the case of nonlinear differential-algebraic power network
+dynamics and show the effectiveness of our methods in
+the presence of unmodeled nonlinear dynamics.
+2728
+IEEE TRANSACTIONS ON AUTOMATIC CONTROL, VOL. 58, NO. 11, NOVEMBER 2013
+Fig. 10. We report our simulation results for the case of linear network dynamics without noise and for the proposed detection monitor (5) and identification
+monitor (26), respectively. The state trajectory consists of the generators angles and frequencies. The detection residual becomes nonzero after time 15 s, and
+it reveals the presence of the attack. The identification residual is identically zero even after time 15 s, and it reveals that the attack set is .
+The identification residual is nonzero after time 15 s, and it reveals that is not the attack set. In (b), we report our simulation results for the case of linear
+network dynamics driven by state and measurements noise. For this case, we choose the output injection matrices of the detection and identification filters as
+the corresponding optimal Kalman gain. Due to the presence of noise, the residuals deviate from their nominal behavior reported in (a). Although the attack is
+clearly still detectable and identifiable, additional statistical tools such as hypothesis testing [7] may be adopted to analyze the residuals , , and . In (c), we
+report our simulation results for the case of nonlinear network dynamics without noise. For this case, the detection and identification filters are designed for the
+nominal linearized dynamics with output injection matrices as the corresponding optimal Kalman gain. Despite the presence of unmodeled nonlinear dynamics,
+the residuals reflect their nominal behavior reported in (a). (a) Nominal linear system dynamics. (b) Linear and noisy system dynamics. (c) Nonlinear and noisy
+system dynamics.
+For our numerical studies, we assume the angles and frequencies
+of every generator to be measured. Additionally, we let the
+attacker affect the angles of the generators with a
+random signal starting from time 15 s. Since the considered
+power network dynamics are of index one, the filters are implemented
+using the nonsingular Kron-reduced system representation
+[17]. The results of our simulations are in Fig. 10(a)-(c),
+respectively. In conclusion, our centralized detection and identification
+filters appear robust to state and measurements noise
+and unmodeled dynamics.
+VI. CONCLUSION
+We have analyzed fundamental monitoring limitations for
+cyber-physical systems under attack modeled by linear timeinvariant
+descriptor systems with exogenous inputs. In particular,
+i) we have characterized undetectable and unidentifiable
+attacks from system-theoretic and graph-theoretic perspectives,
+ii) we have designed centralized and distributed monitors, and
+iii) we have provided illustrative examples. Future and ongoing
+work includes i) a detailed analysis of the convergence of our
+distributed monitors, ii) the design of distributed identification
+monitors, and iii) the design of monitors robust to system noise
+and unmodeled dynamics.
+REFERENCES
+[1] J. Slay and M. Miller, “Lessons learned from the Maroochy water
+breach,” Critical Infrastructure Protection, vol. 253, pp. 73-82, 2007.
+[2] J. P. Conti, “The day the samba stopped,” Eng. Technol., vol. 5, no. 4,
+pp. 46-47, Mar. 6-Mar. 26 2010.
+[3] S. Kuvshinkova, “SQL Slammer worm lessons learned for consideration
+by the electricity sector,” North American Electric Reliability
+Council, 2003.
+[4] J. P. Farwell and R. Rohozinski, “Stuxnet and the future of cyber war,”
+Survival, vol. 53, no. 1, pp. 23-40, 2011.
+[5] G. Richards, “Hackers vs slackers,” Eng. Technol., vol. 3, no. 19, pp.
+40-43, 2008.
+[6] M.-A. Massoumnia, G. C. Verghese, and A. S. Willsky, “Failure detection
+and identification,” IEEE Trans. Autom. Control, vol. 34, no. 3,
+pp. 316-321, Mar. 1989.
+[7] M. Basseville and I. V. Nikiforov, Detection of Abrupt Changes:
+Theory and Application. Englewood Cliffs, NJ, USA: Prentice-Hall,
+1993.
+[8] S. Amin, A. Cárdenas, and S. Sastry, “Safe and secure networked control
+systems under denial-of-service attacks,” Hybrid Syst.: Comput.
+Control, vol. 5469, pp. 31-45, Apr. 2009.
+[9] Y. Liu, M. K. Reiter, and P. Ning, “False data injection attacks against
+state estimation in electric power grids,” in Proc. ACM Conf. Comput.
+Commun. Security, Chicago, IL, USA, Nov. 2009, pp. 21-32.
+[10] A. Teixeira, S. Amin, H. Sandberg, K. H. Johansson, and S. Sastry,
+“Cyber security analysis of state estimators in electric power systems,”
+in Proc. IEEE Conf. Decision Control, Atlanta, GA, USA, Dec. 2010,
+pp. 5991-5998.
+[11] Y. Mo and B. Sinopoli, “Secure control against replay attacks,” in Proc.
+Allerton Conf. Commun., Control, Comput., Monticello, IL, USA, Sep.
+2010, pp. 911-918.
+[12] R. Smith, “A decoupled feedback structure for covertly appropriating
+network control systems,” in Proc. IFAC World Congr., Milan, Italy,
+Aug. 2011, pp. 90-95.
+[13] M. Zhu and S. Martínez, “Stackelberg-game analysis of correlated attacks
+in cyber-physical systems,” in Proc. Amer. Control Conf., San
+Francisco, CA, USA, Jul. 2011, pp. 4063-4068.
+[14] F. Hamza, P. Tabuada, and S. Diggavi, “Secure state-estimation for
+dynamical systems under active adversaries,” in Proc. Allerton Conf.
+Commun., Control, Comput., Sep. 2011.
+[15] C. L. DeMarco, J. V. Sariashkar, and F. Alvarado, “The potential for
+malicious control in a competitive power systems environment,” in
+Proc. IEEE Int. Conf. Control Applicat., Dearborn, MI, USA, 1996,
+pp. 462-467.
+[16] G. Dan and H. Sandberg, “Stealth attacks and protection schemes for
+state estimators in power systems,” in Proc. IEEE Int. Conf. Smart Grid
+Commun., Gaithersburg, MD, USA, Oct. 2010, pp. 214-219.
+[17] F. Pasqualetti, F. Dörfler, and F. Bullo, “Cyber-physical attacks in
+power networks: Models, fundamental limitations and monitor design,”
+in Proc. IEEE Conf. Decision Control and Eur. Control Conf.,
+Orlando, FL, USA, Dec. 2011, pp. 2195-2201.
+[18] A.-H. Mohsenian-Rad and A. Leon-Garcia, “Distributed internet-based
+load altering attacks against smart power grids,” IEEE Trans. Smart
+Grid, vol. 2, no. 4, pp. 667-674, 2011.
+[19] S. Sridhar, A. Hahn, and M. Govindarasu, “Cyber-physical system security
+for the electric power grid,” Proc. IEEE, vol. 99, no. 1, pp. 1-15,
+Jan. 2012.
+PASQUALETTI et al.: ATTACK DETECTION AND IDENTIFICATION IN CYBER-PHYSICAL SYSTEMS
+2729
+[20] S. Sundaram and C. Hadjicostis, “Distributed function calculation via
+linear iterative strategies in the presence of malicious agents,” IEEE
+Trans. Autom. Control, vol. 56, no. 7, pp. 1495-1508, Jul. 2011.
+[21] F. Pasqualetti, A. Bicchi, and F. Bullo, “Consensus computation in unreliable
+networks: A system theoretic approach,” IEEE Trans. Autom.
+Control, vol. 57, no. 1, pp. 90-104, Jan. 2012.
+[22] S. Amin, X. Litrico, S. S. Sastry, and A. M. Bayen, “Stealthy deception
+attacks on water SCADA systems,” in Hybrid Syst.: Comput. Control,
+Stockholm, Sweden, Apr. 2010, pp. 161-170.
+[23] D. G. Eliades and M. M. Polycarpou, “A fault diagnosis and security
+framework for water systems,” IEEE Trans. Control Syst. Technol., vol.
+18, no. 6, pp. 1254-1265, 2010.
+[24] W. M. Wonham, Linear Multivariable Control: A Geometric Approach,
+3rd ed. New York, NY, USA: Springer, 1985.
+[25] G. Basile and G. Marro, Controlled and Conditioned Invariants in
+Linear System Theory. Englewood Cliffs, NJ, USA: Prentice-Hall,
+1991.
+[26] Y. Mo and B. Sinopoli, “False data injection attacks in control
+systems,” in Proc. 1st Workshop Secure Control Syst., Stockholm,
+Sweden, Apr. 2010.
+[27] J. W. van der Woude, “A graph-theoretic characterization for the rank
+of the transfer matrix of a structured system,” Math. Control, Signals
+Syst., vol. 4, no. 1, pp. 33-40, 1991.
+[28] T. Geerts, “Invariant subspaces and invertibility properties for singular
+systems: The general case,” Linear Algebra and its Applicat., vol. 183,
+pp. 61-88, 1993.
+[29] A. R. Metke and R. L. Ekl, “Security technology for smart grid networks,”
+IEEE Trans. Smart Grid, vol. 1, no. 1, pp. 99-107, Jun. 2010.
+[30] E. Scholtz, “Observer-based monitors and distributed wave controllers
+for electromechanical disturbances in power systems,” Ph.D. dissertation,
+Mass. Inst. of Technol., Cambridge, MA, USA, 2004.
+[31] F. Pasqualetti, A. Bicchi, and F. Bullo, “A graph-theoretical characterization
+of power network vulnerabilities,” in Proc. Amer. Control
+Conf., San Francisco, CA, USA, Jun. 2011, pp. 3918-3923.
+[32] A. Osiadacz, Simulation and Analysis of Gas Networks. Houston,
+TX, USA: Gulf Publishing Company, 1987.
+[33] A. Kumar and P. Daoutidis, Control of Nonlinear Differential Algebraic
+Equation Systems. Boca Raton, FL, USA: CRC, 1999.
+[34] X. Litrico and V. Fromion, Modeling and Control of Hydrosystems.
+New York, NY, USA: Springer, 2009.
+[35] J. Burgschweiger, B. Gnädig, and M. C. Steinbach, “Optimization
+models for operative planning in drinking water networks,” Optimiz.
+Eng., vol. 10, no. 1, pp. 43-73, 2009.
+[36] P. F. Boulos, K. E. Lansey, and B. W. Karney, Comprehensive
+Water Distribution Systems Analysis Handbook for Engineers and
+Planners. Denver, CO, USA: American Water Works Assoc., 2006.
+[37] A. Abur and A. G. Exposito, Power System State Estimation: Theory
+and Implementation. Boca Raton, FL, USA: CRC, 2004.
+[38] J. M. Dion, C. Commault, and J. van der Woude, “Generic properties
+and control of linear structured systems: A survey,” Automatica, vol.
+39, no. 7, pp. 1125-1144, 2003.
+[39] J. Munkres, Topology. Upper Saddle River, NJ, USA: Prentice-Hall,
+2000.
+[40] K. J. Reinschke, “Graph-theoretic approach to symbolic analysis of
+linear descriptor systems,” Linear Algebra its Applicat., vol. 197, pp.
+217-244, 1994.
+[41] J. Tokarzewski, Finite Zeros in Discrete Time Control Systems, ser.
+Lecture notes in control and information sciences. New York, NY,
+USA: Springer, 2006.
+[42] L. Dai, Singular Control Systems. New York, NY, USA: Springer,
+1989.
+[43] A. Isidori, Nonlinear Control Systems, ser. Communications and Control
+Engineering Series, 3rd ed. New York, NY, USA: Springer, 1995.
+[44] S. Skogestad and I. Postlethwaite, Multivariable Feedback Control
+Analysis and Design, 2nd ed. New York, NY, USA: Wiley, 2005.
+[45] E. Lelarasmee, A. E. Ruehli, and A. L. Sangiovanni-Vincentelli, “The
+waveform relaxation method for time-domain analysis of large scale
+integrated circuits,” IEEE Trans. Comput.-Aided Design Integr. Circuits
+Syst., vol. 1, no. 3, pp. 131-145, Jul. 1982.
+[46] Z. Z. Bai and X. Yang, “On convergence conditions of waveform relaxation
+methods for linear differential-algebraic equations,” J. Comput.
+Appl. Math., vol. 235, no. 8, pp. 2790-2804, 2011.
+[47] F. Dörfler, F. Pasqualetti, and F. Bullo, “Continuous-time distributed
+observers with discrete communication,” IEEE J. Sel. Topics Signal
+Process., vol. 7, no. 2, pp. 296-304, Feb. 2013.
+[48] M. R. Garey and D. S. Johnson, Computers and Intractability. New
+York, NY, USA: Springer, 1979.
+[49] E. J. Candes and T. Tao, “Decoding by linear programming,” IEEE
+Trans. Inf. Theory, vol. 51, no. 12, pp. 4203-4215, Dec. 2005.
+[50] F. L. Lewis, “Geometric design techniques for observers in singular
+systems,” Automatica, vol. 26, no. 2, pp. 411-415, 1990.
+[51] K. D. Ikramov, “Matrix pencils: Theory, applications, and numerical
+methods,” J. Math. Sci., vol. 64, no. 2, pp. 783-853, 1993.
+[52] R. D. Zimmerman, C. E. Murillo-Sánchez, and D. Gan, “MATPOWER:
+Steady-state operations, planning, and analysis tools for power systems
+research and education,” IEEE Trans. Power Syst., vol. 26, no. 1, pp.
+12-19, Feb. 2011.
+[53] C. Grigg, P. Wong, P. Albrecht, R. Allan, M. Bhavaraju, R. Billinton,
+Q. Chen, C. Fong, S. Haddad, S. Kuruganty, W. Li, R. Mukerji, D.
+Patton, N. Rau, D. Reppen, A. Schneider, M. Shahidehpour, and C.
+Singh, “The IEEE reliability test system-1996. A report prepared by
+the reliability test system task force of the application of probability
+methods subcommittee,” IEEE Trans. Power Syst., vol. 14, no. 3, pp.
+1010-1020, Aug. 1999.
+Fabio Pasqualetti (S'07) received the Laurea degree
+(summa cum laude) in computer engineering and
+the Laurea Magistrale degree (summa cum laude) in
+automation engineering from the University of Pisa,
+Pisa, Italy, in 2004 and 2012, respectively, and the
+D.Phil. degree in mechanical engineering from the
+University of California at Santa Barbara (UCSB),
+Santa Barbara, CA, USA, in 2012.
+He is a Postdoctoral Researcher in Mechanical
+Engineering at UCSB. His main research interest
+is in secure control systems, with application to
+multi-agent networks, distributed computing and power networks. Other interests
+include vehicle routing and combinatorial optimization, with application
+to distributed patrolling and camera surveillance.
+Florian Dörfler (S'09) received the Diplom degree
+in engineering cybernetics from the University
+of Stuttgart, Stuttgart, Germany, in 2008. He is
+currently pursuing the D.Phil. degree in mechanical
+engineering at the University of California at Santa
+Barbara (UCSB), Santa Barbara, CA, USA.
+He is affiliated with the Center for Nonlinear
+Studies at the Los Alamos National Laboratories.
+His main research interest is networked control
+theory with applications in energy systems and
+robotic coordination.
+Mr. Dörfler is recipient of the 2009 Regents Special International Fellowship,
+the 2011 Peter J. Frenkel Foundation Fellowship, the 2010 American Control
+Conference Student Best Paper Award, and the 2011 AACC O. Hugo Schuck
+Best Paper Award.
+Francesco Bullo (S'95-M'99-SM'03-F'10) received
+the Laurea degree (summa cum laude) in
+electrical engineering from the University of Padova,
+Padua, Italy, in 1994, and the Ph.D. degree in control
+and dynamical systems from the California Institute
+of Technology, Pasadena, CA, USA, in 1999.
+He is a Professor with the Mechanical Engineering
+Department, University of California at Santa Barbara,
+Santa Barbara, CA, USA. From 1998 to 2004,
+he was an Assistant Professor with the Coordinated
+Science Laboratory, University of Illinois at UrbanaChampaign.
+His main research interest is multi-agent networks with application
+to robotic coordination, distributed computing, and power networks. Other
+interests include vehicle routing, geometric control, and motion planning problems.
+He has published more than 200 papers in international journals, books
+and refereed conferences. He is the coauthor, with Andrew D. Lewis, of Geometric
+Control of Mechanical Systems (Springer, 2004) and, with Jorge Cortés
+and Sonia Martínez, of Distributed Control of Robotic Networks (Princeton
+Univ. Press, 2009).
+Dr. Bullo has served or is serving on the Editorial Boards of the IEEE
+TRANSACTIONS ON AUTOMATIC CONTROL, the ESAIM: Control, Optimization,
+and the Calculus of Variations, and the SIAM Journal of Control and Optimization.
+His students' papers were finalists for the Best Student Paper Award
+at the IEEE Conference on Decision and Control (2002, 2005, 2007), and the
+American Control Conference (2005, 2006, 2010).

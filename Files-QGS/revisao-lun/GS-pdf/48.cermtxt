@@ -1,0 +1,1272 @@
+1102
+IEEE TRANSACTIONS ON SIGNAL PROCESSING, VOL. 63, NO. 5, MARCH 1, 2015
+Subspace Methods for Data Attack on State
+Estimation: A Data Driven Approach
+Jinsub Kim, Member, IEEE, Lang Tong, Fellow, IEEE, and Robert J. Thomas, Life Fellow, IEEE
+Abstract-Data attacks on state estimation modify part of
+system measurements such that the tempered measurements
+cause incorrect system state estimates. Attack techniques proposed
+in the literature often require detailed knowledge of system
+parameters. Such information is difficult to acquire in practice.
+The subspace methods presented in this paper, on the other hand,
+learn the system operating subspace from measurements and
+launch attacks accordingly. Conditions for the existence of an
+unobservable subspace attack are obtained under the full and
+partial measurement models. Using the estimated system subspace,
+two attack strategies are presented. The first strategy aims
+to affect the system state directly by hiding the attack vector in
+the system subspace. The second strategy misleads the bad data
+detection mechanism so that data not under attack are removed.
+Performance of these attacks are evaluated using the IEEE 14-bus
+network and the IEEE 118-bus network.
+Index Terms-Cyber physical system, data framing attack, false
+data injection, state estimation, subspace method.
+I. INTRODUCTION
+A ical devices networked by a cyber infrastructure with incyber
+physical system (CPS) [1] is a collection of phystegrated
+sensing, communications, and control. A defining feature
+of CPS is coordinated operations based on data collected
+from sensors deployed throughout the system. Major examples
+of CPS include power grids, intelligent transportation systems,
+and networked robotics.
+An essential signal processing component of many CPSs is
+real-time state estimation based on sensor measurements [2].
+The state estimate provides a CPS with the real-time monitoring
+and control capability. For instance, the state estimate of a
+power grid facilitates real-time economic dispatch, contingency
+analysis, and computation of real-time electricity price [2].
+Manuscript received May 08, 2014; revised September 14, 2014; accepted
+November 29, 2014. Date of publication December 23, 2014; date of current
+version January 30, 2015. The associate editor coordinating the review of this
+manuscript and approving it for publication was Prof. Rui Zhang. This work
+was supported in part by the National Science Foundation under Grant CNS1135844.
+Part of this work was presented at the Asilomar Conference on Signals,
+Systems, and Computers, Pacific Grove, CA, USA, November 2013.
+J. Kim is with the School of Electrical Engineering and Computer Science,
+Oregon State University, Corvallis, OR 97331 USA (e-mail: jinsub.kim@oregonstate.edu).
+L. Tong and R. J. Thomas are with the School of Electrical and Computer
+Engineering, Cornell University, Ithaca, NY 14853 USA (e-mail: ltong@ece.
+cornell.edu; rjt1@cornell.edu).
+Color versions of one or more of the figures in this paper are available online
+at http://ieeexplore.ieee.org.
+Digital Object Identifier 10.1109/TSP.2014.2385670
+The dependency of CPS on data communications makes it
+vulnerable to cyber attacks where an adversary may break into
+the network, collect unauthorized information, and intercept and
+alter sensor data. Because measurements are collected over a
+wide geographical area by distributed data acquisition systems,
+sometimes through wireless links, communications networks
+that support modern CPSs have numerous points of vulnerabilities
+[3], [4]. For critical infrastructures such as a power grid, a
+well planned coordinated attack may lead to a cascading failure
+and a regional blackout [5].
+To assess vulnerability of CPS to possible cyber attacks, it is
+important to study potential attack mechanisms. In this paper,
+we consider an adversary who can modify certain sensor data
+such that the corrupted data will mislead the CPS control with
+a wrong state estimate. We refer to such a data attack on state
+estimation as a state attack. A major challenge of state attack is
+to avoid being detected and identified by the fusion center.
+In the literature, successful state attacks on a CPS, in particular
+a power grid, have been reported. Liu, Ning, and Reiter
+[6] presented the first state attack strategy, where an adversary
+replaces part of “normal” sensor data with “malicious data.”
+They showed that if an adversary can control a sufficiently large
+number of sensor data, it can perturb the state estimate by an
+arbitrary degree while avoiding detection at the control center.
+Subsequent works along this line uncovered numerous attack
+and protection mechanisms [7]-[14].
+Most proposed attack schemes require considerably detailed
+system information. In particular, the network topology and
+physical system parameters are often required to construct
+attacks. Although such information may be obtained by penetrating
+the control center, security measures can make it difficult
+in practice to access such information.
+A. Summary of Contributions
+We consider the problem of data-driven attacks on state estimation,
+assuming that the adversary is capable of monitoring
+a subset of system measurements without detailed knowledge
+of the network topology and system parameters. The key idea
+in the proposed approach is to exploit the subspace structure of
+the measurements, in the same spirit of subspace techniques in
+array processing [15], beamforming [16], and system identification
+[17].
+The main contribution of this paper is the development of
+subspace techniques for designing a state attack. To this end,
+we present two techniques with different characteristics. First,
+we show a construction of an unobservable attack based on the
+estimated subspace structure of measurements. We show further
+1053-587X © 2014 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+KIM et al.: SUBSPACE METHODS FOR DATA ATTACK ON STATE ESTIMATION
+1103
+that, in constructing the attack, under certain conditions, monitoring
+only partial measurements may be sufficient. In particular,
+we present a graph theoretic condition for the existence of
+an unobservable attack under the partial measurement model.
+The second subspace-based attack exploits current bad data
+detection and removal mechanisms. In particular, the attack purposely
+triggers the bad data detection mechanism, but it is designed
+to mislead the fusion center to remove data that have
+not been tampered by the adversary while retaining some of the
+falsified data. After such data removal, although the remaining
+data appear to be consistent with the system model, the resulting
+state estimate may have an arbitrarily large error. We refer to this
+type of attack as data framing attack in the sense that valid data
+are “framed” by the adversary and removed incorrectly by the
+fusion center.
+To demonstrate the effectiveness of these attacks, we consider
+the problem of state estimation in a power system as a practical
+example of CPS. To this end, we consider the IEEE 14-bus network
+and the IEEE 118-bus network [18].
+An additional complexity of the power system is that the
+system observation is a nonlinear function of the system state.
+This raises the issue of whether attacks constructed from a
+linear model is effective in a nonlinear system. While we do
+not have theoretical guarantees, simulation results show that
+the subspace-based data attacks perform well in the presence
+of the nonlinearities in system equations.
+B. Related Work and Organization
+This paper extends some of the key results on state attacks
+that assume that the system parameters and the network
+topology are known to the attacker. We describe below some
+of the relevant techniques.
+There is a substantial literature on state attacks when the
+system parameter and the network topology are known. As
+mentioned before, Liu, Ning, and Reiter [6] first introduced an
+unobservable attack on power system state estimation, which
+can perturb the state estimate without being detected by the
+bad data detector at the fusion center. Following their seminal
+work, the link between feasibility of an unobservable attack and
+power system observability was made in [8], [7], [19]. Consequently,
+classical power system observability conditions [20]
+can be modified to check feasibility of unobservable attacks
+and used to develop countermeasures based on sensor data
+authentication [7]-[10], [12], [19], [21], [22]. To assess the grid
+vulnerability against data attacks, the minimum number of adversary-controlled
+sensors necessary for an unobservable attack
+was suggested as the security index of the grid [8], [23]. The
+data framing attack, when the system parameters are known,
+was first proposed in [24] to circumvent the fundamental limit
+imposed by the security index.
+There is limited work on state attacks without system information
+or with partial system information. The use of independent
+component analysis in [13] is the most relevant. The authors
+of [13] proposed to identify a mixing matrix from which to
+construct an unobservable attack. However, such techniques require
+that loads are statistically independent and non-Gaussian,
+and the techniques need full sensor observations. Generating
+unobservable attacks using partial parameter information was
+considered in [14]. The authors in [14] showed that an adversary
+knowing impedance of transmission lines in a cutset of the
+network topology can construct an unobservable attack. However,
+how an adversary can learn local parameters is nontrivial.
+In contrast to the aforementioned approaches, our method requires
+no system parameter information, and it can be launched
+with only partial sensor observations. Furthermore, we identify
+the conditions under which an attacker with partial sensor observations
+(without other system information) may construct an
+unobservable attack or a data framing attack. In contrast to the
+feasibility conditions given in existing works in the literature
+[7], [8], [19], where an omniscient adversary is assumed, our
+conditions guarantee a successful attack design for an adversary
+with limited knowledge and limited access to the system.
+Attacks were also studied in the framework of a general dynamic
+CPS, under the assumption of an omniscient adversary.
+For instance, an attack on a linear control system equipped with
+a linear-quadratic-Gaussian controller was studied in [25]. Detectability
+and identifiability of attacks on general CPS operations
+was characterized in [26]. The model considered in these
+papers is more general than the static model studied here. However,
+their assumption of an adversary with complete system
+information is stronger than that in the present work.
+The rest of this paper is organized as follows. Section II introduces
+the measurement model, the mathematical model of
+state estimation and bad data processing, and the attack model.
+Section III presents the subspace methods of unobservable attack,
+and Section IV presents the subspace methods of data
+framing attack. In Section V, the results from simulations with
+benchmark power grids are presented. Finally, Section VI provides
+concluding remarks.
+II. MATHEMATICAL MODELS
+A. Notations
+An upper case boldface letter (e.g., ) denotes a matrix, a
+lower case boldface letter (e.g., ) denotes a vector, and a script
+letter (e.g., , ) denotes a set. The entry of at the th row
+and the th column is denoted by , and the th entry of is
+denoted by . In addition, and denote the column
+space and the null space of respectively. And, denotes an
+identity matrix with an appropriate size.
+B. Measurement Model
+The system state of a CPS is defined as a vector of variables
+that characterize the current operating condition of the CPS. We
+assume centralized state estimation at the fusion center. For realtime
+estimation of the system state , the fusion center
+collects measurements from sensors deployed throughout the
+system. Generally, the sensor measurements are related to the
+system state in a nonlinear fashion, and the relation can be
+described by the nonlinear measurement model (e.g., the AC
+model for a power grid [27]):
+(1)
+1104
+IEEE TRANSACTIONS ON SIGNAL PROCESSING, VOL. 63, NO. 5, MARCH 1, 2015
+(2)
+(3)
+(4)
+where is the measurement vector, is the measurement
+function, and is the Gaussian measurement noise.
+If some sensors malfunction or an adversary injects malicious
+data, the fusion center observes biased measurements,
+where represents a deterministic bias. In such a case, the data
+are said to be bad, and the biased sensor entries are referred to
+as bad data entries. The bad data vector is typically sparse, and
+its support is unknown to the fusion center. If is injected by
+an adversary, is constrained by its support.
+In analyzing the attack effect on state estimation, we adopt a
+linearization of (1) around a nominal state :
+where is the measurement matrix that relates the
+system state to the measurement vector, and is the Gaussian
+measurement noise with a covariance matrix . Without loss
+of generality, we assume that both and are zero vectors1
+and employ the following model:
+A system is said to be observable if the measurement matrix
+has full column rank (i.e., can be uniquely determined
+from .) System observability is essential for state estimation.
+In practice, sensors should be placed in the network to satisfy
+observability. Hence, we assume that the CPS of interest is observable,
+i.e., has full column rank.
+In practice, the nonlinear system and the nonlinear iterative
+state estimation techniques have a certain mitigating effect on
+attacks designed based on a linear model [28]. It is therefore important
+to validate performance of an attack strategy based on
+the nonlinear model (1) using a nonlinear state estimator. Note
+that, while our attacks are constructed based on (4), our numerical
+experiments validate their performance using the original
+nonlinear system (1) with a nonlinear state estimator.
+C. State Estimation and Bad Data Processing
+This section introduces a popular approach to state estimation
+and bad data processing [27], [29], which we assume to
+be employed by the fusion center. The specific approach is a
+widely used standard implementation in the power grid where
+the number of states is in the order of 10,000, and the estimates
+are made every few minutes.
+Fig. 1 illustrates an iterative scheme for obtaining an estimate
+of the system state, which consists of three functional blocks:
+state estimation, bad data detection, and bad data identification.
+The assumed state estimator is based on the maximum likelihood
+principle and is implemented in a recursive manner. Iterations
+begin with the initial measurement vector and
+the initial measurement function where the superscript
+denotes the index for the current iteration.
+1For general cases, we can simply treat and
+as the measurement vector and the state vector and work with
+Fig. 1. State estimation and bad data processing.
+In the th iteration, state estimation uses as an
+input and calculates the least squares (LS) estimate of the system
+state and the corresponding residue vector:
+where denotes norm. In practice, the above nonlinear
+LS estimate can be obtained by iteration of a linearized LS estimation
+using Newton-Raphson or quasi-Newton methods [27].
+Bad data detection employs the -test [27], [29]:
+if
+if
+;
+(6)
+where is a predetermined threshold. The -test is widely
+used due to its simplicity and the fact that the test statistic has a
+distribution if the data are good [29]. The latter fact is used
+to set the threshold for a given false alarm constraint.
+If the bad data detector (6) declares that the data are good, the
+algorithm returns the state estimate and terminates. However,
+if the bad data detector declares that the data are bad, bad
+data identification is invoked to identify and remove one bad
+data entry from the measurement vector.
+A widely used criterion for identifying a bad data entry is the
+normalized residue [27], [29]: each is divided by its standard
+deviation under the hypothesis that contains no bad
+data. Therefore, each normalized residue approximately follows
+the standard normal distribution if contains no bad data.
+Specifically,
+where
+is a diagonal matrix with
+if removing makes
+the system unobservable;
+otherwise;
+2and
+is defined as
+.
+2If removing the sensor makes the system unobservable, its residue is always
+equal to zero [27], and the corresponding diagonal entry of is zero. For
+such a sensor, the normalizing factor is 0 such that its normalized residue is
+equal to 0.
+(5)
+(7)
+(8)
+(9)
+with denoting the Jacobian of at (see Appendix
+of [29] for details.)
+Once the normalized residue is calculated, the sensor
+with the largest is identified as a bad sensor. The row
+of and the row of that correspond to the bad sensor
+are removed, and the updated measurement vector and
+measurement function are used as the inputs for the next
+iteration.
+Using the linearized model (4), every step is the same as
+using the nonlinear model, except that the nonlinear measurement
+function is replaced with the linear function
+(so, the Jacobian is the same everywhere.) Note that
+the LS state estimate (5) is replaced with a simple linear LS
+solution:
+and thus
+KIM et al.: SUBSPACE METHODS FOR DATA ATTACK ON STATE ESTIMATION
+1105
+D. Adversary Model
+An adversary is assumed to be capable of modifying the data
+from a subset of sensors , referred to as adversary sensors.
+The fusion center observes corrupted measurements instead of
+the real measurements . The adversarial modification is mathematically
+modeled by:
+where is an attack vector, and
+vectors defined as
+is the set of feasible attack
+Liu, Ning, and Reiter [6] presented an unobservable attack,
+which is a powerful attack mechanism capable of perturbing the
+state estimate without being detected. An unobservable attack
+can be formally defined as follows.
+Definition 2.1: Given a measurement vector corresponding
+to a state , i.e., , a state attack is unobservable
+if there exists a state such that .
+The following Lemma shows the algebraic property of the
+attack; it follows immediately from the definition.
+Lemma 2.1: A state attack is unobservable if and only if
+, and . Furthermore, if is unobservable, so is
+for any nonzero , and as ,
+where denotes the state satisfying .
+Lemma 2.1 implies that the feasibility of an unobservable
+attack does not depend on the current operating state . It only
+depends on , which is characterized by the set of adversary
+sensors, and the subspace . The feasibility is also closely
+related to the concept of system observability. In particular, the
+following connection was found in [8].
+Theorem 2.1 (Theorem 1, [8]): An unobservable attack is
+feasible if and only if removing the adversary sensors makes the
+(10)
+(11)
+(12)
+(13)
+grid unobservable (i.e., the measurement matrix does not have
+full column rank.)
+Proof: See Appendix A.
+III. SUBSPACE METHODS FOR UNOBSERVABLE ATTACK
+Most existing works on an unobservable attack assumed that
+an adversary knows the measurement matrix . In contrast, this
+section presents a design of an unobservable attack based on the
+system measurement subspace, without knowledge of . Employing
+the linearized measurement model (4), we will present
+the conditions under which an unobservable attack can be constructed
+based on the subspace information. We also demonstrate
+a condition that guarantees the design of an unobservable
+attack based on partial sensor measurements; for an attack on a
+power grid, this condition is characterized as a graph condition
+on the network topology.
+A. Feasibility of an Unobservable Attack
+Note that designing an unobservable attack is equivalent to
+finding a nonzero vector in satisfying the sparsity pattern
+defined by . Therefore, an unobservable attack, if feasible,
+can be launched by using a basis matrix of
+without knowing , as stated in the following theorem. Formally,
+we refer to as the measurement subspace because
+it is the subspace of all possible noiseless measurements.
+Theorem 3.1: Let be any basis matrix of and a
+submatrix of obtained by removing the rows corresponding
+to the adversary sensors. Then, the following are true:
+1) An unobservable attack is feasible if and only if does
+not have full column rank.
+2) When feasible, an unobservable attack can be constructed
+using : for a nonzero vector , is an
+unobservable attack vector.
+Proof: See Appendix B.
+Theorem 3.1 states the feasibility condition in Theorem 2.1
+(Theorem 1 of [8]; see also Theorem 5 of [21]) as a subspace
+condition. Note that in constructing an unobservable attack
+vector , the adversary only needs to know a basis matrix
+of .
+B. Unobservable Attack With Partial Measurements
+In this section, we show that an unobservable attack can be
+constructed using the subspace information of partial sensor
+measurements. To formally state the result, we need the notion
+of a critical set of sensors [27] and partial observability defined
+as follows.
+Definition 3.1: A set of sensors is called a critical set if removing
+the set of sensors from the system renders the system
+unobservable while removing any strict subset of it does not.
+Let and denote a subset of sensors and a subset of state
+variables respectively. The state variables in are said to be
+observable with respect to if the state variables in can be
+uniquely determined based on measurements from .3 When the
+state variables in are observable with respect to , a subset
+3In other words, every element of has zero entries for the rows corresponding
+to the state variables in , where is the submatrix of
+obtained by retaining only the rows corresponding to the sensors in .
+1106
+IEEE TRANSACTIONS ON SIGNAL PROCESSING, VOL. 63, NO. 5, MARCH 1, 2015
+an unobservable attack. The following corollary provides the
+detail of how an attack can be constructed from a basis matrix
+of .
+Corollary 3.2.1: Suppose that the conditions 1), 2), and 3) of
+Theorem 3.2 hold. Let denote a basis matrix of
+and denote a submatrix of obtained by removing
+the rows corresponding to the sensors in . Then, the following
+are true:
+1) The dimension of is one.
+2) For any nonzero vector , the attack that modifies
+the sensor data from by adding the corresponding
+entries in to the real data is unobservable.
+The three conditions of Theorem 3.2 are all related to system
+observability or partial observability. In case of a power grid,
+system observability and partial observability can be checked
+based on partial information about the grid topology and sensor
+locations. In particular, the graph-theoretical observability criterion
+in [20] can be employed.
+A power grid is a network of buses connected by transmission
+Fig. 2. A part of the IEEE 118-bus network: Rectangles represent the sensor lines. The topology of a grid is naturally defined as an undirected
+locations. Every bus has an injection sensor, and every line has line flow sensors graph where is the set of buses, and is the set of
+for both directions. connected transmission lines: is in if and only if there
+exists a connected transmission line between bus and bus .
+We consider two types of legacy sensors: line flow sensors and
+of is a critical set with respect to if removing from bus injection sensors. A line flow sensor located on a line
+makes the state variables in no longer observable with re- measures the power flowing through the line either from bus
+spect to while removing a strict subset of from does not. to bus or from bus to bus . A bus injection sensor on bus
+Consider a subset of sensors . Let denote the set of state measures the total power injected into the network at bus (see
+variables whose values affect measurements from the sensors in Appendix F for the details of the sensor measurements.)
+(i.e., the by submatrix of , consisting of the rows The following corollary presents the graph conditions that
+corresponding to the sensors in , has nonzero columns exactly imply the conditions of Theorem 3.2 for an attack on a power
+at the columns corresponding to the state variables in .) grid state estimation. Appendix F provides the details of the
+The following theorem provides the conditions under which graph-theoretical observability criterion in [20], which directly
+an unobservable attack can be constructed based on the sub- results in the following corollary from Theorem 3.2. To state the
+space information of measurements from . The conditions corollary, we need to introduce the concept of a reduced power
+roughly mean that (i) based on measurements from , one can network. Given a subset of sensors, the reduced network conuniquely
+identify the relevant state variables (i.e., the variables sists of the sensors in and the topology , where
+in ,) and (ii) contains a set of sensors, which, if controlled is in if and only if a line flow sensor on is in ,
+by an adversary, is sufficient for launching an unobservable at- or an injection sensor at bus or bus is in , and consists
+tack and is also critical with respect to . of all the endpoints of the lines in . For instance, in the IEEE
+Theorem 3.2: Suppose that 118-bus network, Fig. 2 describes a reduced network for con1)
+the state variables in are observable with respect to , sisting of the circled sensors. In this example, the vertices and
+2) is a critical set with respect to , and edges inside the dashed boundary form .
+3) removing makes the system unobservable. Corollary 3.2.2: Let be a subset of sensors,
+Let denote the submatrix of obtained by re- the topology of the reduced network for , and a subset of
+taining only the rows corresponding to the sensors in . Then, . Suppose that
+the following are true: 1) There exists a cut of the grid topology such that con1)
+Let denote the set of vectors in such that sists of all line flow sensors on the cutset lines and all inis
+in if and only if the rows of corresponding jection sensors on the endpoints of the cutset lines.
+to the sensors in are equal to zero. Then, the dimen- 2) For every sensor in , there exists a way to assign each
+sion of is one. injection sensor in to a line incident to the
+2) For an arbitrary nonzero , the attack that modifies bus where the sensor is located4 such that there exists a
+the sensor data from by adding the corresponding entries spanning tree of with at least one sensor in
+in to the real data is unobservable. on every edge of the tree (either a line flow or an assigned
+Proof: See Appendix C. injection sensor.)
+Note that in Theorem 3.2 can be fully characterized based
+on a basis matrix of . If the conditions of Theorem 3.2 are sen4sInorottoheornweoorfdtsh,efolirnaensitnhjaetcatiroeninsecnidseonrtlotocabtuesd a.t Wbuesdo,wtheiassfsoirgneatchhe iinnjjeeccttiioonn
+met, an attacker knowing a basis matrix of can launch sensor in .
+KIM et al.: SUBSPACE METHODS FOR DATA ATTACK ON STATE ESTIMATION
+1107
+Then, the conditions of Theorem 3.2 hold, and thus the statements
+in Theorem 3.2 and Corollary 3.2.1 hold.
+Note that the conditions of Corollary 3.2.2 are related to
+the topology and the sensor locations in the reduced network.
+Therefore, an adversary can exploit partial information about
+the topology and sensor locations to find an attack setting that
+enables an unobservable attack with partial sensor observations.
+For instance, it can be easily checked that the example in Fig. 2
+with consisting of the circled empty-rectangle sensors satisfies
+the conditions. In particular, the first condition is satisfied
+with the cut that isolates bus 115 from the rest of the network.
+C. Subspace Attack Algorithm
+All the information that is necessary for a subspace attack is
+the subspace information of or . Subspace estimation
+based on measurement data has been actively studied in the
+signal processing literature (e.g., [30], [31]), and thus subspace
+methods naturally lead to a data-driven algorithm for practical
+attack scenarios. Our focus in this section is to demonstrate how
+(any) subspace estimator can be used to generate a data-driven
+attack.
+One of the simplest yet effective ways of estimating a basis
+matrix is to use a sample covariance matrix. Let denote
+measurement vectors at different sampling instances:
+For simplicity, suppose that the noise vectors are
+independent and identically distributed (i.i.d.), the state vectors
+are i.i.d. with a positive definite covariance matrix
+, and the noise vectors and the state vectors are uncorrelated.
+Then, the covariance matrix of is
+(15)
+Note that has rank . Therefore, if is a singular
+value decomposition (SVD) of , the columns of
+that correspond to the largest singular values form a basis of
+. Because is equivalent to , the
+same columns form a basis of .
+Therefore, in practice, we can estimate a basis matrix of
+by applying SVD to the sample covariance matrix :
+(14)
+(16)
+where denotes the sample mean.
+Based on the above (or any other) subspace estimator and
+Theorem 3.1, the data-driven attack with full sensor observations
+operates as follows with the observations
+and the adversary sensor set as inputs:
+1) Subspace estimation: Based on , calculate
+an estimate of a basis matrix of .
+2) Null space estimation: Obtain by removing the rows
+of that correspond to the sensors in . Find an SVD of
+, , and let denote the column of that
+corresponds to the smallest singular value ( is an estimate
+of a nonzero element of in Theorem 3.1.)
+3) Attack: Modify the sensor data from by adding the
+corresponding entries of to them, where is a
+scaling factor to adjust the degree of perturbation.
+The data-driven attack with partial sensor observations
+can be constructed in the same manner based on Corollary
+3.2.1. Specifically, the attack receives and
+-the set of measurements from the sensors in
+at different time instances-as inputs and executes the
+following steps:
+1) Subspace estimation: Based on , calculate
+an estimate of a basis matrix of .
+2) Null space estimation: Obtain by removing the rows
+of that correspond to the sensors in . Find an SVD
+of : . Let denote the column of that
+corresponds to the smallest singular value ( is an estimate
+of a nonzero element of in Corollary 3.2.1.)
+3) Attack: Modify the sensor data from by adding the corresponding
+entries of to them, where is a
+scaling factor to adjust the degree of perturbation.
+IV. SUBSPACE METHODS FOR DATA FRAMING ATTACK
+The idea of a data framing attack based on full system parameter
+information was first presented in [24]. In this section, we
+demonstrate data-driven approaches of data framing attack by
+exploiting the subspace structure of sensor measurements.
+A. Data Framing Attack
+A data framing attack aims to enable an adversary to perturb
+the state estimate by an arbitrary degree even when an unobservable
+attack with does not exist. To this end, a data framing
+attack frames some normally operating meters as sources of bad
+data such that their data will be removed. A critical parameter of
+data framing attack is the set of sensors to be framed, denoted by
+. The framed sensor set is selected such that ,
+and if the sensors in are removed from the system, an unobservable
+attack with becomes feasible. Under this selection
+rule, an adversary may design an attack that becomes unobservable
+once the sensor data from are removed by the bad data
+removal rule.
+To successfully remove the data from , one can use an
+attack vector that maximizes the energy of the normalized
+residues at in the first iteration of the bad data processing.
+Such an attack design does not necessarily guarantee that all
+data from will be identified as bad. Nevertheless, this is a
+reasonable heuristic to circumvent the difficulty of analyzing
+attack effect on normalized residues in all iterations.
+To simplify notation, we drop the superscript that denotes the
+first iteration of bad data processing: all the quantities in this
+section are from the first iteration unless otherwise specified.
+The attack direction that maximizes the energy of the normalized
+residues in the first iteration can be constructed by solving
+the following optimization [24]:
+(17)
+1108
+IEEE TRANSACTIONS ON SIGNAL PROCESSING, VOL. 63, NO. 5, MARCH 1, 2015
+(18)
+(19)
+(20)
+attack with . Note that Theorem 4.2 requires
+the same conditions as Theorem 3.2. Therefore, for an
+attack on a power grid, the graph conditions in Corollary 3.2.2
+can replace the conditions of Theorem 4.2.
+C. Subspace Data Framing Attack Algorithm
+Theorem 4.1 and Theorem 4.2 guarantee the sufficiency of
+subspace information in constructing data framing attacks. Similar
+to the data-driven algorithms for unobservable attacks, we
+can incorporate a subspace estimator and SVD to build a datadriven
+algorithm for data framing attacks.
+The data-driven framing attack with full sensor observations
+receives sensor observations at different time
+instances and as inputs, and it has two small positive
+parameters and for thresholding rules. Based on the QCQP
+formulation (18), it works as follows:
+1) Subspace estimation: Based on , calculate
+an estimate of a basis matrix of .
+2) Null space estimation: Obtain by removing the rows
+of that correspond to the sensors in . Find an
+SVD of : . Let denote the matrix consisting
+of the columns of whose corresponding singular
+values are less than . Let be the matrix obtained
+from by replacing the rows corresponding to the
+sensors not in with zero row vectors. Then, is an
+estimate of a basis matrix of in (18).5
+3) QCQP parameter estimation: Calculate
+and
+, which is a diagonal matrix with
+if
+if
+;
+.
+where is a matrix obtained from by replacing the
+rows corresponding to the sensors in with zero row vectors.
+The constraint holds if and only if is unobservable
+after the framed sensor data are removed. This constraint
+guarantees that once the data from are removed, the attack
+can have the same effect as an unobservable attack.
+The following theorem states that a solution to (17) can be obtained
+without knowing if we know a basis matrix of .
+Theorem 4.1: An adversary knowing a basis matrix
+of can find a solution of (17). Specifically, a solution
+to the following quadratically constrained quadratic programming
+(QCQP) is also a solution to (17), and vice versa:
+where is the row selection operator that retains
+only the rows corresponding to the sensors in out of rows,
+is a diagonal matrix with
+if
+if
+;
+,
+and is a matrix obtained from by replacing the
+rows corresponding to the sensors in with zero row vectors.
+Proof: See Appendix D.
+Note that addition of the attack vector changes the mean
+of the residue vector from to . And, is the
+resulting mean of the normalized residues of the data from .
+B. Sufficiency of Partial Measurements
+Similar to sufficiency of partial measurements for an unobservable
+attack (Theorem 3.2), data framing attack can also be
+launched based on subspace information of partial measurements,
+as stated formally in the following theorem. Below, we
+use the notations defined in Section III-B for the partial measurement
+case.
+Theorem 4.2: Suppose that the conditions 1), 2), and 3) of
+Theorem 3.2 hold for , , and . Let denote an
+arbitrary partition of . Let denote a submatrix of consisting
+of the rows corresponding to the sensors in ,
+denote a basis matrix of , and
+denote a submatrix of obtained by removing the rows corresponding
+to the sensors in . Then, the following are true:
+1) The dimension of is one.
+2) For a nonzero vector , the attack that modifies
+the sensor data from by adding the corresponding entries
+in to the real data is equivalent to using as
+an attack vector, where is a nonzero real number, and
+is an optimal solution to (17) with .
+Proof: See Appendix E.
+Theorem 4.2 implies that under certain conditions, knowledge
+of a basis matrix of -the subspace of measurements
+from -is sufficient for launching a data framing
+(21)
+(22)
+4) QCQP: Solve maximizing subject to
+and , where is the number of
+columns of . Let denote the solution.
+5) Attack: Modify the sensor data from by adding the
+corresponding entries of to them, where
+is a scaling factor to adjust the degree of perturbation.
+Based on Theorem 4.2, the data-driven framing attack
+with partial sensor observations receives and
+-the set of measurements from the sensors in
+at different time instances-as inputs and executes
+the following steps:
+1) Subspace estimation: Based on , calculate
+an estimate of a basis matrix of
+.
+2) Null space estimation: Obtain by removing the rows
+of that correspond to the sensors in . Find an SVD
+of : . Let denote the column of that
+5A basis matrix of in (18) can be found by noting that
+if and only if for some where
+is a submatrix of obtained by removing the rows corresponding
+to the sensors in . In other words, given a basis matrix of
+, is a basis matrix of .
+KIM et al.: SUBSPACE METHODS FOR DATA ATTACK ON STATE ESTIMATION
+1109
+corresponds to the smallest singular value ( is an estimate
+of a nonzero element of in Theorem 4.2.)
+3) Attack: Modify the sensor data from by adding the corresponding
+entries of to them, where is a
+scaling factor to adjust the degree of perturbation.
+V. NUMERICAL RESULTS
+In this section, simulations with benchmark power grids, the
+IEEE 14-bus network and the IEEE 118-bus network, demonstrate
+the performance of data-driven attacks. The nonlinear
+measurement model (1) and the nonlinear state estimator were
+employed to emulate practical power system state estimation.
+The power system measurement model is briefly described in
+Appendix F.
+As an attack performance metric, we use the norm of the
+state estimation error, i.e., , where is the state estimate,
+and is the true state.
+A. Simulation Methods
+In each Monte Carlo run, we used the nonlinear model (1)
+to generate measurement vectors. State vectors at different
+time points were assumed to be independent and identically
+distributed Gaussian random vectors with the mean equal to
+the operating states given in the IEEE 14-bus and 118-bus data
+[18]. Both the 14-bus network and the 118-bus network were
+assumed to be fully measured; i.e., all bus injections and all
+line flows (in both directions for each line) were measured by
+sensors.
+In each simulation scenario, we compared performance of
+three attack methods: an attack with full knowledge of , a
+data-driven attack with full sensor observations, and a datadriven
+attack with partial sensor observations. For data-driven
+attacks, 1,000 samples were used to estimate a basis matrix of
+the subspace of (either full or partial) measurements unless otherwise
+specified. Data-driven attacks employed the subspace estimator
+based on the sample covariance matrix which was described
+in Section III-C.
+Once an attack vector was added to measurements, the control
+center executed nonlinear state estimation and bad data detection
+and removal, as described in Section II-C, on the corrupted
+measurements. The threshold of the bad data detector (i.e.,
+the -test) was set to satisfy the false alarm constraint 0.04.
+B. Data-Driven Unobservable Attack
+1) IEEE 14-Bus Test: In the IEEE 14-bus network, we considered
+an adversary controlling data from , , , (2, 3),
+(3, 2), (3, 4), and (4, 3), as illustrated in Fig. 3: denotes the
+injection sensor at bus , and denotes the line flow sensor
+measuring the power flow from to . Theorem 2.1 and the spanning
+tree observability criterion [20] imply that the adversary is
+capable of launching an unobservable attack (see Appendix F.)
+In addition, the adversary sensor set is also a critical set, and
+thus all possible unobservable attack vectors are aligned along
+the same direction (i.e., the dimension of is one.)
+An adversary with partial sensor observations was assumed
+to observe data from , , , (2, 3), (3, 2), (3, 4), (4, 3),
+Fig. 3. IEEE 14-bus network: the circled red empty rectangles represent the
+adversary sensors (i.e., the sensors in ). The adversary with partial sensor
+observations can observe all the circled sensors.
+(2, 1), (2, 4), (4, 5), (4, 7), and (4, 9). In this setting, it can be
+easily verified that the conditions of Corollary 3.2.2 are satisfied,
+and thus an adversary with partial observations can construct an
+unobservable attack under the linearized model assumption.
+Fig. 4 shows the performance of unobservable attacks, especially
+the plot of the normalized state estimation error versus the
+relative attack magnitude . For normalization, state
+estimation errors are divided by the mean estimation error under
+the non-attack scenario. In the plot, each marked point (circle,
+rectangle, or triangle) denotes the mean of a normalized error
+caused by an attack, and the vertical bar on the marked point is
+the confidence interval of the normalized error with 90% confidence
+level (i.e., the normalized error stayed in the interval with
+probability 0.9 in our simulations.) Data-driven attacks, based
+on either full or partial sensor observations, perform as well as
+the attack with full knowledge of . For all attacks, the resulting
+state estimate error scales as the attack magnitude scales. The
+confidence intervals imply that attacks are successful with high
+probability. The overall results indicate that even in a practical
+nonlinear power system, the data-driven attacks designed based
+on the linear model can perform well, and partial sensor observations
+can provide sufficient information for designing a successful
+attack.
+The proposed subspace approaches approximate the nonlinear
+measurement model with a linearized model and
+construct an attack vector based on the subspace structure of
+the assumed linearized model. The nonlinearity of the actual
+measurement model poses a gap between the theory and practice,
+introducing the possibility that a data-driven unobservable
+attack might be detectable in practice. Furthermore, even when
+the actual measurement model is linear, the subspace estimate
+will inevitably contain errors due to the limited sample size.
+Therefore, attacks designed based on the estimate cannot be
+unobservable in a strict sense although they might approximate
+unobservable attacks.
+We examined the probability that an unobservable attack is
+detected by bad data detection at the control center. Fig. 5 shows
+1110
+IEEE TRANSACTIONS ON SIGNAL PROCESSING, VOL. 63, NO. 5, MARCH 1, 2015
+Fig. 4. Unobservable attacks on the 14-bus network: the sensor SNR is 46 dB.
+Attacks with the relative attack magnitudes 2, 4, 6, and 8% were tested. For each
+scenario, 1,000 Monte Carlo runs are used.
+Fig. 5. Detection probability (solid lines) and the average fraction of the adversary
+data that are identified as bad (dashed lines). Attacks with the relative
+attack magnitudes 0.5, 1, 2, 3, and 4% were tested. For each scenario, 1,000
+Monte Carlo runs are used.
+the detection probability for the unobservable attacks, the setting
+and performance of which were described in Fig. 4. It turns
+out that when the attack amplitude is large, the attacks are detected
+by bad data detection with high probability. Considering
+that the attack with the perfect knowledge of and the datadriven
+attacks resulted in similar detection probabilities, detectability
+seems to be attributed to nonlinearity of the actual
+measurement model rather than subspace estimation error. Nevertheless,
+Fig. 5 also shows the mean fraction of adversary-modified
+data that are identified as bad by the bad data detection,
+which turns out to be very small. The results imply that even
+though the control center notices that some data are not trustworthy,
+bad data detection filters out only a small fraction of
+adversary-controlled data thereby leading to successful attack
+performance as shown in Fig. 4. Note that even when a number
+of adversary-controlled data are filtered out, the performance of
+an unobservable attack (i.e., the resulting state estimate error)
+TABLE I
+DETECTION PROBABILITY OF DATA-DRIVEN ATTACKS VERSUS THE SAMPLE
+SIZE FOR SUBSPACE ESTIMATION: WAS SET TO 1%, AND 1,000
+MONTE CARLO RUNS WERE USED
+remains the same as long as some adversary-controlled data remains
+unremoved.6 This can be easily seen from the structure
+of an unobservable attack described in Section II-D.
+To further examine the effect of subspace estimation error
+on the attack performance, we tried different sample sizes for
+subspace estimation (especially, 250, 500, 750, 1000) under the
+various attack scenarios. As the representative result in Table I
+demonstrates, the sample size did not affect the detection probability
+of data-driven attacks. Furthermore, the resulting state
+estimation errors were barely affected by the sample size for
+subspace estimation: for instance, when the relative attack magnitude
+was set to 1%, the mean normalized errors from all datadriven
+attacks with different sample sizes stayed between 227%
+and 238%. These results imply that the effect of nonlinearity on
+attack performance dominates the effect of subspace estimation
+errors.
+However, we believe that the data-driven attacks are asymptotically
+unobservable if the measurement model is linear. First
+of all, it is well known that the subspace estimate based on the
+sample covariance converges in probability to a true basis matrix
+of the subspace as the sample size grows (see Theorem 1 in
+[32] or Lemma 3.1 in [15].) Second, in a data-driven attack, the
+mapping from a subspace estimate to an attack vector is continuous.
+Therefore, the continuous mapping theorem (see Theorem
+29.2 in [33]) implies that the data-driven attack vector converges
+in probability7 to the attack vector constructed based on the
+exact subspace information, which is an unobservable attack.
+Subsequently, Slutsky's theorem (see Theorem 1.11 in [34]) can
+be used to show that the corrupted measurement vector under a
+data-driven attack converges in distribution to a corrupted measurement
+vector under an unobservable attack as the sample size
+grows. As an experimental evidence, Table II provides the detection
+probabilities of data-driven attacks when we used the
+linear model (4) for measurement generation and employed the
+linear state estimator instead of the nonlinear estimator. The results
+show that the detection probability converges to the false
+alarm constraint of the bad data detector as the sample size
+grows, which means that the attack becomes unobservable as
+the sample size grows.
+2) IEEE 118-Bus Test: In the IEEE 118-bus simulation, we
+considered unobservable attacks discussed in the example in
+6An unobservable attack is equal to for some nonzero . Suppose that
+bad data detection identifies some adversary-controlled data as bad and removes
+them. Let and denote the attack vector and the measurement matrix respectively
+after removing all the rows corresponding to the sensors identified as bad
+by bad data detection. Then, , the remaining attack modification, is equal to
+, and thus will perturb the state estimate by .
+7The continuous mapping theorem implies only the convergence in distribution.
+However, the convergence in distribution to a constant implies the convergence
+in probability[33].
+KIM et al.: SUBSPACE METHODS FOR DATA ATTACK ON STATE ESTIMATION
+1111
+TABLE II
+DETECTION PROBABILITY OF ATTACKS ON THE LINEAR MODEL:
+WAS 4%, AND 4,000 MONTE CARLO RUNS WERE USED
+Fig. 6. Unobservable attacks on the 118-bus network: the sensor SNR is 46 dB.
+Attacks with the relative attack magnitudes 2, 4, and 6% were tested. For each
+scenario, 200 Monte Carlo runs are used.
+Fig. 2 of Section III-B. Fig. 6 shows the plots of the normalized
+state estimation error versus the relative attack magnitude
+and the confidence intervals with 90% confidence level. Three
+methods resulted in almost the same degree of perturbation on
+the state estimate. In particular, the performance of data-driven
+attacks with partial sensor observations demonstrates that observing
+data from a small fraction of sensors can be sufficient
+for designing a successful attack on a large system; only about
+2 percent of sensors need to be observed.
+C. Data-Driven Framing Attack
+1) IEEE 14-Bus Test: For data framing attacks, we considered
+an adversary who controls (2, 3), (3, 4), and (4, 3), and
+frames , , , and (3, 2) as sources of bad data. Under
+this setting, an adversary cannot launch an unobservable attack.
+In attacks with partial observations, an adversary was assumed
+to observe data from (2, 3), (3, 4), (4, 3), (2, 1), (2, 4), (4, 5), (4,
+7), and (4, 9). This setting satisfies the conditions of Corollary
+3.2.2, and thus the conditions of Theorem 4.2 are also satisfied.
+Hence, an adversary with partial sensor observations is capable
+of designing a data framing attack under the linearized model
+assumption.
+Fig. 7 shows the plots of the normalized state estimation error
+versus the relative attack magnitude and the confidence intervals
+with 90% confidence level. The results show that even when an
+unobservable attack is not feasible, an adversary may exploit
+the idea of data framing to perturb the state estimate by an arbitrary
+degree. Furthermore, the results indicate that data-driven
+attacks designed based on the linearized model perform well
+on nonlinear power systems, and partial sensor observations are
+sufficient for designing a data framing attack. To investigate the
+effect of subspace estimation error on attack performance, we
+Fig. 7. Data framing attacks on the 14-bus network: the sensor SNR is 46 dB.
+Attacks with the relative attack magnitudes 1, 2, 3, and 4% were tested. For each
+scenario, 1,000 Monte Carlo runs are used.
+tried different sample sizes (250, 500, 750, and 1,000) for subspace
+estimation in data framing attacks. Similar to the case of
+unobservable attacks, the sample size hardly affected the attack
+performance. This seems to imply that the effect of nonlinearity
+on attack performance dominates the effect of subspace estimation
+errors.
+2) IEEE 118-Bus Test: We considered an adversary attacking
+the part of the 118-bus network illustrated in Fig. 2. The adversary
+was assumed to control (114, 115), (115, 114), and (27,
+115), and frame , , , and (115, 27) as sources
+of bad data. An adversary with partial sensor observations was
+assumed to observe data from the circled sensors in Fig. 2 except
+, , , and (115, 27). The graph conditions of
+Corollary 3.2.2 are satisfied, and thus an adversary with partial
+observations is capable of launching a data framing attack under
+the linearized model assumption.
+Fig. 8 shows the plots of the normalized state estimation error
+versus the relative attack magnitude and the confidence intervals
+with 90% confidence level. The results demonstrate the
+sufficiency of partial sensor observations for designing a data
+framing attack in a large network.
+VI. CONCLUSIONS
+This paper presents subspace methods of data attacks on
+state estimators of cyber physical systems. By exploiting the
+fact that subspace information of measurements is sufficient for
+designing attacks, we devised data-driven attacks that can be
+launched based on partial sensor observations. The numerical
+results demonstrated that the data-driven attacks are as efficient
+as the attacks based on full system information.
+Our results demonstrate that one should not presumably underestimate
+the ability of an adversary even when system information
+is secure from the adversary. Even a leak of a small fraction
+of certain sensor measurements may provide enough data,
+upon which state attacks can be constructed.
+Most countermeasures in the literature focused on protecting
+certain sensor data from adversarial modification via data authentication,
+while assuming that system parameters are known
+1112
+IEEE TRANSACTIONS ON SIGNAL PROCESSING, VOL. 63, NO. 5, MARCH 1, 2015
+Fig. 8. Data framing attacks on the 118-bus network: the sensor SNR is 46 dB.
+Attacks with the relative attack magnitudes 0.8, 1.6, and 2.4% were tested. For
+each scenario, 200 Monte Carlo runs are used.
+to adversaries (e.g., [7], [9], [12], [21]). In case that system parameter
+information is kept secure, our results demonstrate that
+not only the ability to modify data but also the ability to observe
+data are critical to an adversary. Therefore, as a countermeasure,
+on top of a data authentication strategy, one can strategically enhance
+data encryption and access control protocols to limit the
+set of data an adversary may eavesdrop.
+Lastly, the successful performance of data framing attacks
+suggests that current bad data detection and removal mechanisms
+might not be the best in this day and age of cyber security
+concerns. A bad data processing mechanism based on dynamic
+state estimation or prior knowledge of sensor qualities
+(e.g., a Bayesian approach) might be more appropriate for defeating
+such attacks.
+APPENDIX A
+PROOF OF THEOREM 2.1
+Let denote the measurement matrix after the sensors in
+are removed; i.e., is obtained from by removing the rows
+corresponding to the adversary sensors. Then, is in if and
+only if is in -the null space of . This implies that an
+unobservable attack is feasible if and only if does not have
+full column rank (i.e., has a nonzero dimension.)
+APPENDIX B
+PROOF OF THEOREM 3.1
+The columns of span . In addition, because and
+have the same number of columns, does not have full column
+rank if and only if does not have full column rank. Therefore,
+Theorem 2.1 implies that an unobservable attack is feasible if
+and only if does not have full column rank.
+Suppose that an unobservable attack is feasible. Then, is
+rank deficient, and we can find a nonzero vector .
+With , is in because has zero entries for the
+sensors not in (i.e., ).
+In addition, there exists an invertible matrix such
+that , and , because has full column
+rank. Therefore, , and thus is an unobservable
+attack vector.
+APPENDIX C
+PROOF OF THEOREM 3.2
+Let denote the submatrix of obtained by removing the
+rows corresponding to the sensors in . Then, is not null
+due to the third assumption. Let denote a nonzero vector in
+and denote a subvector of obtained by retaining
+only the rows corresponding to the state variables in . In addition,
+let denote a submatrix of obtained by retaining only
+the columns corresponding to the state variables in (note that
+all the other columns of are zero vectors.) And, denotes a
+submatrix of obtained by removing the rows corresponding
+to the sensors in .
+First, note that if and only if for some
+. In addition, because is a critical set with respect
+to , has dimension one. Note that
+whereas . This implies that , and is a
+basis of . Therefore, is a basis of .
+Therefore, for any nonzero , there exists a nonzero
+such that . Furthermore,
+implies that
+(23)
+(24)
+(25)
+(26)
+In addition, implies that the attack that modifies the
+data from by adding the corresponding entries of to the
+actual data is equivalent to using as an attack vector,
+which is unobservable. So, the attack is unobservable.
+APPENDIX D
+PROOF OF THEOREM 4.1
+The normalized residues in the first iteration are affected by
+the attack as follows:
+which can be derived from (7) and (11). Note that follows
+a standard normal distribution (due to the normalization)
+if is not a critical set; is zero otherwise. Therefore,
+follows the normal distribution if is not
+a critical set; otherwise, is equal to .
+Therefore, the expected energy of the normalized residues at
+in the presence of the attack is
+where is the number of sensors in that do not form a single
+element critical set.
+Consequently, a solution to (17) is also a solution to the following
+problem, and vice versa:
+The theorem statements follow from the following observations:
+is equal to as both are orthogonal projections on
+the same space, and is equivalent to .
+KIM et al.: SUBSPACE METHODS FOR DATA ATTACK ON STATE ESTIMATION
+APPENDIX E
+PROOF OF THEOREM 4.2
+Let denote the submatrix of obtained by removing the
+rows corresponding to the sensors in . First, from the proof
+procedure of Theorem 3.2, one can derive that the dimension of
+is one. This implies that contains exactly one critical
+set. Because, if there were more than one critical sets included
+in , should have a dimension larger than one.
+Because contains exactly one critical set, the
+dimension of in (17) is one. This can be seen as
+follows. The dimension of in (17) is equal to the
+dimension of where is the matrix obtained from
+by removing the rows corresponding to the sensors in
+. And, the fact that contains exactly one critical set
+implies that the rank of is , and thus the dimension of
+is 1.
+Therefore, (17) has only two feasible points, and they give the
+same objective function values. In particular, a solution to (17)
+is the direction given by where is a nonzero vector
+in (see [24] for more detailed arguments.)
+The first and second conditions of Theorem 3.2, which are
+assumed to hold, imply that the dimension of is one.
+In addition, it can be seen from Corollary 3.2.1 that the second
+statement is true for and some nonzero .
+APPENDIX F
+POWER GRID MEASUREMENT MODEL AND OBSERVABILITY
+In this section, we briefly describe the power system measurement
+model and the spanning-tree observability criterion in
+[20]. The spanning-tree observability criterion results in Corollary
+3.2.2 from Theorem 3.2. For more details about power
+system models, see [27].
+The power system state is defined as the vector of voltage
+magnitudes and phase angles at all buses except a reference bus,
+which is an arbitrary bus whose voltage phase angle is set to
+zero:
+where and denote the voltage magnitude and phase angle
+at bus respectively, and bus 1 is set as the reference bus.
+We consider two types of legacy sensors: line flow sensors
+and bus injection sensors.8 The line flow from bus to bus is
+a complex quantity related to the system state by
+(27)
+(28)
+where and are real and imaginary parts of the
+line flow respectively, is the impedance of the line ,
+and denotes the complex conjugate of . The bus injection
+at bus is the sum of all outgoing line flows from bus .
+For computational benefits, the above nonlinear relation is
+often linearized at the nominal operating point where all bus
+voltage magnitudes are equal to 1 p.u., and all bus voltage phase
+angles are equal to zero. This linearization decouples the relation
+such that the real part of measurements depends only on
+8Other types of sensors (e.g., phasor measurement units) can also be considered.
+We impose this restriction merely to facilitate clearer presentation.
+1113
+(29)
+the voltage phase angles, and the imaginary part depends only
+on the voltage magnitudes.
+The linearized relation between the real part of measurements
+and the voltage phase angles-the so-called DC model-is
+often used to analyze power system observability. In the DC
+model (4), the state is defined as the vector of voltage phase
+angles at all buses except the reference bus:
+The measurement matrix depends on the topology and line
+impedance.9
+The power system is observable if and only if has full
+column rank [20]. Verifying this rank condition seems to require
+knowledge of the line impedance. However, Krumpholz
+et al. [20] showed that system observability can be determined
+purely based on the topology and sensor locations. In particular,
+Krumpholz et al. [20] showed that a system is observable if and
+only if there exists a way to assign each injection sensor to any of
+the lines that are incident to the bus where the sensor is located
+such that there exists a spanning tree of the topology having at
+least one sensor (an assigned injection or line flow sensor) on
+each edge of the tree (see Corollary 2 in [20].)
+The spanning tree criterion can also be used to check whether
+the state variables in are observable with respect to (we
+use the notations in Section III-B.) Without loss of generality,
+we assume that contains an injection sensor on the reference
+bus or a line flow sensor on a line incident to the reference bus.10
+Then, we can simply apply the spanning tree criterion to the
+reduced network for (see Section III-B for the definition of
+a reduced network.) The state variables in are observable
+with respect to if and only if it is possible to assign injection
+sensors in to their neighboring lines such that a spanning tree
+of the reduced network with at least one sensor in on every
+edge exists.
+REFERENCES
+[1] E. A. Lee, “Cyber physical systems: Design challenges,” EECS Dept.,
+Univ. of Calif., Berkeley, CA, USA, Tech. Rep. UCB/EECS-2008-8,
+Jan. 2008 [Online]. Available: http://www.eecs.berkeley.edu/Pubs/
+TechRpts/2008/EECS-2008-8.html
+[2] Y.-F. Huang, S. Werner, J. Huang, N. Kashyap, and V. Gupta, “State
+estimation in electric power grids: Meeting new challenges presented
+by the requirements of the future grid,” IEEE Signal Process. Mag.,
+vol. 29, no. 5, pp. 33-43, Sep. 2012.
+[3] A. Cardenas, S. Amin, B. Sinopoli, A. Giani, A. Perrig, and S. S. Sastry,
+“Challenges for securing cyber physical systems,” in Proc. Workshop
+Future Direct. Cyber-Phys. Syst. Secur., Jul. 2009, DHS.
+[4] J. Hull, H. Khurana, T. Markham, and K. Staggs, “Staying in control:
+Cybersecurity and the modern electric grid,” IEEE Power Energy
+Mag., vol. 10, no. 1, pp. 41-48, 2012.
+[5] “Vulnerability analysis of energy delivery control systems,” Idaho Nat.
+Lab., INL/EXT-10-18381, Sep. 2011.
+[6] Y. Liu, P. Ning, and M. K. Reiter, “False data injection attacks against
+state estimation in electric power grids,” in Proc. 16th ACM Conf.
+Comput. Commun. Secur., 2009, pp. 21-32.
+9To describe the entries of , we consider a noiseless measurement vector
+for simplicity. Suppose that the th entry of is a measurement from
+a line flow sensor measuring the line flow from bus to . Then, if the line is
+connected, , where is the susceptance of the line; if the
+line is not connected, . In case that corresponds to an injection sensor
+at bus , is the sum of all the outgoing line flows from bus .
+10Note that we can choose the reference bus such that this condition holds.
+1114
+IEEE TRANSACTIONS ON SIGNAL PROCESSING, VOL. 63, NO. 5, MARCH 1, 2015
+[7] R. B. Bobba, K. M. Rogers, Q. Wang, H. Khurana, K. Nahrstedt, and
+T. J. Overbye, “Detecting false data injection attacks on dc state estimation,”
+in Proc. 1st Workshop on Secure Control Syst. (CPSWEEK
+2010), Stockholm, Sweden, Apr. 2010.
+[8] O. Kosut, L. Jia, R. J. Thomas, and L. Tong, “Malicious data attacks
+on the smart grid,” IEEE Trans. Smart Grid, vol. 2, no. 4, pp. 645-658,
+Dec. 2011.
+[9] T. Kim and H. Poor, “Strategic protection against data injection attacks
+on power grids,” IEEE Trans. Smart Grid, vol. 2, no. 2, pp. 326-333,
+June 2011.
+[10] S. Bi and Y. Zhang, “Defending mechanisms against false-data injection
+attacks in the power system state estimation,” in Proc. IEEE
+GLOBECOM Workshops, Houston, TX, USA, Dec. 2011.
+[11] A. Giani, E. Bitar, M. Garcia, M. McQueen, P. Khargonekar, and K.
+Poolla, “Smart grid data integrity attacks: Characterizations and countermeasures,”
+in Proc. IEEE Int. Conf. Smart Grid Commun. (SmartGridComm),
+Oct. 2011, pp. 232-237.
+[12] J. Kim and L. Tong, “On phasor measurement unit placement against
+state and topology attacks,” in IEEE Int. Conf. Smart Grid Commun.,
+Oct. 2013.
+[13] M. Esmalifalak, H. Nguyen, R. Zheng, and Z. Han, “Stealth false data
+injection using independent component analysis in smart grid,” in Proc.
+IEEE Int. Conf. Smart Grid Commun., Oct. 2011, pp. 244-248.
+[14] M. Rahman and H. Mohsenian-Rad, “False data injection attacks with
+incomplete information against smart power grids,” in Proc. IEEE
+Global Commun. Conf. (GLOBECOM), Dec. 2012.
+[15] P. Stoica and A. Nehorai, “MUSIC, maximum likelihood, Cramer-Rao
+bound,” IEEE Trans. Acoust., Speech Signal Process., vol. 37, no. 5,
+pp. 720-741, 1989.
+[16] A. Pezeshki, B. Van Veen, L. Scharf, H. Cox, and M. Nordenvaad,
+“Eigenvalue beamforming using a multirank mvdr beamformer and
+subspace selection,” IEEE Trans. Signal Process., vol. 56, no. 5, pp.
+1954-1967, 2008.
+[17] M. Viberg, “Subspace-based methods for the identification of linear
+time-invariant systems,” Automatica, vol. 31, no. 12, pp. 1835-1851,
+1995.
+[18] Power Systems Test Case Archive [Online]. Available: http://www.ee.
+washington.edu/research/pstca/
+[19] S. Bi and Y. J. Zhang, “Graphical methods for defense against falsedata
+injection attacks on power system state estimation,” IEEE Trans.
+Smart Grid, vol. 5, no. 3, pp. 1216-1227, May 2014.
+[20] G. R. Krumpholz, K. A. Clements, and P. W. Davis, “Power system
+observability: A practical algorithm using network topology,” IEEE
+Trans. Power Apparat. Syst., vol. 99, no. 4, pp. 1534-1542, Jul. 1980.
+[21] A. Giani, E. Bitar, M. Garcia, M. McQueen, P. Khargonekar, and K.
+Poolla, “Smart grid data integrity attacks,” IEEE Trans. Smart Grid,
+vol. 4, no. 3, pp. 1244-1253, Sep. 2013.
+[22] J. Kim and L. Tong, “On topology attack of a smart grid: Undetectable
+attacks and countermeasures,” IEEE J. Sel. Areas Commun., vol. 31,
+no. 7, Jul. 2013.
+[23] H. Sandberg, A. Teixeira, and K. H. Johansson, “On security indices for
+state estimators in power networks,” in Proc. 1st Workshop on Secure
+Control Syst. (CPSWEEK 2010), Stockholm, Sweden, Apr. 2010.
+[24] J. Kim, L. Tong, and R. J. Thomas, “Data framing attack on state estimation,”
+IEEE J. Sel. Areas Commun., vol. 32, no. 7, pp. 1460-1470,
+Jul. 2014.
+[25] Y. Mo and B. Sinopoli, “False data injection attacks in control systems,”
+in Proc. 1st Workshop Secure Control Syst. (CPS Week), 2010.
+[26] F. Pasqualetti, F. Dorfler, and F. Bullo, “Attack detection and identification
+in cyber-physical systems,” IEEE Trans. Autom. Control, vol.
+58, no. 11, pp. 2715-2729, Nov. 2013.
+[27] A. Abur and A. G. Expósito, Power System State Estimation: Theory
+and Implementation. Boca Raton, FL, USA: CRC, 2000.
+[28] L. Jia, J. Kim, R. Thomas, and L. Tong, “Impact of data quality on
+real-time locational marginal price,” IEEE Trans. Power Syst., vol. 29,
+no. 2, pp. 627-636, Mar. 2014.
+[29] E. Handschin, F. C. Schweppe, J. Kohlas, and A. Fiechter, “Bad data
+analysis for power system state estimation,” IEEE Trans. Power App.
+Syst., vol. PAS-94, no. 2, pp. 329-337, Mar./Apr. 1975.
+[30] A. Srivastava, “A Bayesian approach to geometric subspace estimation,”
+IEEE Trans. Signal Process., vol. 48, no. 5, pp. 1390-1400, May
+2000.
+[31] S. T. Smith, “Covariance, subspace, intrinsic Cramer Rao bounds,”
+IEEE Trans. Signal Process., vol. 53, no. 5, pp. 1610-1630, May 2005.
+[32] T. W. Anderson, “Asymptotic theory for principal component analysis,”
+Ann. Math. Statist., vol. 34, no. 1, pp. 122-148, 1963.
+[33] P. Billingsley, Probability and Measure. New York, NY, USA:
+Wiley, 1995.
+[34] J. Shao, Mathematical Statistics. New York, NY, USA: SpringerVerlag,
+2003.
+Jinsub Kim (M'14) received the Ph.D. degree in
+electrical and computer engineering with minors
+in applied mathematics and statistics from Cornell
+University, Ithaca, NY.
+He is an Assistant Professor of the School of
+Electrical Engineering and Computer Science,
+Oregon State University, Corvallis. His research
+interest spans statistical inference, learning, and
+optimization for a smart grid and network security.
+His graduate study was partially supported by the
+Samsung Scholarship. Before joining Oregon State
+University, he was a Postdoctoral Associate at Cornell University.
+Lang Tong (S'87-M'91-SM'01-F'05) received the
+B.E. degree in automation from Tsinghua University,
+Beijing, China, and the Ph.D. degree in electrical engineering
+from the University of Notre Dame, Notre
+Dame, IN.
+He is the Irwin and Joan Jacobs Professor in Engineering
+at Cornell University, Ithaca, NY. He is also
+the Cornell site director of the Power System Engineering
+Research Center (PSERC). His current research
+focuses on inference, optimization, and economic
+problems in energy and power systems. He is
+also a coauthor of seven student paper awards.
+Dr. Tong received the 1993 Outstanding Young Author Award from the IEEE
+Circuits and Systems Society, the 2004 Best Paper award from IEEE Signal
+Processing Society, and the 2004 Leonard G. Abraham Prize Paper Award from
+the IEEE Communications Society. He received Young Investigator Award from
+the Office of Naval Research. He was a Distinguished Lecturer of the IEEE
+Signal Processing Society.
+Robert J. Thomas (M'73-SM'83-F'93-LF'08)
+currently holds the position of Professor Emeritus
+of Electrical and Computer Engineering at Cornell
+University, Ithaca, NY. He has had assignments with
+the U.S. Department of Energy Office of Electric
+Energy Systems (EES) in Washington, DC and the
+National Science Foundation as the first Program
+Director for the Power Systems Program in the Engineering
+Directorate's Division of Electrical Systems
+Engineering (ESE). He is the author of more than
+100 technical papers and two book chapters. He has
+published in the areas of transient control and voltage collapse problems as
+well as technical, economic and institutional impacts of restructuring.
+Dr. Thomas is the founding Director of the 13-university member National
+Science Foundation Center, Power Systems Engineering Research Center
+(PSerc). He was a member of the USDOE Secretary's Power Outage Study
+Team (POST) and is a founding member of the Coalition for Electric Reliability
+Solutions (CERTS). He has received five teaching awards and the IEEE
+Centennial and Millennium medals. He is a member of Tau Beta Pi, Eta Kappa
+Nu, Sigma Xi, ASEE, and a Cornell ACSF Fellow.

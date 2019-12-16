@@ -1,0 +1,666 @@
+Secure State Estimation: Optimal Guarantees against
+Sensor Attacks in the Presence of Noise
+Shaunak Mishra , Yasser Shoukry , Nikhil Karamchandani , Suhas Diggavi and Paulo Tabuada
+Electrical Engineering Department, University of California, Los Angeles
+Abstract-Motivated by the need to secure cyber-physical
+systems against attacks, we consider the problem of estimating
+the state of a noisy linear dynamical system when a subset of
+sensors is arbitrarily corrupted by an adversary. We propose a
+secure state estimation algorithm and derive (optimal) bounds
+on the achievable state estimation error. In addition, as a result
+of independent interest, we give a coding theoretic interpretation
+for prior work on secure state estimation against sensor attacks
+in a noiseless dynamical system.
+I. INTRODUCTION
+Cyber-physical systems (CPS) manage the vast majority of
+today's critical infrastructure and securing such CPS against
+malicious attacks is a problem of growing importance [1]. As
+a stepping stone towards securing complex CPS deployed in
+practice, several recent works have studied security problems
+in the context of linear dynamical systems [1], [2], [3], [4], [5],
+[6] leading to a fundamental understanding of how the system
+dynamics can be leveraged for security guarantees. With this
+motivation, in this paper we focus on securely estimating the
+state of a linear dynamical system from a set of noisy and
+maliciously corrupted sensor measurements. We restrict the
+sensor attacks to be sparse in nature, i.e., an adversary can
+arbitrarily corrupt a subset of sensors in the system.
+Prior work related to secure state estimation against sensor
+attacks in linear dynamical systems can be broadly categorized
+into three classes depending on the noise model for sensor
+measurements: 1) noiseless 2) bounded non-stochastic noise,
+and 3) Gaussian noise. For the noiseless setting, the work
+reported in [1], [2], [3] shows that, under a strong notion
+of observability, sensor attacks (modeled as a sparse attack
+vector) can always be detected and isolated, and hence the
+state of the system can be exactly estimated. In contrast, when
+the sensor measurements are affected by noise as well as
+maliciously corrupted, the problem of distinguishing between
+noise and attack vector arises. Results reported in [5], [6], [7]
+are representative of the second class: bounded non-stochastic
+noise. They provide sufficient conditions for distinguishing the
+sparse attack vector from bounded noise but do not guarantee
+the optimality of their estimation algorithm. The work reported
+in this paper falls in the third class: Gaussian noise. Prior
+work in this class includes [8], [9], [10], [11]. In [8], the
+analysis is restricted to detecting a class of sensor attacks
+called replay attacks (i.e., attacks in which legitimate sensor
+outputs are replaced with outputs from previous time instants).
+In [9], the authors focus on the performance degradation of
+a scalar Kalman filter (i.e., scalar state and a single sensor)
+The work was supported by NSF grant 1136174 and DARPA under
+agreement number FA8750-12-2-0247.
+when the sensor is under attack. Since they consider a single
+sensor setup, attack sparsity across multiple sensors is not
+studied, and in addition, they focus on an adversary whose
+objective is to degrade the estimation performance and stay
+undetected at the same time (thereby restricting the class of
+sensor attacks). In [10] and [11], robustification approaches for
+state estimation against sparse sensor attacks are proposed, but
+they lack optimality guarantees against arbitrary sensor attacks.
+In contrast to prior work in the Gaussian noise setup,
+we consider a general linear dynamical system and give
+(optimal) guarantees on the achievable state estimation error
+against arbitrary sensor attacks. The following toy example is
+illustrative of the nature of the problem addressed in this paper
+and some of the ideas behind our solution.
+Example 1: Consider a linear dynamical system with a
+scalar state x(t) such that x(t + 1) = x(t) + w(t), where w(t)
+is the process noise following a Gaussian distribution with
+zero mean and is instantiated i.i.d. over time. The system has
+three sensors (indexed by d) with outputs yd (t) = x(t) + vd (t),
+where vd (t) is the sensor noise at sensor d. Similarly to the
+process noise, vd (t) is Gaussian distributed with zero mean
+and is instantiated i.i.d. over time. The sensor noise is also
+independent across sensors. Now, consider an adversary which
+can attack any one of the sensors and arbitrarily change its
+output. In the absence of sensor noise, it is trivial to detect
+such an attack since the two good sensors (not attacked by the
+adversary) will have the same output. Hence, a majority based
+rule on the outputs leads to the exact state. However, in the
+presence of sensor noise, even the good sensors may not have
+the same output and a simple majority based rule cannot be
+used for estimation. In this paper, we build on the intuition that
+we may still be able to identify sensors whose outputs can lead
+to a good state estimate by leveraging the noise statistics over
+a large enough time window. In particular, our approach for
+this example would be to hypothesize a subset of two sensors
+as good, and then check whether the outputs from the two
+sensors are consistent with the Kalman state estimate based
+on outputs from the same subset of sensors. Furthermore, we
+show in this paper that such an approach leads to the optimal
+state estimation error for the given adversarial setup.
+In this paper, we generalize the Kalman filter based approach
+in the above example to a general linear dynamical
+system with sensor and process noise. Our main contributions
+can be listed as follows:
+We give optimal guarantees on the achievable state
+estimation error against arbitrary sensor attacks and
+propose an algorithm to achieve the same guarantees;
+978-1-4673-7704-1/15/$31.00 ©2015 IEEE
+2929
+ISIT 2015
+As a result of independent interest, we give a coding
+theoretic interpretation (alternate proof) for the
+necessary and sufficient conditions for secure state
+estimation in the absence of noise [2], [3], [6] (known
+as the sparse observability condition).
+The remainder of this paper is organized as follows.
+Section II deals with the setup. The main results are stated
+in Section III. Section IV considers the simpler setting of a
+scalar state and illustrates the main ideas behind our estimation
+algorithm and Section V considers its generalization to a vector
+state. Finally, we discuss the coding theoretic view of the
+sparse observability condition [3] in Section VI.
+II. SETUP
+A. System model
+We consider a linear dynamical system with sensor attacks
+as shown below:
+x (t + 1) = Ax(t) + w(t); y(t) = Cx(t) + v(t) + f (t); (1)
+where x(t) 2 Rn denotes the state of the plant at time t 2 N,
+w(t) 2 Rn denotes the process noise at time t, y(t) 2 Rp denotes
+the output of the plant at time t and v(t) 2 Rp denotes the
+sensor noise at time t. The process noise w(t) N 0; sw2In ,
+i.e., w(t) is Gaussian distributed with zero mean and covariance
+matrix sw2In, where In is the identity matrix of dimension
+n and sw 2 R. Similarly, sensor noise v(t) N 0; sv2Ip .
+Both v(t) and w(t) are instantiated i.i.d. over time, and v(t) is
+independent of w(t).
+The sensor attack vector f (t) 2 Rp in (1) is introduced
+by a k-adversary defined as follows. A k-adversary has access
+to any k out of the p sensors in the system. Specifically, let
+k f1; 2; : : : pg denote the set of attacked sensors (with jk j =
+k). The k-adversary can observe the actual outputs in the k
+attacked sensors and change them arbitrarily. Specifically, the
+output of an attacked sensor j 2 k can be expressed as
+y j(t) = cTj x(t) + v j(t) + f j(t);
+(2)
+where T denotes the matrix transpose operation, cTj is the
+jth row of C, v j(t) is the noise at sensor j and f j(t) is
+the adversarial corruption introduced at sensor j. For j 2= k ,
+f j(t) = 0. The adversary's choice of k is unknown but is
+assumed to be constant over time (static adversary). The
+adversary is assumed to have unbounded computational power,
+and knows the system parameters (e.g., A and C) and noise
+statistics (e.g., sw2 and sv2). However, the adversary is limited
+to have only causal knowledge of the process noise and the
+sensor noise in good sensors (not attacked by the adversary).
+We discuss this assumption in more detail in Section II-C.
+B. State estimation: prediction and filtering
+In this paper, we address two state estimation problems:
+(1) state prediction and (2) state filtering.
+In the state prediction problem, the goal is to estimate
+the state at time t based on outputs till time t 1. In the
+absence of sensor attacks, using a Kalman filter for predicting
+the state in (1) leads to the optimal (MMSE) error covariance
+2930
+asymptotically [12]. In particular, the Kalman filter update rule
+can be written as:
+xˆ(t + 1) = Axˆ(t) + L(t) (y(t)
+Cxˆ(t)) ;
+(3)
+where xˆ(t + 1) is the state estimate at time t + 1 and L(t) is
+the Kalman filter gain. For a Kalman filter in steady state [12],
+the steady state gain satisfies L(t) = L. Also, we use Popt;s to
+denote the trace of steady state (prediction) error covariance
+matrix [12] obtained by using a Kalman filter on a sensor
+subset s f1; 2; : : : pg.
+In contrast to the prediction problem, the goal in the state
+filtering problem is to estimate the state at time t based on
+outputs till time t. In the absence of sensor attacks, a Kalman
+filter update rule similar to (3) can be used for the filtering
+problem [12], and we use Fopt;s to denote the trace of steady
+state (filtering) error covariance matrix obtained by using a
+Kalman filter on a sensor subset s (details in [13]).
+C. Causal knowledge assumptions
+At time t, the attack vector f (t) in (1) depends on the
+knowledge of the adversary at time t, and in this context, we
+limit the adversary's knowledge of the process and sensor noise
+along the lines of causality. In particular, for the prediction
+problem we assume the following for a k-adversary:
+(A1)
+(A2)
+(A3)
+(A4)
+The adversary's knowledge at time t is statistically
+independent of w(t0) for t0 > t, i.e., f (t) is statistically
+independent of fw(t0)gt0>t ;
+For a good sensor d 2 f1; 2; : : : pg k , the adversary's
+knowledge at time t (and hence f (t)) is statistically
+independent of fvd (t0)gt0>t .
+Intuitively, assumptions (A1) and (A2) limit the adversary
+to have only causal knowledge of the process noise and the
+sensor noise in good sensors (not attacked by the adversary).
+Note that, apart from (A1) and (A2), we do not impose
+any restrictions on the statistical properties, boundedness and
+the time evolution of the corruptions introduced by the kadversary.
+In the filtering problem, we replace assumptions
+(A1) and (A2) with (A3) and (A4) as described below:
+The adversary's knowledge at time t is statistically
+independent of w(t0) for t0 t, i.e., f (t) is statistically
+independent of fw(t0)gt0 t ;
+For a good sensor d 2 f1; 2; : : : pg k , the adversary's
+knowledge at time t (and hence f (t)) is statistically
+independent of fvd (t0)gt0 t .
+Clearly, (A3) is a stronger version of (A1), requiring f (t) to
+be independent of w(t). Similarly, (A4) is a stronger version
+of (A2).
+D. Sparse observability condition
+For the matrix pair (A; C), the observability matrix O with
+observability index m is defined as shown below:
+O = 66
+4
+2
+C
+CA
+.
+.
+.
+CAm 1
+3
+77 :
+5
+(4)
+In this context, a linear dynamical system, characterized by the
+pair (A; C), is said to be observable if there exists a positive
+integer m such that O has full column rank. In the absence
+of sensor and process noise, the conditions under which state
+estimation can be done despite sensor attacks have been
+studied in [2], [3], [6]. In particular, a linear dynamical system
+as shown in (1) is called q -sparse observable if for every subset
+s f1; : : : pg of size q , the pair (A; Cs) is observable (where Cs
+is formed by the rows of C corresponding to sensors indexed
+by the elements of s). Also, q is the smallest positive integer
+to satisfy the above observability property. The condition:
+q
+p
+2k;
+(5)
+is necessary and sufficient for exact state estimation against a
+k-adversary in the absence of process and sensor noise [3]; we
+will refer to this condition as the sparse observability condition.
+We provide a coding theoretic interpretation for the same in
+Section VI.
+III.
+MAIN RESULTS
+We first state our achievability result followed by an
+impossibility result.
+Theorem 1 (Achievability): Consider the linear dynamical
+system defined in (1) satisfying the sparse observability condition
+(5) against a k-adversary. Assuming (A1) and (A2),
+and a time window G = ft1;t1 + 1; : : : t1 + N 1g for the state
+prediction problem, the following bound on the prediction error
+is achievable against a k-adversary. For any e > 0 and d > 0,
+there exists a large enough N such that:
+P
+1
+N
+å eT (t)e(t)
+t2G
+!
+max
+s f1;2;:::pg; jsj=p k
+(Popt;s) + e
+1
+d ;
+(6)
+where e(t) = x(t) xˆ(t) is the estimation error for the state
+estimate xˆ(t). In other words, with high probability (w.h.p.),
+1
+the bound lim sup å eT (t)e(t) max (Popt;s) is
+N!¥ N t2G s f1;2;:::pg; jsj=p k
+achievable. Similarly, for the state filtering problem, assuming
+(A3) and (A4) against a k-adversary, the following bound on
+the corresponding filtering error e(t) is achievable w.h.p.:
+1
+lim sup å eT (t)e(t)
+N!¥ N t2G
+max
+s f1;2;:::pg; jsj=p k
+(Fopt;s) :
+(7)
+The achievability in Theorem 1 is through our proposed
+algorithms, which we discuss in the following sections. The
+impossibility result can be stated as follows.
+Theorem 2 (Impossibility): Consider the linear dynamical
+system defined in (1) and an oracle MMSE estimator that
+has knowledge of k , i.e., the set of sensors attacked by a
+k-adversary. Then, there exists an attack sequence f (t) such
+that the trace of the prediction error covariance of the oracle
+estimator is bounded from below as follows:
+tr E e(t)eT (t)
+tr E e(t)eT (t)
+Popt;s;
+Fopt;s:
+where e(t) above is the oracle estimator's prediction error and
+s = f1; 2; : : : pg k . Similarly, for the filtering problem,
+(8)
+(9)
+2931
+Proof: Consider the attack scenario where the outputs
+from all attacked sensors are equal to zero, i.e., the corruption
+f j(t) = cTj x(t) v j(t); 8 j 2 k . Hence, the information collected
+from the attacked sensors cannot enhance the estimation
+performance. Accordingly, the estimation performance from
+the remaining sensors is the best one can expect to achieve.
+Clearly, for the adversary's best choice of k , the guarantees
+given in our achievability match the impossibility bound (in
+an empirical average sense), and hence, we consider our guarantees
+optimal. We measure the performance of our proposed
+algorithms in terms of empirical average (and not expectation)
+since the resultant error in the presence of attacks may not be
+ergodic.
+IV. SECURE STATE ESTIMATION: SCALAR STATE
+In this section, we illustrate the main ideas behind our
+general scheme in the simpler setting of estimating a scalar
+state variable against a k-adversary. In particular, we focus on
+the state prediction problem for the system in (1) when the
+state is a scalar and there are p 2k + 1 sensors (i.e., 1-sparse
+observability condition against k-adversary). For clarifying the
+presence of scalar terms in our analysis, we use the scalar
+version (regular instead of bold face) of the notation developed
+in Section II, i.e., x(t) for the plant's state, xˆ(t) for the estimate,
+and yd (t) = cd x(t) + vd (t) for the output of a good sensor
+d 2 f1; 2; : : : pg k . We first describe our proposed algorithm
+for a time window G = ft1;t1 + 1; : : : t1 + N 1g of size N, and
+then analyze its performance.
+Secure scalar state prediction algorithm: Considering a
+time window G, Algorithm 1 shows the secure state prediction
+algorithm for the case when the state is a scalar. The algorithm
+runs a bank of p p k Kalman filters in parallel; one Kalman
+filter associated with each distinct set of p k sensors. For
+each distinct set s of p k sensors, the corresponding Kalman
+filter fuses all the measurements from these sensors in order
+to calculate (prediction) estimate xˆs(t). Using the calculated
+estimate xˆs(t), we calculate the individual residues for each
+sensor as shown in (10). The algorithm, then, exhaustively
+searches for the set s of p k sensors which satisfy the
+residue test shown in (11). If a set s? satisfies the residue test,
+it is declared good and the corresponding Kalman estimate
+xˆs? (t) is used as the state estimate for the given time window.
+Intuitively, the residue test checks if the outputs from a given
+sensor set s are consistent with the corresponding Kalman
+estimate over the time window G.
+Performance analysis: Consider the set s of p k
+sensors which are not attacked by the k-adversary. Assuming
+that the Kalman filter corresponding to set s is in steady state, it
+can be shown that E rd2(t) = c2d Popt;s + sv2, 8d 2 s [12] (where
+residue rd (t) is as defined in (10)). For large enough N, due to
+the (strong) law of large numbers (LLN), the residue test will
+be satisfied w.h.p. for at least this set of good sensors. This
+ensures that w.h.p., the algorithm will not return an empty set.
+Also, the estimate xˆs(t) from this set of good sensors trivially
+achieves the error bound (6). But, since the algorithm can
+return any set of size p k which satisfies the residue test,
+it may be possible that some of the sensors in the returned set
+are corrupt. In the remainder of our analysis, we show that for
+any set returned by the algorithm, the corresponding Kalman
+estimate achieves (6).
+Algorithm 1 SECURE STATE PREDICTION - SCALAR CASE
+1: Enumerate all sets s 2 S such that:
+S = fsjs f1; 2; : : : pg; jsj = p kg.
+2: For each s 2 S, run a Kalman filter that uses all sensors
+indexed by s and returns estimate xˆs(t) 2 R.
+3: For each s 2 S, calculate the residues for all sensors d 2 s
+over a time window G = ft1;t1 + 1; : : : t1 + N 1g as:
+rd (t) = yd (t) cd xˆs(t)
+8d 2 s;
+8t 2 G:
+(10)
+4: Pick the set s? 2 S which satisfies the following residue
+test:
+1
+å rd2(t)
+N t2G
+c2d Popt;s? + sv2 + e
+8d 2 s?;
+(11)
+where e 0 is a design parameter and can be made
+arbitrarily small for large enough N.
+5: Return s? and xˆ(t) := xˆs? (t) 8t 2 G.
+Suppose the algorithm returns a set s of p k sensors.
+There is definitely one good sensor (say sensor d) in this set
+because there can be at most k attacked sensors and p k > k.
+Since the residue test is satisfied for this sensor, we have the
+following constraint:
+1 (a) 1
+å rd2(t) =
+N t2G
+å (cd x(t) + vd (t) cd xˆs(t))2
+N t2G
+=
+1
+å (cd e(t) + vd (t))2
+N t2G
+c2
+= d å e2(t) +
+N t2G
+(b) c2d Popt;s + sv2 + e;
+1
+å v2d (t) +
+N t2G
+2cd
+å e(t)vd (t)
+N t2G
+where (a) follows from yd (t) = cd x(t) + vd (t) for a good sensor
+d and (b) follows from the residue test. The error e(t) above is
+the state estimation (prediction) error at time t (in the presence
+of a k-adversary) when xˆs(t) is used as the state estimate. Using
+LLN, we can make an additional simplification as follows. For
+any e > 0, there exists a large enough N such that:
+c2
+d å e2(t) +
+N t2G
+2cd
+å e(t)vd (t)
+N t2G
+(a) c2d Popt;s + sv2
+å v2d (t) + e (b) c2d Popt;s + 2e;
+1
+N t2G
+where (a) follows from (12), and (b) follows w.h.p. due to
+LLN. Our next step will be to show that the cross term
+2Ncd åt2G e(t)vd (t) in (13) is vanishingly small w.h.p. as N ! ¥;
+this leads to the required bound on N1 åt2G e2(t) using (14). We
+do so in two steps: first we show that the mean of the cross
+term 2cd åt2G e(t)vd (t) is zero and then show that its variance
+N
+is vanishingly small as N ! ¥.
+The mean of the cross term 2Ncd åt2G e(t)vd (t) can be
+computed as shown below:
+E
+2cd
+å e(t)vd (t)
+N t2G
+!
+(a) 2cd
+=
+å E (e(t)) E (vd (t)) = 0; (15)
+N t2G
+2932
+where (a) follows from the independence of e(t) from vd (t)
+(due to assumption (A2), xˆs(t) is independent of good sensor
+noise vd (t) despite sensor attacks). Also, using (15) and taking
+the expectation in (13):
+E
+1
+N t2G
+å e2(t)
+!
+Popt;s +
+2e
+c2d :
+As the final step in our analysis, we will now show that the
+variance of cross term 2cd åt2G e(t)vd (t) is vanishingly small
+N
+as N ! ¥. For any e1 > 0, there exists a large enough N such
+that:
+0
+E @
+=
+1
+å e(t)vd (t)
+N t2G
+åt2G E e2(t)v2d (t)
+N2
+!21
+A
++
+(a) 1
+= N2 tå2G E e2(t) E v2d (t)
+2
+å
+N2 t; t02G; t<t0
+=
++
+s 2
+v E
+N
+N
+åt2G e2(t) (b)
+e1;
+2
+å
+N2 t; t02G; t<t0
+E e(t)vd (t)e(t0)vd (t0)
+E e(t)vd (t)e(t0) E vd (t0)
+(12)
+(13)
+(14)
+(16)
+(17)
+(18)
+where (a) follows from the independence of e(t) from vd (t)
+and the independence of vd (t0) from e(t)vd (t)e(t0) (for t0 > t),
+(b) follows from (16). The above result implies that the cross
+term 2cd åt2G e(t)vd (t) (with zero mean) has vanishingly small
+N
+variance as N ! ¥. As a result, using Chebyshev's inequality
+and (14), we have the error bound (6).
+V. SECURE STATE ESTIMATION: VECTOR STATE
+In this section, we consider the state estimation problem
+(against a k-adversary) for the general linear dynamical system
+described in (1), when the state is a vector. We focus on the
+prediction problem in this section; see [13] for the filtering
+problem. We assume that the system is q -sparse observable
+such that it satisfies the sparse observability condition (5)
+against a k-adversary. We first introduce some additional
+notation required for our proposed algorithm.
+Additional notation: Consider a set s of p k sensors.
+Such a set has pq k sensor subsets of size q , and we index
+these subsets of s by i. Due to the q -sparse observability
+condition, each subset i forms an observable pair (A; Ci)
+with observability matrix Oi and observability index mi; Ci
+is formed by rows of C corresponding to subset i of s. We
+define matrices Ji and Mmi as shown below:
+2
+0
+Ci
+6
+Ji = 66 CiA
+64 ...
+CiAmi 2
+0 : : : 0 3
+0 : : : 0
+Ci : : :
+... . . . . 5
+CiAmi 3 : : : Ci
+7
+0.. 777 ; Mmi = sw2JiJiT + sv2Imi :
+The pseudo-inverse of Oi is denoted by O†. The output from
+sensor subset i (of size q ) at time t is denoited by yi(t) 2 Rq .
+We consider the state estimation problem for a time window G
+Algorithm 2 SECURE STATE PREDICTION - VECTOR CASE
+1: Enumerate all sets s 2 S such that:
+S = fsjs f1; 2; : : : pg; jsj = p kg.
+2: For each s 2 S, run a Kalman filter that uses all sensors
+indexed by s and returns estimate xˆ s(t) 2 Rn.
+3: For each set s 2 S, enumerate all subsets of size q
+and index them by i. Let mi be the observability index
+associated with sensor subset i. For each subset i of s
+(subset of size q ), calculate the block residue:
+ri(t) = 66
+4
+2
+yi(t)
+yi(t + 1)
+.
+.
+.
+yi(t + mi
+1)
+3
+7
+7
+5
+Oixˆ s(t)
+8t 2 G:
+4: Pick the set s? 2 S which satisfies the following block
+residue test for each subset i of s? (subset of size q ).
+Partition G into mi groups G0; G1; : : : Gmi 1 of size NB such
+that Gl = ftj ((t t1) mod mi) = lg and check that for each
+Gl :
+1
+å tr Oi†ri(t)riT (t)Oi†T
+NB t2Gl
+Popt;s? + tr Oi†Mmi Oi†T
++ e ;
+(19)
+where e 0 is a design parameter which can be made
+arbitrarily small for large enough NB.
+5: Return s? and xˆ (t) := xˆ s? (t) 8t 2 G.
+of size N and assume without loss of generality that mi divides
+N such that miNB = N.
+Secure state prediction algorithm: Similar to the scalar
+setting, Algorithm 2 runs a bank of p p k Kalman filters in parallel.
+For each distinct set s of p k sensors, the corresponding
+Kalman filter fuses all the measurements from these sensors in
+order to calculate an estimate xˆ s(t). For a sensor set s of size
+p k to satisfy the block residue test, each of its pq k subsets
+should satisfy (19) for each group Gl . If a set s? satisfies
+the residue test, it is declared good and the corresponding
+Kalman estimate xˆs? (t) is used as the state estimate for the
+given time window. Intuitively, the residue test checks if the
+outputs from every observable sensor subset of size q within
+set s are consistent with the corresponding Kalman estimate
+over the time window G (see [13] for performance analysis).
+VI.
+SPARSE OBSERVABILITY: CODING THEORETIC VIEW
+In this section, we revisit the sparse observability condition
+(5) against a k-adversary and give a coding theoretic interpretation
+for the same. We first describe our interpretation for
+a linear system, and then discuss how it can be generalized
+for non-linear systems. Consider the linear dynamical system
+in (1) without the process and sensor noise. If the system's
+initial state is x(0) 2 Rn and the system is q -sparse observable,
+then clearly in the absence of sensor attacks, by observing
+the outputs from any q out of p sensors for n time instants
+(t = 0; 1; : : : n 1) we can exactly recover x(0) and hence,
+exactly estimate the state of the plant. A coding theoretic view
+of this can be given as follows. Consider the outputs from
+sensor d 2 f1; 2; : : : pg for n time instants as a symbol Yd 2 Rn.
+2933
+Thus, in the (symbol) observation vector Y = [Y1 Y2 : : : Yp],
+any q symbols are sufficient to recover the initial state x(0).
+Now, let us consider the case of a k-adversary which can arbitrarily
+corrupt any k sensors. In the coding theoretic view, this
+corresponds to arbitrarily corrupting any k (out of p) symbols
+in the observation vector. Recovery of the initial state despite
+such corruptions depends on the (symbol) Hamming distance
+between the observation vectors corresponding to two distinct
+initial states (say x(1)(0) and x(2)(0) with x(1)(0) 6= x(2)(0)).
+In the case of q -sparse observability, at most q 1 symbols in
+observation vectors corresponding to x(1)(0) and x(2)(0) can
+be identical; if q of the symbols are identical, this would imply
+x(1)(0) = x(2)(0). Hence, the Hamming distance between the
+observation vectors corresponding to x(1)(0) and x(2)(0) is at
+least p q + 1 symbols. This implies that we can correct up
+to k < p q2 +1 corruptions (equivalent to q p 2k), which
+is precisely the sparse observability condition required against
+a k-adversary (details in [13]). By analogously defining q sparse
+observability for a (noiseless) non-linear system, the
+same interpretation holds for the non-linear case; this leads to
+an alternative proof for the necessary and sufficient conditions
+for secure state estimation in any noiseless dynamical system.
+REFERENCES
+[1] F. Pasqualetti, F. Dorfler, and F. Bullo, “Control-theoretic methods
+for cyber-physical security,” IEEE Control Systems Magazine, Aug.
+2014, to appear. [Online]. Available: http://motion.me.ucsb.edu/pdf/
+2013u-pdb.pdf
+[2] H. Fawzi, P. Tabuada, and S. Diggavi, “Secure estimation and control for
+cyber-physical systems under adversarial attacks,” IEEE Transactions
+on Automatic Control, vol. 59, no. 6, pp. 1454-1467, June 2014.
+[3] Y. Shoukry and P. Tabuada, “Event-triggered state observers for sparse
+sensor noise/attacks,” arXiv pre-print, Sep. 2013. [Online]. Available:
+http://arxiv.org/abs/1309.3511
+[4] S. Mishra, N. Karamchandani, P. Tabuada, and S. Diggavi, “Secure state
+estimation and control using multiple (insecure) observers,” in IEEE
+Conference on Decision and Control (CDC), 2014.
+[5] Y. Shoukry, P. Nuzzo, A. Puggelli, A. L. Sangiovanni-Vincentelli, S. A.
+Seshia, and P. Tabuada, “Secure state estimation for cyber physical
+systems under sensor attacks: a satisfiability modulo theory approach,”
+arXiv pre-print, Dec. 2014.
+[6] M. S. Chong, M. Wakaiki, and J. P. Hespanha, “Observability of linear
+systems under adversarial attacks,” in American Control Conference
+(ACC), 2015.
+[7] M. Pajic, J. Weimer, N. Bezzo, P. Tabuada, O. Sokolsky, I. Lee,
+and G. Pappas, “Robustness of attack-resilient state estimators,” in
+ACM/IEEE International Conference on Cyber-Physical Systems (ICCPS),
+2014.
+[8] Y. Mo and B. Sinopoli, “Secure control against replay attacks,” in
+Allerton Conference on Communication, Control, and Computing, 2009.
+[9] C.-Z. Bai and V. Gupta, “On kalman filtering in the presence of a
+compromised sensor: fundamental performance bounds,” in American
+Control Conference (ACC), 2014.
+[10] J. Mattingley and S. Boyd, “Real-time convex optimization in signal
+processing,” IEEE Signal Processing Magazine, vol. 27, no. 3, pp. 5061,
+May 2010.
+[11] S. Farahmand, G. B. Giannakis, and D. Angelosante, “Doubly robust
+smoothing of dynamical processes via outlier sparsity constraints,” IEEE
+Trans. on Signal Processing, vol. 59, no. 10, pp. 4529-4543, Oct. 2011.
+[12] T. Kailath, A. Sayed, and B. Hassibi, Linear Estimation. Prentice Hall,
+2000.
+[13] S. Mishra, Y. Shoukry, N. Karamchandani, S. Diggavi, and P. Tabuada,
+“Secure state estimation: optimal guarantees against sensor attacks
+in the presence of noise,” arXiv pre-print, 2015. [Online]. Available:
+http://arxiv.org/abs/1504.05566

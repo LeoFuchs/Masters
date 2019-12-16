@@ -1,0 +1,1727 @@
+Joint Cyber and Physical Attacks on Power Grids:
+Graph Theoretical Approaches for Information Recovery
+Saleh Soltan
+Electrical Engineering
+Columbia University
+New York, NY
+saleh@ee.columbia.edu
+Mihalis Yannakakis
+Computer Science
+Columbia University
+New York, NY
+mihalis@cs.columbia.edu
+Gil Zussman
+Electrical Engineering
+Columbia University
+New York, NY
+gil@ee.columbia.edu
+ABSTRACT
+Recent events demonstrated the vulnerability of power grids
+to cyber attacks and to physical attacks. Therefore, we focus
+on joint cyber and physical attacks and develop methods to
+retrieve the grid state information following such an attack.
+We consider a model in which an adversary attacks a zone by
+physically disconnecting some of its power lines and blocking
+the information ow from the zone to the grid's control center.
+We use tools from linear algebra and graph theory and
+leverage the properties of the power ow DC approximation
+to develop methods for information recovery. Using information
+observed outside the attacked zone, these methods recover
+information about the disconnected lines and the phase
+angles at the buses. We identify su cient conditions on the
+zone structure and constraints on the attack characteristics
+such that these methods can recover the information. We
+also show that it is NP-hard to nd an approximate solution
+to the problem of partitioning the power grid into the
+minimum number of attack-resilient zones. However, since
+power grids can often be represented by planar graphs, we
+develop a constant approximation partitioning algorithm for
+these graphs. Finally, we numerically study the relationships
+between the grid's resilience and its structural properties,
+and demonstrate the partitioning algorithm on real power
+grids. The results can provide insights into the design of a
+secure control network for the smart grid.
+Categories and Subject Descriptors
+C.4 [Performance of Systems]: Reliability, availability,
+and serviceability; G.2.2 [Discrete Mathematics]: Graph
+Theory|Graph algorithms, Network problems
+Keywords
+Power Grids; Cyber Attacks; Physical Attacks; Information
+Recovery; Graph Theory; Algorithms
+Permission to make digital or hard copies of all or part of this work for personal or
+classroom use is granted without fee provided that copies are not made or distributed
+for profit or commercial advantage and that copies bear this notice and the full citation
+on the first page. Copyrights for components of this work owned by others than
+ACM must be honored. Abstracting with credit is permitted. To copy otherwise, or republish,
+to post on servers or to redistribute to lists, requires prior specific permission
+and/or a fee. Request permissions from permissions@acm.org.
+SIGMETRICS'15, June 15-19, 2015, Portland, OR, USA.
+Copyright is held by the owner/author(s). Publication rights licensed to ACM.
+ACM 978-1-4503-3486-0/15/06 ...$15.00.
+http://dx.doi.org/10.1145/2745844.2745846.
+361
+Physical Attack Target
+Cyber Attack Target
+Zone 1 PMU
+PMU
+PMU
+Zone K-1
+Zone K
+PMU
+PMU
+PMUs
+PMUs
+Comm.
+Net.
+Communication Control
+Network Center
+PDC
+PDC
+PDC
+Commands
+Data
+Power Grid Supervisory Control and Data
+Physical Infrastructure Acquisition (SCADA) system
+Figure 1: Components of the power grid and potential attacks:
+physical attacks target the physical infrastructure
+(lines, substations, etc.); Cyber attacks target the SCADA
+system { an adversary can disallow the information from the
+PMUs within the zone to reach the control center.
+1. INTRODUCTION
+Power grids are vulnerable to cyber attacks [7] and to
+physical attacks (e.g., the Apr. 2014 attack on a California
+substation [6]). These attacks may cause large-scale failures,
+initiate cascades (e.g., [3{5]), and have devastating e ects on
+almost every aspect of modern life. As illustrated in Fig. 1,
+two main components of the power grid are (i) the physical
+infrastructure of the power transmission system (power
+lines, substations, power stations), and (ii) the Supervisory
+Control and Data Acquisition (SCADA) system responsible
+for monitoring and controlling the grid (we refer to it as the
+control network ). Physical attacks target the former while
+cyber attacks target the latter.
+The e ects of a physical attack can be mitigated, if the
+control center has accurate understanding of its impacts and
+acts quickly to compensate for failures. However, if physical
+attacks are accompanied by cyber attacks that make information
+about the status of the attacked zones unavailable,
+the control center cannot take e ective action. Hence, in
+this paper we focus on developing methods for recovering
+the information about the status of the power grid following
+a joint cyber and physical attack as well as on studying the
+resilience of di erent topologies and the resilience to di erent
+attacks.
+G
+H
+Attacked Zone
+PDC
+PDC
+PDC
+PDC
+Figure 2: G is the power grid graph and H is an induced
+subgraph of G that represents the attacked zone. An adversary
+attacks a zone by disconnecting some of its power lines
+(red dashed lines) and disallowing the information from the
+PMUs within the zone to reach the control center.
+We consider the linearized direct-current (DC) power ow
+model 1, a practical relaxation of the alternating-current (AC)
+model. We also use a simpli ed version of the control network
+model of [28] that includes Phasor Measurement Units
+(PMU), Phasor Data Concentrators (PDC), and a control
+center (see Fig. 1). We de ne a zone as a set of buses
+(nodes), power lines (edges), PMUs, and an associated PDC.
+We consider an attack on a zone that disconnects some edges
+within the zone (physical attack), and disallows the information
+from the PMUs within the zone to reach the control
+center (cyber attack). An adversary can perform the
+cyber attack by, for example, disabling the zone's associated
+PDC. Alternatively, the communication network between
+the PMUs and the PDC or between the PDC and the
+control center can be attacked.
+As illustrated in Fig. 2, as a result of an attack, some
+lines get disconnected, and the phase angles and the status
+of the lines within the attacked zone H pVH ; EH q become
+unavailable. Our objective is to recover the phase angles
+and detect the disconnected lines by using the information
+available outside of the attacked zone.
+The idea underlying many of our results is that power
+ows are governed by the laws of physics, where a failure
+changes line ows and nodes' phase angles all over the power
+grid [40]. We show that based on this physical property, it
+is possible to estimate the state in the attacked zone using
+the information available outside of the zone. Speci cally,
+we use the matrix representation of the DC equations and
+the notion of admittance matrix, and apply matrix analysis
+and graph theoretical tools to develop methods for retrieving
+the information from the attacked zone.
+We present necessary and su cient conditions on the structure
+of a zone such that our methods are guaranteed to recover
+the information. We prove that if there is a matching
+between the nodes inside and outside the attacked zone that
+covers the inside nodes (VH ), then the phase angles of the
+nodes in the attacked zone are recoverable by solving a set
+of linear equations of size |VH |. We also prove that if H is
+acyclic, then the disconnected lines in H are detectable by
+solving a set of linear equations of size |EH |. Moreover, we
+show that if H is planar, under some constraints, the discon1The
+DC model is commonly used in large-scale contingency
+analysis of power grids [14, 15, 37, 49].
+362
+nected lines are detectable by solving a Linear Programming
+(LP) problem.
+We develop another method to simultaneously recover the
+phase angles and detect disconnected lines by solving a single
+LP problem. We show that if there is a partial matching
+between the nodes inside and outside of H, and H is planar,
+then under certain constraints on the attack (i.e., on the
+disconnected lines), this method is guaranteed to recover the
+information. Based on these results, we present the PostAttack
+Recovery and Detection (PARD) Algorithm.
+We study the problem of partitioning the power grid into
+the minimum number of attack-resilient zones (i.e., zones
+in which the information can be recovered by the methods
+mentioned above). We show that this problem is not approximable
+to within n1 for all ¡ 0, unless P=NP. However,
+since power grids can often be represented by planar graphs,
+we introduce the Zone Selection (ZS) Algorithm and show
+that it provides a constant approximation ratio for these
+graphs. This algorithm can be used for designing a more
+secure control network for smart grids.
+Finally, we present numerical results to assess the relationship
+between the structural properties of the power grid
+and its resilience to joint attacks and to demonstrate the
+operation of the ZS Algorithm on several power grids.
+The main contributions of this paper are three fold. We
+use matrix analysis and graph theoretical tools to: (i) develop
+methods to recover the phase angles and detect the
+disconnected lines after a joint cyber and physical attack,
+(ii) nd graph classes for which these methods are guaranteed
+to recover the information, (iii) develop an algorithm
+for partitioning the power grid into attack-resilient zones.
+This paper is organized as follows. Section 2 reviews related
+work. Section 3 describes the models and reviews
+graph theoretical terms. In Section 4, we focus on information
+recovery and in Section 5, we study the grid partitioning
+problem. Section 6 provides numerical results and Section 7
+provides concluding remarks and directions for future work.
+Most of the proofs appear in Appendix B.
+2.
+RELATED WORK
+The vulnerability of general networks to attacks was thoroughly
+studied in the past (e.g., [8, 31, 36] and references
+therein). Speci cally, attacks and failures in power grids
+were studied using probabilistic failure propagation models
+(e.g., [18, 20, 47], and references therein) as well as using deterministic
+DC power ows [12,14,22,32,40]. Malicious data
+attacks on the power grid control network were also studied
+[21, 30, 33, 44]. However, to the best of our knowledge,
+none of the previous works considered power grid vulnerability
+to joint cyber and physical attacks.
+In Section 4, we study the problem of recovering the phase
+angles and detecting disconnected edges after a joint cyber
+and physical attack. It is related to the problem of line outages
+identi cation from changes in phase angles that was
+studied in [42,43]. However, these studies were limited to at
+most two line failures. The problem of line failure identi cation
+in an internal system using the information from an
+external system was studied in [49], which only provided a
+heuristic algorithm that was evaluated for only one or two
+line failures.
+In Section 5, we study the problem of partitioning the
+power grid into the minimum number of attack-resilient zones.
+This problem is similar to the PMU placement problems
+studied in [29,35,48]. Recently, this problem has attracted a
+lot of attention in India after the major blackouts of 2013 [29].
+In [48] the problem of PMU placement for line outage detection
+was studied. However, none of the previous works
+considered the problem of PMU placement from the security
+point of view and when both the PDC/PMUs and the
+physical network can be attacked.
+In Section 5, we reduce the attack-resilient zone partitioning
+problem to the problem of partitioning a graph into
+subgraphs such that each subgraph is (i) acyclic, and (ii)
+there is a matching between nodes inside and outside the
+subgraph that covers all the subgraph nodes. This problem
+is closely related to the problems of vertex arboricity (which
+is known to be NP-hard to be determined [26, p.193]) and
+k-matching cover of a graph (which can be found in Opn3q
+time [45]). However, to the best of our knowledge, the joint
+problem was not studied before.
+Since the power grid and its robustness have drawn a lot of
+recent attention, several performance evaluation tools were
+used successfully to analyze power grids (e.g., [25, 27, 34],
+and references therein). This paper continues this line of
+work, using tools from linear algebra and graph theory.
+3.
+3.1
+MODEL AND DEFINITIONS
+DC Power Flow Model
+We adopt the linearized (or DC) power ow model, which
+is widely used as an approximation for the non-linear AC
+power ow model [11]. In particular, we follow [13{15] and
+represent the power grid by a connected undirected graph
+G pV; Eq where V t1; 2; : : : ; nu and E te1; : : : ; emu
+are the set of nodes and edges corresponding to the buses and
+transmission lines, respectively. Each edge ei is a set of two
+nodes ei tu; vu. pv is the active power supply (pv ¡ 0)
+or demand (pv   0) at node v P V (for a neutral node
+pv 0). We assume pure reactive lines, implying that each
+edge tu; vu P E is characterized by its reactance ruv rvu.
+Given the power supply/demand vector p~ P R|V | 1 and
+the reactance values, a power ow is a solution P P R|V | |V |
+and ~ P R|V | 1 of:
+¸
+vPNpuq
+u
+v
+puv
+pu; @ u P V
+ruvpuv
+0; @ tu; vu P E
+where N puq is the set of neighbors of node u, puv is the
+power ow from node u to node v, and u is the phase angle
+of node u. Eq. (1) guarantees (classical) ow conservation
+and (2) captures the dependency of the ow on the
+reactance values and phase angles. Additionally, (2) implies
+that puv pvu. When the total supply equals the total
+demand in each connected component of G, (1)-(2) has a
+unique solution [15, lemma 1.1].2 Eq.(1)-(2) are equivalent
+to the following matrix equation:
+A~
+p~
+(1)
+(2)
+(3)
+where A P R|V | |V | is the admittance matrix of G,3 de ned
+as follows:
+auv
+$'0
+&
+1{ruv
+%' °wPNpuq auw if u
+if u
+if u
+v and tu; vu R E;
+v and tu; vu P E;
+v:
+Note that in power grids nodes can be connected by multiple
+edges, and therefore, if there are k multiple edges between
+nodes u and v, auv °ik 1 1{ruvi . Once ~ is computed,
+the ows, puv, can be obtained from (2).
+Notation. Throughout this paper we use bold uppercase
+characters to denote matrices (e.g., A), italic uppercase characters
+to denote sets (e.g., V ), and italic lowercase characters
+and overline arrow to denote column vectors (e.g., ~).
+For a matrix Q, qij denotes its pi; jqth entry. For a column
+vector ~y, ~yt denote its transpose, yi denotes its ith entry,
+}~y}1 : °in 1 |yi| is its l1-norm, and suppp~yq : ti|yi 0u is
+its support.
+3.2
+Control Network
+We use the simpli ed version of the model described in [28]
+to model the SCADA system to which we refer as the control
+network. Fig. 1 illusterates the components of the control
+network. We assume that there is a Phasor Measurement
+Unit (PMU) at each node of G. The PMU at node i reports
+the phase angle i as well as the status of the edges (either
+operational or failed ) adjacent to node i. Phasor Data Concentrators
+(PDC) gather the data collected by PMUs. The
+data gathered by PDCs is sent to a control center which
+monitors and controls the entire grid. A zone is a subgraph
+induced by a subset of nodes with a single associated PDC.
+3.3
+Attack Model
+We study attacks on power grids that a ect both the physical
+infrastructure and the control network. We assume that
+an adversary attacks a zone by: (i) disconnecting some edges
+within the attacked zone (physical attack), and (ii) disallowing
+the information from the PMUs within the zone to reach
+the control center (cyber attack). An adversary can perform
+the cyber attack by, for example, disabling the zone's
+associated PDC. Alternatively, the communication network
+between the PMUs and the PDC or between the PDC and
+the control center can be attacked. We assume that disconnecting
+edges within a zone does not make G disconnected.
+Fig. 2 shows an example of an attack on the zone represented
+by H. Due to the attack, some edges are disconnected
+(we refer to these edges as failed edges) and the phase angles
+and the status of the edges within the attacked zone become
+unavailable. We denote the set of failed edges in zone H
+by F  EH . Upon failure, the edges are removed from the
+graph and the ows are redistributed according to (1)-(2).
+Notation. Throughout this paper, we denote an attacked
+zone by H pVH ; EH q. Without loss of generality we assume
+that the indices are such that VH t1; 2; : : : ; |VH |u
+and EH te1; e2; : : : ; e|EH |u. We denote the complement
+of the zone H by H GzH. If X; Y are two subgraphs of
+G, AX|Y and AVX |VY both denote the submatrix of the admittance
+matrix of G with rows from VX and columns from
+VY . For instance, A can be written in any of the following
+2The uniqueness is in the values of puvs rather than us
+(shifting all us by equal amounts does not violate (2)).
+3When ruv 1 @tu; vu P E, the admittance matrix A is the
+Laplacian matrix of the graph.
+363
+Notation
+G pV; Eq
+A
+~
+H
+F
+D
+1
+Table 1: Summary of notation.
+Description
+The graph representing the power grid
+Admittance matrix of G
+Vector of the phase angles of the nodes in G
+A subgraph of G representing the attacked zone
+Set of failed edges due to an attack
+Incidence matrix of G
+The value of after an attack
+The complement of
+The dual of
+forms,
+A
+AH|H
+AH|H
+AH|H ; A
+AH|H
+AG|H
+AG|H ; A
+AH|G :
+AH|G
+We use the very same notation for the vectors. For instance
+~H and ~H are the vectors of phase angle of the nodes in H
+and H, respectively. We use the prime symbol p1q to denote
+the values after an attack. For instance, G1, A1, and ~1 are
+used to represent the graph, the admittance matrix of the
+graph, and the phase angles of the nodes after an attack.
+3.4
+Graph Theoretical Terms
+In this paper, we use several graph theoretical terms and
+theorems, most of which are reviewed in Appendix A. We
+brie y review some of the important de nitions in this subsection.
+Most of the de nitions are borrowed from [16].
+Subgraphs, Cuts, and Cycles: Let X and Y be subsets
+of the nodes of a graph G. GrXs denotes the subgraph of G
+induced by X. We denote by ErX; Y s the set of edges of G
+with one end in X and the other end in Y . We denote the
+complement of a set X by X V zX. The coboundary of
+X is the set ErX; Xs and is denoted by BpXq. Bpvq denotes
+the coboundary of X tvu. GrX; Xs denotes the subgraph
+of G induced by the edges from ErX; Xs. We say that Q 
+E is G-separable, if there are pairwise edge-disjoint cycles
+Cqpq P Qq, such that @q P Q; q P Cq [39].
+Planar Graphs: A graph G is planar, if it can be drawn
+in the plane so that its edges intersect only at their ends. A
+planar graph G partitions the rest of the plane into a number
+of edgewise-connected open sets called the faces of G.
+Given a planar graph G, its dual graph G is de ned as
+follows. Corresponding to each face c of G there is a node
+c of G , and corresponding to each edge e of G there is an
+edge e of G . Two nodes c1 and c2 are joined by the edge
+e in G , if and only if their corresponding faces c1 and c2
+are separated by the edge e in G. It is easy to see that the
+dual G of a planar graph G is itself a planar graph [16].
+Incidence Matrix: Suppose we assign an arbitrary orientation
+to the edges of G. We denote the set of oriented
+edges by E t 1; 2; : : : ; mu. The (node-edge) incidence
+matrix of G is denoted by D P t 1; 0; 1u|V | |E| and de ned
+as follows,
+dij
+$'0 if j is not incident to node i;
+&
+1 if j is coming out of node i;
+'% 1 if j is going into node i:
+When we use the incidence matrix, we assume an arbitrary
+orientation for the edges unless we mention an speci c orientation.
+DH P t 1; 0; 1u|VH | |EH | is the submatrix of D
+with rows from VH and columns from EH .
+364
+4.
+ATTACK ANALYSIS
+In this section, we study the e ects of an attack and provide
+analytical methods for recovering the phase angles and
+detecting failed edges in the attacked zone H. We nd conditions
+on the structural properties of a zone and constraints
+on the failed edges for which these methods successfully recover
+the phase angles and detect the failed edges. These
+conditions depend on the connections between VH and VH as
+well as the inner connections of the nodes in H. Therefore,
+we refer to them as external and internal conditions on H,
+respectively. Finally, based on the methods, we present the
+Post-Attack Recovery and Detection (PARD) Algorithm.
+Table 2 summarizes the results regarding the resilience of
+a zone based on its internal and external conditions, and
+the constraints on the set of failed edges F .
+In this section, when we describe our methods, we assume
+that there are no edges ti; ju P EH for which i1 j1 (we
+refer to these edges as null-edges). Following (2), a null-edge
+does not carry any ow. Thus, we cannot detect the status
+of those edges since they cannot be distinguished from failed
+edges. However, we can detect the null-edges and treat them
+separately (we consider this in the PARD Algorithm).
+4.1
+Recovery of Phase Angles
+In this subsection, we introduce a method to recover the
+phase angles of the nodes in an attacked zone H. We provide
+su cient conditions on GrVH ; VH s such that the method recovers
+the phase angles of the nodes in VH successfully. As
+we mentioned, since these conditions depend only on the
+connections between VH and VH , we refer to them as the
+external conditions on H.
+The following lemma is the rst step towards designing the
+method for recovering the phase angles and for detecting the
+failed edges (see Subsection 4.2).
+Lemma 1. supppAp~ ~1qq  VH .
+Proof. Suppose F tei1 ; ei2 ; : : : ; eik u  EH are the
+edges that are disconnected from the grid after the attack
+on the zone H. De ne the column vectors x~1; x~2 : : : x~k P
+t 1; 0; 1un associated with the failed edges as follows. If
+eij tsj; tju then x~j is 1 in its sjth entry, 1 in its ttjh entry,
+and 0 everywhere else. It is easy to see that A1 is related
+to A as A1 A °jk 1 asjtj x~jx~jt. Since the graph G does
+not get disconnected after an attack, the ow equations in
+G1 are A1~1 p~. On the other hand, A~ p~, therefore
+A~ A1~1 0. Thus,
+0
+A~
+A1~1
+A~
+A~1
+ñ Ap~
+~1q
+k
+¸ asjtj x~jx~jt~1
+j 1
+k
+¸ asjtj x~jx~jt~1
+j 1
+k k
+ñ supppAp~ ~1qq  ¤ supppx~jx~jt~1q  ¤ tsj; tju
+i 1 i 1
+k
+ñ supppAp~ ~1qq  ¤ tsj; tju  VH :
+i 1
+One of the immediate results of Lemma 1 is the following
+corollary. This corollary gives a true statement about ~1
+(recall that ~1 is partly unknown). It states that ~1 is in the
+solution space of the matrix equation (4).
+Zone 1
+Zone 2
+Zone 3
+Zone 4
+Figure 3: An example of a graph and set of zones such that
+each zone is both well-supported and acyclic.
+(4)
+Corollary 1. AH|Gp~
+~1q
+0:
+We nd su cient conditions such that the solution ~H1 to
+(4) is unique (given ~ and ~H1 ), and consequently ~H1 can
+be recovered after any attack on H. We rst de ne a wellsupported
+zone.
+De nition 1. A zone H is called well-supported, if ~H1 can
+be recovered after any attack on H.
+Using Corollary 1, the following theorem gives su cient
+condition for a zone H to be well-supported.
+Theorem 1. A zone H is well-supported, if AH|H has
+linearly independent columns.
+Proof. From Corollary 1 we know that AH|Gp~
+0, therefore AH|H ~H1 AH|H p~H ~H1 q
+only unknown in this equation is ~H1 . Now since AH|H has
+linearly independent columns, this equation has a unique
+solution ~H1 which can be computed in polynomial time.
+Thus, ~H1 can be recovered in this case and zone H is wellsupported.
+~1q
+AH|H ~H . The
+It can be seen that the su cient condition in Theorem 1
+depends on the reactance values. However, the following
+corollary relaxes the condition in Theorem 1. It shows that
+if GrVH ; VH s has a matching that covers VH , then for almost
+any reactance values for the edges in ErVH ; VH s, H is
+well-supported. The idea is that the set of reactance values
+for the edges in ErVH ; VH s for which AH|H does not have
+linearly independent columns is a measure zero set in the
+real space [38].
+covCerosrVoHll,atrhyen2H. Iifsthweerlel-sisupapmoratetcdhianlmgoinstGs urVreHly;.V4H s that
+In reality, since the reactance values are derived by the
+physical properties of the lines, we expect that these values
+are relatively random around a mean value. Thus, following
+Corollary 2, the existence of a matching that covers every
+node in VH is enough for a zone to be well-supported (see
+Fig. 3 for an example of a graph in which every node in a
+zone is covered by a matching). Hence, in the following sections
+we consider the existence of a matching as a su cient
+external condition on H to be well-supported.
+4.2
+Detecting Failed Edges
+In this subsection, we assume that after an attack, the
+phase angles are recovered using the method in Subsection
+4.1 (i.e., by solving (4)). We introduce methods to
+detect the failed edges using ~1. We provide su cient conditions
+on H such that these methods detect the failed edges
+4In probability theory, one says that an event happens almost
+surely, if it happens with probability one.
+365
+successfully. As we mentioned, since these conditions depend
+only on the connections between the nodes in H, we
+refer to them as internal conditions on H.
+The following Lemma is the foundation for our approach
+to nd the failed edges. It limits the set of failed edges to
+the solution space of the matrix equation (5). It can be
+considered as the complement of Corollary 1.
+Lemma 2. There exists a vector ~x P R|EH | such that
+suppp~xq ti|ei P F u and
+DH~x AH|Gp~ ~1q: (5)
+Proof. We use the notation that we used in proof of
+Lemma 1. Recall from the proof of Lemma 1 that Ap~ ~1q
+j 1 asjtj x~jx~jt~1. It is easy to see that if d~1; d~2; : : : ; d~m
+°k
+are the columns of the incidence matrix D, then @jp1 ¤
+j ¤ kq, there exists bj P R such that bjd~ij asjtj x~jx~jt~1.
+Therefore, Ap~ ~1q °jk 1 bjd~ij . Thus, if we de ne ~y P Rm
+such that @eij P F; yij
+~1q D~y and suppp~yq  ti1; i2; : : : ; iku. However, from the
+Corollary 1 we know that AH|Gp~ ~1q 0. Moreover,
+since F  EH , ~yH 0. Thus, we can restrict the equation
+only to the components of the zone H, which means that
+AH|Gp~ ~1q DH ~yH . Now it is easy to see that since we
+assumed that no null-edges are in F , all the bis are nonzero
+and suppp~yH q ti1; i2; : : : ; iku. Therefore, ~x ~yH is a
+solution to (5) and suppp~xq ti|ei P F u.
+bj and 0 elsewhere, then Ap~
+Lemma 2 provides important information regarding the
+failed edges. It states that there exists a solution ~x to (5)
+such that suppp~xq reveals the set of failed edges. However,
+the solution to (5) may not be unique. The Lemma below
+provides a necessary and su cient condition on H such that
+the solution to (5) is unique.
+Lemma 3. The solution to (5) is unique and suppp~xq
+ti|ei P F u, if and only if H is acyclic.
+According to Lemma 3 the set of failed edges for any attack
+can be detected, if and only if H is acyclic. Fig. 3 shows
+an example of a graph and set of zones such that each zone
+is both well-supported and acyclic (case I in Table 2).
+Although Lemma 3 requires H to be an acyclic graph in
+order for the solution of (5) to be unique, by setting some
+constraints on the failed edges F , we provide a method to
+detect the failed edges in broader class of graphs. The underlying
+idea is that the set of failed edges is expected to be
+relatively sparse compared to the overall set of edges within a
+zone. Thus, we are interested in the solutions of (5) that are
+relatively sparse. The l0-norm should be used to capture the
+sparseness of a vector. However, since minimizing l0-norm
+is a combinatorial problem in general cases, we prefer to
+use l1-norm which is known to be a good approximation of
+the l0-norm. Thus, we consider the following minimization
+problem,
+min }~x}1 s.t. DH~x
+AH|Gp~
+~1q:
+(6)
+Notice that (6) is still linear and can be solved using Linear
+Programming. Moreover, when the solution to (6) also appears
+to be sparse, which is usually the case in the considered
+scenario, there are very fast algorithms to solve it [23].
+The Lemma below states that by solving (6), the failed
+edges can be detected in more cases than by solving (5).
+The idea that we use in proof of Lemma 4 is the core idea
+in proofs of Theorems 2 and 3, as well. Namely, the null
+Table 2: Summary of the results in Section 4. The external/internal conditions on the structural properties of a zone H such
+that after an attack with certain constraints, the phase angles can be recovered and the failed edges can be detected by solving
+(8). Matching and partial matching refer to matchings in GrVH ; VH s that cover VH and VH zpVHin Y VHoutq, respectively.
+Case
+I
+II
+III
+IV
+External conditions
+Matching
+Matching
+Partial matching
+Partial matching
+Internal conditions
+Acyclic
+Planar
+Acyclic
+Planar
+No cycle contains an
+inner-connected-node
+Attack constraints
+None
+@ cycle C, |C X F |   |CzF |
+F is H -separable
+@v P V Hin, |Bpvq X F |   |BpvqzF |
+@ cycle C, |C X F |   |CzF |
+@v P V Hin, |Bpvq X F |   |BpvqzF |
+F is H -separable
+Resilience
+attack-resilient
+Results
+Corollary 2/Lemma 3
+weakly-attack-resilient
+Corollary 2/Theorem 2
+weakly-attack-resilient Lemmas 3,6/Corollary 5
+weakly-attack-resilient
+Theorem 3/Corollary 5
+space of DH is in one-to-one correspondence with the cycle
+space of the graph H. Therefore, there are graph theoretical
+interpretations to the solution space of (5). Hence, by using
+tools from graph theory and linear algebra, we nd the
+solution to (5) with the minimum l1-norm.
+Lemma 4. If H is a cycle and |EH X F |   |EH zF |, the
+solution to (6) is unique and suppp~xq ti|ei P F u.
+Proof. Here without loss of generality, we assume that
+DH is the incidence matrix of H when edges of H has
+been oriented clockwise. Since H is connected, it is known
+that rankpDH q |VH | 1 [9, Theorem 2.2]. Therefore,
+dimpNullpDH qq 1. Suppose ~e P R|EH | is the all one vector.
+It is easy to see that DH~e 0. Since dimpNullpDH qq 1,
+~e is the basis for the null space of D. Suppose ~x is a solution
+to (5) such that suppp~xq ti|ei P F u (from Lemma 2
+we know that such a solution exists). To prove that ~x is
+the unique solution for (6), we only need to prove that
+@c P Rzt0u, }~x}1   }~x c~e}1. Without loss of generality
+we can assume that x1; x2; : : : ; xk are the nonzero elements
+of ~x, in which k |F |. From the assumption we know that
+|EH X F |   |EH zF |, therefore k   |EH |{2. Hence, we have
+}~x
+c~e}1
+c| p|EH |
+kq|c|
+Thus, the solution to (6) is unique.
+Corollary 3. If all the cycles in H are edge-disjoint and
+for any cycle C in H, |C X F |   |CzF |, then the solution to
+(6) is unique and suppp~xq ti|ei P F u.
+The following Theorem extends the idea in the proof of
+Lemma 4 and provides su cient conditions for failed edges
+in a planar graph H to be detected by solving (6) (recall
+from subsection 3.4 that H is the dual of the planar graph
+H and F is the dual of the set of failed edges).
+Theorem 2. In a planar graph H, the solution to (6) is
+unique and suppp~xq ti|ei P F u, if the following conditions
+hold: (i) for any cycle C in H, |C X F |   |CzF |, and (ii)
+F is H -separable.
+Fig. 4 shows an example of a zone H for which the set of
+failed edges can be detected by solving (6) based on Theorem
+2 (case II in Table 2).
+The Corollary below states that in planar bipartite graphs,
+condition (ii) in Theorem 2 immediately holds, if condition
+(i) holds.
+Corollary 4. In a planar bipartite graph H, the solution
+to (6) is unique and suppp~xq ti|ei P F u, if for any
+cycle C in H, |C X F |   |CzF |.
+k
+¸ |xi
+i 1
+k
+¸
+p|xi
+i 1
+k
+¥ ¸ |xi| p|EH |
+i 1
+c| |c|q p|EH |
+2kq|c|
+k
+2kq|c| ¡ ¸ |xi|
+i 1
+}~x}1:
+?? 3∗
+Figure 4: An example of a zone H and a set of failed edges
+(shown by red dashed lines) that can be detected by solving
+(6) based on Theorem 2. The diamond orange nodes are
+the nodes of the dual graph H . As can be seen, the dual
+of the failed edges can be covered by three edge disjoint
+cycles O1 ; O2 ; O3 (shown by dotted lines) in H . Thus, as
+Theorem 2 requires, F is H -separable.
+Theorem 2 and Corollary 4 are important since power grids
+are usually considered to be planar. For instance, lattice
+graphs are planar bipartite.
+4.3
+Simultaneous Phase Angles Recovery and
+Failed Edges Detection
+In Subsection 4.1 we showed that the phase angles of the
+zone H are recoverable, if there is a matching in GrVH ; VH s
+that covers VH . However, in reality, this condition might be
+very di cult and costly to maintain (i.e., it may require to
+increase the number of zones). Therefore, in this subsection,
+using similar ideas as in subsection 4.2, we relax the external
+conditions on H.
+The key idea which is summarized in the following Lemma,
+is to combine Corollary 1 and Lemma 2.
+Lemma 5. There exist vectors ~x P R|EH | and ~H P R|VH |
+such that suppp~xq ti|ei P F u, ~H ~H ~H1 , and
+DH~x
+AH|H~H
+AH|H~H
+AH|H~H
+AH|H~H
+0
+where ~H ~H ~H1 and is known.
+From Subsections 4.1 and 4.2 we know that the solution
+to (7) is unique, if and only if H is acyclic and AH|H has
+linearly independent columns. Therefore, to deal with cases
+for which AH|H does not have linearly independent columns,
+we consider a similar optimization problem as in (6) but
+with more constraints. For this reason, as we mentioned in
+Subsection 4.2, since the set of failed edges is expected to
+be relatively sparse compared to the overall set of edges, we
+consider the following optimization problem,
+(7)
+(8)
+366
+min }~x}1 s.t.
+DH~x
+AH|H~H
+AH|H~H
+AH|H~H
+AH|H~H
+0:
+The following Lemma states that if there is an independent
+set of nodes in H with no neighbors in H, then under
+some conditions on F , we can recover F and ~H1 by solving
+(8) even when AH|H does not have linearly independent
+columns (case III in Table 2). First, we de ne innerconnected
+nodes.
+De nition 2. A node v P VH is called H-inner-connected
+if N pvq  VH . It is called H-outer-connected if N pvq 
+VH . We denote the set of H-inner-connected and H-outerconnected
+nodes by VHin and VHout, respectively.
+Lemma 6. Suppose H-inner-connected nodes form an independent
+set. If H is acyclic, rankpAH|H q |VH | |VHin|,
+and @v P VHin; |Bpvq X F |   |BpvqzF |, then the solution ~x; ~
+to (8) is unique. Moreover, suppp~xq ti|ei P F u and
+~H ~H ~H1 .
+Proof. The idea of the proof is very similar to the proof
+of Lemma 4. Suppose ~x; ~H is the solution to (7) such that
+suppp~xq ti|ei P F u and ~H ~H ~H1 . From Lemma 5 we
+know that such a solution exists. We show that this solution
+is the unique solution to (8) in this setting.
+Without loss of generality in addition to assuming VH
+t1; 2; 3; : : : ; |VH |u and EH te1; e2; : : : ; e|EH |u, we can assume
+the labeling of the nodes in G is such that VHin
+t1; 2; : : : ; tu is the set of H-inner-connected nodes. Suppose
+~ 1; ~ 2; : : : ; ~ t P R|VH | are the coordinate vectors, in other
+words ~ i is 1 at its ith entry and 0 everywhere else. It is
+easy to see that @i P VHin : AH|H ~ i 0. On the other hand,
+since rankpAH|H q |VH | t and ~ is are linearly independent,
+~ 1; ~ 2; : : : ; ~ t form a basis for NullpAH|H q.
+Assume DH is the incidence matrix of H when its edges
+are oriented such that for each i P VHin, the edges are coming
+out of i. Now suppose ~z is another solution to (8), it
+is easy to see that DH p~z ~xq AH|H ~ for a vector ~ P
+NullpAH|H q. Since ~ P NullpAH|H q, there are unique coe cients
+c1; c2; : : : ; ct P R such that ~ c1 ~1 c2 ~2 ct ~t.
+Thus,
+DH p~z
+~xq
+AH|H ~
+c1AH|H ~ 1
+AH|H pc1~ 1
+c2~ 2
+c2AH|H ~ 2
+ct~ tq
+ctAH|H ~ t:
+Suppose d~j is the column associated with edge ej in DH .
+Notice that for each i P VHin, Bpiq  EH . Therefore, @i P VHin
+and @ej P Bpiq, d~j is a column of DH . It is easy to see that
+for any i P VHin, °j:ejPBpiq d~j AH|H ~ i. If for any i P VHin
+we de ne vector ~bi P t0; 1u|EH | as follows,
+AH|H ~ i for any i P VHin. Thus,
+bij :
+ct~btq
+~xq
+#
+1 if ej P Bpiq
+0 otherwise;
+c1AH|H ~ 1
+DH pc1~b1
+c2~b2
+ctAH|H ~ t
+ct~btq:
+then DH~bi
+DH pc1~b1
+ñ DH p~z
+Now since H is acyclic, DH has linearly independent columns.
+Thus, from the equation above we can conclude that,
+~z
+ñ ~z
+~x
+~x
+c1~b1
+c1~b1
+c2~b2
+c2~b2
+ct~bt
+ct~bt:
+c1
+Using equation above, we show that }~z}1 ¡ }~x}1 unless
+c2 ct 0. First, notice that since VHin is an
+Zone H
+Figure 5: An example of a zone H and an attack such that
+the phase angles can be recovered and the failed edges can be
+detected by solving (8) based on Theorem 3. The squared
+green nodes are the H-inner-connected nodes. The failed
+edges are shown by red dashed edges.
+independent set, @i
+@i P VHin; |Bpiq X F |
+}~z}1
+¤
+¤
+¤
+}~x
+¸
+iPV Hin
+¸
+iPV Hin
+¸
+iPV Hin
+¸
+iPV Hin
+¸
+iPV Hin
+j P VHin, Bpiq X Bpjq
+ki, we have
+H. Suppose
+c1~b1
+p|Bpiq|
+p|Bpiq|
+p|Bpiq|
+c2~b2
+ct~bt}1
+¸
+kiq|ci| |xj
+jPF XBpiq
+2kiq|ci| |xj
+jPF XBpiq
+2kiq|ci| |xj |
+jPF XBpiq
+¸
+¸
+¸
+p|Bpiq|
+2kiq|ci|
+p|Bpiq|
+2kiq|ci|
+}~x}1:
+iPV Hin jPF XBpiq
+ci|
+¸ |xi|
+iPF zBpV Hinq
+ci| |ci|
+¸ |xi|
+iPF zBpV Hinq
+¸
+|xj |
+iPF zBpV Hinq
+¸ |xi|
+¸ |xi|
+iPF zBpV Hinq
+367
+Now, since from the assumptions @i P VHin; ki   |Bpiq|{2, it
+is easy to see that °iPV Hin ppBpiq 2kiq|ci|q }~x}1   }~x}1,
+unless c1 c2 ct 0. Since ~z is a solution to (8),
+we should have c1 c2 ct 0, and ~z ~x. Thus,
+~x is the unique solution to (8) and suppp~xq ti|ei P F u.
+From the proof, it is easy to see that ~H is also unique.
+To generalize Lemma 6, rst let us consider cases in which
+H contains H-outer-connected nodes. The Lemma below
+shows that the value of for these nodes is unique.
+Lemma 7. If v is H-outer-connected and ~H is a solution
+to (7), then v is unique and equal to v 1{dpvq °uPNpvq u,
+where dpvq is the degree of node v.
+In the following theorem, we generalize Lemma 6. This
+theorem combines Lemma 6 and Theorem 2, and provides a
+broader class of graphs in which solving (8) recovers phase
+angles and detects the failed edges after an attack.
+Theorem 3. In a planar graph H, the solution ~x; ~H to
+(8) is unique with suppp~xq ti|ei P F u and ~H ~H
+~H1 , if the following conditions hold: (i) @v P VHin, |Bpvq X
+F |   |BpvqzF |, (ii) for any cycle C in H, |C X F |   |CzF |,
+(iii) F is H -separable, (iv) in AH|H , columns associated
+with nodes that are neither H-inner-connected nor H-outerconnected
+are linearly independent, (v) no cycle in H contains
+a H-inner-connected node, and (vi) H-inner-connected
+nodes form an independent set.
+Note that when H is well-supported, there are no H-innerconnected
+or H-outer-connected nodes. Thus, conditions (i),
+(iv), (v), and (vi) immediately hold and Theorem 3 reduces
+to Theorem 2.
+Algorithm 1 - Post-Attack Recovery & Detection (PARD)
+Algorithm 2 - 3-Acyclic Partition of Planar (3APP)
+Input: A connected graph G, phase angles before the attack ~,
+and partial phase angles after the attack ~H1 .
+1: Detect the attacked zone H by checking for missing data.
+2: Compute ~x; ~H the solution to (8) by Linear Programming.
+3: Compute ~H1 ~H ~H .
+4: Compute F tei|i P suppp~xqu.
+5: Detect the set of null-edges that appear after the attack as
+N tti; ju P EH | i1 j1 u.
+6: return N , F , ~H1 .
+Fig. 5 shows an example of a zone H and an attack such
+that the phase angles can be recovered and the failed edges
+can be detected by solving (8) using Theorem 3 (case IV in
+Table 2). As it can be seen, this theorem covers a broad set
+of graphs and attacks for which we can recover the phase
+angles and detect the failed edges. Notice that here, with
+similar argument as in Corollary 2 we can replace condition
+(iv) in Theorem 3 with a simpler matching condition as
+follows.
+Corollary 5. If there is a matching in GrVH ; VH s that
+covers VH zpVHin Y VHoutq, then condition (iv) in Theorem 3
+holds almost surely.
+To conclude, we de ne the attack-resilient and weaklyattack-resilient
+notions to summarize the resilience of a zone
+to joint cyber and physical attacks.
+De nition 3. A zone H is called attack-resilient, if it is
+both well-supported and acyclic.
+De nition 4. A zone H is called weakly-attack-resilient, if
+~H1 and F can be uniquely found after a constrained attack
+on the zone H by solving (8).
+It is easy to see that an attack-resilient zone is also weaklyattack-resilient.
+4.4
+Post-Attack Recovery and Detection Algorithm
+In this subsection, we present the Post-Attack Recovery
+and Detection (PARD) Algorithm for recovering the phase
+angles and detecting the failed edges after an attack on a
+zone H. Based on the results provided in previous subsections,
+if zone H is weakly-attack-resilient, the PARD Algorithm
+will recover the phase angles and detect the failed
+edges after a constrained attack.
+Notice that if there are some failed edges but no data is
+missing, then from the data that is gathered by the PDCs
+from the PMUs, all the information regarding the status of
+the lines and phase angles is available and there is no need
+for the algorithm. Thus, as the rst step, the PARD Algorithm
+detects the attacked zone H by checking the missing
+data (line 1). Then, it solves (8) by Linear Programming
+to obtain ~x; ~H . If H is weakly-attack-resilient, from the results
+in previous subsections, we know that ~x; ~H are unique,
+~H1 ~H ~H (line 3), and F tei|i P suppp~xqu (line 4).
+Finally, using ~1 computed in previous line, the PARD Algorithm
+detects the set of null-edges N (line 5), and returns
+N , F , and ~H1 .
+5.
+ZONE SELECTION ALGORITHM
+In this section we use the results from Section 4 to provide
+an algorithm for partitioning the power grid into the minimum
+number of attack-resilient zones. From Lemma 3 and
+368
+Input: A non-empty planar graph G.
+1: Find a node v P V such that degpvq ¤ 5.
+2: if Gzv H then set Q1 Q2 Q3 H.
+3: else Find 3-partition of Gzv using 3APP Algorithm as
+Q1; Q2; Q3.
+4: Add v to the partition that |N pvq X Qi| is minimum.
+5: return Q1; Q2; Q3.
+Corollary 2, for a zone H to be attack-resilient, it is su cient
+that H is acyclic and there is a matching in GrVH ; VH s
+that covers every node in VH . Fig. 3 shows an example of
+a partitioning such that each zone is attack-resilient. Thus,
+we de ne a matched-forest partition of a graph G as follows.
+De nition 5. A matched-forest partition of a graph G into
+H1; H2; : : : ; Hk is a partition such that for any i, Hi is acyclic
+and GrVHi ; VHi s has a matching that covers VHi .
+The problem of nding a matched-forest partition of G is
+closely related to two previously known problems of vertex
+arboricity and k-matching cover of a graph. The vertex
+arboricity apGq of a graph G is the minimum number of
+subsets into which the nodes of G can be partitioned so
+that each subset induces an acyclic graph. It is known that
+determining apGq is NP-hard [26, p.193].
+A k-matching cover of a graph G is a union of k matchings
+of G which covers V . The matching cover number of G,
+denoted by mcpGq, is the minimum number k such that G
+has a k-matching cover. An optimal matching cover of a
+graph on n nodes can be found in Opn3q time [45].
+Using these results, we study the time complexity of the
+minimum matched-forest partition problem.5 The following
+Lemma shows that it is hard to nd the minimum matchedforest
+partition of a graph.
+Lemma 8. The problem of nding the minimum matchedforest
+partition of a graph G is NP-hard.
+Moreover, we show that nding the minimum matchedforest
+partition is even hard to approximate. We use the
+well-known result by Zuckerman [51] that for all ¡ 0, it is
+NP-hard to approximate chromatic number to within n1 .
+Lemma 9. For all ¡ 0, it is NP-hard to approximate
+the minimum matched-forest partition of a graph G to within
+n1 .
+Despite these hardness results, we provide the polynomialtime
+Zone Selection (ZS) Algorithm to nd a matched-forest
+partition of a graph. We prove that the ZS Algorithm provides
+a constant approximation for the minimum matchedforest
+partition of a graph G when G is planar.
+Before describing the ZS Algorithm in detail, we rst
+describe an algorithm that is used in the ZS Algorithm,
+when G is planar. It is known that for a planar graph G,
+apGq ¤ 3 [19]. Based on the proof provided in [19], we introduce
+a recursive 3-Acyclic Partition of Planar (3APP)
+Algorithm. The Lemma below shows the correctness of this
+Algorithm.
+Lemma 10. The 3APP Algorithm partitions the nodes of
+a planar graph G into 3 subsets such that each subset induces
+an acyclic graph.
+5To the best of our knowledge, this is the rst time that the
+problem is studied.
+Algorithm 3 - Zone Selection (ZS)
+Input: A connected graph G.
+1: Find an optimal matching cover M1; M2; : : : ; Mt of G [45].
+2: For each Mi, separate the matched nodes into two set of nodes
+V2i 1; V2i such that @tv; uu P M, v P V2i 1 and u P V2i.
+3: For any 1 ¤ i ¤ 2t, Qi Viz ij 11 Qj.
+4: for each Qi do
+5: if GrQis is acyclic then continue
+6: if GrQis is a planar graph then
+7: Use 3APP Algorithm to partition GrQis.
+8: else
+9: Use any greedy algorithm to partition GrQis into acyclic
+subgraphs.
+10: Name the resulted partitions P1; : : : ; Pk.
+11: return P1; : : : ; Pk.
+1.0
+sh0.8
+p
+a
+r
+g
+bu0.6
+fs
+no0.4
+o
+ti
+c
+ra0.2
+F
+Acyclic
+Well-supported
+Attack-resilient
+1.0
+0.8
+0.6
+0.4
+0.2
+Acyclic
+Well-supported
+Attack-resilient
+0.15 0.20
+00.0.00 0.05 0.10 0.15 0.20 00.0.00
+p
+0.05
+0.10
+p
+(a) n 30 (b) n 50
+Figure 6: The relationships between the number of edges in
+random graphs (or equivalently p), and the fraction of induced
+subgraphs that form well-supported and acyclic zones
+of size |VH | 10. For each p, 100 random graphs were generated
+and in each graph, 100 subgraphs were chosen randomly.
+We now present the ZS Algorithm. The ZS Algorithm
+rst nds an optimal matching cover M1; M2; : : : ; Mt of G
+using an Opn3q algorithm introduced in [45] (line 1). Then,
+in lines 2 and 3, it uses this matching cover to partition
+V into Q1; Q2; : : : ; Q2t. It is easy to see that for each Qi,
+Mri{2s X ErQi; Qis is the matching in GrQi; Qis that covers
+nodes in Qi. Then, in order to satisfy the acyclicity
+condition on the partitions, it partitions Qis that do not
+induce an acyclic graph, into subsets so that each subset
+induces an acyclic graph. When GrQis is a planar graph,
+it uses 3APP Algorithm to partition GrQis. When it is
+not, it uses any greedy algorithm to do so. Thus, the resulted
+partition P1; P2; : : : ; Pk satis es the conditions of a
+matched-forest partition.
+The lemma below states that when G is planar, the ZS
+Algorithm provides a constant approximation of the optimal
+matched-forest partition. We demonstrate the results
+obtained by the algorithm in the following section.
+Lemma 11. If G is planar, the ZS Algorithm provides a
+6-approximation of the minimum matched-forest partition
+3 .
+of G in Opn q
+6.
+NUMERICAL RESULTS
+In this section, we (i) numerically study the relationship
+between the structural properties of a grid and its resilience
+to joint cyber and physical attacks, and (ii) demonstrate
+the results obtained by the ZS Algorithm in several known
+power grid networks.
+To assess the relationship between the structural properties
+of a grid and its resilience to attacks, we quantify the
+369
+1.0
+sh0.8
+p
+a
+r
+g
+bu0.6
+fs
+no0.4
+o
+ti
+c
+ra0.2
+F
+1.0
+0.8
+0.6
+0.4
+AWceyllc-lsiucpported 0.2 AWceyllc-lsiucpported
+Attack-resilient Attack-resilient
+0.00 2 4 6 |V8H | 10 12 14 16 0.00 2 4 6 |V8H | 10 12 14 16
+(a) n 30; m 56 (b) n 30; m 104
+Figure 7: The relationship between the size of the zone |VH |
+in scale-free graphs, and the fraction of induced subgraphs
+that form well-supported and acyclic zones of size |VH |. For
+each case, 1000 subgraphs were chosen randomly.
+resilience by the fraction of the node induced subgraphs of
+G that form attack-resilient zones. Recall from Section 4
+that a zone H is attack-resilient, if it is well-supported and
+acyclic. We rst study the relationships between the number
+of edges and the fraction of induced subgraphs that form
+well-supported, acyclic, and attack-resilient zones. These relationships
+can be best demonstrated in random graphs [24],
+since by increasing p (the probability that two nodes are connected),
+the total number of edges increases.
+We generated random graphs with n 30 and n 50
+nodes with various p values. For each p, we generated 100
+random graphs and in each graph randomly selected 100
+subgraphs of size 10. We then computed the fraction of
+subgraphs that form well-supported, acyclic, and attackresilient
+zones. As can be seen in Fig. 6, as p increases,
+the fraction of subgraphs that form acyclic zones decreases
+and the fraction that form well-supported zones increases.
+In Fig. 6(a), when p 0:14 these two fractions are equal
+and the fraction of attack-resilient subgraph is maximized.
+As can be seen in Fig. 6(b), the value of p for which these
+two fractions are equal (i.e., the fraction of attack-resilient
+subgraphs is maximized) decreases as n increases.
+We also illustrate the relationships between the size of
+the zone |VH | and the fraction of induced subgraphs that
+form well-supported, acyclic, and attack-resilient zones. It
+is known that scale-free graphs are relatively good representatives
+of power grid networks [10], and therefore, we focus
+here on such graphs. Fig. 7 shows the relationships in scalefree
+graphs with n 30 nodes and m 56 or 104 edges.
+As can be seen in 7(a), as the size of the zone increases, the
+fraction of zones that are well-supported decreases faster
+than the fraction of zones that are acyclic. Thus, the wellsupportedness
+is the restricting factor for attack-resilience.
+However, this trend is di erent in 7(b). Since the graph has
+more edges, as the size of the zone increases, the fraction
+of zones that are acyclic decreases faster than the fraction
+of zones that are well-supported. Here, the acyclicity is the
+restricting factor.
+Overall, these results show that the structure of the grid
+plays an important role in its resilience and should be considered
+when designing a control network.6
+6Clearly, random and scale free graphs do not model power
+grids perfectly. However, we used them to gain insight into
+the relations between structural properties and resilience.
+In future work, we will study more realistic network topologies
+[41].
+Table 3: Number of partitions into which the ZS Algorithm
+divides di erent networks.
+Network
+IEEE 14-Bus
+IEEE 30-Bus
+IEEE 118-Bus
+IEEE 300-Bus
+Polish grid
+Colorado state grid
+Western interconnection
+Zone 1
+Zone 2
+Nodes
+14
+30
+118
+300
+3120
+662
+13135
+Edges
+20
+41
+179
+409
+3684
+864
+16860
+Zone 1
+Zone 2
+Partitions
+2
+2
+5
+14
+10
+6
+9
+(a) IEEE 14 bus
+(b) IEEE 30 bus
+Figure 8: Partitioning of the IEEE 14 and IEEE 30 bus systems
+into 2 attack resilient zones (using the ZS Algorithm).
+We now demonstrate results obtained by the ZS Algorithm
+in several known power networks. Table 3 lists the
+considered grids and number of resulting partitions. For example,
+Fig. 8 shows the partitions obtained by ZS Algorithm
+in the IEEE 14-Bus and 30-Bus benchmark systems [2]. As
+can be seen, in both cases the graphs can be partitioned into
+two attack-resilient zones. We also evaluated the ZS Algorithm
+on the IEEE 118 and 300-bus systems, the Polish grid
+(available with MATPOWER [50]), the Colorado state grid,
+and the U.S. Western Interconnection network.7 For example,
+the 6 zones into which the Colorado grid is partitioned
+appear in Fig. 9. Recall form Section 5 that when G is planar,
+the ZS Algorithm is a 6-approximation algorithm for
+the minimum matched-forest problem. However, as can be
+seen from the examples above, in practice, it partitions the
+networks into few zones.
+We note that the ZS Algorithm does not take the geographical
+constraints into account. Thus, when partitioning
+very large networks such as the Western Interconnection
+(see Fig. 10), the nodes in the same partition may be geographically
+distant from each other. This is impractical,
+since the PMUs from the same zone should send the data
+to a single PDC. However, it is easy to see that if a zone is
+attack-resilient, any of its subgraphs is also attack-resilient.
+Therefore, the partitions obtained by the ZS Algorithm can
+be further divided into smaller zones based on geographical
+constraints (e.g., into zones within di erent states in
+Fig. 10). This approach does not result in an optimal partitioning.
+Hence, obtaining an e cient partitioning with
+geographical constraints is a subject of future work.
+7.
+CONCLUSION
+We studied joint cyber and physical attacks on power
+grids. We developed methods to recover information about
+the phase angles of the nodes and the disconnected edges,
+using only the information available from outside of the attacked
+zone. We identi ed graph structures and constraints
+7The data of the Western Interconnection (and of Colorado)
+was obtained from the Platts Geographic Information System
+(GIS) [1].
+Figure 9: Partitioning of the Colorado state grid into 6
+attack-resilient zones (using the ZS Algorithm). Nodes with
+the same color are in the same zone.
+370
+Figure 10: Partitioning of the U.S. Western Interconnection
+into 9 attack-resilient zones (using the ZS Algorithm).
+Nodes with the same color are in the same zone.
+on the disconnected edges for which these methods are guaranteed
+to recover the state information. Moreover, we showed
+that the problem of partitioning the grid into the minimum
+number of attack-resilient zones is not approximable to
+within n1 for all ¡ 0 unless P=NP. However, for planar
+graphs, we developed an approximation algorithm for the
+partitioning problem. Finally, we illustrated via numerical
+results the relationship between the structural properties of
+the power grid and its resilience to joint attacks as well as
+the operation of the partitioning algorithm.
+This is one of the rst steps towards understanding the
+vulnerabilities of power grids to joint cyber and physical
+attacks and developing methods to mitigate their e ects.
+Hence, there are still many open problems. In particular,
+we plan to generalize Theorems 2 and 3 to a broader class
+of graphs. Moreover, we will develop algorithms to partition
+the grid into weakly-attack-resilient zones while taking
+into account geographical constraints and constraints on the
+number and positions of the PDCs. Finally, we will study
+the interdependencies between cascading failures in power
+grids and its control network when the control network faces
+sophisticated cyber attacks.
+Acknowledgement
+This work was supported in part by CIAN NSF ERC under
+grant EEC-0812072, the People Programme (Marie Curie
+Actions) of the European Unions Seventh Framework Programme
+(FP7/2007-2013) under REA grant agreement no.
+[PIIF-GA-2013-629740].11, NSF under grant CCF-1320654,
+and DTRA grant HDTRA1-13-1-0021. We thank Meric
+Uzunoglu and Andrey Bernstein for their help with processing
+the WI data.
+8.
+REFERENCES
+[1] Platts GIS Data.
+http://www.platts.com/Products/gisdata.
+[2] Power systems test case archive. Available at:
+http://www.ee.washington.edu/research/pstca/.
+[3] U.S.-Canada Power System Outage Task Force.
+Report on the August 14, 2003 blackout in the United
+States and Canada: Causes and recommendations.
+2004.
+[4] Report of the enquiry committee on grid disturbance
+in Northern region on 30th July 2012 and in Northern,
+Eastern and North-Eastern region on 31st July 2012,
+Aug. 2012.
+[5] The Federal Energy Regulatory Comission (FERC)
+and the North American Electric Reliability
+Corporation (NERC). Arizona-Southern California
+Outages on September 8, 2011. 2012.
+[6] Assault on California power station raises alarm on
+potential for terrorism. Source:
+http://goo.gl/RiuhI1, 2014.
+[7] Cybersecurity and the North American electric grid:
+New policy approaches to address an evolving threat.
+Source: http://goo.gl/WgUbPI, 2014.
+[8] R. Albert, H. Jeong, and A.-L. Barabasi. Error and
+attack tolerance of complex networks. Nature,
+406(6794):378{382, 2000.
+[9] R. Bapat. Graphs and matrices. Springer, 2010.
+[10] A.-L. Barabasi and R. Albert. Emergence of scaling in
+random networks. Science, 286(5439):509{512, 1999.
+[11] A. R. Bergen and V. Vittal. Power Systems Analysis.
+Prentice-Hall, 1999.
+[12] A. Bernstein, D. Bienstock, D. Hay, M. Uzunoglu, and
+G. Zussman. Sensitivity analysis of the power grid
+vulnerability to large-scale cascading failures. ACM
+SIGMETRICS Perform. Eval. Rev., 40(3):33{37, 2012.
+[13] A. Bernstein, D. Bienstock, D. Hay, M. Uzunoglu, and
+G. Zussman. Power grid vulnerability to
+geographically correlated failures - analysis and control
+implications. In Proc. IEEE INFOCOM'14, Apr. 2014.
+[14] D. Bienstock. Optimal control of cascading power grid
+failures. Proc. IEEE CDC-ECC, Dec. 2011.
+[15] D. Bienstock and A. Verma. The N k problem in
+power grids: New models, formulations, and numerical
+experiments. SIAM J. Optimiz., 20(5):2352{2380,
+2010.
+[16] J. A. Bondy and U. Murty. Graph theory, volume 244
+of graduate texts in mathematics, 2008.
+[17] J. A. Bondy and U. S. R. Murty. Graph theory with
+applications. Macmillan London, 1976.
+[18] S. Buldyrev, R. Parshani, G. Paul, H. Stanley, and
+S. Havlin. Catastrophic cascade of failures in
+interdependent networks. Nature,
+464(7291):1025{1028, 2010.
+[19] G. Chartrand, D. Geller, and S. Hedetniemi. Graphs
+with forbidden subgraphs. J. Combin. Theory Ser. B,
+10(1):12{41, 1971.
+[20] D. P. Chassin and C. Posse. Evaluating North
+American electric grid reliability using the
+Barabasi{Albert network model. Phys. A,
+355(2-4):667 { 677, 2005.
+371
+[21] G. Dan and H. Sandberg. Stealth attacks and
+protection schemes for state estimators in power
+systems. In Proc. IEEE SmartGridComm'10, 2010.
+[22] I. Dobson, B. Carreras, V. Lynch, and D. Newman.
+Complex systems analysis of series of blackouts:
+cascading failure, critical points, and self-organization.
+Chaos, 17(2):026103, 2007.
+[23] D. Donoho and Y. Tsaig. Fast solution of l1-norm
+minimization problems when the solution may be
+sparse, 2006. Preprint at http: // statweb. stanford.
+edu/ ~donoho/ Reports/ 2006/ kstep-20061005. pdf .
+[24] P. Erdo}s and A. Renyi. On random graphs.
+Publicationes Mathematicae Debrecen, 6:290{297,
+1959.
+[25] L. Gan, A. Wierman, U. Topcu, N. Chen, and S. H.
+Low. Real-time deferrable load control: handling the
+uncertainties of renewable generation. In Proc. ACM
+e-Energy'13, May 2013.
+[26] M. R. Garey and D. S. Johnson. Computers and
+intractability: a guide to the theory of
+np-completeness. 1979.
+[27] Y. Ghiassi-Farrokhfal, S. Keshav, C. Rosenberg, and
+F. Ciucu. Firming solar power. In Proc. ACM
+SIGMETRICS'13 (poster description), June 2013.
+[28] Y.-F. Huang, S. Werner, J. Huang, N. Kashyap, and
+V. Gupta. State estimation in electric power grids:
+Meeting new challenges presented by the requirements
+of the future grid. IEEE Signal Process. Mag.,
+29(5):33{43, 2012.
+[29] K. Khandeparkar, P. Patre, S. Jain, K. Ramamritham,
+and R. Gupta. E cient PMU data dissemination in
+smart grid. In Proc. ACM e-Energy'14 (poster
+description), June 2014.
+[30] J. Kim and L. Tong. On topology attack of a smart
+grid: undetectable attacks and countermeasures. IEEE
+J. Sel. Areas Commun, 31(7):1294{1305, 2013.
+[31] J. Kleinberg, M. Sandler, and A. Slivkins. Network
+failure detection and graph connectivity. In Proc.
+ACM-SIAM SODA'04, Jan. 2004.
+[32] J. Liu, C. H. Xia, N. B. Shro , and H. D. Sherali.
+Distributed optimal load shedding for disaster
+recovery in smart electric power grids: A second-order
+approach. In Proc. ACM SIGMETRICS'14 (poster
+description), June 2014.
+[33] Y. Liu, P. Ning, and M. K. Reiter. False data injection
+attacks against state estimation in electric power
+grids. ACM Trans. Inf. Syst. Secur., 14(1):13, 2011.
+[34] L. Lu, J. Tu, C.-K. Chau, M. Chen, and X. Lin.
+Online energy generation scheduling for microgrids
+with intermittent energy sources and co-generation. In
+Proc. ACM SIGMETRICS'13, June 2013.
+[35] N. M. Manousakis, G. N. Korres, and P. S.
+Georgilakis. Taxonomy of PMU placement
+methodologies. IEEE Trans. Power Syst.,
+27(2):1070{1077, 2012.
+[36] C. Phillips. The network inhibition problem. In Proc.
+ACM STOC'93, May 1993.
+[37] A. Pinar, J. Meza, V. Donde, and B. Lesieutre.
+Optimization strategies for the vulnerability analysis
+of the electric power grid. SIAM J. Optimiz.,
+20(4):1786{1810, 2010.
+[38] W. Rudin. Real and complex analysis. Tata
+McGraw-Hill Education, 1987.
+[39] P. D. Seymour. On odd cuts and plane
+multicommodity ows. P. Lond. Math. Soc.,
+3(1):178{192, 1981.
+[40] S. Soltan, D. Mazauric, and G. Zussman. Cascading
+failures in power grids { analysis and algorithms. In
+Proc. ACM e-Energy'14, June 2014.
+[41] S. Soltan and G. Zussman. A statistical method for
+synthetic power grid generation based on the U.S.
+Western Interconnection. Abstract presented at SIAM
+NS'15, May 2015.
+[42] J. E. Tate and T. J. Overbye. Line outage detection
+using phasor angle measurements. IEEE Trans. Power
+Syst., 23(4):1644{1652, 2008.
+[43] J. E. Tate and T. J. Overbye. Double line outage
+detection using phasor angle measurements. In Proc.
+IEEE PES'09, July 2009.
+[44] O. Vukovic, K. C. Sou, G. Dan, and H. Sandberg.
+Network-layer protection schemes against stealth
+attacks on state estimators in power systems. In Proc.
+IEEE SmartGridComm'11, 2011.
+[45] X. Wang, X. Song, and J. Yuan. On matching cover of
+graphs. Math. Program., 147(1-2):499{518, 2014.
+[46] D. B. West et al. Introduction to graph theory,
+volume 2. Prentice hall Upper Saddle River, 2001.
+[47] H. Xiao and E. M. Yeh. Cascading link failure in the
+power grid: A percolation-based analysis. In Proc.
+IEEE Int. Work. on Smart Grid Commun., June 2011.
+[48] Y. Zhao, A. Goldsmith, and H. V. Poor. On PMU
+location selection for line outage detection in
+wide-area transmission networks. In Proc. IEEE
+PES'12, July 2012.
+[49] H. Zhu and G. B. Giannakis. Sparse overcomplete
+representations for e cient identi cation of power line
+outages. IEEE Trans. Power Syst., 27(4):2215{2224,
+2012.
+[50] R. D. Zimmerman, C. E. Murillo-Sanchez, and R. J.
+Thomas. Matpower: Steady-state operations,
+planning, and analysis tools for power systems
+research and education. IEEE Trans. Power Syst.,
+26(1):12{19, 2011.
+[51] D. Zuckerman. Linear degree extractors and the
+inapproximability of max clique and chromatic
+number. In Proc. ACM STOC'06, May 2006.
+APPENDIX
+A.
+PRELIMINARIES
+In this appendix we provide some of the known theorems
+and de nitions used in the proofs.
+A bond of a graph is a minimal nonempty edge cut, that
+is, a nonempty edge cut none of whose nonempty proper
+subsets is an edge cut.
+A graph in which each node has even degree is called an
+even graph. A circuit is the union of edge-disjoint cycles. It
+is easy to see that a cycle is also a circuit.
+Theorem A.1 (Theorem 5.2 [39]). Let G pV; Eq
+be a planar Eulerian graph, and let F  E. Then the following
+are equivalent: (i) F is G-separable, (ii) for each bond
+D, |D X F | ¤ |D F |.
+372
+Theorem A.2 (Theorem 10.16 [17]). Let G be a connected
+planar graph, and let G be a planar dual of G. (i)
+If C is a cycle of G, then C is a bond of G . (ii) If B is a
+bond of G, then B is a cycle of G .
+Theorem A.3 (Theorem 6.1.16 [46]). The followings
+are equivalent for a planar graph G, (i) G is bipartite, (ii)
+every face of G has even length, and (iii) the dual graph G
+is Eulerian.
+Theorem A.4 (Euler's formula [16]). For any planar
+graph G with n nodes, m edges, r faces, and c connected
+components, the following formula holds, n r m c.
+Lemma A.1 (Corollary 2.16 [16]). The symmetric difference
+of two even subgraphs is an even subgraph.
+B. PROOFS
+Proof of Corollary 2. Suppose M pU; VH q is the
+matching for GrVH ; VH s that covers VH , and suppose U 
+VH are the matched nodes which are in VH . Since M is the
+matching in GrVH ; VH s that covers H, thus |U | |VH |. Regarding
+Theorem 1, to show that H is well-supported almost
+surely, we need to show that the columns of the matrix AH|H
+are linearly independent almost surely. For this reason, we
+show that detpAU|VH q 0 almost surely. detpAU|VH q can
+be considered as a polynomial of the nonzero entries of the
+admittance matrix using Leibniz formula. Now assume U
+tu1; u2; : : : ; u|VH |u are matched to VH tv1; v2; : : : ; v|VH |u
+in order. It can be seen that ±|iVH1 | auivi is a term with
+nonzero coe cient in detpAU|VH q. Therefore, detpAU|VH q is
+not a zero polynomial in terms of its nonzero entries. Now
+since the set of reactance values for the edges in ErVH ; VH s
+such that detpAU|VH q 0 is a measure zero set in the real
+space, thus detpAU|VH q 0 almost surely.
+Proof of Lemma 3. It is easy to see that the solution
+to (5) is unique if and only if DH has linearly independent
+columns. It is known that rankpDH q |VH | c in which c is
+the number of connected components of H [9, Theorem 2.3].
+Therefore, DH has linearly independent columns if and only
+if each connected component of DH is a tree, which means
+that DH should be acyclic.
+Proof of Theorem 2. Recall that we can assume VH
+t1; 2; : : : ; |VH |u and EH te1; e2; : : : ; e|EH |u. We assign an
+arbitrary orientation to the edges of H and x the embedding
+of H on the plane. We show the set of oriented edges
+by EH t 1; 2; : : : ; |EH |u. Suppose H has r faces and
+C1; C2; : : : ; Cr are the cycles that surrounded those faces.
+For each cycle Ci, de ne vector c~i P t 1; 0; 1u|EH | as follows,
+cij
+'$0
+&
+1
+if j R Ci;
+if j P Ci and j traverse Ci clockwise;
+'% 1 if j P Ci and j traverse Ci counterclockwise:
+It is easy to see that @i; DH c~i 0. Therefore, c~i P NullpDq.
+On the other hand it is easy to see that c~is are linearly
+independent. If c is the number of connected components
+of H, then dimpNullpDqq |EH | |VH | c which from
+Euler's formula is equal to r. Thus, c~is form a basis for
+the null space of the incidence matrix D. Now suppose ~x
+is the solution to (5) such that suppp~xq ti|ei P F u (from
+Lemma 2 we know that such a solution exists). We need to
+prove that for any ~z ~x y1c~1 yrc~r, }~z}1 ¤ }~x}1 i
+y1 y2 yr 0. Please notice that since c~is are the Proof of Theorem 3. First, using Lemma 7, since the
+cycles associated with the faces of the planar graph H, each phase angles for the H-outer-connected nodes can be comedge
+ej appears in at most two cycles Ct and Cs. Thus, the puted uniquely, without loss of generality and for simplicentries
+of ~z, zjs are in one of the following forms, (i) zj 0, ity, we can assume that H does not contain any H-outer(ii)
+zj xj, (iii) zj xj yt, (iv) zj xj pyt ysq, or connected nodes. Suppose ~c1; : : : ~cr are the vectors associ(v)
+zj pyt ysq. ated with the faces in H as we de ned in the proof of TheoFirst,
+we show that }~z}1 ¥ }~x}1. Suppose F tei1 ; ei2 ; : : : ; eik u.rem 2. Suppose ~b1; : : : ;~bt are the vectors associated with the
+From the assumption, we know that F is H -separable. coboundry of the H-inner-connected nodes as we de ned in
+Thus, there are pairwise edge-disjoint cycles Oj p1 ¤ j ¤ kq the proof of Lemma 6. All we need to prove is that if ~x is
+in H , such that @eij P F; eij P Oj . For each jp1 ¤ j ¤ kq the solution to (7) such that suppp~xq ti|ei P F u then for
+de ne NOpjq tp|ep P Oj u. From the de nitions it is easy any solution ~z for (7), }~z}1 ¡ }~x y1~c1 yr~c1 w1~b1
+to see that @p; qp1 ¤ p q ¤ kq; NOppqXNOpqq H. Thus,
+}~z}1 ¥ °jk 1 °pPNOpjq |zp|. On the other hand, from the triangle
+inequality, it is easy to see that for all 1 ¤ j ¤ k,
+°pPNOpjq |zp| ¥ |xij |. Thus, }~z}1 ¥ °jk 1 °pPNOpjq |zp| ¥
+°jk 1 |xij | }~x}1.
+Now we show that }~z}1 }~x}1 is not possible unless
+y1 y2 yr 0. If tj1; j2; : : : ; jtu are the indices
+for which yj1 yj2 yjt w, then yj1 c~j1
+yjt c~jt wc~2 for which from Lemma A.1, c~2 is the vector
+associated with the circuit C2 Cj1 Cj2 : : : Cjt ( is
+the symmetric di erence). Therefore we can rewrite ~z as
+~x w1c~12 w2c~22 wqc~q2 for which w1 ¡ w2 ¡ ¡ wq.
+If q 0, then there is nothing left to prove. If q 1,
+then it can be easily concluded from Lemma 4 that it is not
+possible to have }~z}1 }~x}1 unless w1 0 ñ y1 y2
+yr 0. Now assume q ¡ 1, from what we showed
+previously, we know that in order to have }~z}1 }~x}1, we
+should have }~z}1 °jk 1 °pPNOpjq |zp| °jk 1 |xij | }~x}1.
+Equality }~z}1 °jk 1 °pPNOpjq |zp| shows that suppp~zq 
+jk 1 NOpjq. Equality °jk 1 °pPNOpjq |zp| °jk 1 |xij | shows
+that w1 should appear in }~z}1, half of the time positive and
+half of the time negative. However, since w1 has the largest
+value, it appears always as w1 wi in the instances like
+|w1 wi|. Now from assumption we know that |suppp~xq X
+C12|   |C12|{2. Thus, there are more than |C12|{2 instances
+like |w1 wi| or |w1| in }~z}1. Therefore, it is not possible
+that w1 appears half of the time positive and half of the time
+negative in }~z}1, which shows that if q ¡ 1 then }~z}1 }~x}1.
+Thus, the proof is complete.
+Proof of Corollary 4. H is bipartite, therefore from
+Theorem A.3, H is Eulerian. For any C in H, |C X F |  
+|CzF |, therefore from Theorem A.2 for any bond C in H ,
+|C X F |   |C zF |. Combining these two, from Theorem
+A.1 we can conclude that F is H -separable. Thus,
+we can simply apply Theorem 2.
+Proof of Lemma 5. From Corollary 1 we know that ~H
+~H ~H1 is a solution to AH|H~H AH|H~H 0. Now if
+~ ~ ~1, from Lemma 2 we know that there exists a vector
+~x P R|EH | such that suppp~xq ti|ei P F u and DH~x
+~ ~H . Thus, the proof is complete.
+AHP|HrooHf oAfHL|eHmma 7. First, notice that since v is H-outerconnected,
+N pvq  VH . Thus, v 1{dpvq °uPNpvq u implies
+that v is unique. Now, let us compute the vth entry
+of the vectors on the both side of the equation DH~x
+AH|H~H AH|H~H . Since v is H-outer-connected, the vth
+row of DH is a zero vector. Thus, pDH~xqv 0 for any
+~x. It is also easy to see that pAH|H~H qv vdpvq and
+pAH|H~H qv °uPNpvq u. Since pDH~xqv pAH|H~H qv
+wt~bt}1 unless y1 yr w1 wt 0. The
+rest of the proof is exactly similar to proofs of Lemma 6 and
+Theorem 2. The key is Condition (v) implies that the cycles
+(~cis) and coboundries (~bis) are edge disjoint. Thus, since all
+the conditions for Lemma 6 and Theorem 2 also hold here,
+with exactly the same approach as in the proofs of Lemma 6
+and Theorem 2 we can conclude this Theorem.
+Proof of Lemma 8. We show that nding the minimum
+matched-forest partition is at least as hard as vertex arboricity.
+Suppose G pV; Eq is given and we are interested
+in apGq. We build a new graph G^ pV^ ; E^q by getting a
+copy of graph G, G2 pV 2; E2q and connect every node
+in G to its counterpart in G2. Thus, V^ V Y V 2 and
+E^ E Y E2 Y ttvi; vi2u|vi P V u. We prove that G^ has a
+matched-forest partition of size k if and only if apGq ¤ k.
+First, let us assume G^ has a matched-forest partition of
+size k, namely H^1; H^2; : : : ; H^k. Since subgraphs induced by
+H^1; H^2; : : : ; H^k in G^ are acyclic and partition V^ , it is easy to
+see that subgraphs induced by H^1 X V; H^2 X V; : : : ; H^k X V in
+G are acyclic and partition V . Thus, apGq ¤ k. Now, let us
+assume apGq ¤ k. There should exists a partition of nodes of
+G into subsets H1; H2; : : : ; Hk such that each subset induces
+an acyclic graph. Assume H12; H22; : : : ; Hk2 are the counterparts
+of these subsets in G2. For any i; 1 ¤ i ¤ k 1 de ne
+H^i Hi Y Hi2 1, and H^k Hk Y H12. It is easy to see that
+H^1; H^2; : : : ; H^k is a matched-forest partition of size k for G^.
+Thus, we proved that G^ has a matched-forest partition of
+size k if and only if apGq ¤ k. It means that the minimum
+matched-forest partition of G^ is equal to apGq, which shows
+that the minimum matched-forest partition is at least as
+hard as vertex arboricity and therefore it is NP-hard.
+Proof of Lemma 9. For a graph G, assume pGq is its
+chromatic number. Since each color gives an independent
+set of G, induced subgraph by the nodes with the same
+color is acyclic with no edges. Thus, it is easy to see that
+apGq ¤ pGq. Suppose there is an -approximation algorithm
+for the minimum matched-forest problem. De ne
+G^ as in proof of Lemma 8. Assume this algorithm partitions
+G^ into k subsets. From the proof of Lemma 8, it
+is easy to see that k ¤ apGq. On the other hand, since
+each acyclic graph has the chromatic number of at most
+2, this algorithm gives the 2k coloring of graph G. However,
+2k ¤ 2 apGq ¤ 2 pGq. Thus, this algorithm gives
+a 2 -approximation of the chromatic number of G. However,
+the result by Zuckerman [51] states that for all ¡ 0,
+it is NP-hard to approximate chromatic number to within
+n1 . Therefore, for all ¡ 0, it is NP-hard to approximate
+the minimum matched-forest problem to within n1
+as well.
+Proof of Lemma 10. It is known that every planar graph
+has a node of degree less than or equal to 5 [46]. Therefore,
+pAH|H~H qv, we can conclude that v
+Thus, the proof is complete.
+1{dpvq °uPNpvq u.
+373
+line 1 of the algorithm can always nd v. At line 4, recursively
+we know that subgraphs induced by Q1; Q2; Q3 in Gzv
+are acyclic. Now since degpvq ¤ 5, there exists a partition
+such that |N pvq X Qi| ¤ 1. Without loss of generality we
+can assume that |N pvq X Q1| ¤ 1. Hence, adding v to Q1
+does not produces any cycles. Thus, subgraphs induced by
+Q1 Y tvu; Q2; Q3 in G are acyclic.
+Proof of Lemma 11. Suppose OP T is the minimum number
+of matched-forest partitions of G and OP Tm is the number
+of optimal matching cover of G. Since for any subset VH
+in the partition of G pV; Eq into matched-forest partitions
+there exists a matching that covers VH , we can cover V with
+OP T matchings. Thus, OP Tm ¤ OP T . Now since G is planar,
+ZS Algorithm uses 3AP P to partition Qis into atmost
+3 subsets. Hence, if k is the number of subsets returned by
+ZS Algorithm then k ¤ 3 2 OP Tm ¤ 6 OP T . Thus,
+ZS Algorithm provides a 6-approximation of the minimum
+matched-forest partition of G.
+As for the running time, ZS algorithm takes Opn3q time to
+nd the optimal matching cover of G and Op|Qi|q to partition
+Qi. Now since k ¤ n and |Qi| ¤ n, line 4 does not take
+more than Opn2q. Thus, the total running time is Opn3q.
+374

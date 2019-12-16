@@ -1,0 +1,947 @@
+Integrity Attacks on Cyber-Physical Systems∗
+Yilin Mo
+Department of Electrical and Computer
+Engineering
+Carnegie Mellon University
+5000 Forbes Ave, Pittsburgh, PA, 15213
+ymo@andrew.cmu.edu
+Bruno Sinopoli
+Department of Electrical and Computer
+Engineering
+Carnegie Mellon University
+5000 Forbes Ave, Pittsburgh, PA, 15213
+bruons@ece.cmu.edu
+ABSTRACT
+In this paper we consider the integrity attack on CyberPhysical
+System(CPS), which is modeled as a discrete linear
+time-invariant system equipped with a Kalman filter, LQG
+controller and χ2 failure detector. An attacker wishes to
+disturb the system by injecting external control inputs and
+fake sensor measurements. In order to perform the attack
+without being detected, the adversary will need to carefully
+design its actions to fool the failure detector as abnormal
+sensor measurements will result in an alarm. The adversary's
+strategy is formulated as a constrained control problem.
+In this paper, we characterize the reachable set of the
+system state and estimation error under the attack, which
+provides a quantitative measure of the resilience of the system.
+To this end, we will provide an ellipsoidal algorithm to
+compute the outer approximation of the reachable set. We
+also prove a necessary condition under which the reachable
+set is unbounded, indicating that the attacker can successfully
+destabilize the system.
+Categories and Subject Descriptors
+B.2.3 [Reliability, Testing, and Fault-Tolerance]: Diagnostics
+General Terms
+Security
+Keywords
+Cyber-Physical Systems, Reachability analysis, Security
+∗This research is supported in part by CyLab at Carnegie
+Mellon under grant DAAD19-02-1-0389 from the Army Research
+Office Foundation and grant NGIT2009100109 from
+Northrop Grumman Information Technology Inc Cybersecurity
+Consortium. The views and conclusions contained
+here are those of the authors and should not be interpreted
+as necessarily representing the official policies or endorsements,
+either express or implied, of ARO, CMU, or the U.S.
+Government or any of its agencies.
+Permission to make digital or hard copies of all or part of this work for
+personal or classroom use is granted without fee provided that copies are
+not made or distributed for profit or commercial advantage and that copies
+bear this notice and the full citation on the first page. To copy otherwise, to
+republish, to post on servers or to redistribute to lists, requires prior specific
+permission and/or a fee.
+HiCoNS'12, April 17-18, 2012, Beijing, China.
+Copyright 2012 ACM 978-1-4503-1263-9/12/04 ...$10.00.
+47
+1. INTRODUCTION
+The concept of Cyber-Physical System (CPS) refers to the
+embedding of sensing, communication, control and computation
+into the physical spaces. Today, CPSs can be found in
+areas as diverse as aerospace, automotive, chemical process
+control, civil infrastructure, energy, health-care, manufacturing
+and transportation, where secure operation is usually
+one of the main concerns. Any successful attack on these
+safety-critical CPS may significantly hamper the economy
+(for example, power outrage) or even lead to the loss of human
+lives (for example, the malfunctioning of automotive).
+The current CPSs are usually running in isolated networks,
+which protects the system by limiting the access points of the
+attacker. However, the next generation of “smarter” CPSs,
+such as Smart Grids, Vehicular ad-hoc network (VANET)
+and sensor networks, will make extensive use of widespread
+networking, which create lots of entry points for the attacker.
+Stuxnet, the first-ever malware that targets and subverts
+CPS systems, was first discovered on June 2010, which raises
+great concerns on CPS security.
+The impact of attacks on CPS is discussed in [2]. The authors
+consider two possible classes of attacks on CPS: Denial
+of Service (DoS) and deception (or integrity) attacks. The
+DoS attack prevents the exchange of information, usually either
+sensor readings or control inputs between subsystems,
+while a integrity attack affects the data integrity of packets
+by modifying their payloads. A robust feedback control design
+against DoS attacks has been discussed in [1]. We feel
+that integrity attacks can be a subtler attack than DoS as
+they are in principle more difficult to detect. In this paper
+we want to analyze the impact of integrity attacks on CPS.
+A significant amount of research has been carried out on
+detect, analyze and handle integrity attacks in CPS. In [5],
+the authors consider replay attack, which is a special kind of
+integrity attacks. The authors provide algebraic conditions
+for the feasibility of replay attack and proposed a detection
+technique to counter it. In [4], the authors discuss general
+integrity attacks in wireless sensor networks, where they
+propose an ellipsoidal approximation method to compute all
+possible biases the attacker could introduce to the state estimator.
+However, they are only concerned with state estimation.
+Therefore, it is not clear what is the impact of
+integrity attacks on the control performance.
+For distributed control systems, Pasqualetti et al. [6] and
+Sundaram et al. [8] show how to detect and identify malicious
+behavior in consensus algorithm and wireless control
+networks respectively, based on the theory of structured
+linear systems. However, their models are noiseless, which
+greatly favor the intrusion detection system, since the evolution
+of the system is deterministic and any deviation from
+the predetermined trajectory will be detected. In a noisy
+environment, it is much harder to detect the malicious behavior
+of the attacker since it may be indistinguishable from
+the noise.
+The effect of integrity attacks on power systems has also
+been extensively studied. Liu et al. [3] illustrate how an adversary
+can inject a stealthy input into the measurements to
+change the state estimation, without being detected by the
+bad data detector. In [7], the authors consider how to find a
+sparse stealthy input, which enables the adversary to launch
+an attack with minimum number of compromised sensors.
+Xie et al. [9] discuss how an adversary could use such kind
+of stealthy attacks to gain financial benefit in the electricity
+market. The main drawbacks of the above approaches
+is they only consider static systems and estimators. As a
+result, the applicability of such results to dynamic systems
+is questionable.
+In this paper we model the CPS as a discrete linear timeinvariant
+system equipped with a Kalman filter, LQG controller
+and χ2 failure detector. We assume that an attacker
+wishes to disturb the system by injecting external control
+inputs and fake sensor measurements. In order to perform
+the attack without being detected, the adversary also need
+to carefully design its actions to fool the failure detector.
+We formulate the adversary's strategy as a constrained control
+problem and characterize the reachable set of the system
+state and estimation error under stealthy constraint,
+which provides a quantitative measure of the resilience of
+the system. We provide an ellipsoidal algorithm to compute
+the outer approximation of the reachable set. We also
+prove a necessary condition under which the reachable set
+is unbounded, indicating that the attacker can successfully
+destabilize the system.
+The rest of the paper is organized as follows: in Section 2,
+we introduce the model of CPS by revisiting and adapting
+Kalman filter, LQG controller and χ2 failure detector
+to our scenario. In Section 3, we define the threat model
+of integrity attacks and formulate it as a constrained control
+design problem. In Section 4 we discuss how to derive
+the upper bound for the reachable region. We also prove a
+necessary condition under which the reachable region is unbounded.
+An illustrative example is provided in Section 5.
+Finally Section 6 concludes the paper.
+2. SYSTEM DESCRIPTION
+In this section we model the CPS as a linear control system,
+which is equipped with a Kalman filter, a LQG controller
+and a χ2 failure detector.
+2.1
+Physical System
+We assume that the physical system has Linear Time Invariant
+(LTI) dynamics, which take the following form:
+xk+1 = Axk + Buk + wk,
+(1)
+where xk ∈ Rn is the vector of physical state variables at
+time k, uk ∈ Rp is the control input, wk ∈ Rn is the process
+noise at time k and x0 is the initial state. wk, x0 are independent
+Gaussian random variables, and x0 ∼ N (0, Σ),
+wk ∼ N (0, Q).
+48
+(3)
+(4)
+(5)
+(6)
+(7)
+(8)
+(9)
+(10)
+2.2
+Kalman filter and LQG controller
+A sensor network is deployed to monitor the system described
+in (1). At each step all the sensor readings are collected
+and sent to a centralized estimator. The observation
+equation can be written as
+yk = Cxk + vk,
+(2)
+where yk = [yk,1, . . . , yk,m]T ∈ Rm is a vector of measurements
+from the sensors, and yk,i is the measurement made
+by sensor i at time k. vk ∼ N (0, R) is the measurement
+noise independent of x0 and wk.
+A Kalman filter is used to compute state estimation xˆk
+from observations yks:
+xˆ0|−1 = 0, P0|−1 = Σ,
+xˆk+1|k = Axˆk + Buk, Pk+1|k = APkAT + Q,
+Kk = Pk|k−1CT (CPk|k−1CT + R)−1,
+xˆk = xˆk|k−1 + Kk(yk − Cxˆk|k−1),
+Pk = Pk|k−1 − KkCPk|k−1.
+Although the Kalman filter uses a time varying gain Kk, it
+is well known that this gain will converge if the system is
+detectable. In practice the Kalman gain usually converges
+in a few steps. Thus, we can safely assume the Kalman filter
+to be already in steady state. Let us define
+P
+lim Pk|k−1, K
+k→∞
+P CT (CP CT + R)−1.
+The update equations of Kalman filter are as follows:
+xˆk+1 = Axˆk + Buk + K [yk+1 − C(Axˆk + Buk)] ,
+For future analysis, let us define the residue zk+1 at time
+k + 1 to be
+(4) can be simplified as
+zk+1
+yk+1 − C(Axˆk + Buk).
+xˆk+1 = Axˆk + Buk + Kzk+1.
+The estimation error ek at time k is defined as
+ek
+1
+T
+xk − xˆk.
+T −1
+k=0
+An LQG controller is used to stabilize the system by minimizing
+the following objective function1:
+J = lim min E
+T →∞ u0,...,uT
+(xkT W xk + ukT U uk) ,
+where W, U are positive semidefinite matrices and uk is measurable
+with respect to y0, . . . , yk, i.e. uk is a function of
+previous observations. It is well known that the optimal
+controller of the above minimization problem is a fixed gain
+controller, which takes the following form:
+uk = −(BT SB + U )−1BT SAxˆk,
+where uk is the optimal control input and S satisfies the
+following Riccati equation
+S = AT SA + W − AT SB(BT SB + U )−1BT SA.
+Let us define L
+−(BT SB + U )−1BT SA, then uk = Lxk|k.
+1We assume an infinite horizon LQG controller is implemented.
+It is easy to see that xk, ek are the states of the CPS2.
+Let us define
+x˜k
+xk
+ek
+∈ R2n
+(11)
+Hence, we can write the dynamics of CPS as
+x˜k+1 =
++
+A + BL
+0
+I
+I − KC
+−BL
+A − KCA
+0
+−K
+wk
+vk
+x˜k
+It is trivial to prove that the CPS is stable if and only if both
+matrices A − KCA and A + BL are stable. In the rest of the
+paper, we will only consider stable CPS. Further, we assume
+that the CPS is already in steady state, which means that
+{xk, yk, xˆk} are stationary random processes.
+Remark 1. At the first glance, it seems that our choice of
+estimator, controller is quite limited. However, the analysis
+in this paper can be easily generalized to any fixed gain linear
+estimator and controller.
+2.3
+Failure Detector
+Failure detectors are often used in CPS to detect abnormal
+operations. We assume that a χ2 failure detector is
+deployed, which computes the following quantity
+T −1zk,
+gk = zk P
+(12)
+where P is the covariance matrix of the residue zk. Since zk
+is Gaussian distributed, gk is χ2 distributed with m degrees
+of freedom. As a result, gk cannot be far away from 0. The
+χ2 failure detector will compare gk with a certain threshold.
+If gk is greater than the threshold, then an alarm will be
+triggered. We assume that the probability of false alarm for
+the χ2 detector is Pf .
+Remark 2. We will show later that the choice of detector
+is not critical for the analysis to hold. In fact, our result is
+valid for any detector which computes gk as
+gk = f (xˆk, . . . , xˆk−T , yk, . . . , yk−T , zk, . . . , zk−T ),
+(13)
+where f is an arbitrary continuous function and T is the
+window size.
+3.
+ATTACK MODEL
+In this section we want to describe the integrity attack
+model on the CPS. To distinguish the compromised system
+and healthy system, we will use xk, yk, uk to indicate the
+states, measurements and control inputs of the compromised
+system respectively. We assume that an adversary has the
+following capabilities:
+1. The adversary knows the static parameters of the system,
+namely A, B, C, K, L.
+2. The adversary compromised a subset of sensors, and
+can add arbitrary bias to the reading of compromised
+sensors. As a result, the modified reading received by
+the estimator takes the following form:
+yk = Cxk + Γyka + vk,
+(14)
+2xk is the states of the physical system and xˆk is the states
+of the estimator. Since the transformation from xk, xˆk to
+xk, ek is invertible, we could use xk, ek as the states of CPS.
+(16)
+(17)
+(18)
+(19)
+(20)
+(21)
+(22)
+where Γ = diag(γ1, . . . , γm) is the sensor selection matrix
+such that γi = 1 if the ith sensor is compromised
+and γi = 0 otherwise. yka is the bias introduced by the
+attacker.
+3. The adversary can inject external control inputs to the
+system. As a result, the system equation becomes
+xk+1 = Axk + Buk + Bauka + wk,
+(15)
+where Ba ∈ Rn×q characterizes the direction of control
+inputs the attacker could inject to the system.
+Let us define xˆk, zk, ek as the state estimation, residue and
+estimation error of the compromised system respectively.
+Moreover, let us define the differences between the healthy
+and compromised system as
+Γ
+a
+ζk
+a
+uk
+a
+yk+1
+.
+Δx˜k+1 = A˜Δx˜k + B˜ζka,
+Δzk+1 = C˜Δx˜k + D˜ ζka.
+Δxk
+Δuk
+Δzk
+Δx˜k
+Δx˜k+1 =
++
+It can be proved that
+and
+xk − xk, Δyk
+uk − uk, Δxˆk
+zk − zk, Δek
+xk
+ek
+xk
+ek
+.
+yk − yk,
+xˆk − xˆk,
+ek − ek
+A + BL
+0
+Ba
+Ba − KCBa
+−BL
+A − KCA
+0
+−KΓ
+Δx˜k
+a
+uk
+a
+yk+1
+Δzk+1 =
+0 CA
+Δx˜k +
+CBa
+Γ
+To simplify notations, let us define the following matrices:
+˜
+A
+˜
+B
+˜
+C
+˜
+D
+A + BL
+0
+Ba
+Ba − KCBa
+0 CA
+CBa
+−BL
+A − KCA
+0
+−KΓ
+∈ Rm×2n,
+∈ Rm×(q+m).
+and the attacker's action ζka as
+a
+uk
+a
+yk+1
+∈ R2n×2n,
+∈ R2n×(q+m)
+Therefore,
+and
+49
+It is clear that Δxk, Δzk, Δek are functions of the attacker's
+actions (ζ0a, ζ1a, . . .). Let us define ζa = (ζ0a, ζ1a, . . .)
+as the infinite sequence of the attacker's actions. As a result,
+we can write Δxk, Δzk, Δek as Δxk(ζa), Δzk(ζa), Δek(ζa)
+respectively. We will omit the parameter ζa when there is
+no confusion.
+We assume that the attacker wants its attack to be stealthy.
+In other words, the attacker wants the failure detector to
+have a very small probability to detect its presence. Ideally,
+to achieve this goal, the attacker would choose its action ζa,
+such that the following condition holds for all k = 0, 1, . . .:
+P (zkT P−1zk > threshold) < α,
+where α is a threshold probability chosen by the attacker.
+However, such probability is hard to compute in general as
+it involves in integrating a Gaussian distribution over an ellipsoid
+and hence difficult to enforce. As a result, we assume
+that attacker would enforce the following condition instead:
+(23)
+(24)
+where
+Δzk ≤ β. ∀k = 0, 1, . . . .
+Δzk
+(Δzk)T P−1Δzk.
+Remark 3. By triangular inequality, it can be easily seen
+that
+zk ≤ zk + β.
+Therefore, when β → 0, then the probability of detection
+P (zkT P−1zk > threshold) converges to the false alarm probability
+Pf , which is in general very small. Moreover, we
+would like to point out that for general detector of the form
+(13), the probability of detection always converges to the false
+alarm probability when β → 0. Therefore, by carefully choosing
+β, (24) is valid for more general detection schemes. Due
+to linearity, we will assume that β = 1 for the rest of the
+paper.
+We define the attacker's action ζa to be feasible if (24)
+holds for all k and β = 1. Moreover, we define the reachable
+region Rk as
+Rk
+{x˜ ∈ R2n : x˜ = Δx˜k(ζa), for some feasible ζa}.
+and
+R
+∞
+k=0
+Rk.
+(25)
+Remark 4. R indicates all possible biases an attacker
+could introduce to the system. Since xk = xk + Δxk and
+ek = ek + Δek, and xk, ek are stationary Gaussian process,
+we can immediately derive the statistics of xk, ek from R.
+As a result, we will focus ourselves on characterizing the
+reachable set R.
+4.
+MAIN RESULTS
+In this section we want to characterize the shape of the
+reachable region R. We will provide an outer approximation
+of R based on ellipsoidal approximation. Moreover, we
+provide a necessary condition for R to be unbounded, which
+indicates that the attacker could destabilize the system by
+introducing an arbitrary large bias.
+4.1
+Outer Approximation of R
+First, let us define the following sets:
+T0
+Ti+1
+R2n,
+{x˜ ∈ R2n : ∃ζ, such that A˜x˜ + B˜ζ ∈ Ti,
+(26)
+and C˜x˜ + D˜ ζ ≤ 1}.
+The following theorem shows that Ti is a superset of the
+reach region R.
+50
+Theorem 1. The following properties hold for R and Tis:
+1. For any x˜ ∈ R, there exists a ζ, such that
+A˜x˜ + B˜ζ ∈ R,
+C˜x˜ + D˜ ζ ≤ 1.
+and
+and
+2. Ti+1 ⊆ Ti, ∀i.
+3. R ⊆ Ti, ∀i.
+Proof.
+1. Since x˜ ∈ R, we know that
+x˜ = Δx˜k(ζa),
+for some k and feasible ζa. Now choose ζ = ζka. Hence,
+A˜x˜ + B˜ζ = Δx˜k+1(ζa) ∈ R,
+C˜x˜ + D˜ ζ = Δzk+1(ζa) ≤ 1,
+which concludes the proof.
+2. Since T1 ⊆ T0 = R2n, it is trivial to prove that Ti+1 ⊆
+Ti for all i by induction.
+3. Since R ⊆ T0 = R2n, it is trivial to prove that R ⊆ Ti
+for all i by induction.
+Due to Theorem 1, we know that Ti is an outer approximation
+of R. Moreover, Ti is monotonically decrease. Therefore,
+we can use limi→∞ Ti as the outer approximation of
+R. However, the exact shape of Ti is still numerically difficult
+to compute as i goes to infinity. Therefore, we will try
+to compute an ellipsoidal superset of Ti. To this end, let
+us suppose that Ti is outer approximated by the following
+ellipsoid:
+Ti ⊆ E2n(Q˜i),
+where Q˜i ∈ R2n×2n is positive semidefinite, and El(S) is
+defined as the following ellipsoid
+El(S)
+{x ∈ Rl : xT Sx ≤ 1}.
+It is trivial to see that since T0 = R2n, Q˜0 = 0. Our goal is
+to find a recursive algorithm to evaluate Q˜i.
+Let us choose an arbitrary x˜ ∈ Ti+1 and ζ, such that
+A˜x˜ + B˜ζ˜ ∈ Ti, C˜x˜ + D˜ ζ ≤ 1.
+Since Ti is outer approximated by E2n(Q˜i), we know that
+A˜T Q˜iA˜
+A˜T Q˜iB˜
+A˜T Q˜iB˜
+B˜T Q˜iB˜
+C˜T P−1C˜
+C˜T P−1D˜
+C˜T P−1D˜
+D˜ T P−1D˜
+x˜
+ζ
+x˜
+ζ
+≤ 1.
+≤ 1.
+Moreover,
+x˜T
+ζT
+x˜T
+ζT
+x˜
+ζ
+Therefore, [x˜T , ζT ]T must jointly lies in the intersection of
+the following two 2n + p + q dimension ellipsoids:
+∈ E2n+q+m
+E2n+q+m
+A˜T Q˜iA˜
+B˜T Q˜iA˜
+C˜T P−1C˜
+D˜ T P−1C˜
+A˜T Q˜iB˜
+B˜T Q˜iB˜
+C˜T P−1D˜
+D˜ T P−1D˜
+.
+One can prove that an outer approximation of the intersection
+is given by
+To further simplify notations, we define the following matrices:
+x˜
+ζ
+∈ E2n+q+m
+E2n+q+m
+⊆ E2n+q+m
++
+1
+2
+Q˜i+1 =
+1
+2
+A˜T Q˜iA˜
+B˜T Q˜iA˜
+C˜T P−1C˜
+D˜ T P−1C˜
+A˜T Q˜iA˜
+B˜T Q˜iA˜
+A˜T Q˜iB˜
+B˜T Q˜iB˜
+C˜T P−1D˜
+D˜ T P−1D˜
+A˜T Q˜iB˜
+B˜T Q˜iB˜
+.
+C˜T P−1C˜
+D˜ T P−1C˜
+C˜T P−1D˜
+D˜ T P−1D˜
+1 A˜T Q˜iA˜ + C˜T P−1C˜
+2
+− (A˜T Q˜iB˜ + C˜T P−1D˜ )
+× (B˜T Q˜iB˜ + D˜ T P−1D˜ )+
+×(B˜T Q˜iA˜ + D˜ T P−1C˜) ,
+Finally, using the Schur complement, we can project a
+high dimensional ellipsoid in R2n+q+m to R2n to obtain Q˜i+1
+as follows:
+where + is the Moore-Penrose pseudoinverse.
+4.2
+Stability analysis
+In this subsection, we want to characterize the boundedness
+of R. An unbounded R indicates that the attacker
+could destabilize the system by introducing an arbitrary
+large bias. The following theorem provides a necessary condition
+for R to be unbounded.
+Theorem 2. The reachable region R is unbounded only
+if there exist a vector v ∈ Rn and a matrix La ∈ Rq×n, such
+that
+1. v is an eigenvector of A + BaLa, the corresponding
+eigenvalue of which is λ.
+2. Cv belongs to the column space of Γ or λ = 0.
+Remark 5. It is worth noticing that the shape of R depends
+on the choice of estimation and controller gain K, L
+in general. However, the necessary condition is independent
+of K, L. In other words, if the necessary condition holds,
+then the system has an inherent vulnerability which cannot
+be fixed by simply redesigning the estimator and controller.
+The rest of the subsection is devoted to proving Theorem 2.
+First we want to show that Δxk is bounded if and only if
+Δek is bounded. From definition,
+Δxk = Δek + Δxˆk,
+and
+Δxˆk+1 = (A + BL)Δxˆk + KΔzk+1.
+Since we assume that the system is closed-loop stable, which
+implies that A + BL is stable, and Δzk ≤ 1, Δxˆk must
+be bounded. Thus, the boundedness of Δxk is equivalent to
+the boundedness of Δek. Therefore, we only need to focus
+on Δek and thus we could simplify (21),(22) as
+Δek+1 = (A−KCA)Δek+(Ba−KCBa)uka−KΓyka+1, (28)
+Δzk+1 = CAΔek + CBauka + Γyka+1.
+(29)
+51
+(27)
+1. v is an eigenvector of A + BL,
+2. (C + DL)v = 0
+A
+B
+C
+D
+A − KCA ∈ Rn×n,
+Ba − KCBa
+CA ∈ Rm×n,
+D˜ ∈ Rm×(q+m).
+Thus, we can write (28) and (29) as
+−KΓ
+∈ Rn×(q+m)
+(30)
+Δek+1 = AΔek + Bζk,
+Δzk+1 = CΔek + Dζk,
+Lemma 1. There exists feasible attacker's action ζa such
+that Δek(ζa) is unbounded only if there exist a vector v ∈ Rn
+and a matrix L ∈ R(q+m)×n, such that
+Proof. The proof is quite long and is hence reported in
+the appendix for the sake of legibility.
+Now we are ready to prove the Theorem 2.
+Proof. By Lemma 1, we know that R is unbounded only
+when there exist a vector v ∈ R. and a matrix L ∈ R(q+m)×n,
+such that
+1. v is an eigenvector of A + BL,
+2. (C + DL)v = 0
+Now let us write L as
+L =
+La
+M
+where La ∈ Rq×n and M ∈ Rm×n. Since v satisfies (C +
+DL)v = 0, we have
+(CA + CBaLa + ΓM )v = 0.
+Now by the fact that v is an eigenvector of A + BL, we have
+(A − KCA + BaLa − KCBaLa − KΓM )v = λv,
+where λ is the corresponding eigenvalue. Combining (31)
+and (32), we have
+(A + BaLa)v − K(CA + CBaLa + ΓM )v = (A + BaLa)v
+= λv.
+(31)
+(32)
+(33)
+Therefore, v is also an eigenvector of A + BaLa. Now by
+(31) and (33), we have
+λCv = −ΓM v.
+The right-hand side of equation belongs to the column space
+of Γ. Therefore, either λ = 0 or Cv belongs to the column
+space of Γ, which concludes the proof.
+5. ILLUSTRATIVE EXAMPLE
+In this section, we will provide a numerical example to
+illustrate the effects of integrity attack on CPS.
+We assume that the covariance of the noise is Q = R = I.
+The steady state Kalman gain in this case is
+Figure 1: Outer Approximation When Velocity Sensor
+is Compromised
+Consider a vehicle which is moving along the x-axis. The
+state space includes position x and velocity v of the vehicle.
+As a result, the discrete-time system dynamics are as follows:
+vk+1 = vk + wk,1 + uk,
+xk+1 = xk + vk + wk,2,
+which can be written in the matrix form as
+where
+Xk+1 =
+Xk + wk +
+uk,
+1 0
+1 1
+v
+x
+Xk =
+, wk =
+wk,1
+wk,2
+1
+0
+.
+Suppose two sensors are measuring velocity and position respectively.
+Hence
+yk = Xk + vk.
+K =
+0.5939
+0.0793
+0.0793
+0.6944
+.
+Moreover, we assume that the LQG cost W = I and U = 1.
+Therefore, the control gain is given by
+L =
+−1.2439
+−0.4221
+We consider two cases, where either the velocity sensor or
+the position sensor is compromised, i.e. Γ = [1, 0] or Γ =
+[0, 1] . We assume that the attacker does not inject external
+control input, i.e. Ba = [0, 0] for both cases.
+Figure 1 shows the outer approximation of R when the
+velocity sensor is compromised. From the simulation we can
+conclude that the reachable region R is bounded. Therefore
+the attacker cannot destabilize the system by simply
+compromising velocity sensor.
+Figure 2 shows the outer approximation of R when the position
+sensor is compromised. It can be seen that the outer
+approximation is unbounded (The ellipse degenerates into
+two straight lines), which implies that the attacker can arbitrarily
+manipulate the position of the vehicle. In fact, one
+can check that v = [0, 1] and La = 0 satisfies the necessary
+conditions listed in Theorem 2.
+6.
+CONCLUSION
+In this paper we consider the integrity attack on CyberPhysical
+System(CPS). We formalize the adversary's strategy
+as a constrained control problem and characterize the
+shape and boundedness of the reachable set of the system
+state and estimation error under the attack, which provides
+a quantitative measure of the resilience of the system.
+7. REFERENCES
+[1] S. Amin, A. Cardenas, and S. S. Sastry. Safe and secure
+networked control systems under denial-of-service
+attacks. In Hybrid Systems: Computation and Control,
+pages 31-45. Lecture Notes in Computer Science.
+Springer Berlin / Heidelberg, April 2009.
+[2] A. A. C´ardenas, S. Amin, and S. Sastry. Secure control:
+Towards survivable cyber-physical systems. In
+Distributed Computing Systems Workshops, 2008.
+ICDCS '08. 28th International Conference on, pages
+495-500, June 2008.
+(34)
+(35)
+(36)
+(37)
+(38)
+(39)
+4
+3
+2
+1
+x 0
+−1
+−2
+−3
+−4 −6
+2
+1.5
+1
+0.5
+x 0
+−0.5
+−1
+−1.5
+0
+v
+−4
+−2
+2
+4
+6
+52
+−2 −2 −1.5 −1 −0.5 0 0.5 1 1.5 2
+v
+Figure 2: Outer Approximation When Position Sensor
+is Compromised
+[3] Y. Liu, M. Reiter, and P. Ning. False data injection
+attacks against state estimation in electric power grids.
+In Proceedings of the 16th ACM conference on
+Computer and communications security, 2009.
+[4] Y. Mo, E. Garone, A. Casavola, and B. Sinopoli. False
+data injection attacks against state estimation in
+wireless sensor networks. In Proc. 49th IEEE Conf.
+Decision and Control (CDC), pages 5967-5972, 2010.
+[5] Y. Mo and B. Sinopoli. Secure control against replay
+attacks. In Proc. 47th Annual Allerton Conf.
+Communication, Control, and Computing Allerton
+2009, pages 911-918, 2009.
+[6] F. Pasqualetti, A. Bicchi, and F. Bullo. Consensus
+computation in unreliable networks: A system theoretic
+approach. IEEE Transactions on Automatic Control,
+Feb. 2010. To appear.
+[7] H. Sandberg, A. Teixeira, and K. H. Johansson. On
+security indices for state estimators in power networks.
+In First Workshop on Secure Control Systems, 2010.
+[8] S. Sundaram, M. Pajic, C. Hadjicostis, R. Mangharam,
+and G. J. Pappas. The wireless control network:
+monitoring for malicious behavior. In IEEE Conference
+on Decision and Contro, Atlanta, GA, Dec 2010.
+[9] L. Xie, Y. Mo, and B. Sinopoli. False data injection
+attacks in electricity markets. In IEEE Int'l Conf. on
+Smart Grid Communications (SmartGridComm), pages
+226-231, Oct. 2010.
+8.
+APPENDIX
+Before proving Lemma 1, we want to define the following
+sets: S0 Rn and
+Si+1
+{e ∈ Rn : ∃ζ, Ae + Bζ ∈ Si,
+Ce + Dζ) ∞ ≤ 1}.
+Remark 6. Due to the equivalence of norms in Rn and
+linearity of the system, we could use infinity norm instead
+of · P−1 without affecting the stability result.
+Let us also define
+S
+∞
+Si.
+i=0
+The following lemma characterizes some important properties
+of Si and S:
+Lemma 2. The following statements of S and Si hold:
+1. Si+1 ⊆ Si.
+2. Si takes the following form:
+Si = {e ∈ Rn : Aie ≤ bi},
+(40)
+where Ai is a matrix and bi is a vector of proper dimensions
+and the comparison is entry-wise.
+3. S is convex and closed.
+4. If e ∈ S, then αe ∈ S, where α ∈ [−1, 1].
+5. Suppose that subspaces V, V ⊆ S, then the direct sum
+V ⊕ V ⊆ S.
+6. If S is unbounded, then S contains a subspace V = {0}.
+7. For any e ∈ S, there exists an ζ, such that
+Ae + Bζ ∈ S, Ce + Dζ ∞ ≤ 1. (41)
+Proof. 1. Since S0 = Rn, S1 ⊆ S0. The statement
+can be easily proved by induction.
+2. Since we use infinite norm in the definition of Si, this
+can also be shown by induction.
+3. It is trivial to see that Si is convex and closed for each
+i. Hence, their intersection S is also convex and closed.
+4. Since Si is symmetric, S is also symmetric. Using the
+convexity of S, we can finish the proof.
+5. This is a direct consequence of the convexity of S.
+6. Suppose that e1, e2, . . . is an unbounded sequence in S.
+Without loss of generality, we assume that
+lim ei/ ei ∞ = e0, lim ei ∞ = ∞.
+i→∞ i→∞
+Now pick an arbitrary α ∈ R. There exists N , such
+that for all i ≥ N , α/ ei ∞ ∈ [−1, 1], which implies
+that
+α
+ei ∈ S.
+ei ∞
+Take the limit on the left side and use the fact that S
+is closed, we have αe0 ∈ S for all α. Hence, S contains
+span(e0).
+53
+7. From the definition of Si, if e ∈ S, there exists ζi for
+each i such that
+Ae + Bζi ∈ Si, Ce + Dζi ∞ ≤ 1.
+(42)
+Without loss of generality, let us pick such ζis with
+minimal infinite norm. Suppose that ζi converges to
+ζ∗. For each i, we know that if j ≥ i, then
+Ae + Bζj ∈ Sj ⊆ Si.
+Take the limit on the left-hand side and use the fact
+that Si is closed, we have
+Ae + Bζ∗ = lim Ae + Bζj ∈ Si, ∀i.
+j→∞
+Therefore
+Moreover,
+Ae + Bζ∗ ∈
+Si = S.
+∞
+i=0
+Ce + Dζ∗ ∞ = lim
+i→∞
+Ce + Dζi ∞ ≤ 1
+Hence, ζ∗ is the required vector for (41). As a result,
+we only need to prove that {ζi} converges or at least
+contains a converging subsequence. We will prove that
+by contradiction. Suppose {ζi} does not contains any
+converging subsequence. Due to Bolzano Weierstrass
+Theorem, {ζi} must be unbounded. Again, by Bolzano
+Weierstrass theorem, there exists ζi1 , ζi2 , . . ., such that
+lim ζij ∞ = ∞, ζ0 = lim ζij / ζij ∞.
+j→∞ j→∞
+We now have
+lim
+j→∞
+Ce + Dζij ∞ =
+ζij ∞
+Dζ
+0
+∞ ≤ jl→im∞ 1/ ζij ∞ = 0.
+Hence Dζ0 = 0. Pick an arbitrary α ∈ R and l ∈ N.
+There exists an N such that if j ≥ N , then
+α
+∈ [−1, 1], and ij ≥ l + 1.
+As a result,
+ζij ∞
+α
+ζij ∞
+(Ae + Bζij ) ∈ Sij ⊆ Sl.
+Take the limit on the left side and use the fact that Sl
+is closed, we have
+αBζ0 ∈ Sl, ∀α.
+As a result, span(Bζ0) ∈ Si. Therefore, AiBζ0 = 0 for
+all i, which implies that for any α ∈ R,
+Ae + B(ζij − αζ0) ∈ Sij ,
+Ce + D(ζij − αζ0)] ∞ ≤ 1.
+Therefore, the fact that ζij goes to infinity contradicts
+the minimality of ζij , which completes the proof.
+Now we are ready to prove Lemma 1.
+Proof. Similar to the proof of Theorem 1, we can prove
+that the reachable region of Δek is contained in αS, where
+α > 0 is a constant. As a result, S is unbounded. By
+Lemma 2, we know that there exists a subspace V ⊆ S.
+Moreover we can assume V is maximal subspace contained
+in S due to Lemma 2(5).
+Now pick an arbitrary vector e in V. We know there exists
+ζk ∈ Rp, k ∈ N such that
+A(ke) + Bζk ∈ S, C(ke) + Dζk ∞ ≤ 1.
+We will pick such ζk with minimal norm. By similar argument
+as in Lemma 2, we can prove that supk ζk /k must
+be finite. By Bolzano Weierstrass theorem, there exists
+ζi1 , ζi2 , . . ., such that
+lim ζij /ij = ζ∗.
+j→∞
+Similar to Lemma 2, we can also prove that
+and
+Ce + Dζ∗ = 0.
+span(Ae + Bζ∗) ⊆ S.
+Thus, span(Ae + Bζ∗) ⊆ V due to the maximality of V.
+Now suppose e0, . . . , ej form a basis for V. For every ei,
+there exists ζi∗, such that Aei + Bζi∗ ∈ V and Cei + Dζi∗ = 0.
+Hence, we could find a matrix L, such that ζi∗ = Lei, for all
+ei, which implies that (A + BL)V ⊆ V and (C + DL)V = 0.
+Therefore, there exists v ∈ V, such that v is the eigenvector
+of A + BL, and (C + DL)v = 0.
+54

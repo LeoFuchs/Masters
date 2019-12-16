@@ -1,0 +1,662 @@
+A Resilient Feedback Linearization Control Scheme
+for Smart Grids under Cyber-Physical Disturbances
+Eman M. Hammad, Abdallah K. Farraj, and Deepa Kundur
+Department of Electrical and Computer Engineering, University of Toronto, Toronto, Ontario, Canada
+Email: {ehammad, abdallah, dkundur}@ece.utoronto.ca
+Abstract-A cyber-enabled parametric control scheme is pro- to collect the frequency of all system generators in order to
+posed for efficient transient frequency and phase stabilization find the value of the control output.
+in the power grid. Different implementations of the proposed From a multi-agent system view, control approaches classify
+sccohnetrmoel aisreprinovpeossteigdawtehderine tthhies cwoonrtkro.lFleirrsrte,laiesceonntrtailmizeeldy cpohnatsroorl into three schemes based on how much sensor data needs to
+measurement unit (PMU) information about the grid to employ be collected for the controller input [7]. A centralized control
+fast-acting energy storage systems for stabilization. Further, requires complete sensor data of the system to enable efficient
+a decentralized controller implementation assumes information control strategies. However, sensor data is conveyed through
+about the rest of the grid is not available, and hence acts based on communication channels as a cyber media; consequently, senlcoocmalmPuMniUcamtioenascuhraenmneenlstsa.nFdorrethsueltciansge
+ionf lcayrbgeerdaetltaaycskosrtaarbgseetnincge sor data is vulnerable to delays and possible cyber attacks. This
+of PMU data, we propose a robust combined control scheme motivates distributed and decentralized schemes of control. A
+where the controller operates in a centralized mode by default distributed control relies on data from a subset (neighbours)
+and switches to the decentralized scheme if PMU information is of the agents in the system to calculate its control action,
+delayed or not available. Numerical results show the effectiveness and a decentralized control follows a worst-case scenario and
+caynbderr-opbhuysstinceasls doifsttuhrebapnrocepsoseind cthonetr3o9ll-ebrusag1a0in-gstenpehryastiocral Naenwd acts independently based on local measurements only. There
+England power system. are essential tradeoffs between the three schemes in terms of
+performance, complexity, and robustness.
+I. INTRODUCTION In this paper we present a low-complexity cyber-enabled
+parametric controller that easily integrates with generator govSmart
+grid systems combine control, communications and ernor control. The proposed solution utilizes external power
+sensor technologies for an enhanced operation of the power sources to achieve transient frequency stability and phase
+system. Articulate sensors such as phasor measurement units cohesiveness among generators. To achieve stability, sensor
+(PMUs) are placed at specific locations to collect timely infor- measurements are periodically communicated to controllers
+mation about the system operation. The cyber communication that then actuate change through fast-acting power injection
+network then transmits the collected measurements to related and absorption entities such as flywheels. The actuation stacontrollers,
+where the controllers analyze the data to determine bilizes the power grid by shaping the dynamics of the closedthe
+sequence of actions that need to be applied to improve the loop system to resemble that of a series of stable decoupled linpower
+system operation. ear systems with tunable eigenvalues. Feedback linearization
+The incorporation of advanced telemetry devices and com- control theory is used to convert the nonlinear power system
+munication technologies in the cyber-physical smart grid has into an equivalent linear system. Feedback linearization was
+motivated the development and design of various new and non- previously investigated for transient voltage stability in [8] to
+traditional controllers. Several wide area monitoring and con- control the excitation system of the generators in a decentraltrol
+systems have evolved as a result. Additionally, controllers ized approach.
+can being utilized to enhance the overall resilience of the smart We develop centralized and decentralized versions of the
+grid to traditional abnormalities and to new vulnerabilities parametric feedback linearization controller. Numerical analysuch
+as cyber attacks. sis are conducted to compare the centralized and decentralized
+Recently, Wei et al. [1] employed the concept of flocking schemes using the 39-bus 10-generator New England power
+in multi-agent systems for the design of distributed controllers system. We also proposes a combined control that switches
+that address transient stability of synchronous generators from the more efficient centralized control into the decenagainst
+faults. Real-time PMU data of all synchronous gen- tralized control when sensor data is critically delayed or not
+erators is employed in [1]-[3] to compute control actions that available during, for example, a denial-of-service (DoS) attack,
+are actuated via fast-acting energy storage systems. Further, communication channel congestion or outage. The proposed
+the recent work of Andreasson et al. [4]-[6] proposed using a combined control exhibits a robust and efficient performance
+consensus proportional integral (CPI) control scheme to affect of the overall system against severe cyber-physical disturthe
+mechanical power of a generator in order to achieve an bances.
+automatic frequency control strategy; the CPI controller needs Contributions of this work include proposing a centralized
+978-1-4799-1785-3/15/$31.00 ©2015 IEEE
+and decentralized feedback linearization control schemes for to reduce the order of the interconnections in the power system
+smart grids to achieve transient frequency stability and phase and determine effective mutual physical couplings between
+cohesiveness. Further, a combined control scheme is proposed the synchronous generators. Kron-reduction is a graph-based
+for robustness against cyber-physical attacks. Moreover, a technique used in power systems to reduce the order of an
+comparative performance analysis of the control schemes is complex interconnected system [9] into an equivalent grid
+provided. between generators.
+The rest of this paper is organized as follows. The problem Let N denote the number of generators in the power system
+setting is presented in Section II and the proposed controller is (i.e., N = 10). And let Ei represent the internal voltage of
+detailed in Section III. Section IV investigates the performance Generator i,every Generator i ∀i ∈ {1, . . . , N } is described
+of the proposed controller. Conclusions and final remarks are by its rotor angle (δi), relative normalized rotor frequency
+discussed in Section V. (ωi), inertia (Mi), damping coefficient (Di), and electrical and
+mechanical powers (Pe,i, Pm,i) respectively.
+II. PROBLEM SETUP We define the relative normalized frequency of Generator i
+We model the smart grid as a multi-agent system with N as ωi = ωiacωt −noωmnom , where ωnom is the nominal angular
+agents, where each agent contains a synchronous generator, a frequency (in radians per second) of the power system and
+PMU that measures the corresponding generator's rotor angle ωiact is the actual angular frequency of Generator i. Define
+and frequency, and a controller that utilizes the PMU data δ˙i and ω˙ i to be the derivatives of δi and ωi with respect to
+to control a local fast-acting power injection and absorption time, respectively. Then, the swing equation for Generator i
+energy storage system (ESS) such as a flywheel. In addition, is expressed as [10], [11]
+a communication network connects the system's PMUs and
+controllers. The overall smart grid is a cyber-physical system δ˙i = ωi (1)
+in which the physical subsystem includes the classical power Mi ω˙ i = −Di ωi + (Pm,i − Pe,i) ,
+delivery components as well as the fast-acting ESS, and the where the electrical power of Generator i is defined as [12]
+cyber subsystem contains the PMU sensors, controllers, and
+the associated communication network. N
+In the considered system the dynamics of each agent depend Pe,i = kP=1 |Ei| |Ek| [Gik cos (δi − δk) + (2)
+on its own state and the states of the other agents in the multi- Bik sin (δi − δk)] ,
+agent system. In such setting, a centralized control refers to a
+scheme where the states of all the agents in the system need here Gik = Gki ≥ 0 and Bik = Bki > 0 are the Kronto
+be collected. For a distributed control the controller of a reduced equivalent conductance and susceptance, respectively,
+certain agent needs the state of that agent and its neighbors, between Generators i and k. Further, we assume that there is
+and a decentralized control scheme requires only the local state no power control in the system. Let Pa,i = Pm,i − Pe,i denote
+of its own agent to be observed. Fig. 1 depicts the centralized the accelerating power of Generator i, then the swing equation
+and decentralized control schemes [7] cinsidered in this paper. in Eq. (1) is represented as
+G1
+PMU1
+U1 ESS1
+Agent 1
+Gi
+PMUi
+Ui ESSi
+Agent i
+G2
+PMU2
+U2 ESS2
+Agent 2
+Ui
+Gi
+Agent i
+PMUi
+ESSi
+a) Centralized
+b) Decentralized
+Fig. 1. Centralized Vs. Decentralized Control
+We consider the New England 10-generator 39-bus physical
+power system.We use the swing equation model to describe
+physical synchronous generator dynamics. The time evolution
+of the rotor's angle and frequency in the swing equation
+model enables the study of transient stability. We assume
+the swing equation parameters remain constant through the
+system instability duration. We further utilize Kron-reduction
+U1
+G1
+PMU1
+ESS1
+Agent 1
+Communication Link
+Physical Coupling
+G2
+PMU2
+U2 ESS2
+Agent 2
+δ˙i
+ω˙ i
+=
+=
+ωi
+M1i [−Di ωi + Pa,i] .
+(3)
+We next introduce the proposed cyber-enabled controller
+that facilitates the overall cyber-physical smart grid system
+to achieve stability against disturbances.
+III. CYBER-ENABLED CONTROL FOR SMART GRID
+Synchronous generators typically utilize power control
+schemes (e.g. exciter and governor controls) to help adjust
+a generator's internal settings to respond to dynamics in the
+power grid. However, these local power control systems are often
+insufficient because of their slow reaction to rapid systemwide
+changes. Moreover, synchronous generators, without
+external power control as described in Eq. (3), cannot achieve
+transient stability alone in the presence of a fault or when a
+fault is cleared after the critical clearing time either due to a
+malfunction or cyber attack. We develop a parametric feedback
+linearization (PFL) controller that utilizes an external power
+source at Generator i to achieve transient stability. Thus, the
+swing equation for Generator i after including PFL control
+input Ui becomes
+δ˙i
+ω˙ i
+=
+=
+ωi
+M1i [−Di ωi + Pa,i + Ui] .
+The proposed controller responds to the dynamics of the
+power system by absorbing or injecting a specified amount
+of real power, this is facilitated by the incorporation of a fastacting
+ESS at the designated generator. Specifically, a positive
+Ui value would correspond to the controller of Generator i
+injecting power into the generator bus, and a negative Ui value
+indicates that power is being absorbed from the generator bus.
+The PFL controller is designed to asymptotically drive the
+frequency of the system generators into stability following the
+occurrence of a disturbance; i.e., after the activation of the PFL
+controller it is required that lim ωi(t) = 0 ∀i ∈ {1, . . . , N }.
+t→∞
+Additionally, the PFL controller is to maintain phase cohesiveness
+between the generators of the power system, the absolute
+difference between the phases of any two generators should
+be less than 100◦ [1], [13].
+Feedback control depends on measurements from the system
+to generate the control signal required to drive the overall
+system (or one of the system variables) into a desirable state. In
+feedback control the controller compares the measured value
+with a desired value, and consequently generate a control
+signal to minimize the difference. Feedback linearization [14,
+Ch. 13] transforms a nonlinear plant into an equivalent closedloop
+linear system. One approach to implement feedback
+linearization is to introduce a control signal to cancel out
+the nonlinear terms in the system dynamics, this would result
+in the closed-loop system exhibiting (full or partial) linear
+dynamics.
+We next detail the design of the proposed centralized and
+decentralized control schemes.
+A. Centralized Control Scheme
+A centralized parametric feedback linearization (CPFL)
+controller relies on receiving timely PMU measurements from
+all generators in the power system to calculate the control action.
+Mathematically, the CPFL control for frequency stability
+and phase cohesion is expressed as
+Ui = − (Pa,i + αi ωi + βi (δi − δi∗)) ,
+(5)
+where αi ≥ 0 is called the frequency stability parameter, βi ≥
+0 is the phase stability parameter, and δ∗ = [δ1∗, δ2∗, . . . , δN∗ ]T
+is the desired phase of the system generators. The βi (δi − δi∗)
+term will drive the CPFL controller to settle the phase of the
+system generators on δ∗. The values of δ∗ are selected such
+that |δi∗ − δj∗| ≤ 100◦ ∀i, j ∈ {1, . . . , N }. Consequently, phase
+cohesiveness is maintained during and after the controller's
+active time.
+The CPFL control will fully cancel the nonlinear terms in
+the swing equation provided that all PMU measurements are
+obtained. Consequently, the swing equation of the interconnected
+power system reduces into a decoupled linear equation
+after implementing the CPFL controller.
+(4)
+We next present the stability analysis of the CPFL control.
+Substituting the CPFL control in Eq. (5) into the swing
+equation in Eq. (4) results in
+x˙ i = Ai xi + bi δi∗ ,
+(6)
+where xi = [δi, ωi]T is called the state variable of Generator i,
+T 0 1
+bi = h0, Mβii i , and Ai = −βi −(Di+αi) . To check
+Mi Mi
+the stability of the power system after implementing the
+proposed CPFL control, the eigenvalues of Ai are calculated
+and checked to determine if they lie in the left-hand complex
+plane. The eigenvalues of Ai are calculated as
+λ1,2 =
+1
+2Mi
+h−(Di + αi) ± p(Di + αi)2 − 4βiMii . (7)
+When evaluated, both eigenvalues are found to lie in the lefthand
+complex plane. Further, Re(λ1,2) < 0; consequently,
+the power system is globally asymptotically stable under the
+proposed CPFL controller [14, Theorem 4.5].
+B. Decentralized Control Scheme
+As previously motivated in Section I, the cyber communication
+channels relaying PMU measurements from sensors to
+the controllers are vulnerable to congestion or DoS attacks.
+A decentralized PFL (DPFL) controller only utilizes the measurements
+from the PMU situated near the local generator bus.
+Mathematically, the DPFL control is expressed as
+Ui = − (αiωi + βi(δi − δi∗)) .
+The DPFL control utilizes local measurements only, and as a
+result the accelerating power term (Pa,i) cannot be estimated
+and consequently cannot be cancelled, resulting in a partially
+linearized control system.
+Next, we present the stability analysis of the DPFL control.
+Similar to our analysis for the CPFL control, the following is
+found as we substitute Eq. (8) into Eq. (4)
+x˙ i = Ai xi + bi δi∗ + h0, M1i i
+T
+Pa,i .
+Using the approximations for the relevant terms in Pe,i in
+Eq. (2), it can be shown that Pa,i reduces to
+Pa,i ≈ Pm,i − δiΔi + Δk ,
+Consequently,
+N N
+where Δi = P |Ei| |Ek|Bik and Δk = P |Ei| |Ek|Bikδk.
+k6=i k6=i
+(8)
+(9)
+(10)
+x˙ i = Aˆi xi + bi δi∗ + 0,
+Pm + Δk T
+Mi
+,
+(11)
+0 1
+where Aˆi = −(Δi+βi) −(Di+αi) . The above equation
+Mi Mi
+takes the form of Eq. (6). To check the stability of the power
+system after implementing the proposed DPFL controller, the
+eigenvalues of Aˆi are calculated as
+)2.15
+u
+(yp 1.3
+c
+n
+uq0.45
+e
+e
+r
+F−0.4
+)2.15
+u
+(yp 1.3
+c
+n
+uq0.45
+e
+e
+r
+F−0.4
+Generator 1
+Generator 2
+Generator 3
+Generator 4
+Generator 1
+Generator 2
+Generator 3
+Generator 4
+)72
+s
+e
+rg54
+e
+e
+d
+(
+e36
+s
+a
+h
+18
+P
+)72
+s
+e
+rg54
+e
+e
+d
+(
+e36
+s
+a
+h
+18
+P
+2
+4
+Time (second)
+6
+2
+4
+Time (second)
+6
+Fig. 2. System performance when CPFL control is activated
+2
+4
+Time (second)
+6
+2
+4
+Time (second)
+6
+Fig. 3. System performance when DPFL control is activated
+λ1,2 =
+2Mi
+1 h−(Di + αi)±p(Di + αi)2 −4MiβiΔki . (12)
+Both eigenvalues are found to lie in the left-hand complex
+plane. Consequently, the power system is stable under the
+proposed DPFL controller.
+C. Combined Centralized-Decentralized Control Scheme
+We propose the combined centralized-decentralized PFL
+(CDPFL) controller as a mediator solution for the power system
+when communication latency or DoS attack impacts the
+cyber-enabled centralized control performance. While cyberenabled
+centralized control is efficient and effective, the delay
+or lack of PMU information hinders it highly ineffective. An
+intuitive approach is to switch from centralized to decentralized
+control in the absence of PMU information; hence, we
+propose the combined mode of our PFL control.
+Let τ ≥ 0 be the latency between the PMUs and the
+controller, and let τ ∗ denote the maximum latency below
+which the CPFL control can effectively stabilize the system.
+The proposed CDPFL is then expressed as
+Ui =
+− (Pa,i + αiωi + βi(δi − δi∗)) if τ < τ ∗ (CPFL)
+− (αiωi + βi(δi − δi∗)) if τ ≥ τ ∗ (DPFL).
+(13)
+It is important to observe that the CDPFL control waits until
+τ ∗ before activating the DPFL control, and this results in
+a considerable deviation in the system state following the
+disturbance. To address this issue, the parameter αi can be
+optimized for a more aggressive control action to stabilize the
+power system.
+Generator 1
+Generator 2
+Generator 3
+Generator 4
+Generator 1
+Generator 2
+Generator 3
+Generator 4
+Generator
+1
+2
+3
+4
+5
+6
+7
+8
+9
+Case
+Study
+1
+2
+3
+4
+CPFL
+Control
+3.3244
+3.5231
+3.4860
+3.1767
+3.0014
+3.2762
+3.1423
+2.9837
+3.1847
+DPFL
+Control
+5.5922
+5.4885
+5.4782
+5.4031
+5.3857
+5.3972
+5.3985
+5.5162
+5.4103
+CPFL &
+Governor
+3.2769
+3.4676
+3.4415
+3.1156
+2.9388
+3.2278
+3.0783
+2.9093
+3.1329
+DPFL &
+Governor
+6.0496
+6.0210
+6.0279
+6.0314
+6.0270
+6.0333
+6.0308
+6.0451
+6.0430
+TABLE I
+STABILITY TIME (SECOND)
+CPFL
+Control
+3.2332
+2.8495
+2.9183
+2.9552
+DPFL
+Control
+5.4522
+3.9111
+3.9749
+5.3177
+CPFL &
+Governor
+3.1765
+2.7879
+2.8588
+2.8987
+DPFL &
+Governor
+6.0343
+5.1188
+5.3608
+6.0039
+TABLE II
+AVERAGE STABILITY TIME (SECOND)
+)
+d
+n16
+o
+c
+e
+s
+(12
+e
+m
+iT8
+y
+ltii
+ab 4
+t
+S
+Generator 1
+Generator 2
+Generator 3
+Generator 4
+50 100 150 200
+Communications Latency (msec)
+Fig. 4. Performance of the CPFL control versus communication latency
+IV. NUMERICAL RESULTS
+The different PFL control schemes proposed in this work
+are numerically evaluated. The CPFL and DPFL controls are
+first evaluated for different balanced three phases faults with
+and without the governor control activated at the generators.
+A robustness analysis of the CDPFL control against cyberphysical
+disturbances is also conducted.
+For the following numerical results, the stability time of
+a Generator i is the time it takes the controller to keep the
+frequency stable (i.e., |ωi| ≤ 0.02) permanently. Further,
+for the purpose of clarity, the following figures show the
+performance results for the first four synchronous generators;
+however, similar behaviour is observed for the rest of the
+generators.
+The New England power system is considered. The power
+system is assumed to be running in normal secure state from
+t = 0 to t = 0.5 seconds. However, a balanced three-phase
+fault occurs at Bus 17 at t = 0.5 seconds. Then, Line 17-18
+is tripped out to clear the fault at t = 0.6 seconds. Finally, the
+PFL controller is activated on all generators at t = 0.7 seconds.
+For the balanced three-phase fault detailed above, the frequency
+and phase of the first four generators in the New
+England power system are shown in Fig. 2 for the case when
+the CPFL control is activated. Moreover, Fig. 3 shows the
+frequency and phase of the system generators under the same
+)2.15
+u
+(yp 1.3
+c
+n
+e
+uq0.45
+e
+r
+F−0.4
+Generator 1
+Generator 2
+Generator 3
+Generator 4
+)72
+s
+e
+rg54
+e
+e
+d
+(
+e36
+s
+a
+h
+18
+P
+Generator 1
+Generator 2
+Generator 3
+Generator 4
+2
+4
+Time (second)
+6
+2
+4
+Time (second)
+6
+Fig. 5. System performance when CDPFL control is activated during a cyberphysical
+disturbance
+fault scenario with DPFL control activated. Compared to the
+DPFL controller, these results show that CPFL control scheme
+achieves more efficient performance.
+As a summary of the above numerical results, a detailed
+record of the stability time of each generator (except Generator
+10) in the New England power system is shown in Table I.
+The stability time is shown for the proposed CPFL and DPFL
+control with and without the generators' governor activated.
+In addition, Table II shows the average stability time of the
+system generators (except Generator 10) under different cases
+of faults. In this table, Case Study 1 refers to the previously
+studied case (i.e., a three-phase fault occurs at Bus 17 at t
+= 0.5 seconds, Line 17-18 is tripped out at t = 0.6 seconds,
+and the controller is activated at t = 0.7 seconds). Further,
+Case Study 2 represents the situation when a fault occurs at
+Bus 11 then Line 10-11 is tripped out. Moreover, a threephase
+fault occurs at Bus 22 and Line 21-22 is tripped out
+in Case Study 3. Finally, the fault is located in Bus 39 and
+Line 28-39 is tripped out to clear the fault in Case Study 4.
+We further investigate the performance of the CPFL controller
+versus communication links latency that affect the PMU
+measurements arrival time at the controllers. Fig. 4 shows
+that beyond a certain latency value (around 170 msec in
+this case), the stability time jumps from about 4 seconds to
+around 18 seconds (the simulation duration). In other words,
+if the latency is above this value, the CPFL controller cannot
+stabilize the power system.
+Motivated by this analysis we investigate the CDPFL control
+for the aforementioned system against a cyber-physical disturbance.
+Similar to Case Study 1, a physical fault occurs in the
+power system at t = 0.5 seconds, the CPFL control is activated
+at t = 0.7 seconds, and a worst-case cyber attack (where all
+communication links to the control center are jammed or under
+DoS attacks) occurs at t = 0.8 seconds. The CDPFL controller
+tolerates a wait period of τ ∗ = 150 msec before switching to
+DPFL at t = 0.95 seconds. The proposed CDPFL is shown
+to be able to stabilize the power system under the worst-case
+DoS scenario as shown in Fig. 5.
+V. CONCLUSIONS
+This paper proposes a frequency and phase stabilizing controller
+for smart grid systems under severe fault or malfunction
+of protection devices. The design of the proposed parametric
+controller is motivated by the feedback linearization control
+theory, and the controller relies on receiving frequent system
+state information to actuate fast-acting energy storages
+to balance the swing equation and drive the power system
+to stability. The controller is evaluated under centralized
+and decentralized system designs, and further a combined
+centralized-decentralized control scheme is proposed to enhance
+robustness against long communication delays or denialof-service
+attacks.
+System performance is investigated when the proposed
+controller is applied to the New England 39-bus 10-generator
+power system. Further, the performance is studied when both
+the proposed and governor controls are activated in the power
+system. Results of this work show the effectiveness of the
+proposed controller in stabilizing the power grid and making
+it more resilient to cyber-physical disturbances.
+ACKNOWLEDGMENTS
+This work was supported by the National Science Foundation
+under grant ECCS-1028246 and the Natural Sciences and
+Engineering Research Council of Canada.
+REFERENCES
+[1] J. Wei, D. Kundur, T. Zourntos, and K. L. Butler-Purry, “A FlockingBased
+Dynamical Systems Paradigm for Smart Power System Analysis,”
+in IEEE Power and Energy Society General Meeting (PESGM), pp. 1-8,
+July 2012.
+[2] J. Wei and D. Kundur, “Two-Tier Hierarchical Cyber-Physical Security
+Analysis Framework For Smart Grid,” in IEEE Power and Energy
+Society General Meeting (PESGM), pp. 1-5, July 2012.
+[3] J. Wei, D. Kundur, T. Zourntos, and K. L. Butler-Purry, “Probing
+the Telltale Physics: Towards a Cyber-Physical Protocol to Mitigate
+Information Corruption in Smart Grid Systems,” in IEEE International
+Conference on Smart Grid Communications (SmartGridComm),
+pp. 372-377, November 2012.
+[4] M. Andreasson, H. Sandberg, D. V. Dimarogonas, and K. H. Johansson,
+“Distributed Integral Action: Stability Analysis and Frequency Control
+of Power Systems,” in IEEE Annual Conference on Decision and Control
+(CDC), pp. 2077-2083, December 2012.
+[5] M. Andreasson, D. V. Dimarogonas, K. H. Johansson, and H. Sandberg,
+“Distributed vs. Centralized Power Systems Frequency Control,” in
+European Control Conference (ECC), pp. 3524-3529, July 2013.
+[6] M. Andreasson, D. V. Dimarogonas, H. Sandberg, and K. H. Johansson,
+“Distributed Control of Networked Dynamical Systems: Static Feedback
+and Integral Action and Consensus,” IEEE Transactions on Automatic
+Control, vol. 59, pp. 1750-1764, July 2014.
+[7] M. Andreasson, “Control of Multi-Agent Systems with Applications to
+Distributed Frequency Control of Power Systems.” Licentiate Thesis,
+KTH School of Electrical Engineering, March 2013.
+[8] J. W. Chapman, M. D. Ilic, C. A. King, L. Eng, and H. Kaufman,
+“Stabilizing a Multimachine Power System via Decentralized Feedback
+Linearizing Excitation Control,” IEEE Transactions on Power Systems,
+vol. 8, pp. 830-839, August 1993.
+[9] F. Do¨rfler and F. Bullo, “Kron Reduction of Graphs With Applications
+to Electrical Networks,” IEEE Transactions on Circuits and Systems I:
+Regular Papers, vol. 60, pp. 150-163, January 2013.
+[10] P. M. Anderson and A. A. Fouad, Power System Control and Stability.
+IEEE Power Systems Engineering Series, IEEE Press, 1994.
+[11] F. Do¨rfler and F. Bullo, “Synchronization and Transient Stability in
+Power Networks and Non-Uniform Kuramoto Oscillators,” in American
+Control Conference (ACC), pp. 930-937, June/July 2010.
+[12] A. R. Bergen and V. Vittal, Power Systems Analysis. Prentice-Hall,
+second ed., 2000.
+[13] P. W. Sauer and M. A. Pai, Power System Dynamics and Stability.
+Prentice-Hall, 1998.
+[14] H. K. Khalil, Nonlinear Systems. Prentice-Hall, third ed., 2002.

@@ -1,0 +1,761 @@
+Globecom 2013 - Communication and Information System Security Symposium
+False-data Injection Attack to Control Real-time
+Price in Electricity Market
+Suzhi Bi, Student Member, IEEE, Ying Jun (Angela) Zhang, Senior Member, IEEE
+Department of Information Engineering, The Chinese University of Hong Kong,
+Shatin, New Territories, Hong Kong. Email: {bsz009, yjzhang}@ie.cuhk.edu.hk
+Abstract-The normal operation of electricity market requires
+accurate state estimation of the power grids. However, recent
+research shows that carefully synthesized false-data injection
+attacks can easily introduce errors to state estimates without
+being detected by the current security systems. In this paper, we
+analyze and formulate an effective false-data injection attack
+to control real-time electricity price at any tagged bus. It is
+observed that an adversary capable of false-data injection attack
+can induce false real-time electricity price by fabricating biased
+transmission congestion pattern. From the strategic level, we
+propose a simple algorithm that finds the effective congestion
+pattern with minor distortion to the normal system operation.
+For practical implementation, load redistribution attack, a special
+false-data injection attack which produces biased load estimates,
+is used to achieve the derived congestion pattern. We also propose
+a cost-aware neighborhood load redistribution attack, which only
+compromises limited measurements around the tagged bus. From
+theory to practice, our results here reveal the potential cyber
+vulnerabilities of current electricity market and would help to
+build more secure smart power grid in the future.
+I. INTRODUCTION
+The deregulation of electricity market eliminates price control
+and encourages market entry of entities in all aspects
+of power generation, transmission and distribution, etc. To
+enhance the market efficiency, independent system operators
+(ISOs) are introduced as the third-party market regulators
+apart from energy consumers and suppliers [1]. One major
+responsibility of ISOs is to set fair electricity prices for market
+clearing. Currently, the dominant pricing method adopted by
+a number of ISOs in the United States is locational marginal
+pricing (LMP) [2]. Real-time LMP is calculated based on
+the power system state estimation produced by EMS/SCADA
+(Energy Management System and Supervisory Control and
+Data Acquisition) systems that monitor and control the power
+grids. Evidently, the normal operation of electricity market
+requires accurate state estimation that truthfully reflects the
+real-time power system operating conditions.
+The integrity of state estimation is under mounting threat as
+we gradually transform the current electricity infrastructures
+to smart power grids. Smart power grids are more open to and
+physically accessible by the outside networks, such as office
+local area networks and smart meters that allow two-way communications
+between energy consumers and suppliers. With
+new entry points introduced to the power system, potential
+complex and collaborating malicious attacks are brought in as
+This research was supported, in part, by the General Research Fund (Project
+No. 419509) established under the University Grant Council of Hong Kong.
+well. Liu et al. [3] showed that a new false-data injection attack
+could circumvent bad data detection (BDD) in todays SCADA
+system and introduce arbitrary errors to state estimates without
+being detected. Being aware of the imminent threats of falsedata
+injection attack to power system, a number following
+studies are devoted to both understanding its attacking patterns
+and providing effective countermeasures [4]-[7]. For instance,
+[4] formulated optimized attacks with different resource constraints
+to compromise the state estimates. Besides, [6] proposed
+efficient defending mechanisms to protect any set of
+state estimates from false-data injection attacks.
+The potential cost of false-data injection attack to power
+markets has also attracted much research interests. [8] showed
+that load redistribution attack, a special false-data injection
+attack that fabricates biased real-time load patterns, is capable
+of causing higher power generation cost or even regional
+blackout. Meanwhile, [9] showed that attackers can profit
+from virtual bidding investment by pushing line flow estimates
+below their security limits, inducing equal real-time LMPs at
+two tagged buses. The method to control real-time LMP at a
+specific bus using false-data injection attack is first studied in
+[10]. It showed that, by compromising the actual congestion
+pattern in the network, an adversary such as a power supplier
+can increase the real-time LMP to maximize its total revenue.
+Nevertheless, the proposed method to obtain the optimal congestion
+pattern and attack vector requires exhaustive evaluation
+of the entire vector space, which is of prohibitively high in
+computational complexity and lacking of intuitions.
+In this paper, we derive specific guidelines to formulate
+efficient false-data injection attacks to control the real-time
+LMP at any tagged bus. Our contributions are detailed below:
+1) We derive the condition for a congestion pattern to
+compromise the real-time LMP at a specific location.
+We also propose a simple “add-then-remove” procedure
+that finds the effective congestion pattern which causes
+minor distortion to the true system operating condition.
+2) A practical load redistribution (LR) attack is used to
+realize the obtained congestion pattern. In particular, we
+propose a cost-aware “neighborhood” load redistribution
+(NLR) attack that only compromises limited measurements
+around the tagged bus.
+3) We show that LR attack to real-time LMPs also has impact
+on the future electricity prices due to its distortion
+of load prediction.
+978-1-4799-1353-4/13/$31.00 ©2013 IEEE
+772
+Globecom 2013 - Communication and Information System Security Symposium
+II. SYSTEM MODEL
+not dispatchable, the ISO solves the following problem
+A. Power system state estimation
+We consider a steady-state power system with n buses
+interconnected by t transmission lines. For the simplicity of
+expositions, we assume that each bus has at least one generator
+and load. Notice that our main results still hold even without
+this assumption. The ISO monitors the power system through
+the measurements received by the SCADA host. Denoted by
+z, the received measurements are
+z = @0 pd¯¯¯f A1 = @0 G0I 0IG A1 · ✓ dp ◆ + e, (1)
+where p and d represent the actual generation outputs and
+loads at the n buses. p¯ and d¯ denote the noisy measurements.
+¯f represents the directional power flow measurements in the t
+transmission lines. I is an identity matrix. G is the t ⇥ n
+generating shift factor matrix, indicating the sensitivity of
+directional power flows against power injection at the buses.
+e s N (0, R) contains independent measurement noises,
+where R is the diagonal covariance matrix. In general, the
+above linear measurement model can be written as
+z = Hx + e,
+where H is the measurement Jacobian matrix and x is the
+state variable. The maximum likelihood (ML) estimate of x,
+including generation outputs and loads, is
+xˆ = ✓ pdˆˆ ◆ = ⇣HT R 1H⌘ 1 HT R 1z , Pz. (3)
+Accordingly, the estimate of line flows is
+ˆf = (G, G) xˆ , Qxˆ.
+The estimates xˆ could be wrong due to random errors in
+measurements. Current power systems use BDD to compare
+the squared l2-norm of measurement residual with a threshold
+⌧ , where it identifies bad data measurements if
+||z
+Hxˆ||2 > ⌧.
+Otherwise, z is considered as a normal measurement. In
+general, a random attack to normal measurements is likely
+to be detected by BDD. However, as we will introduce in
+Section IV, carefully synthesized false-data injection attacks
+can bypass BDD and compromise the power market.
+B. Real-time LMP calculation
+A combined ex-ante and ex-post method is widely adopted
+by major US power markets to calculate real-time LMP [2].
+In the ex-ante stage, the ISO obtains the optimal generation
+dispatch instruction and ex-ante LMPs by solving a security
+constrained economic dispatch problem based on projected
+system load levels [1]. Then, the optimal generation dispatch
+instruction and ex-ante LMPs are sent to all generators as
+a reference, in the hope that generators would follow the
+dispatch instruction to mitigate transmission congestions.
+At the end of dispatch interval, the ISO obtains the actual
+system response through state estimation. Assuming loads are
+(6)
+(7)
+minimize
+4p
+s. t. ( )
+(↵ imin, ↵ imax)
+(µlmax)
+4C = Pin=1ci · 4pi
+Pin=14pi = 0
+4pmin  4 pi  4 pmax, 8 i
+Pin=1Gl,i · 4pi  0, l 2 C +
+(µlmin) Pin=1Gl,i · 4pi 0, l 2 C .
+Here C+ and C denote the sets of observed positively
+congested lines and negatively congested lines, defined as
+C+ , nl : fˆl
+flmaxo
+C
+, nl : fˆl  flmino ,
+where fˆl is the estimate of power flow of line l, flmax and
+flmin are the line flow limits. 4pmin and 4pmax are fixed
+parameters. The ex-post LMP is a function of the optimal
+Lagrangian multipliers of (6) [2], given by
+LM Pi =
+⇤
+X µlmax⇤ Gl,i +
+X µlmin⇤ Gl,i
+l2C +
+= ci + ↵ imax⇤
+l2C
+↵ imin⇤ , i = 1, · · · , n,
+where the last equality holds by KKT conditions. Ex-post
+LMP is also the real-time electricity price for market clearing.
+When load prediction is accurate and generators follow the
+generation dispatch, the ex-ante and ex-post LMPs are equal
+[11]. We see from (6) that real-time LMPs depend only on
+the ISO's congestion observations, i.e. {C+, C }. Thus, an
+adversary capable of fabricating fake congestion pattern also
+has the ability to control electricity prices.
+C. Adversary model
+We assume that an adversary's objective is to reduce the
+real-time LMP at a tagged bus where at least one generator is
+located. A successful attack will either reduce its power consumption
+payment or increase its profit from certain financial
+derivative that favors lower LMP. Its capabilities include
+1) the knowledge of the generation cost of the tagged bus,
+the topology of the power grid (the G matrix), the
+current load estimates dˆ and line flow estimates ˆf (thus
+the actual congestion pattern {C+, C }).
+2) able to perform load redistribution (LR) attack [8]. That
+is, it can compromise a given set of line flows and
+load measurements. The detailed characterization of LR
+attack will be presented in Section IV.A.
+With the knowledge of the current system operating conditions,
+the adversary can choose to either perform LR attack
+immediately or postpone its attack until a more favorable time,
+e.g. lower detection probability or higher financial profit.
+III. MALICIOUS CONGESTION PATTERN DERIVATIONS
+In this section, we analyze and derive the effective congestion
+pattern to control the real-time LMP at a tagged bus. It is
+shown in the next section that the derived congestion pattern
+can be realized with false data injection attacks.
+A. Attack analysis
+Without loss of generality, we assume that the adversary's
+objective is to reduce the real-time LMP at the nth bus.
+(2)
+(4)
+(5)
+773
+Globecom 2013 - Communication and Information System Security Symposium
+Algorithm 1: Procedure to find an attacking congestion
+pattern {At1, Al1} to compromise LM Pn.
+To avoid confusions, we use the subscript “at” to denote
+variables in the presence of attack. For instance, 4p⇤n denotes
+the optimal solution of (6) at the nth bus when no attack
+is present, while 4p⇤nat denoting the value after attack. By
+complementary slackness, real-time LM Pn in (7) is
+input : true congestion pattern {At0, Al0}, target bus n;
+output: congestion pattern {At1, Al1} used for attack;
+1 Initialize: {A¯t, A¯l, D, ¯} = {At , Al , ; , 4pmax};
+0 0
+2 repeat
+8> cn ↵ nmin⇤ , 4p⇤n = 4pmin 3 l⇤ = arg maxl2{L\{ A¯t S A¯l} S D} Gn,l ;
+LM Pn = < cn, 4pmin < 4p⇤n < 4pmax (8) 4 If (9) is infeasible when {At, Al, } = {; , A¯l S l⇤ , 4pmin}, we
+>: cn + ↵ nmax⇤ , 4p⇤n = 4pmax. let D = D S l⇤ . Otherwise, we update A¯l = A¯l S l⇤ .
+5 until (9) is infeasible when {At, Al, } = {A¯t, A¯l, ¯};
+Since ↵ nmin⇤ , ↵ nmax⇤ 0, LM Pn is an increasing step func- 6 repeat
+tion with 4p⇤n. When 4p⇤k = 4pmax, attackers can efficiently 78 {w,¯hilAe¯tA}¯t=6={; ¯ do, At0};
+decrease LM Pn through reducing 4p⇤n by marginal amount, 9 l⇤ = arg maxl2 A¯t Gn,l , A¯t = A¯t \ l⇤ ;
+causing only minor distortion to the true measurements. For 10 if (9) is feasible when {At, Al, } = {A¯t, A¯l, ¯} then
+4p⇤n < 4pmax, however, attackers will not be able to reduce 11 output: {At1, Al1} = {A¯t, A¯l};
+LM Pn until 4p⇤nat = 4pmin. In this case, they may need 1132 end end
+to compromise a large number of measurements and induce 14 until ¯ = 4pmin;
+large deviations from their true values. Since short-term load
+prediction is often accurate, such abnormal deviation is likely
+to be captured, even if the attack successfully passed BDD.
+Considering the overall efficiency and risk of detection, we
+assume that an rational adversary only performs attack when
+4p⇤n = 4pmax, i.e. when the upcoming true LM Pn > cn.
+From the above analysis, an effective false congestion
+pattern, denoted by {C+at, Cat}, should cause the ISO to yield
+4p⇤nat 2 ⇥4pmin, 4pmax . This is obtained by studying the l⇤ = arg |Gl,n|,
+following system that associated with the constraints of (6),
+8
+>>>< 1
+It can be seen that (9) is feasible when {At, Al, } =
+{At , Al , 4pmax}, since 4p⇤n = 4pmax is part of the optimal
+0 0
+solution to (6) when no attack is present. We first add a set of
+loosening inequalities to cause (9) infeasible. By doing this,
+the feasibility of (9) can be restored later through decreasing
+and removing tightening inequalities. In practice, we select
+the line l⇤ on which the nth bus influences the most, i.e.
+(9)
+:>>>
+Pin=11 xi =
+4pmin  xi  4 pmax, i = 1, · · · , n
+Pin=11 Gl,i · xi  Gl,n · , l 2 A +
+Pin=11 Gl,i · xi Gl,n · , l 2 A ,
+where A+ and A are two disjoint sets and is a parameter.
+In can be inferred that a {A+, A } that renders
+(9) only feasible for some 2 ⇥4pmin, 4pmax can be
+used as {C+at, Cat}. This is because, such congestion pattern
+guarantees that the optimal solution of (6) is obtained at
+some 4p⇤nat < 4pmax. Intuitively, obtaining an effective
+{A+, A } needs to enumerate all possible sets. However,
+we propose in the following a “add-then-remove” heuristic
+to find a solution with low complexity. Conceptually, starting
+with {A+, A } = {C+, C }, we first add some inequalities
+to renders (9) infeasible when = 4pmax, then remove other
+inequalities to restore its feasibility at some < 4pmax.
+B. Congestion pattern derivation
+Depending on their effects to the feasibility of (9) when
+decreases, all entries of {A+, A } can be classified into either
+a “tightening” set At or a “loosening” set Al, defined as
+l 2 A t : (l 2 A + ^ Gl,n  0) _ (l 2 A
+^ Gl,n > 0) ,
+l 2 A l : (l 2 A + ^ Gl,n > 0) _ (l 2 A ^ Gl,n  0) .
+Intuitively, the inequalities that correspond to At, called tightening
+inequalities, become harder to satisfy when decrease,
+and thus “tighten” the feasibility requirements of (9), while the
+loosening inequalities in Al relax the feasibility requirements.
+Let {At0, Al0} denote the actual tightening and loosening sets
+when no attack is present, i.e. when {A+, A } = {C+, C }.
+(10)
+max (11)
+l2{L\{A t S Al}}
+where L is the set of all transmission lines. Then, we update Al
+by letting Al = Al [ l⇤ while keeping At intact. We continue
+to add other inequalities to Al in sequence following (11)
+until (9) becomes infeasible. The obtained loosening set is
+denoted by Al . A point to notice is that Al1 must ensure
+1
+that (9) is feasible when {At, Al, } = {; , Al1, 4pmin}.
+Otherwise, (9) cannot be converted feasible by removing
+tightening inequalities.
+We then aim to restore the feasibility of (9) at some
+< 4pmax. Since tightening inequalities become even harder
+to satisfy as decreases, some of them may need to be
+removed. In each iteration, is decreased by a small value
+. We immediately reach our objective if (9) becomes feasible.
+Otherwise, we check whether (9) can be converted into
+feasible by removing certain tightening inequalities. Similar to
+(11), we first remove the line l⇤ = arg maxl2A t |Gn,l|. Then,
+we update At = At \ l⇤ while keeping Al intact. We continue
+to remove tightening inequalities until (9) becomes feasible.
+If (9) is still infeasible even if At = ; , we further relax the
+system by decreasing and resetting At = At0. The above
+iteration repeats until a feasible system is obtained.
+It is worth noting that a feasible system can always be
+obtained, since (9) is feasible at {; , Al1, 4pmin} by construction.
+Meanwhile, it is unlikely for the obtained system to be
+feasible when = 4pmax, since the feasibility of system is
+now dominated by loosening inequalities, while increasing
+to 4pmax will make all the loosening inequalities harder to
+satisfy. Denoted by At1, the obtained tightening set and Al1 can
+be mapped back to {A+, A }, which will then be used as the
+malicious congestion pattern to formulate attacks. A pseudo774
+Globecom 2013 - Communication and Information System Security Symposium
+Bus 4
+35 $/MWh
+20 - 300 MW
+LMP4=35 $/MWh
+85 MW
+250 MW
+25.1
+2/
+0
+0
+M
+W
+100/100 MW
+Bus 1
+20 $/MWh
+20 - 400 MW
+LMP1=20 $/MWh
+375 MW 150 MW
+W
+100/100M
+-65.2/90MW
+Generator
+Load
+Bus 5
+23 $/MWh
+20 - 250 MW
+LMP5=28.7 $/MWh 300 MW 250 MW
+-90/90 MW
+Bus 2
+25 $/MWh
+73 MW 20 - 200 MW
+LMP2=25 $/MWh
+-96/100MW
+300 MW
+31/
+9
+0
+M
+W
+Bus 3
+22 $/MWh
+20 - 300 MW
+LMP3=25 $/MWh
+300 MW
+W
+397 MW -76.4/90M
+280 MW
+Bus 6
+24 $/MWh
+20 - 400 MW
+LMP6=24 $/MWh
+200 MW
+Positive congestion
+Negative congestion
+Fig. 1. Illustration of the 6-bus system: for instance, bus 1's generation cost
+is 20$/MWh, generation output range is 20 400 MW. In the given operating
+condition, the actual load at bus 1 is 150 MW and the actual generation output
+is 375 MW. As a result, 100 MW power flows from bus 1 to 2, reaching the
+line capacity 100 MW. A negative power flow value means the power flows
+in the opposite direction of the defined line orientation, e.g. 96 MW power
+flows from bus 3 to 2 in line l23, whose capacity is 100 MW.
+code for the “add-then-remove” algorithm is Algorithm 1,
+where the lines 2 to 5 correspond to adding loosening constraints
+while lines 6 to 14 for removing tightening constraints.
+C. A case study and insights
+To bring out intuitions, we implement the proposed algorithm
+in an example 6 bus system in Fig. 1, where G 1 is
+0 0.4 0.4 0.4 0.2 0.8 0 1
+G = BBBBBBB@B 000...000122...242555 000...000121...555244 00000...0121...264555 00000...0011...426555 000000......354445 000000 CCCCCCACC . (12)
+0.6 0.4 0.4 0.8 0.2 0
+In the given operating condition, the congestion pattern is
+C+ = {l12, l14} and C = {l56}. Suppose that bus 5 is the
+tagged bus, where actual LM P5 > c5. The corresponding
+At = {l14, l56} and Al = {l12}. By Algorithm 1, attackers add
+l45 to Al, then remove l56 from At. In this case, the congestion
+pattern of attack is C+at = {l12, l14} and Cat = {l45}.
+With closer observation, we see that the selected lines
+are indeed those connect the tagged bus with its one-hop
+neighboring buses. To reduce the LMP at the tagged bus,
+attackers congest transmission lines of which the tagged bus
+is the immediate sending end, i.e. l45, and decongest lines of
+which the tagged bus is the immediate receiving end, i.e. l56.
+In general, attackers may also need to congest or decongest
+necessary lines between buses of multiple hops. The combined
+actions fabricate a “radial” power flow pattern centered at the
+tagged bus. This conveys a false message to the ISO that
+excessive power is flowing out of the tagged bus, which is
+the root cause of congestions. The ISO therefore reacts by
+“hypothetically”2 reducing the generation at the tagged bus 5
+in the ex-post LMP problem, i.e., 4p⇤5at < 4p⇤5. As a result,
+LMP at the tagged bus is reduced as well.
+IV. ATTACK IMPLEMENTATIONS
+In this section, we realize the malicious congestion pattern
+using LR attack, where different attacks are formulated depending
+on the attackers's control over measurements. Interestingly,
+we also find that LR attack to real-time LMP also
+has impact to future electricity market.
+A. LR attack to real-time LMP
+Suppose that a false data injection attack injects malicious
+data a = (a1, a2, .., am)0 into valid measurements z in (1).
+Then, the received measurements are
+˜z = Hx + e + a.
+From (3), the ML estimate of x now becomes x˜ = xˆ + Pa
+and the estimate of line flows is ˜f = ˆf + QPa. Compared
+with the actual state estimate in (3), the introduced errors are
+x˜ xˆ = Pa. Meanwhile, the residual is
+˜r = ˜z
+Hx˜ = (I
+HP)˜z , B(z + a).
+Load redistribution (LR) attack is first introduced in [8].
+The attack vector of a LR attack is a = (ap; ad; af )T , where
+ap = 0 and eT ad = 0 always hold to balance the power
+generation and demand seen by the ISO. Notice that, LR
+attacks do not compromise generation measurements. This is
+because generation measurements are often physically well
+protected and can be verified through direct communications
+between ISOs and utility companies. In contrast, line flows
+and load measurements are widely distributed and fast varying,
+thus are more vulnerable to attacks.
+1) LR attack without resource constraint: We first formulate
+LR attack to alter the real-time LMP assuming that the
+attackers have full control over all load and line flow measurements.
+We denote the set of positively-congested, negativelycongested
+and un-congested lines derived from Algorithm 1
+by C+at, Cat and Cnat, respectively. The attack objective is to
+achieve the malicious congestion pattern with minimum errors
+introduced to the state estimates, i.e. Pa. This is because large
+deviations from predictions may raise suspicion of the ISO. In
+addition, the BDD alarm must not be triggered.
+Accordingly, LR attack is formulated as follows
+(13)
+(14)
+s. t.
+minimize ||Pa||2
+a
+(0, e, 0)T a = 0
+(I, 0, 0) · a = 0
+||B(a + z)||2  ⌧
+✏l dˆ  Pd·(a + z)  ✏u dˆ
+Ql,·Pa flmax
+Ql,·Pa  flmin
+flmin fˆl + 
+fˆl, l 2 C
+fˆl, l 2 C +
+at
+at
+Ql,·Pa  flmax
+(15a)
+(15b)
+(15c)
+(15d)
+(15e)
+(15f)
+ˆ
+fl
+(15g)
+, l 2 C nat
+(15h)
+1The rows of G correspond to lines {l12, l14, l15, l23, l26, l36, l45, l56}
+and columns correspond to bus 1 to 6.
+2This is because ex-post calculation does not physically re-dispatch power
+generation but only sets the real-time LMP based on current estimations.
+775
+where Ql,· is the row in G that corresponds to line l and
+is a small positive padding parameter. Pd is the rows that
+correspond to load estimates in P. (15b) is to satisfy eT ad =
+0. (15c) is to guarantee no error is introduced to generation
+measurements. (15d) is to ensure the alarm is not triggered
+after attack. (15e) is to guarantee that the load estimates after
+attack are within reasonable ranges, controlled by parameters
+✏l and ✏u. For simplicity, we can set ✏l = 0 and ✏u = 1 .
+(15f)-(15h) are to achieve the derived congestion pattern. (15)
+is a convex minimization problem with linear constraints and
+can be solved with great efficiency.
+In practice, however, the attack in (15) is costly, mainly because
+it needs to simultaneously compromise most of load and
+line flow measurements, and thus is difficult to implement in
+large scale power networks. Inspired by the insights obtained
+from Section III.C, we propose in the following a cost-aware
+“neighborhood” LR (NLR) attack.
+2) Resource-constrained NLR attack: We limit the capacity
+of attackers to only compromise the load measurements of the
+tagged bus and its one-hop neighboring buses, and line flow
+measurements within k hops. Here, k is a tunable parameter.
+For simplicity, a valid attack vector is denoted by a 2 P k,
+which satisfies ap = 0 for generation measurements and al =
+0 for a transmission line l that is more than k hops away from
+the tagged bus.
+Suppose that bus i is the tagged bus. We denote the set of
+positively congested, negatively congested and un-congested
+lines within k-hop of the tagged bus by C+k, Ck and Cnk,
+respectively. Notice that all these congestion observations are
+actual measurements. The idea of a NLR attack is to create a
+fake radial power flow pattern between the tagged bus and its
+one-hop neighboring buses. In particular, it achieves
+1) the tagged bus is not the immediate receiving end of any
+congested lines,
+2) the tagged bus is the immediate sending end of at least
+one congested line.
+Mathematically, it is formulated as
+s. t.
+Constraints (16e) and (16f) are to decongest the transmission
+lines that the tagged bus is the immediate receiving end. (16g)
+and (16h) are to create new congestion that the tagged bus
+is the immediate sending end. Here, Cnat ✓ C n1 is a set of
+transmission lines within one-hop of the tagged bus, chosen
+to be congested after attack. Since the size of Cn1 is generally
+very small, it is affordable to try out all Cn ✓ C n1 and select
+at
+the one with minimum objective value.
+Globecom 2013 - Communication and Information System Security Symposium
+(16a)
+(16b)
+(16c)
+776
+minimize ||Pa||2
+a2P k
+(0, e, 0)T a = 0
+||B(a + z)||2  ⌧
+Ql,·Pa  flmax
+Ql,·Pa flmin
+Ql,·Pa  flmin
+Ql,·Pa flmax
+✏ldˆ  Pd·(a + z)  ✏udˆ (16d)
+ˆ
+fl , 8 l 2 C +k and Gl,i  0 (16e)
+fˆl + , 8 l 2 C k and Gl,i
+fˆl, 8 l 2 C nat and Gl,i  0
+fˆl, 8 l 2 C nat and Gl,i
+0.
+0 (16f)
+(16g)
+(16h)
+Load level
+Power generation
+Bus injection
+0
+LR attack
+300MW
+20MW
+Actual load=280MW
+Load estimate =240MW
+T
+T
+ISO adjusts
+generation
+260MW
+-20MW
+Dispatch
+interval
+2T
+Dispatch
+interval
+2T
+Dispatch
+interval
+T 2T
+Fig. 2. Illustration of the impact of LR attack to future market operation.
+A point to notice is that both the attacks in (15) and
+(16) could be infeasible. One cause of infeasibility is the
+random measurement error. Another cause is that LR attack
+is incapable of achieve arbitrary congestion pattern since it
+assumes no capability to compromise generation measurements.
+Currently, a straightforward solution is to re-run the
+algorithm until a feasible congestion pattern is found. Notice
+that, when we derive the malicious congestion pattern, the
+primary concern is its effectiveness of reducing the electricity
+price rather than implementation details. In future work, the
+congestion patter derivation and attack implementations may
+need to be jointly considered.
+B. Impacts of LR attack to future market
+Interestingly, we find that LR attack to real-time LMP can
+also affect future power market. This is because the current
+false load estimation can induce the ISO to produce biased
+load prediction in the next time slot, and thus issue wrong
+power generation dispatch. As a result, severe congestions
+could occur even if all entities follow dispatch orders and no
+attack is present. As a motivating example, the impact of LR
+attack to the future LMPs is illustrated in Fig. 2.
+Fig. 2 shows the power generation, load level and power
+injection over two consecutive dispatch intervals at bus 3 in
+Fig. 1. The attackers launch LR attack at T . For simplicity,
+we assume that the ISO uses current load estimates as the
+load prediction for ex-ante calculation in the next time slot.
+When no attack is present, we assume that the prediction is
+accurate. Besides, all generators follow the ex-ante generation
+dispatch and the actual load consumptions do not change over
+the two dispatch intervals. At time epoch 0, the ISO dispatches
+generation order based on load prediction with d3 = 280M W .
+The power generation at bus 3 is 300M W , and thus the power
+injection is 20M W . At time epoch T , attackers inject false
+data to reduce the electricity price LM P3, causing the ISO
+to produce an biased estimate of d02 = 240M W . The ISO
+foresees the decreasing load at bus 3, thus reacting by adjusting
+the power generation at bus 3 from 300M W to 260M W to
+Globecom 2013 - Communication and Information System Security Symposium
+match the change of load in the next interval. However, the
+actual load does not change in the second dispatch interval and
+the actual power injection becomes 260 280 = 20M W .
+From 20M W to 20M W , the sudden change of power
+injection may induce severe congestion at bus 3. As a result,
+even if no attack is present at 2T , the ex-post LMPs at 2T
+could deviate significantly from the ex-ante LMP at T due
+to unexpected congestions. Specifically, the LMP at bus 3
+tends to increase while LMPs at its neighboring buses tend to
+decrease. This conveys a potentially profitable market signal
+to the attackers if they are allowed to hold proper financial
+derivatives. Due to the page limit, we do not extend our
+discussions on attacking the future LMP in this paper.
+V. CASE STUDY
+Using the power system in Fig. 1, we demonstrate the
+impacts of the LR attack to LMPs. We assume that the ISO's
+load prediction is perfect so that real-time LMP is consistent
+with ex-ante LMP if no attack is present. The actual congestion
+pattern in the network is C+ = {l12, l14} and C = {l56}.
+The true real-time LMPs are [20, 25, 25, 35, 28.7, 24] $/MWh
+when no attack is present. Since the real-time LMP at bus
+3 and 5 are higher than the generation costs (c3 = 22 and
+c5 = 23), they are considered as target buses for performing
+the proposed attack. Here, we assume 4pmax = 0.1M W and
+4pmin = 2M W in (6). Using bus 2 and 3 as example, the
+attacking strategies of NLR attack to the two buses are
+• attack bus 3: congest l23, i.e. the congestion pattern is
+C+at = {l12, l14} and Cat = {l23, l56}.
+• attack bus 5: decongest l56 and congest l45, i.e. the
+congestion pattern is C+at = {l12, l14} and Cat = {l45}.
+The LMP variations at all 6 buses are plotted in Fig. 3(a).
+After the two attacks, LMPs at bus 3 and 5 are reduced by 3
+$/MWh and 5.7 $/MWh, respectively.
+Besides, we plot in Fig. 3(b) the LMPs of bus 3 and 5
+against the time of dispatch intervals. If no attack is present,
+LMPs at two buses should be invariant across the two dispatch
+intervals. We assume that attackers use NLR attack to reduce
+LM P5 at T . This is achieved by introducing errors to decrease
+the reading of d5 and increase the readings of d4 and d6.
+Meanwhile, LM P3 is increased as well. However, this only
+causes temporary price deviations from normal values. Once
+attackers stop injecting false data, electricity prices return to
+normal at 2T . Nonetheless, this still indicates that attackers
+can manually create predictable market disturbance thus has
+the potential to make profit from both real-time and future
+markets.
+VI. CONCLUSIONS
+In this paper, we have provided detailed analysis and
+formulation of false-data injection attacks to control realtime
+electricity price in power market. A simple algorithm
+is proposed to find the effective congestion pattern to induce
+false LMP. We realized the obtained congestion pattern
+using load redistribution (LR) attack, where formulations of
+both resource-unconstrained attacks and resource constrained
+777
+40
+P35
+M
+L
+ite30
+m
+la−25
+e
+R
+$20
+151
+35
+P
+L30
+M
+e
+m
+iltea25
+R
+$
+200
+No attack
+Attack bus 3
+Attack bus 5
+decrease LMP3
+2
+LMP3
+LMP5
+No attack
+LMPs before and after attacks
+decrease LMP5
+3
+4
+Bus number
+Impact to future electricity prices
+5
+NLR attack
+No attack
+6
+2
+1
+Dispatch interval
+Fig. 3. Impacts of LR attack to real-time and future LMPs.
+neighborhood LR attack have been derived. Interestingly, we
+find that LR attack which controls the real-time LMP also has
+impact on the future market.
+REFERENCES
+[1] A. Ott, “Experience with PJM market operation, system design, and
+implementation”, IEEE Transcations on power systems, Vol. 18, No.2,
+528-534, May 2003.
+[2] T. Zheng and E. Litvinov, “Ex Post Pricing in the co-optimized enegy
+and reserve market”, IEEE Transactions on power systems, vol. 21, No.
+4, 1528-1538, Nov. 2006.
+[3] Y. Liu, P. Ning, and M. Reiter, “False data injection attacks against state
+estimation in electric power grids,” in Proceedings of the 16th ACM
+conference on Computer and communications security, Chicago, Illinois,
+2009, pp. 21-32.
+[4] O. Kosut, L. Jia, R. J. Thoma and L. Tong, “Malicious data attacks on
+the smart grid”, IEEE Trans. on smart grid, Vol.2, no.4, pp. 645-658,
+Dec 2011.
+[5] G. Dan and H. Sandberg, “Stealthy Attacks and Protection Schemes for
+State Estimators in Power Systems,” in SmartGridComms 2010, pp. 214219.
+2010.
+[6] S. Bi, Y. Zhang, “Defending mechanisms against false-data injection
+attacks in the power system state estimation,” IEEE SG-ComNeTs Workshop,
+Houston, USA, 2011.
+[7] R. Bobba, K. M. Rogers, Q. Wang, H. Khurana, K. Nahrstedt, and
+T. Overbye, “Detecting false data injection attacks on DC state estimation,”
+in Preprints of the First Workshop on Secure Control Systems,
+CPSWEEK 2010, Apr. 2010.
+[8] Y. Yuan, Z. Li, K. Ren, “Modeling Load Redistribution Attacks in Power
+Systems,” IEEE Transactions on Smart Grid, vol.2, no. 2, pp. 382-390,
+June 2011.
+[9] L. Xie, Y. Mo, and B. Sinopoli, “Integrity data attacks in power market
+operations,” IEEE Trans. on smart grid, vol.2, no.4, pp. 659-665, Dec
+2011.
+[10] L. Jia, R. J. Thomas, and L. Tong, “Impacts of Malicious Data on
+Real-time Price of Electricity Market Operations”, Hawaii Intl. Conf. on
+System Sciences, Jan 2012.
+[11] F. Li, Y. Wei and S. Adhikari, “Improving an unjustified common
+practice in ex-post LMP calculation”, IEEE Transactions on power
+systems, vol. 25, No. 2, 1195-1197, Nov. 2010.

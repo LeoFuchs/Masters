@@ -1,0 +1,1247 @@
+14
+IEEE TRANSACTIONS ON SMART GRID, VOL. 5, NO. 1, JANUARY 2014
+Data Attack Isolation in Power Networks Using
+Secure Voltage Magnitude Measurements
+Kin Cheong Sou, Henrik Sandberg, and Karl Henrik Johansson
+Abstract-In this paper a procedure to detect and isolate data
+attacks on power network power flow measurements is proposed.
+This method can be used in conjunction with available bad data detection
+(BDD) methods to isolate multiple bad data which are otherwise
+difficult to handle. The proposed procedure relies on secure
+measurements of bus voltage magnitudes to define a measurement
+residual using potentially compromised active and reactive power
+flow measurements on transmission lines. The proposed residual
+can be calculated in real-time. In addition, the component of the
+proposed residual on any particular line depends only locally on
+the component of the data attack on the same line. This makes the
+proposed residual well-suited for distributed data attack isolation
+in large-scale power networks. Furthermore, it can be shown that
+the proposed procedure becomes more effective when measurements
+from multiple time instances can be utilized. A detailed numerical
+case study on the IEEE 14-bus benchmark system demonstrates
+the effectiveness of the proposed procedure.
+Index Terms-Fault location, power network state estimation,
+security, wide-area protection.
+I. INTRODUCTION
+T and transmission systems is vital for our society. To suHE
+PROPER operation of the electric power distribution
+pervise and control these systems the Supervisory Control And
+Data Acquisition (SCADA) systems are indispensable. Through
+remote terminal units (RTUs), SCADA systems measure data
+such as transmission line power flows, bus power injections,
+and part of the bus voltages. These measurements are then sent
+to the state estimator to estimate the power network states (e.g.,
+the bus voltage phase angles and bus voltage magnitudes). The
+estimated states are used for important power network operations
+such as optimal power flow (OPF) dispatch and contingency
+analysis (CA) [1], [2]. Any malfunctioning of these operations
+can delay proper reactions in the control center, and lead
+to significant social and economical consequences such as the
+northeast US blackout of 2003 [3].
+The SCADA systems of today are interconnected to office
+LANs, and through the LANs they are connected to the Internet.
+Manuscript received August 22, 2012; revised February 07, 2013, June 21,
+2013; accepted August 21, 2013. Date of current version December 24, 2013.
+This work is supported by the European Commission through the HYCON2
+project, the Swedish Research Council (VR) under Grant 2007-6350 and Grant
+2009-4565, and the Knut and Alice Wallenberg Foundation. Paper no. TSG00519-2012.
+K. C. Sou was with KTH Royal Institute of Technology, 100 44 Stockholm,
+Sweden. He is now with the Department of Mathematical Sciences,
+Chalmers University of Technology, 412 96 Gothenberg, Sweden (e-mail:
+kincheong.sou@chalmers.se).
+H. Sandberg and K. H. Johansson are with the ACCESS Linnaeus Center and
+the Automatic Control Lab, the School of Electrical Engineering, KTH Royal
+Institute of Technology, 100 44 Stockholm, Sweden (e-mail: hsan@kth.se;
+kallej@kth.se).
+Color versions of one or more of the figures in this paper are available online
+at http://ieeexplore.ieee.org.
+Digital Object Identifier 10.1109/TSG.2013.2280658
+Hence, there are more access points to the SCADA systems, and
+also more functionalities to tamper with [4]. For example, the
+RTUs can be subjected to denial-of-service attacks. The communicated
+data can also be subjected to false data attacks. Furthermore,
+the SCADA master itself can be attacked. This paper
+focuses on the cyber security issues related to false data attacks,
+where the communicated measurements are subjected to additive
+data attacks. The motive of the data attack varies-the attacker
+might want to cause damage to the system, or he simply
+attacks for economic reasons (e.g., trying to mislead the utilities
+about his electricity usage). False data attacks have been
+the subject of considerable literature (e.g., [5]-[12]). Reference
+[5] was the first to point out that a coordinated intentional data
+attack can be staged without being detected by state estimation
+bad data detection (BDD) algorithm, which is a standard
+part of today's SCADA/EMS system [1], [2], [13]. References
+[5]-[7], [9]-[12] investigate the construction and impact assessment
+problem for such “unobservable” data attack, especially
+the sparse ones requiring relatively few meters to compromise.
+Countermeasures against unobservable data attack have been
+studied. References [7], [8], [11], [12] consider the scenario
+where certain measurements are protected (i.e., cannot be corrupted).
+Procedures are proposed to plan the protection so that
+data attack can always be detected. Reference [9] considers data
+attack detection using extra information such as state statistical
+distribution. A generalized likelihood ratio test for attack detection
+is derived in [9]. In this paper, the goal is data attack
+isolation. This is one step beyond data attack detection, since
+it requires also that the exact location(s) of the compromised
+measurement(s) be identified. The proposed data attack isolation
+algorithm relies on some secure measurements, an assumption
+also made in [7], [8], [11], [12]. In particular, this paper
+assumes that the voltage magnitudes on the end buses of monitored
+transmission lines are securely measured and received by
+the network operator. Under this assumption, it is possible to
+define a reactive power measurement residual vector, one entry
+for each monitored line. Unlike the standard measurement residuals
+[1], [2], the proposed reactive power measurement residual
+vector has the advantage that each entry corresponding to a particular
+transmission line is a function of the data attack on the
+same line only, making it suitable to detect and isolate the data
+attack. In addition, the local nature of the proposed procedure
+means that it can be independently carried out in different parts
+of the network in a distributed fashion, enabling large-scale implementation.
+Furthermore, the computation requirement for the
+proposed data attack isolation procedure is similar to that of
+the standard BDD algorithm. It can be carried out in real-time
+without expensive computation. As shall be seen, the idea of the
+proposed procedure can be based on any measurement relationship.
+This means that the proposed procedure can be extended to
+1949-3053 © 2013 IEEE
+SOU et al.: DATA ATTACK ISOLATION IN POWER NETWORKS USING SECURE VOLTAGE MAGNITUDE MEASUREMENTS
+15
+take advantage of emerging equipment such as phasor measurement
+unit (PMU) [14]. With advanced knowledge of the power
+network (i.e., full state information) the attacker can still stage
+an unobservable data attack, even if the proposed reactive power
+measurement residuals are examined. However, if the network
+operator can make use of multiple sets of reactive power measurements
+taken from different sampling time instances and the
+attacker can attack only once, then it becomes much more difficult
+to stage unobservable attacks as we will show in the paper.
+The proposed procedure can detect and isolate measurement
+bad data (e.g., random gross error due to meter failure), as if it
+were data attack. Standard techniques for detecting and isolating
+bad data include the test and the largest normalized residual
+test [1]. These methods utilize the system-wide measurement
+information (i.e., all available power flow and injection measurements),
+and in practice the largest normalized residual test
+performs well in isolating some random bad data (especially
+single bad data). However, the reliance on system-wide information
+can be a drawback, because the procedure can be subject
+to simultaneous bad data or data attacks as demonstrated in
+[5]-[7], [9]-[12]. In addition, it is well-known that the largest
+normalized residual test cannot isolate multiple interacting conforming
+bad data ([1, Ch. 5]. The proposed procedure, on the
+other hand, is opposite to the existing methods regarding the
+scale of information use. It utilizes only local transmission line
+and bus measurements, and attempts to isolate the bad data
+locally. As shall be seen, this strategy can be complementary
+to the existing methods in that it can isolate part of the multiple
+bad data that are otherwise not detectable by the existing
+methods. Among the more recent work, of particular relevance
+are methods for isolating multiple interacting conforming bad
+data (e.g., [15]-[20]). However, the current work is different.
+It aims at an easy-to-implement procedure that isolates part of
+the bad data (i.e., only the bad data on transmission lines). For
+each transmission line, the online computation requirement for
+the proposed scheme includes only the evaluation of a simple
+scalar trigonometric function and a comparison of two scalars.
+On the other hand, the previous work attempts to isolate general
+bad data with more expensive centralized computations. For
+instance, [15], [16] require solving integer programming problems
+and [17], [18], [20] involve solving linear programming
+problems. Furthermore, even in the case without measurement
+noise (a typical situation considered in BDD analysis), the previous
+methods can result in bad data vector estimates which are
+not the true ones. Contrary to this, even though the proposed
+method is not expected to find all bad data, the ones isolated are
+guaranteed to be bad data in the noiseless case.
+Outline: Section II describes the model for BDD and states
+the key assumptions of this paper. The problem considered is
+also described. In Section III the proposed solution is described
+in detail. Section IV describes an extension to improve the effectiveness
+of the proposed solution. Section V demonstrates
+the proposed solution with a case study.
+II. MODEL, ASSUMPTION, AND PROBLEM STATEMENT
+A. Standard BDD and Its Limitations
+Let us briefly describe the basics of BDD. The states of a
+power network contain two groups: a) bus voltage phase angles
+denoted by a vector and b) bus voltage magnitudes denoted by
+a vector . It is assumed that one of the buses is a reference, and
+the corresponding voltage phase angle is zero. To estimate the
+states two types of power measurements are available: a) active
+power measurements (flows on transmission lines and injections
+at buses) denoted by a vector and b) reactive power measurements
+(flows on transmission lines and injections at buses) denoted
+by a vector . In general, a linearized model relating the
+states and the measurements is sufficient to analyze state estimation
+and the subsequent BDD. Let denote the state deviation
+from the linearization expansion point. The vector of linearized
+measurement deviations, denoted , can be expressed in
+where is the Jacobian of the measurement function, and
+is a vector of bad data or data attack. From (1), a weighted least
+squares problem [1, (5.2)] is solved to obtain the state estimate
+as , where is a positive definite
+diagonal weighting matrix, whose entries are typically the reciprocals
+of the variance of the measurement noise. To detect
+possible anomaly in the measurements, the following measurement
+residual vector is formed
+(1)
+(2)
+In a typical BDD algorithm, if (vector 2-norm for instance)
+is too large then an alarm is sounded. This standard
+BDD algorithm performs reasonably well when detecting single
+random measurement errors. However, it can fail in face of a
+malicious coordinated data attack on multiple measurements.
+This observation was first reported in [5]. In particular, [5] investigated
+additive data attack of the form , for some
+vector . Then (2) implies that . Hence, data attack of the
+form can pass BDD test, and is referred to as unobservable
+data attack [9], [11] (also known as false data injection
+attack [5], stealth attack [6], [21], etc.).
+B. Measurement Model With Known Voltage Magnitudes
+The unobservable data attack poses a fundamental limitation
+to the standard BDD algorithm. To overcome this limitation a
+change of the standard BDD practice is proposed in this paper.
+As the level of penetration of distributed power generation increases,
+local control of voltage magnitudes [e.g., automatic
+voltage regulator (AVR)] becomes more common [22]-[25].
+This makes it difficult to tamper with the voltage magnitude
+measurements because they are closely monitored. In addition,
+end-to-end authentication [26] can provide measurement communication
+security so that the communicated measurements
+cannot be compromised. In this paper, we follow these trends
+and make the assumption that the voltage magnitudes on some
+buses are known to the network operator. This paper focuses on
+the transmission lines where the voltage magnitudes at the two
+end buses are known. In the sequel, let and denote the two
+end buses of such a transmission line, and let and denote
+their bus voltage magnitudes, respectively. In fact, to simplify
+the presentation it is further assumed that
+(3)
+This coincides with the well-established DC power flow assumption
+[1], [2]. Furthermore, in Section III-H it will be seen
+that the assumption in (3) is not more restrictive than the one that
+both and are known (but not necessarily fixed at unity).
+The immediate consequence of (3) is that the phase angle
+is the only unknown state related quantity in the expression of
+transmission line power flow. The active power flow measurement
+can be well approximated by a linear function:
+where is the series susceptance of the transmission line and
+assumed to be nonzero. is the active power measurement
+error. The symbol denotes , and
+. The expression in (4) is an approximation of the true
+nonlinear relation
+where is the series conductance of the transmission line. In
+this paper, the reactive power flow measurement (as a function
+of phase angle difference ) is considered to be nonlinear, as
+the linearization is inaccurate:
+where is the reactive power measurement error. In (6),
+the shunt elements of the transmission line are ignored. The
+exact expressions for the power injection measurements are
+omitted as they are not relevant to the discussion in this paper.
+C. Problem Statement
+The measurement errors and typically contain
+two parts: a) a gross error due to data attack or bad data,
+and b) a random measurement noise. The data attack isolation
+problem in this paper aims to determine whether or not the data
+gross error parts of and are zero in the power
+flow measurements in (4) and (6), for each transmission line
+where and satisfy (3) (or simply that both and
+are known). The required information for the proposed procedure
+includes power flow measurements and , the
+measurement models (4) and (6) and the assumed knowledge of
+voltage magnitudes in (3).
+III. DATA ATTACK ISOLATION USING REACTIVE POWER
+MEASUREMENT RESIDUAL
+A. Reactive Power Measurement Residual
+The proposed data attack isolation procedure is similar to the
+standard residual-based BDD check, except that the residual is
+defined differently. In particular, the following reactive power
+measurement residual is proposed:
+16
+IEEE TRANSACTIONS ON SMART GRID, VOL. 5, NO. 1, JANUARY 2014
+is calculated based on known information: active power
+measurement , reactive power measurement and line
+physical properties and . To motivate the definition in
+(7), substitute (4) and (6) into (7) and this yields
+(8)
+(9)
+(10)
+(11)
+This means that for the proposed residual the measurement error
+dependency is local since depends on and
+but not on the data attack on any other measurements. This enables
+data attack isolation. In contrast, for the standard measurement
+residual in (2) data attack dependency is not local, as
+the residual sensitivity matrix is typically
+full. also depends on the phase angle difference
+, and this dependency will be explained subsequently. The
+line properties and are given throughout this paper. To
+simplify the notion, in the subsequent discussions the expressions
+for (7) and (8) will be simplified: The subscripts “ ”
+will be dropped and the phase angle difference will be denoted
+. That is, (7) simplifies to
+and (8) simplifies to
+(4)
+(5)
+(6)
+(7)
+Regardless of the value of is zero when both and
+are zero. Conversely, is with probability one nonzero if
+and are random with continuous probability distributions.
+Fig. 1 shows the absolute value of as a function of , for
+some typical settings with p.u., p.u., and
+taking values of 0, 10, and 20 degrees (about 0, 0.17, 0.35 in
+radians, respectively). In Fig. 1 the attack strength is presented
+in “equivalent phase angle” , whose unit is degrees (or
+radians). The dependency of on is linear and it is not
+shown. Fig. 1 demonstrates that is a reasonable indicator of
+( is also a good indicator of because of the linear dependency).
+However, is not perfect. Certain nonzero values
+of and can make zero or very small. Nevertheless,
+the quality of as a data attack indicator can be improved if
+more samples of the line power flow measurements are available.
+This will be explained in Section IV.
+B. Data Attack Isolation Using Reactive Power Residual
+If the purpose of data attack isolation is simply to determine
+whether and or not, the data attack alarm
+should be sounded for transmission line whenever
+. However, in practice both and are corrupted by
+noise. Therefore, the data attack alarm should be sounded whenever
+for some appropriately chosen threshold . The
+choice of and the associated analysis are studied in sequel. In
+general, the active power measurement error is the sum of two
+parts:
+SOU et al.: DATA ATTACK ISOLATION IN POWER NETWORKS USING SECURE VOLTAGE MAGNITUDE MEASUREMENTS
+Let
+be a random variable such that
+Fig. 1. Reactive power measurement residual in absolute value
+tion of active power measurement error .
+as a funcwhere
+represents gross error due to data attack or bad data,
+and represents measurement noise which is assumed to be a
+Gaussian random variable with zero mean and known variance
+(i.e., ). Similarly, the reactive power measurement
+error is
+(12)
+with . Substituting (11) and (12) into (10) implies
+that is a random variable whose distribution is a nonlinear
+function of and . Therefore, a statistical approach
+should be used to determine the decision threshold for
+sounding the alarm. This paper investigates the use of hypothesis
+testing (e.g., [27]). In the hypothesis testing, the test statistics
+is the residual . The null hypothesis is that there is no
+data attack (i.e., and is between its allowable
+limits). The decision threshold is a function of the significance
+level . is defined to be the maximum probability,
+over all possible distributions under the null hypothesis, such
+that . This is the worst case false alarm probability.
+Once is determined, it is also necessary to compute the probability
+that when the null hypothesis is not true. It
+is the probability of correctly sounding the alarm when there is
+an attack, and this probability is known as the power of the test
+associated with . In summary, it is important to calculate the
+probability .
+C. Bounding the Probability
+Because of the trigonometric terms in (10),
+difficult to characterize exactly. However, it can be bounded:
+Proposition 3.1: For any given and , define as
+is
+Let
+be a random variable such that
+(13)
+(14)
+where “ ” above means the pattens follow indefinitely. Denote
+and as the expected value and standard deviation (i.e.,
+the square root of variance) of , respectively. Then for all
+and , it holds that
+Proof: See Appendix.
+Proposition 3.1 provides the lower and upper bounds for the
+difficult-to-compute probability (with substituting
+in the statement). In fact, is expanded into the sum of
+and which respectively correspond to the linear and higher
+order terms of a Taylor series expansion of with respect to
+. The bounds make use of the probability distribution of
+which is Gaussian (because is), but only the first and second
+order statistics of are used. Intuitively, some information of the
+higher order terms can be ignored because the measurement
+noise is typically “small” (i.e., having small variance).
+defined in (13) can be regarded as a version of the reactive
+power measurement residual which is due to gross error and
+. Comparing (10) and (13), is simply when and
+contain only their respective gross error components
+and .
+D. Computing Decision Threshold
+The probability upper bound in (16a) can be used to compute
+an upper bound for the decision threshold , for any given significance
+level . The following statement provides the
+basis.
+Proposition 3.2: Let be given. Let be defined
+in (14). Then with defined in (13) and
+defined as
+Also, let and be the expected value and standard deviation
+of in (15), respectively. Let denote the inverse
+of the cumulative distribution function of the standard Gaussian
+distribution. For any given and such that
+, if satisfies
+then
+.
+Proof: See Appendix.
+17
+(15)
+(16a)
+(16b)
+(17)
+(18)
+To find the hypothesis testing decision threshold , (18) is
+applied to the case of the null hypothesis (i.e.,
+but can vary in its range denoted as ). Under the null
+hypothesis, is always zero regardless of the value of . To
+ensure that a given significance level is observed (i.e., worst
+case false alarm probability over all is less than ),
+can be chosen, for any such that , as
+where
+was defined for notational convenience. The threshold defined
+in (19) is a function of and , when the network properties
+and are given. In principle, the expression for
+in (19) can be minimized with respect to . However, in typical
+situations the term in (19) is on the
+order of unity. For instance, when and , then
+. If in addition
+then the decision threshold can be well approximated as
+where is as large as possible (so that is least conservative),
+provided that (21) is still valid. The following statement provides
+a simple criterion to check whether (21) is justified, based
+on and :
+Proposition 3.3: Let be defined by (20) and (17). Then
+with , it holds that
+18
+IEEE TRANSACTIONS ON SMART GRID, VOL. 5, NO. 1, JANUARY 2014
+In addition, assume that
+by
+. Then
+and
+Consequently, the following inequalities hold:
+(19)
+(20)
+(21)
+(22)
+(23)
+. Define
+(24)
+(25)
+ples). Then both and
+according to (25) the ratios
+100.
+Proof: See Appendix.
+A consequence of Proposition 3.3 is that if and
+, then (25) implies that (21) holds for relatively
+large . This in turn implies that the decision threshold can
+be approximately found by (22). In a typical setting,
+p.u., p.u., range between and degrees,
+p.u. and p.u. ([2, Ch. 8] examare
+less than 0.042, and
+and are at least
+E. Simplified Analysis of the Probability
+Assume that and . This can be the
+case, for instance, resulting from the fact that (21) holds and
+is defined through (19) or (22). Then applying the probability
+bounds in (16a) and (16b) with replacing yields
+It is more convenient to characterize the probability
+because . Indeed,
+(26)
+(27)
+For a given is a function of and , which in
+turn are functions of and . indicates the strength of
+the data attack. When (e.g., when and ),
+. This corresponds to the
+significance level , the false alarm probability under the null
+hypothesis. When increases (as and increase),
+increases as well. This agrees with the intuition
+that a more aggressive data attack (as measured by ) leads
+to a higher probability for alarm. On the other hand, when
+decreases, the decision becomes more sensitive to and .
+This also agrees with the intuition. With more accurate measurements,
+it becomes less ambiguous to decide whether or not
+to sound the alarm.
+For a numerical illustration, consider the example situation in
+the end of Section III-D. Let (22) be used to determine with
+and . Also, let and .
+Fig. 2 (blue dashed line) shows the probability
+as a function of when and degrees. The
+green solid line shows the value of indicating that
+correlates with . Another scenario with less significant
+noise is also considered ( and ).
+The corresponding value is plotted as the blue
+solid line with square markers. This indicates a more sensitive
+decision rule, demonstrating the effect of . Finally, in Fig. 2
+the red circles correspond to empirical values of
+(red circles) obtained through Monte Carlo simulation with
+samples for each selected value of , for the large case.
+Note that in Fig. 2 the theoretical model is close to the empirical
+results.
+SOU et al.: DATA ATTACK ISOLATION IN POWER NETWORKS USING SECURE VOLTAGE MAGNITUDE MEASUREMENTS
+19
+Fig. 2. The probability
+the measurement noise
+empirical values of
+for two cases with different intensity of
+. Also plotted is the data attack indicator and some
+based on Monte Carlo simulation.
+F. Summary of Data Attack Isolation Procedure
+When and , the proposed hypothesis
+testing based data attack isolation approach for any particular
+transmission line satisfying (3) is as follows:
+1) Calculate according to (20) and (17).
+2) Choose significance level (e.g., ). Use (25) to
+determine the largest possible such that (21) holds.
+3) Define decision threshold based on (22).
+4) Form reactive power measurement residual according
+to (9).
+5) Hypothesis testing: sound BDD alarm if and only if
+.
+G. Data Attack Isolation Using Secure PMU Measurements
+The data attack isolation procedure presented in this section
+is one of the many ways to utilize the power flow equations
+(28)
+and locally available secure information. Specifically, the previous
+discussions assume that . From (28) the
+unknown is eliminated and a statistics containing
+and is obtained and analyzed. Now suppose is also
+available from secure PMU then more options for error statistics
+are possible. For example, the assumption that both and
+are known can be relaxed. Alternatively, two statistics, each linearly
+depending only on or , can be formed from
+(28). This provides a framework to incorporate emerging equipment
+such as PMU into the legacy measurement system to improve
+its data attack isolation capability.
+H. Discussion on the Voltage Magnitude Assumption in (3)
+The assumption in (3) (i.e., ) is not more restrictive
+than the assumption that both and are known.
+Indeed, the procedure to eliminate the unknown variable in (28)
+(29)
+(30)
+can be proceeded as long as and are known-they do not
+need to be fixed at unity.
+In practice voltage magnitude sensors have finite precision.
+Therefore, it is necessary to analyze the reactive power measurement
+residual when and , where
+and represent small but nonzero measurement mismatches.
+For simplicity, consider the noiseless case where in
+(11) and in (12). Then, with the imperfect and
+substituted in (28), the expression for the reactive power measurement
+residual becomes
+where is defined in (13) and the dominating part of the error
+term, denoted , can be expressed in
+For normal network operation the phase angle difference is
+small (i.e., ). Hence,
+The expression in (29) means that there is a component in
+unrelated to the data attack (the data attack is represented in ).
+represents the inaccuracy due to imperfect voltage magnitude
+information. In addition, to maintain the desired false alarm rate
+in face of , the decision threshold defined in Section III-D
+should be increased. The amount of increase should be comparable
+to the value in (30). The increase in the decision threshold
+decreases the power (i.e., the probability for data attack detection)
+of the proposed procedure. For example, consider the previous
+numerical illustration with the additional condition that
+and are not precisely known. Let (i.e., 1%
+of nominal voltage magnitude). The residuals with imperfect
+voltage magnitudes and the increased threshold are illustrated
+in Fig. 3. In summary, the imperfect information of voltage
+magnitudes results in inaccuracy of and increased decision
+threshold , both undesirable from the viewpoint of the proposed
+bad data isolation scheme. This motivates the assumption
+in (3) to have very accurate voltage magnitude measurements.
+On the other hand, for attacks with larger magnitudes is typically
+larger (see Fig. 3) and the effect due to becomes less
+significant. In another situation, if and appear as unknown
+but uniform biases, then the effect of the voltage magnitude mismatch
+is expected to be insignificant since . Finally, notice
+that the effect of the mismatch is local since the residual is
+based entirely on local measurement information.
+IV. IMPROVED DATA ATTACK ISOLATION USING RESIDUALS
+AT MULTIPLE TIME INSTANCES
+The analysis in Section III-E [particularly (27)] indicates that
+if is small, then the probability of alarm
+would be small. Therefore, to avoid detection the
+attacker could manipulate and so that is set to zero (i.e.,
+minimizing with respect to ). To counter this, it
+is proposed in this paper that the network operator should utilize
+reactive power measurement residuals due to independent measurements
+from multiple time instances. In particular, let be
+the number of time instances when the measurements are available.
+For time instance index , let be the
+20
+IEEE TRANSACTIONS ON SMART GRID, VOL. 5, NO. 1, JANUARY 2014
+Fig. 3. Reactive power measurement residuals calculated with imperfect
+voltage magnitudes (i.e., through (29)). Magenta dashed line is the decision
+threshold with perfect voltage magnitudes. Black solid line is the increased
+decision threshold taking into account the imperfect voltage magnitudes.
+vectors of available active power measurements for the corresponding
+time instances. Similarly, for the considered transmission
+line, let and be the quantities defined in Section III
+for time instance index . The improved data attack isolation
+scheme basically follows the procedure in Section III-F with the
+exception in step 4) and 5): Multiple reactive power measurement
+residuals are formed
+The alarm is sounded if
+(31)
+(32)
+As discussed earlier, the attackers' goal is to make a nontrivial
+choice of and (i.e., and and are
+reasonably small) to satisfy
+where (defined in (13)) is treated as a function of and
+and . The network operator's hope is that if is large enough
+it becomes impossible to satisfy (32) for any reasonable choice
+of . This is indeed true, as formalized by the following
+statement:
+Proposition 4.1: If , then for any
+such that for , there does not exist
+with such that (32) is satisfied.
+Proof: See Appendix. .
+To demonstrate the benefit offered by utilizing the measurements
+from multiple time instances, the residual corresponding
+to degrees in Fig. 3 is revisited. Here it is assumed that
+in addition to having the measurement for degrees, four
+measurements corresponding to 90%, 95%, 105%, and 110%
+of this value of are available. Fig. 4 shows the proposed
+residual calculated using one measurement and the time-maximum
+residual in (31). While the data attack can still be missed
+if is too small in amplitude, the improved time-maximum
+Fig. 4. Reactive power measurement residuals calculated with the measurement
+at one time instance and the maximum residual calculated with measurements
+at multiple time instances.
+residual consistently detects the presence of when it becomes
+larger. In particular, it no longer misses the alarm when
+is about 35 degrees, as in the original case.
+V. NUMERICAL CASE STUDY
+In this section the data attack isolation in the IEEE 14-bus
+benchmark system [28] in Fig. 5 is demonstrated. In this example,
+the values of the series susceptance and conductance of
+the transmission lines, the generator supplies, bus loads, and bus
+voltages (both magnitude and phase angle) are from [28], [29].
+However, the line charging and tap ratio of the lines and the
+shunt susceptance of the buses are removed. This is to ensure
+that the power measurement expressions in (28) and (33) are
+sufficiently accurate. Nevertheless, as noted in Section III-G,
+the idea of the proposed method can be applied to handle the
+case where the power flow measurements are not truly represented
+by (28) or (33).
+In this example, the active and reactive power injections at
+the following seven buses are measured: 1, 4, 5, 7, 8, 10, and
+13. In addition, the active and reactive power flows are measured
+on the following thirteen lines: (1,2), (3,2), (2,4), (2,5),
+(7,4), (9,4), (5,6), (6,11), (6,12), (6,13), (11,10), (12,13), and
+(14,13). For instance, (3,2) corresponds to the power flow measurements
+from bus 3 to bus 2. The meters of the measurement
+system are indicated by black squares in Fig. 5 and the system
+is verified to be observable. In total there are 40 measurements.
+The non-corrupted measurements are computed using the following
+nonlinear expressions for power flows [1], [2]:
+(33)
+Each measurement is corrupted by independent additive
+Gaussian noise whose variance is 0.1% of the absolute value of
+the corresponding non-corrupted measurement.
+The data attack is unobservable according to [5], [9], [11],
+[21]. The attacker has the information of the Jacobian matrix
+SOU et al.: DATA ATTACK ISOLATION IN POWER NETWORKS USING SECURE VOLTAGE MAGNITUDE MEASUREMENTS
+21
+Fig. 5. IEEE 14-bus benchmark system. The meters are indicated by black
+squares. The figure is adapted from [28].
+of the measurement function, evaluated at the operating point
+provided by [28]. The attacker uses the algorithm in [10], [30]
+to compute the unobservable data attack on the measurements.
+The attacker typically needs to attack, in addition to the target
+measurement, several other measurements which are required
+to make the attack unobservable. For example, the attacker aims
+to compromise the active power injection measurement at bus
+1, which is referred to as the target measurement in the attack.
+However, to ensure that the attack is unobservable, the attacker
+needs to compromise additionally the following measurements:
+the reactive power injection at bus 1, the active power injection
+at bus 5 and the active and reactive power flows on line (1,2).
+In total, the data attack compromises five measurements, and it
+can be described by the vector
+(34)
+where, for our example, is the normalized attack vector
+having forty entries with five being nonzero corresponding
+to the five compromised measurements. is normalized
+in the sense that the entry corresponding to the target measurement
+is unity (in the example, the target measurement
+is the active power injection at bus 1). is the absolute
+value of the target measurement. can take the following
+values: % % % % , indicating the relative
+strength of the data attack.
+In addition to the mentioned example attack scenarios, in this
+section we consider other attack scenarios including all target
+measurement/attack strength pairs (in total 40 4 pairs). For
+each attack scenario, the network operator first estimates the
+states by solving a nonlinear weighted least squares problem [1,
+(2.10)] using the Gauss-Newton method with Armijo step-size
+rule [31]. Upon convergence of the Gauss-Newton method, the
+network operator computes the vector of measurement residuals
+for all 40 active and reactive injection and line power flow
+measurements. These residuals are used to calculate the normalized
+residuals [1], [2] for each measurement. Measurement is
+declared attacked if
+where is the standard deviation of the th entry of and
+the threshold is chosen so that the false alarm probability
+is no more than 0.5%. It turns out that .
+Next, the proposed data attack isolation procedure described
+in Section III-F is applied to detect whether each of the 13
+measured transmission lines is compromised or not (though the
+procedure would not distinguish between whether the compromised
+measurement is active power or reactive power or both).
+For each measured transmission line, the decision threshold
+(for line , for example) is found with the relevant parameters
+being
+and . These thresholds are further increased
+by an amount specified in (30) for to account
+for the imperfect knowledge of the voltage magnitudes.
+For instance, the threshold for line (1,2) is about 0.598. This
+corresponds to step 3) in the procedure in Section III-F. Then,
+the residual for each measured transmission line is computed
+with two modifications to the procedure in Section III-F:
+a) the measurement expressions in (28) are used, and b) the
+voltage magnitudes and are perturbed from their nominal
+values (perturbation is random and uniformly distributed
+up to %). The modifications are introduced to simulate the
+effect of the lack of the assumption in (3). That is, instead of (9)
+the following expression is used to form the residual for
+line :
+where and are perturbed from nominal values. Computing
+the residuals for all transmission lines finishes
+step 4) in the procedure in Section III-F. After that, the criterion
+is checked to determine whether or not each of
+the 13 measured transmission lines is compromised.
+The above descriptions correspond to one sample of a random
+experiment, since measurement noise is random. In total 1000
+samples of the above random experiment are obtained in this
+case study, for each attack scenario with a particular pair of
+target measurement and attack strength. For each data attack
+scenario, the number of attacked transmission lines varies between
+0 to 13 (in total there are 13 lines measured in the measurement
+system). Also, in some of the 1000 random samples
+the Gauss-Newton algorithm for state estimation fails to converge.
+For each convergent sample in each data attack scenario,
+a transmission line is declared attacked by the normalized
+residual test if
+(36)
+(35)
+where and are the measurement indices of the active
+and reactive power flows on transmission line , respectively.
+The numbers of misses (i.e., the transmission lines which are attacked
+but not declared attacked) and the number of false alarms
+(i.e., the transmission lines which are not attacked but declared
+attacked) can be counted. Note that in this part of the study we
+only consider the miss and false alarm for line flows but not for
+bus injections because the proposed method does not handle the
+injection case. We define the following relative average number
+of miss and relative average number of false alarm (FA in short),
+22
+IEEE TRANSACTIONS ON SMART GRID, VOL. 5, NO. 1, JANUARY 2014
+Fig. 6. Relative average number of miss for the normalized residual test and
+the proposed reactive power measurement residual test. The attack strength is
+%. Blue dashed lines indicate the data attack scenarios where the
+normalized residual test performs worse, whereas red solid lines indicate the
+contrary.
+Fig. 8. Relative average number of miss for the normalized residual test and
+the proposed reactive power measurement residual test. The attack strength is
+%. The negative crosses indicate the data attack scenarios where all
+1000 random samples fail to converge.
+Fig. 7. Relative average number of false alarm for the normalized residual test
+and the proposed reactive power measurement residual test. The attack strength
+is %. The proposed method is uniformly no worse than the normalized
+residual test.
+for a data attack scenario with a particular pair of target and attack
+strength:
+(37)
+Similarly, we can define the corresponding relative average
+miss and false alarm for the proposed test based on reactive
+power measurement residuals. In this case, instead of (36)
+transmission line is declared attacked if ,
+where is the alarm decision threshold for line . Fig. 6
+shows the relative average number of miss for the normalized
+residual test and the proposed test, for all attack scenarios
+Fig. 9. Relative average number of false alarm for the normalized residual test
+and the proposed reactive power measurement residual test. The attack strength
+is %. The negative crosses indicate the data attack scenarios where all
+1000 random samples fail to converge.
+with different attack targets and the data attack strength being
+%. Fig. 7 shows the corresponding relative average
+number of false alarm. It can be seen that even though the
+proposed method has worse miss performance than the normalized
+residual test in some scenarios (i.e., the cases with
+red solid lines in Fig. 6), it detects the attacks in certain cases
+where the normalized residual test fails (i.e., the cases with
+blue dashed lines in Fig. 6). In addition, Fig. 7 indicates that
+the proposed method does not incur any false alarm while
+this can be a serious problem for the normalized residual test.
+These detection and false alarm properties, coupled with the
+computation efficiency, make the proposed data attack isolation
+method a promising complement to standard methods such as
+the normalized residual test.
+For the data attack scenario with attack strength being
+%, the corresponding error indicators are shown in Figs. 8
+and 9. For the scenarios with % and %, the
+SOU et al.: DATA ATTACK ISOLATION IN POWER NETWORKS USING SECURE VOLTAGE MAGNITUDE MEASUREMENTS
+23
+Fig. 10. Relative average number of miss for the normalized residual test and
+the proposed reactive power measurement residual test. The attack strength is
+%.
+Fig. 12. Relative average number of miss for the normalized residual test and
+the proposed reactive power measurement residual test. The attack strength is
+%. The negative crosses indicate the data attack scenarios where all
+1000 random samples fail to converge.
+Fig. 11. Relative average number of false alarm for the normalized residual test
+and the proposed reactive power measurement residual test. The attack strength
+is %.
+results are shown in Figs. 10-13. These figures again demonstrate
+that the proposed method has much better false alarm performance
+while the miss performance is complementary to that
+of the normalized residual test.
+A. Detailed Study for the Case Targeting Active Power
+Injection at Bus 1
+For the rest of the case study the scenarios with target measurement
+being the active power injection at bus 1 are focused
+for more detailed examination. These scenarios correspond to
+the cases related to measurement 1 in Figs. 6-13. These attack
+scenarios involve five compromised measurements: the active
+power injection at bus 1 (i.e., the target measurement), the reactive
+power injection at bus 1, the active power injection at
+bus 5 and the active and reactive power flows on line (1,2). The
+range of attack strength is slightly larger in this part, with
+% % % % % % % % .
+Fig. 13. Relative average number of false alarm for the normalized residual test
+and the proposed reactive power measurement residual test. The attack strength
+is %. The negative crosses indicate the data attack scenarios where all
+1000 random samples fail to converge.
+Data attack detection (i.e., detecting the presence of any attack)
+is first considered. Standard methods include the measurement
+residual based test and the largest normalized residual
+test [1], [2]. In the test, an alarm is sounded if and only if
+where is the covariance matrix of the measurement noise, and
+is chosen so that the probability of false alarm when there
+is no data attack is no more than 0.5%. The actual value of
+is about 28.3. In the largest normalized residual test, an alarm is
+sounded if and only if
+(38)
+(39)
+where is chosen, again, so that the false alarm probability
+is no more than 0.5%. The actual value of is about 2.58.
+24
+IEEE TRANSACTIONS ON SMART GRID, VOL. 5, NO. 1, JANUARY 2014
+Fig. 14. The ensemble average of the weighted sum of measurement residuals
+in (38) for the test. On average only when % is the
+weighted sum large enough to warrant the BDD alarm.
+Fig. 15. The ensemble average of the largest normalized residuals in (39) for
+the largest normalized residual test. On average only when % is the
+residual large enough to warrant the BDD alarm.
+For the test and the largest normalized residual test, the detection
+considers all possible attacks (i.e., both line power flows
+and bus injections). On the other hand, to detect the attacks
+on the lines the proposed reactive power measurement residuals
+can be used. Fig. 14 shows the ensemble average (over
+1000 samples) of the weighted sum of the measurement residuals
+in (38). Fig. 15 shows the ensemble average of the
+largest normalized residuals in (39). Fig. 16 shows the ensemble
+average of the proposed reactive power measurement residuals
+for all 13 measured transmission lines. Figs. 14 and 15 indicate
+that the standard methods such as the test and the largest
+normalized residual test are not sufficient to detect the data attack.
+On the contrary, the proposed reactive power measurement
+residual test can complement the standard methods to detect the
+data attack much earlier. In addition, Fig. 16 verifies that the
+proposed procedure correctly isolates the attacked transmission
+line [i.e., line (1,2)]. The residuals for the rest of the lines remain
+small, and they are below the smallest threshold for the alarm.
+Next, data attack isolation is considered. For this the comparison
+is between the normalized residual test as in (35) (can
+be used for both line and bus measurements) and the proposed
+Fig. 16. The ensemble average of the proposed reactive power measurement
+residuals in absolute value for all transmission lines. The residuals associated
+with line (1,2) increase rapidly in absolute value with the attack strength .
+On average the data attack is detected when %. On the other hand,
+the residuals associated with the rest of the lines do not increase significantly to
+lead to any false alarm.
+residual test (for lines only). To demonstrate the attack isolation
+capability of the normalized residuals the following empirical
+relative frequencies are defined: a random experiment sample
+belongs to “miss-all” event if and only if
+where is the index set of all measurements which are attacked.
+This event means that the normalized residual test fails
+to detect any attack on the attacked measurements. The relative
+frequency (over all 1000 samples) of samples in the miss-all
+event is denoted . In addition, the random sample belongs
+to “miss-partial” event if and only if
+This event means that the normalized residual test fails to detect
+some attacks on the attacked measurements. The relative frequency
+of samples in the miss-partial event is denoted .
+Further, the random sample belongs to “false-alarm” event if
+and only if
+This event means that the normalized residual test wrongly
+declares some measurements to be attacked when they are in
+fact not attacked. The relative frequency of samples in the
+false-alarm event is denoted . Table I shows these empirical
+relative frequencies. In order to compare with the proposed
+data attack isolation method which only works for line power
+flow measurements, in Table II the above empirical relative
+frequencies are modified where the index set in (40)
+and (41) are replaced by where is a subset of
+containing only the indices of the transmission lines whose
+active or reactive power flows are measured. In addition, in
+(42) the index chooses from the complement of , relative
+to the index set of all line measurements. To compare against
+(40)
+(41)
+(42)
+SOU et al.: DATA ATTACK ISOLATION IN POWER NETWORKS USING SECURE VOLTAGE MAGNITUDE MEASUREMENTS
+25
+Fig. 17. Relative frequency of attack declaration for different lines. The detection
+is based on the reactive power measurement residuals. %. Red
+bars correspond to the lines which are indeed attacked. The other lines are not
+attacked and are never mistakenly declared attacked by the proposed data attack
+isolation scheme.
+TABLE I
+EMPIRICAL ERROR RELATIVE FREQUENCIES CHARACTERIZING THE DATA
+ATTACK ISOLATION CAPABILITY OF THE NORMALIZED RESIDUAL TEST. ALL
+ATTACKED MEASUREMENTS (INJECTION AND LINE FLOW) ARE INCLUDED
+IN THE CALCULATION
+TABLE II
+EMPIRICAL ERROR RELATIVE FREQUENCIES CHARACTERIZING THE DATA
+ATTACK ISOLATION CAPABILITY OF THE NORMALIZED RESIDUAL TEST. ONLY
+MEASURED TRANSMISSION LINES ARE INCLUDED IN THE CALCULATION
+TABLE III
+EMPIRICAL ERROR RELATIVE FREQUENCIES CHARACTERIZING THE DATA
+ATTACK ISOLATION CAPABILITY OF THE PROPOSED REACTIVE POWER
+MEASUREMENT RESIDUAL TEST. ONLY MEASURED TRANSMISSION LINES
+ARE INCLUDED IN THE CALCULATION
+Fig. 18. Relative frequency of attack declaration for different measurements.
+The detection is based on the normalized residuals. %. Red and
+dashed bars correspond to the measurements which are indeed attacked (1, 3,
+8, 21, 28). Blue bars correspond to the measurements which are in fact not attacked.
+In addition to failing to identify the attacked measurements, the normalized
+residual test leads to significant false alarms.
+the proposed method, the corresponding empirical error probabilities
+are shown in Table III. The comparison by Tables II
+and III further suggests that the proposed method exhibits
+much better attack isolation capabilities especially for attack
+with significant strength (e.g., % %). To examine
+more closely a specific scenario of significant attack strength
+(i.e., %), Fig. 17 shows the relative frequency out of
+the 1000 samples, for each measured line (in total 13 lines), of
+the sample instances where the reactive power measurement
+residual is larger than its respective threshold in absolute value
+(i.e., declared attacked). On the contrary, Fig. 18 shows the
+corresponding relative frequencies of attack declaration for
+all 40 measurements, for the normalized residual test. Fig. 18
+indicates that even if the BDD alarm is sounded, the normalized
+Fig. 19. Absolute value of the reactive power residual on line (1,2) in the noiseless
+setup for a larger range of .
+residual information is not helpful in isolating the measurements
+which are under attack. This explains the relatively large
+miss and false alarm relative frequencies displayed in the first
+column of Table I.
+While in this example the attack strength is limited to
+%, Fig. 19 shows the reactive power measurement
+residual on line (1,2) for up to % in the noiseless setup.
+The result indicates that with an appropriate nonzero value of
+(about 700%) the data attack might remain undetected even
+if the proposed detection procedure is employed. Nevertheless,
+it should be emphasized that such large values of might not
+be realizable, as the Gauss-Newton iterations might not even
+converge.
+26
+IEEE TRANSACTIONS ON SMART GRID, VOL. 5, NO. 1, JANUARY 2014
+APPENDIX A
+A. Proof of Proposition 3.1
+Substituting the expressions
+into (10) yields
+Expanding the terms as
+the definitions of and
+. Therefore,
+and
+and
+and applying
+in (13), (14) and (15) yields
+B. Summary of the Numerical Case Study and Discussions
+From the case study it can be concluded that the proposed
+reactive power measurement residuals can be used to complement
+the detection and isolation of data attack or bad data as
+indicated by Figs. 6, 8, 10, and 12. The proposed method does
+not detect the presence of all attacks on the lines because of the
+limited information available for the distributed localized test.
+As indicated by (8), the proposed residual is affected jointly by
+the physical properties of the line, the actual phase angle difference,
+and the strength of the active and reactive power attack/bad
+data. Nevertheless, the case study suggests that the proposed
+method has excellent false alarm performance as it incurs
+no false alarm in Figs. 7, 9, 11, and 13. Combined with the
+fact that the proposed residuals can be computed efficiently in
+a distributed fashion, this makes the proposed data attack isolation
+method an attractive complement to standard data attack
+detection/BDD methods such as the test and the normalized
+residual test.
+The numerical case study also suggests that improving the
+miss performance of the proposed residual test is a worthwhile
+research effort. Improving the quality of the estimate phase
+angle difference can be a step forwards this direction. For
+instance, instead of utilizing the linearized active power measurement
+equation in (28), the following nonlinear one can be
+utilized [cf. (33)]:
+In particular, if
+, then it is possible to form
+as a corrupted estimate of the phase angle difference . This
+estimate can be more accurate than the linear one studied in this
+paper, and it can be used in (43) to form measurement residuals
+for data attack isolation. Its analysis can be a potential research
+topic of great interest.
+VI. CONCLUSION
+It is well-known that secure measurements can help contribute
+to the defense against data attack by enabling the network
+operator to detect “unobservable” type attack. By combining
+the knowledge of secure measurements and power system
+specific measurement model, an unconventional measurement
+residual can be obtained to achieve data attack isolation in
+addition to the standard BDD. Also, if utilized appropriately
+the increased amount of available information (a main feature
+of smart grid) can indeed lead to additional benefits in data
+security. This is demonstrated by using measurements from
+multiple time instances.
+(43)
+is true since
+union of
+This shows (6a). In (44), the first inequality is true since
+. The second one
+is in the
+and
+. The third one is a consequence of the
+Chebyshev's inequality. Similarly, for (16b):
+B. Proof of Proposition 3.2
+The definition of in (14) implies that
+(16a) states that if satisfies
+then
+Since
+. The inequality in (45) is implied by
+, (46) is the same as
+where is the cumulative distribution function of a standard
+Gaussian random variable. Rearranging terms and inverting
+in above yields (18).
+(44)
+.
+(45)
+(46)
+SOU et al.: DATA ATTACK ISOLATION IN POWER NETWORKS USING SECURE VOLTAGE MAGNITUDE MEASUREMENTS
+C. Proof of Proposition 3.3
+Equation (23) is a restatement of (20) and (17).
+For the first statement in (24), denote
+. Since
+Gaussian random variable,
+tive integer . Therefore,
+is a zero mean
+for all posiD.
+Proof of Proposition 4.1
+For given
+define the function
+In above, the symbol denotes the product
+. Hence, for all and
+the inequality holds. The convergence of the series follows from
+the assumption that . Finally, in the last equality the
+fact that is used.
+For the second statement in (24), denote
+. Note that both and satisfy
+and . Then
+(47)
+The third and fourth inequalities in (47) hold because of the
+following facts: For all ,
+Finally, (25) is a direct consequence of (23) and (24).
+27
+as
+(48)
+(49)
+The statement of the proposition is equivalent to: If ,
+then for any with , there does not
+exist such that for
+that satisfies .
+Now the proof begins: If then , since
+and implies . It is claimed that
+implies that and in (48) cannot both be zero. Under the
+claim, with .
+For such statement can be verified by inspection.
+Finally, to see the claim note that if and , then
+that
+Therefore, and
+contrapositive is the claim above.
+This implies that . Since
+is either 0 or (as ). The choice of
+is not allowed, since otherwise the assumption
+and would imply that and .
+imply that , and its
+REFERENCES
+[1] A. Abur and A. Expósito, Power System State Estimation. New York:
+Marcel Dekker, 2004.
+[2] A. Monticelli, State Estimation in Electric Power Systems A Generalized
+Approach. Norwell, MA, USA: Kluwer Academic, 1999.
+[3] G. Andersson, P. Donalek, R. Farmer, N. Hatziargyriou, I. Kamwa,
+P. Kundur, N. Martins, J. Paserba, P. Pourbeik, J. Sanchez-Gasca, R.
+Schulz, A. Stankovic, C. Taylor, and V. Vittal, “Causes of the 2003
+major grid blackouts in North America and Europe, and recommended
+means to improve system dynamic performance,” IEEE Trans. Power
+Syst., vol. 20, no. 4, pp. 1922-1928, Nov. 2005.
+[4] A. Giani, S. Sastry, K. H. Johansson, and H. Sandberg, “The VIKING
+project: An initiative on resilient control of power networks,” in Proc.
+2nd Int. Symp. Resilient Control Syst. (ISRCS'09), Aug. 2009, pp.
+31-35.
+[5] Y. Liu, M. Reiter, and P. Ning, “False data injection attacks against
+state estimation in electric power grids,” in Proc. 16th ACM Conf.
+Comput. Commun. Security, New York, 2009, pp. 21-32.
+[6] H. Sandberg, A. Teixeira, and K. H. Johansson, “On security indices
+for state estimators in power networks,” in Proc. First Workshop Secure
+Control Syst. (CPSWEEK), 2010.
+[7] G. Dan and H. Sandberg, “Stealth attacks and protection schemes for
+state estimators in power systems,” Proc. IEEE SmartGridComm, 2010.
+[8] R. Bobba, K. Rogers, Q. Wang, H. Khurana, K. Nahrstedt, and T.
+Overbye, “Detecting false data injection attacks on dc state estimation,”
+in Proc. First Workshop Secure Control Syst. (CPSWEEK), 2010.
+[9] O. Kosut, L. Jia, R. Thomas, and L. Tong, “Malicious data attacks on
+the smart grid,” IEEE Trans. Smart Grid, vol. 2, pp. 645-658, 2011.
+[10] K. C. Sou, H. Sandberg, and K. H. Johansson, “Electric power network
+security analysis via minimum cut relaxation,” in Proc. IEEE Conf.
+Decision Control, Dec. 2011.
+[11] A. Giani, E. Bitar, M. McQueen, P. Khargonekar, and K. Poolla, “Smart
+grid data integrity attacks: Characterizations and countermeasures,”
+Proc. IEEE SmartGridComm, 2011.
+[12] T. T. Kim and H. V. Poor, “Strategic protection against data injection
+attacks on power grids,” IEEE Trans. Smart Grid, vol. 2, pp. 326-333,
+Jun. 2011.
+28
+IEEE TRANSACTIONS ON SMART GRID, VOL. 5, NO. 1, JANUARY 2014
+[13] E. Handschin, F. Schweppe, J. Kohlas, and A. Fiechter, “Bad data analysis
+for power system state estimation,” IEEE Trans. Power App. Syst.,
+vol. PAS-94, no. 2, pp. 329-337, Mar. 1975.
+[14] H. Wu and J. Giri, “Pmu impact on state estimation reliability for improved
+grid security,” in Proc. 2005/2006 IEEE PES Transm. Distrib.
+Conf. Exh., May 2006, pp. 1349-1351.
+[15] A. Monticelli, F. F. Wu, and M. Yen, “Multiple bad data identification
+for state estimation by combinatorial optimization,” Power Engineering
+Review, IEEE, vol. PER-6, no. 7, pp. 73-74, July 1986.
+[16] E. Asada, A. Garcia, and R. Romero, “Identifying multiple interacting
+bad data in power system state estimation,” in Proc. IEEE Power Eng.
+Soc. Gen. Meet. 2005, Jun. 2005, vol. 1, pp. 571-577.
+[17] M. Irving, R. Owen, and M. Sterling, “Power-system state estimation
+using linear programming,” Proc. Inst. Electr. Eng., vol. 125, no. 9, pp.
+879-885, Sep. 1978.
+[18] W. Peterson and A. Girgis, “Multiple bad data detection in power
+system state estimation using linear programming,” in Proc. 20th
+Southeastern Symp. Syst. Theory 1988, pp. 405-409.
+[19] M. Cheniae, L. Mili, and P. Rousseeuw, “Identification of multiple
+interacting bad data via power system decomposition,” IEEE Trans.
+Power Syst., vol. 11, no. 3, pp. 1555-1563, Aug. 1996.
+[20] D. Gorinevsky, S. Boyd, and S. Poll, “Estimation of faults in dc electrical
+power system,” in Proc. 2009 Conf. Amer. Control Conf., pp.
+4334-4339.
+[21] A. Teixeira, S. Amin, H. Sandberg, K. H. Johansson, and S. S. Sastry,
+“Cyber security analysis of state estimators in electric power systems,”
+in Proc. 2010 49th IEEE Conf. Decision Control (CDC), Dec. 2010, pp.
+5991-5998.
+[22] P. Kundur, Power System Stability and Control. New York: McGraw-Hill,
+1993.
+[23] P. Vovos, A. Kiprakis, A. Wallace, and G. Harrison, “Centralized and
+distributed voltage control: Impact on distributed generation penetration,”
+IEEE Trans. Power Syst., vol. 22, no. 1, pp. 476-483, 2007.
+[24] F. Viawan, “Voltage control and voltage stability of power distribution
+systems in the presence of distributed generation,” Ph.D. dissertation,
+Chalmers Univ. Technology, Gothenburg, Sweden, 2008.
+[25] H. Li, F. Li, Y. Xu, D. Rizy, and J. Kueck, “Adaptive voltage control
+with distributed energy resources: Algorithm, theoretical analysis, simulation,
+and field test verification,” IEEE Trans. Power Syst., vol. 25,
+no. 3, pp. 1638-1647, 2010.
+[26] O. Vuković, K. C. Sou, G. Dán, and H. Sandberg, “Network-aware
+mitigation of data integrity attacks on power system state estimation,”
+IEEE J. Sel. Areas Commun., vol. 30, no. 6, pp. 1108-1118, Jul. .
+[27] G. Casella and R. Berger, Statistical Inference. Pacific Grove, CA,
+USA: Duxbury Press, 2001.
+[28] R. Christie, “Power system test case archive,” Univ. Washington.
+Seattle, WA, USA [Online]. Available: http://www.ee.washington.edu/
+research/pstca/pf14/pg_tca14bus.htm, 1993
+[29] R. Zimmerman, C. Murillo-Sánchez, and R. Thomas, “MATPOWER
+steady-state operations, planning and analysis tools for power systems
+research and education,” IEEE Trans. Power Syst., vol. 26, no. 1, pp.
+12-19, 2011.
+[30] J. Hendrickx, K. H. Johansson, R. Jungers, H. Sandberg, and K. C.
+Sou, “Efficient computations of a security index for false data attacks in
+power networks,” IEEE Trans. Autom. Control, Special Issue on Control
+of Cyber-Physical Systems, accepted for publication.
+[31] D. Bertsekas, Nonlinear Programming. Belmont, MA, USA: Athena
+Scientific, 1999.
+Kin Cheong Sou received a Ph.D. degree in electrical
+engineering and computer science at Massachusetts
+Institute of Technology, Cambridge, MA, USA,
+in 2008.
+From 2008 to 2010 he was a postdoctoral researcher
+at Lund University, Lund, Sweden. From
+2010 to 2013 he was a Postdoctoral Researcher at
+KTH Royal Institute of Technology, Stockholm,
+Sweden. Since 2013 he has been an Assistant
+Professor with the Department of Mathematical
+Sciences at Chalmers University of Technology,
+Gothenburg, Sweden. His research interests include power system cyber-security
+analysis, environment aware building and community, convex/non-convex
+optimization, and model reduction for dynamical systems.
+Henrik Sandberg received the M.Sc. degree in engineering
+physics and the Ph.D. degree in automatic
+control from Lund University, Lund, Sweden, in
+1999 and 2004, respectively.
+He is an Associate Professor with the Automatic
+Control Laboratory, KTH Royal Institute of Technology,
+Stockholm, Sweden. From 2005 to 2007,
+he was a Postdoctoral Scholar with the California
+Institute of Technology, Pasadena, CA, USA. He has
+held visiting appointments with Australian National
+University and the University of Melbourne, Australia.
+In 2013, he was a visiting scholar with the Laboratory for Information
+and Decision Systems (LIDS) at MIT, Cambridge, MA, USA. His current
+research interests include secure networked control, power systems, model
+reduction, and fundamental limitations in control.
+Dr. Sandberg was a recipient of the Best Student Paper Award from the IEEE
+Conference on Decision and Control in 2004 and an Ingvar Carlsson Award
+from the Swedish Foundation for Strategic Research in 2007. He is currently an
+Associate Editor of the IFAC Journal Automatica.
+Karl Henrik Johansson (F'13) received M.Sc. and
+Ph.D. degrees in electrical engineering from Lund
+University, Lund, Sweden.
+He has held visiting positions at the University
+of California, Berkeley, CA, USA (1998-2000)
+and California Institute of Technology, Pasadena,
+CA, USA (2006-2007). He is Director of the KTH
+ACCESS Linnaeus Centre and Professor at the
+School of Electrical Engineering, Royal Institute of
+Technology, Sweden. He is a Wallenberg Scholar
+and has held a six-year Senior Researcher Position
+with the Swedish Research Council. He is Director of the Stockholm Strategic
+Research Area ICT The Next Generation. His research interests are in networked
+control systems, hybrid and embedded system, and applications in
+transportation, energy, and automation systems.
+Dr. Johansson has been a member of the IEEE Control Systems Society
+Board of Governors and the Chair of the IFAC Technical Committee on
+Networked Systems. He has been on the Editorial Boards of several journals,
+including Automatica, IEEE TRANSACTIONS ON AUTOMATIC CONTROL, and
+IET Control Theory and Applications. He is currently on the Editorial Board of
+IEEE TRANSACTIONS ON CONTROL OF NETWORK SYSTEMS and the European
+Journal of Control. He has been Guest Editor for special issues, including the
+one on “Wireless Sensor and Actuator Networks” of IEEE TRANSACTIONS ON
+AUTOMATIC CONTROL in 2011. He was the General Chair of the ACM/IEEE
+Cyber-Physical Systems Week 2010 in Stockholm and IPC Chair of many
+conferences. He has served on the Executive Committees of several European
+research projects in the area of networked embedded systems. In 2009, he
+received the Best Paper Award of the IEEE International Conference on
+Mobile Ad-hoc and Sensor Systems. In 2009, he was also awarded Wallenberg
+Scholar, as one of the first ten scholars from all sciences, by the Knut and
+Alice Wallenberg Foundation. He was awarded an Individual Grant for the
+Advancement of Research Leaders from the Swedish Foundation for Strategic
+Research in 2005. He received the triennial Young Author Prize from IFAC in
+1996 and the Peccei Award from the International Institute of System Analysis,
+Austria, in 1993. He received Young Researcher Awards from Scania in 1996
+and from Ericsson in 1998 and 1999.

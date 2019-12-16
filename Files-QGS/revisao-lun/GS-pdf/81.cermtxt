@@ -1,0 +1,816 @@
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 5, SEPTEMBER 2015
+2551
+A Real-Time Attack Localization Algorithm for
+Large Power System Networks Using
+Graph-Theoretic Techniques
+Thomas R. Nudell, Student Member, IEEE, Seyedbehzad Nabavi, Student Member, IEEE, and
+Aranya Chakrabortty, Senior Member, IEEE
+Abstract-We develop a graph-theoretic algorithm for localizing
+the physical manifestation of attacks or disturbances in
+large power system networks using real-time synchrophasor
+measurements. We assume the attack enters through the electromechanical
+swing dynamics of the synchronous generators in the
+grid as an unknown additive disturbance. Considering the grid to
+be divided into coherent areas, we pose the problem as to localize
+which area the attack may have entered using relevant information
+extracted from the phasor measurement data. Our approach
+to solve this problem consists of three main steps. We first run
+a phasor-based model reduction algorithm by which a dynamic
+equivalent of the clustered network can be identified in real-time.
+Second, in parallel, we run a system identification in each area to
+identify a transfer matrix model for the full-order power system.
+Thereafter, we exploit the underlying graph-theoretic properties
+of the identified reduced-order topology, create a set of localization
+keys, and compare these keys with a selected set of transfer
+function residues. We validate our results using a detailed case
+study of the two-area Kundur model and the IEEE 39-bus power
+system.
+Index Terms-Algebraic graph theory, attack localization,
+identification, nodal domains, power system.
+I. INTRODUCTION
+O tem industry has witnessed a massive transformation in
+VER THE past decade, the North American power sysmonitoring
+and control paradigms. This overhaul includes the
+deployment of wide-area measurement systems consisting of
+hundreds of new phasor measurement units (PMUs), which
+are capable of streaming geo-synchronized dynamic measurements
+via Ethernet connections in near real-time, effectively
+creating the backbone of a cyber layer on top of the physical
+model of the power grid [1]. In the current state-of-the-art,
+PMU data are primarily used for offline postmortem analysis
+of disturbance events including oscillation monitoring [2],
+voltage stability monitoring, and phasor-based state estimation
+[3], [4], in addition to recent developments in closed-loop
+Manuscript received May 16, 2014; revised September 22, 2014; accepted
+December 29, 2014. Date of publication March 10, 2015; date of current version
+August 19, 2015. This work was supported in part by the National Science
+Foundation, Division of Electrical, Communications, and Cyber Systems
+under Grant 1062811. Paper no. TSG-00462-2014.
+The authors are with the Department of Electrical and Computer
+Engineering, North Carolina State University, Raleigh, NC 27606 USA
+(e-mail: trnudell@ncsu.edu; snabavi@ncsu.edu; achakra2@ncsu.edu).
+Color versions of one or more of the figures in this paper are available
+online at http://ieeexplore.ieee.org.
+Digital Object Identifier 10.1109/TSG.2015.2406571
+control [5]. However, a very limited amount of research has
+evaluated how synchrophasors, beyond analyzing offline disturbance
+events, can also be used for online detection, and,
+more importantly, localization of faults and malicious attacks.
+Several recent papers have studied how false-data injection
+attacks may be deceptively injected into a power grid via
+its state estimation loops [6]-[9], while others have proposed
+estimation-based mitigation strategies to secure the grid
+against some of these attacks [10], [11]. However, the problem
+of localizing an attack in a large grid-in real-time as the
+grid dynamics are evolving-remains a widely open challenge.
+This problem, in fact, is becoming ever more important as the
+conventional grid continues to be integrated with new renewable
+energy sources and new loads such as electric vehicle
+and smart buildings, each of which contribute its own share of
+complexity and uncertainty to the grid dynamics. For example,
+a malfunctioning valve, due to natural or malicious failure, at
+a power plant cycling full-on and full-off may excite the electromechanical
+swing dynamics of the generators as reported
+in [12]. System operators are, therefore, constantly looking for
+fast numerical techniques by which PMU data spread across
+various parts of the grid can be efficiently processed to localize
+disturbances.
+Motivated by this problem, in this paper, we propose a
+multistage localization algorithm based on the graph-theoretic
+properties of the physical topology of the power system network.
+Disturbances, caused by natural faults or malicious
+attacks, can enter the grid operation as denial-of-service
+attacks, flooding or jamming of communication links, corruption
+of feedback signals [13], spoofing of global positioning
+system (GPS) synchronization [14], and so on. For convenience
+of analysis, we will assume that no matter the source of
+the anomaly, the fault or attack effectively enters the dynamics
+of the power system as an unknown additive disturbance signal
+through the electro-mechanical swing equations of its generators.
+In other words, our basic assumption is that the impact
+of the incoming disturbance manifests itself as an exogenous
+input to the power balance dictating its swing dynamics. Our
+goal is to gather PMU data from multiple locations and extract
+information from these data to determine the location of the
+node where this disturbance signal may have been injected.
+However, in this context, the sheer size and complexity of
+the grid may make localization at that level of granularity
+practically intractable in real-time. Therefore, we relax our
+1949-3053 c 2015 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+2552
+formulation by assuming the transmission network is divided
+into a finite number of coherent clusters, and pose the problem
+as to develop a PMU-based real-time algorithm by which
+an operator can quickly localize the cluster in which the
+disturbance may have occurred.
+Our proposed algorithm utilizes theoretical results reported
+recently in [15]. However, the algorithms in [15] requires
+offline a priori analysis as well as several nonidealistic
+assumptions about the network topology. In contrast, in this
+paper, we develop a completely real-time algorithm by dividing
+the localization problem into two parts. First, we utilize
+PMU data transmitted from the different clusters, or utility
+companies, to the control center of an independent system
+operator (ISO), and run a model reduction algorithm by which
+a dynamic equivalent of the clustered network is identified
+in real-time [16]. Second, in parallel to the model reduction
+step, we run a system identification routine in every cluster
+using local PMU data to identify a transfer matrix model for
+the full-order power system. Once the model reduction step
+is completed, the ISO makes use of the underlying graphtheoretic
+properties of the identified reduced-order topology,
+creates a set of localization keys, and transmits the relevant
+back to each local cluster keys via a wide-area communication
+network. Once the local clusters complete their individual
+system identification steps, and receive the keys from the
+ISO, each independently compares a selected set of residues
+in their identified transfer matrices with those keys, and
+thereby infers the identity of the cluster where the disturbance
+may have entered using graph-theoretic properties of
+the full-order network. A notable advantage of this algorithm
+is that it is completely measurement-based, and therefore,
+requires minimal knowledge about the actual model of the
+grid. Moreover, it requires communication of PMU data only
+between the utilities and the ISO, not between the utilities
+themselves, and thereby maintains data privacy. Our results
+are theoretically more rigorous than [17], and at the same time
+numerically more tractable than traditional localization methods
+as in [11] and [18]. We illustrate our algorithm with a
+detailed case study of the two-area Kundur system, then summarize
+results of an attack on the IEEE 39-bus power system
+network.
+The remaining sections are organized as follows. Section II
+introduces the notation used throughout this paper and provides
+the requisite graph-theoretic definitions. Section III
+formulates the disturbance localization problem and provides
+an overview of the solution strategy in three distinct steps.
+Section IV details each of the three steps of our localization
+procedure. Section V provides a detailed cases study of the
+localization algorithm on the two area Kundur model, followed
+by an illustrative demonstration with the IEEE 39-bus system.
+Section VI concludes this paper.
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 5, SEPTEMBER 2015
+denote its cardinality. For the matrix A or the vector x, we
+let A or x denote its norm (which will be clear from context),
+and let [A]ij or [x]i denote the (i, j)th element or ith
+component, respectively. We may also define a matrix with
+Aij elements by [Aij], and define a n × n diagonal matrix by
+diag[x1, . . . , xn]. The eigenvalues of a matrix A ∈ Rn×n are
+denoted λ(A) = {λ1, . . . , λn}, where, by convention, we take
+|λ1| ≤ |λ2| ≤ · · · ≤ |λn|. We let vk and wk denote the right and
+left eigenvectors of A corresponding to eigenvalue λk. We let
+In×n ∈ Rn×n, 0n×m ∈ Rn×m, and 1n ∈ Rn denote the identity
+matrix, zeros matrix, and vector of all ones, respectively. We
+let el ∈ Rn denote the unit indicator vector, where [el]k = 1
+when k = l and [el]k = 0 otherwise.
+A. Graph Theory
+A graph G = (V, E ) is a collection of vertices (or nodes)
+V = {1, . . . , n} and edges E ⊆ V × V. The number of vertices
+in G is denoted |V| = n. If there exists edge kl ∈ E then, we
+say the nodes k, l ∈ V are adjacent, and write k ∼ l. The set
+of nodes adjacent to l ∈ V is called the neighborhood of l and
+denoted Nl = {k ∈ V| k ∼ l}. We assume G is undirected, i.e.,
+l ∼ k ⇔ k ∼ l, and that there are no loops or multiple edges
+between nodes. We assume every node k ∈ V has a real-valued
+weight mk > 0, and every edge kl ∈ E has a real-valued weight
+akl = alk > 0. In a power system model, the node weight
+corresponds to the generator inertia constant, and the edgeweight
+is proportional to tie-line admittance. The symmetric,
+positive semidefinite graph Laplacian matrix associated with
+G is defined as [LG ]kl = −akl when k ∼ l, [LG ]kl = i∈Nk aki
+when k = l, and [LG ]kl = 0 otherwise. Unless specifically
+noted, we assume G is connected, thus the eigenvalues of LG
+are ordered as 0 = λ1 < λ2 ≤ · · · ≤ λn. When there is no
+ambiguity we will drop the explicit reference to G and simply
+write L. We also define the asymmetric Laplacian matrix Lm
+M−1L, where M = diag[m1, . . . , mn] ∈ Rn×n is the nodeweight
+matrix. Clearly Lm is also positive semidefinite.
+We will use the following definition of weak discrete nodal
+domains, which we will simply refer to as nodal domains.
+Definition 1: (Weak) Discrete Nodal Domain [19]: A positive
+(negative) nodal domain D of a real-valued vector x ∈ Rn
+is a maximal connected subgraph of G on nodes k ∈ V such
+that [x]k ≥ 0 ([x]k ≤ 0), where |V| = n.
+Throughout this paper, we will refer to the nodal domains
+of vi, likewise wi, as the λi nodal domains, where λi is an
+eigenvalue of LG and vi and wi are corresponding right and
+left eigenvectors. Finally, from Definition 1, the following
+definition of adjacent nodal domains is immediate.
+Definition 2: Two λi nodal domains D1 and D2 are adjacent
+if there exist vertices k ∈ D1 and l ∈ D2 \ D1 such that the
+edge kl ∈ E .
+II. NOTATION
+This section briefly introduces the notation and provides
+important graph-theoretic definitions that will be referred to
+throughout this paper. For the real or complex scalar a, we
+let |a| denote its modulus, and for the set S, we let |S|
+III. PROBLEM FORMULATION
+Consider a n-bus power system network consisting of ng
+synchronous generators and n − ng load buses. Without loss
+of generality, let {1, . . . , ng} denote the generator buses. Let
+Pi and Qi denote the total active and reactive power injected
+NUDELL et al.: REAL-TIME ATTACK LOCALIZATION ALGORITHM FOR LARGE POWER SYSTEM NETWORKS
+into the ith bus, where
+2553
+(7)
+Pi =
+n
+k=1
+n
+−Vi2rik/zi2k − ViVk sin (θik − αik)/zik
+(1a)
+equation of the lth generator, where the location l is unknown.
+Let S ⊆ V denote a subset of |S| = h ≤ ng generator buses.
+We consider the output equations as
+y(t) = C δ(t)
+−Vi2xik/zi2k + ViVk cos (θik − αik)/zik
+Qi = (1b) where y(t) = [y1(t), . . . , yh(t)]T , and rows of C are of the form
+k=1 ekT , k ∈ S. Ideally, we would like to identify the input locawhere
+Vi∠θi is the voltage phasor at the ith bus, θik = θi − θk, tion l directly, but as described in the introduction, achieving
+rik and xik are the resistance and reactance of the tie-line this in real-time for large power networks may be infeasijtaonin−i1ng(rikb/uxsik)i.
+Fwoirththbeurseskt,ofzitkhis=paperr,i2kw+exwi2ki,llaansdsumαiek th=e cboleh.erIennstteaardeawsewaitshsudmisejotihnet sneetstwoofrkgetnoerbaetordsi,viddeendotiendtoVpk
+line resistances to be equal to zero, since our objective is to with k = 1, . . . , p, then, we take advantage of the resulting
+localize disturbances in a reduced order model consisting of time-scale separation properties [22] of (6) to formulate our
+long tie-lines, for which neglecting line resistances is a reason- problem as: following an attack on the network, rapidly localable
+assumption. The electromechanical model of the power ize the area(s) in which the attack input u(t) may have entered
+system can be described as a system of differential-algebraic using real-time synchrophasor measurements y(t) from (7).
+equations (DAEs) [20] as To solve this problem, we propose the following three steps.
+1) Assuming that each of the p coherent areas is repreδ˙i(t)
+= ωs(ωi − 1) (2a) sented by an equivalent generator connected over an
+miω˙ i(t) = Pim − Pie − di(ωi − 1) (2b) equivalent topology GE, develop a real-time algorithm
+by which the equivalent topology GE can be identified
+for i = 1, . . . , ng, and using y(t).
+00 == PPiek +− PPilk,− Pil, 00 == QQiek +− QQilk− Qil ((33ba)) 2) SmCeoacnptsisotrnuincIptVu-taB-o-ustebptaustoedfloolcnoacttiaholeinzsaidtieionnntitfihkeeedysgn-reatwpdheosrcGkrEibtewodhitchihne
+for i = 1, . . . , ng, and k = ng + 1, . . . , n. In (2), δi(t), ωi(t), residues of the transfer function of the equivalent model.
+mi, and di denote the internal rotor angle, speed, inertia, and 3) Develop a real-time localization algorithm that utilizes
+damping of the ith generator, while Pim denotes the mechanical the keys from Step 2) by the following.
+power input, Pie and Qie denote the active and reactive elec- a) Estimate poles and residues of the transfer functdreicnaoltepothweearcptirvoeduacneddrebaycttihvee
+ipthowgeernecroantosur.mIned(3b)y, tPhlke alonaddQalkt tuisoinngofy((4t)).-(7) via a system identification algorithm
+the kth bus. The DAE (2) can be converted into a system of b) Exploit the relationship between the poles and
+purely differential equations via Kron reduction [21], result- residues of the reduced-order equivalent system
+ing in a fully connected graph GK with ng nodes. Neglecting explained in Section IV-B to build an estimated
+line losses and assuming Pim to be constant, its small-signal localization key.
+model linearized around (δ0, 1ng ) following a disturbance in c) Compare the estimated localization key to the set
+the network can be written as: of keys provided in Step 2) to localize the area(s)
+in which the input u(t) may have entered.
+ωδ˙˙ = −0n×Lnm −ωMsI−n×1nD ωδ + M−01el u(t) (4) sTtheepso visersahllocwynbeirn-pFhiygs.ic1a.l Ianrcthhiitsecfitugrueref,orthimepploewmeerntsiynsgtetmhesies
+assumed to be divided into three coherent clusters, denoted as
+A B Areas 1, 2, and 3. Each area is equipped with a control center
+where δ = [ δ1, . . . , δng ]T , ω = [ ω1, . . . , ωng ]T , of its own, here represented simply by a phasor data concenM
+= diag[m1, . . . , mng ], D = diag[d1, . . . , dng ], and Lm is trator (PDC). PMUs in each area transmit measurements in
+the asymmetric weighted Laplacian of the complete graph GK real-time over a local area network to the local PDC where
+with elements Step 3) is carried out. These measurements (or a select sub[Lm]ki
+= −aκk=i/kmakkκ /mk iiff kk == ii. (5) scceaotrmroipefldetthoeedum,t)tihnaerpenaresacelenlestslatotroythSientefIpoSrmO3),atawio).hneAriesfteStrrtaeSnptssemp1it)2te)adnhdabsa2c)bkeaertnoe
+The edge weights of GK are given as the local areas so that they may complete Step 3) b) and c).
+We next describe each of these steps in detail.
+(6)
+aki = EkEi cos (δk0 − δi0)
+xki
+for all k = i, where voltage at the ith and kth generator
+Ei and Ek, respectively, are taken to be constant at this timescale.
+The vertex set of GK is the set of generator buses
+V = {1, . . . , ng}. For simplicity, we consider a single external
+disturbance u(t) ∈ R entering the network through acceleration
+IV. STEPS FOR REAL-TIME DISTURBANCE LOCALIZATION
+A. Step 1-Online Topology Identification
+The first step is carried out by the ISO using real-time PMU
+measurements y(t) in (7) streaming from each area. Here, we
+must assume that the p-area equivalent topology GE exists,
+2554
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 5, SEPTEMBER 2015
+Fig. 1. Complete cyber-physical architecture for the real-time localization
+algorithm. Steps 1) and 2) are carried out by the central ISO, while Step 3)
+is carried out by the local areas independently.
+and that the set of measured phase angles at the generator
+buses in S ensures that GE is identifiable. Each coherent area
+can be represented by an equivalent generator, whose rotor
+angles and angular velocities are defined as δE = [δ1E, . . . , δpE]
+and ωE δ˙E/ωs. The linearized small-signal dynamics
+of the equivalent model can be written analogously
+to (4) as [15]
+δ˙E
+ωE =
+˙
+0p×p ωsIp×p
+− LmE −(ME)−1DE
+δE 0
+ωE + (ME)−1el
+u(t) (8)
+AE
+BE
+where ME = diag[m1E, . . . , mpE] and DE = diag[d1E, . . . , dpE]
+are equivalent inertia and damping matrices, respectively, u(t)
+is the same disturbance input as in (4), and LmE ∈ Rp×p is the
+equivalent asymmetric Laplacian matrix with elements
+LmE kj =
+−akEj/mE
+k
+κ=k akEκ /mkE
+if k = j
+if k = j.
+Notice that BE in (8) now indicates that the input enters the
+lth area. The equivalent inertias mkE and damping factors dk
+E
+in (8) and the equivalent edge weights akEj in (9) need to be
+estimated. We first assume that the equivalent topology GE is a
+complete graph, meaning that every area is connected to every
+other area; then set a threshold α ∈ R such that if akEj < α
+then akEj = 0, i.e., Areas k and j are not connected.
+Because of the clustering and resulting time-scale separation
+of the states in (4), the phase angle of the ith machine (in
+Area k) can be written as
+δi(t) =
+δkE(t) +
+δiI (t)
+for i ∈ Vk, k = 1, . . . , p, and where δiI (t) denotes the fast
+component of δi(t) following from the fast eigenvalues of
+A in (4). The aggregate state δkE(t) can be extracted from the
+measured values of δi(t), where t = t0, . . . , tf , using modal
+decomposition techniques such as Prony's method [23] or the
+eigenvalue realization algorithm (ERA) [24]. Using δE(t),
+the ISO estimates the equivalent state matrix AE defined in (8)
+(9)
+(10)
+Algorithm 1 Online Topology Identification
+Require: Measurements y(t) = C δ(t) for t = t0, . . . , tf
+1: Extract δkE(t) for k = 1, . . . , p
+2: Estimate AE from NLS problem (11)
+3: Extract LmE from AE
+by formulating a nonlinear least-squares (NLS) problem
+tf
+min
+AE t0
+s.t.
+δE(t) 2
+δˆE(t, AE) dt
+2
+δˆE t, AE
+= Cˆ exp AE(t − t0)
+δˆE(t0)
+ωˆ E(t0)
+(11a)
+(11b)
+where Cˆ = [Ip×p | 0p×p]. The NLS problem (11) can be solved
+in real-time using standard libraries such as MATLAB's optimization
+toolbox. Once AE is estimated, the ISO extracts LE
+m
+from its bottom left p × p block shown in (8), and constructs
+the equivalent topology by inspecting the elements of LE .
+m
+The steps of this algorithm are summarized in Algorithm 1.
+Although the local operators persistently stream measurements
+to the central operator for monitoring purposes, Algorithm 1
+is only initiated after a disturbance is detected. The algorithm
+exits once the aggregate equivalent model is found. The resulting
+LmE is the most up-to-date estimation of the equivalent
+topology, and therefore, will provide more accurate localization
+compared to the results in [15] where the equivalent
+topology was assumed to be fixed throughout.
+B. Step 2-Constructing Localization Keys
+For simplicity, we first assume that u(t) is an impulsive
+function in the lth area (where l is unknown) and consider a
+single output of frequency-not phase angle-measurements
+from the kth equivalent generator (8). Note that the proceeding
+analysis will be easily generalized for outputs of generator
+phase angle measurements such as (7). In the case of frequency
+measurement, the input-output transfer function is
+gkEl(s) ≈
+p
+i=1
+Rikl
+s2 + λi
+where λi is the ith eigenvalue of LE . We use “≈” in (12)
+m
+because we have neglected any damping for simplicity.1 The
+residue Rikl in (12) can be written as the product of the mode
+controllability factor and mode observability factor [26] as
+i
+Rkl =
+[vi]l
+obsv. factor
+wiT M−1
+ctrl. factor
+k
+where vi and wi are the right and left eigenvectors corresponding
+to λi of LE . Hence, the sign of Rikl is determined by the
+m
+relative nodal domain locations of k and l. For example, if D1
+and D2 are adjacent λi nodal domains (Definition 2), then
+⎧ +
+sign(Rikl) = ⎨ ⎩
+0
+if k, l ∈ D1 \ D2
+if k ∈ D1 \ D2 and l ∈ D2 \ D1
+if k ∈ D1 ∩ D2 or l ∈ D1 ∩ D2.
+1In practice it is not necessary to neglect the damping factors. We refer the
+reader to [25] for details.
+(12)
+(13)
+NUDELL et al.: REAL-TIME ATTACK LOCALIZATION ALGORITHM FOR LARGE POWER SYSTEM NETWORKS
+2555
+Algorithm 2 Centralized Localization Key Building
+Require: Equivalent Laplacian LE
+m
+1: Compute eigenvalues and eigenvectors of LE
+m
+2: for k = 1 → p do
+3: Construct row of localization keys Kk
+[Kk]l = {sign([v2]l[w2]k), . . . , sign([vp]l[wp]k)}
+Only require l > k since keys are symmetric
+4: end for
+5: Broadcast localization keys to Area Operators
+It is straightforward to generalize this example to all of the λi
+nodal domains (not only adjacent nodal domains). Thus, using
+LmE identified in Algorithm 1, we can build a mapping between
+the relative input-output locations and the transfer function
+residues (13). We refer to this mapping as a localization key,
+and define it formally as
+Kkl = {sign([v2]l[w2]k), . . . , sign([vp]l[wp]k)}.
+(14)
+We also define an array of these localization keys as
+K = [Kkl], which provides a mapping of all input-output locations
+(at the area level). In other words, the kth row (column)
+of K, denoted by Kk, is associated with Area k. This row (column)
+consists of the keys that relate an input in any (other)
+area to an output taken from Area k. Furthermore, if we
+consider every input-output pair, we may define a matrix of
+residues corresponding to each eigenvalue as
+Ri =
+Rikl = viwiT M−1
+(15)
+for i = 1, . . . , p. The matrix Ri in (15) is symmetric, and the
+λi nodal domains of vi and wi are identical, which implies that
+the array of localization keys K is symmetric [15].
+Algorithm 2 outlines the steps which the central operator
+must take in order to construct K in real-time. The algorithm
+starts immediately after Algorithm 1 exits, and the most
+complex step occurs in line 1, which involves an eigenvalue
+decomposition of the p × p matrix LE . Starting on line 3, the
+m
+individual keys Kkl are constructed according to (14). Notice
+that the array of keys is symmetric and the diagonal entries
+are trivial, i.e., Kkk = {+, . . . , +}. Hence, only the upper triangle
+of the array needs to be computed. Finally, the central
+operator transmits the row of keys Kk to the respective local
+area. In Section V, we illustrate the construction of an array
+of localization keys for a four-area equivalent partitioning of
+the IEEE 39-bus system.
+Clearly, the real component of the residues Rikl in (12)-the
+transfer function from u(t) to ωE(t)-contains information
+relating the location of the input relative to the location of the
+output through the λi nodal domains (Definition 1). In [15],
+it is shown that the residues of the transfer function from
+u(t) in (8) to y(t) in (7) contain identical information. In
+this case, however, that information is stored in the imaginary
+part of the transfer function residues. It follows that the
+operator in the kth area can easily use his measurements yk(t)
+to estimate the transfer function (12) and hence the residues
+in (13), then exploit the information they carry. We describe
+this algorithm next.
+C. Step 3-Real-Time Input Localization
+Step 3 is carried out entirely by the local area operators
+individually, i.e., each operator uses his own and only his own
+measurements, and is initialized as soon as the disturbance has
+been detected. The goal of this step is to exploit the locational
+information carried by the transfer function residues (recall the
+discussion from the previous section). This can be understood
+in three distinct parts: estimate the system slow poles and
+residues of (12), build an estimated localization key Kˆ κk, then
+compare the estimated key to the set provided by the central
+operator. Algorithm 3 summarizes Step 3 and its three parts
+are forthwith described in detail.
+1) Estimate Slow Poles and Residues: The operator in
+Area k must estimate the equivalent transfer function (12),
+in particular, he must determine its poles and residues. It is
+important to emphasize that this part of Step 3-lines 1 and 2
+in Algorithm 3-can be carried out in parallel to Step 1, i.e.,
+starting at t = tf , which is being executed by the central
+ISO. Since we have assumed GE is connected, the operator
+in Area k can use his measurements yk(t) = Ck δ(t) from a
+set of generator buses Sk ⊆ Vk to find the poles and residues
+of interest. This is done by running a standard system identification
+algorithm to construct the transfer function from u(t)
+in (4) to yk(t), then truncating this transfer function to only
+consider the slow poles and residues. The result of this subroutine
+is the estimated values of the system poles and residues,
+which we denote by λˆi and Rˆ iκk, for i = 1, . . . , pˆ, respectively.
+Notice that since the input location is unknown we have used
+the dummy variable κ. Also notice that depending on the type
+of disturbance, e.g., transient, harmonic, etc., and due to other
+un-modeled dynamics in the power system, the system identification
+algorithm may identify more than p − 1 slow oscillatory
+components. Hence, we use pˆ to denote the total number of
+slow modes (including any dc modes) recovered by the system
+identification.
+2) Build Estimated Localization Key Kˆ κk: Before proceeding
+further, the local operator requires the modes of AE and
+localization keys Kk. The slow oscillatory components closest
+to the natural modes of AE and their corresponding residues
+are used to build an estimated localization key Kˆ κk according
+to (13) and (14). In the case that additional slow modes
+are identified, the residues used in Kˆ κk may need to be corrected.
+Due to space limitations we refer the reader to [25] for
+details regarding why and how to correct the signs of these
+residues.
+3) Compare Estimated Key: Recall that the signs of the
+transfer function residues contain information about the relative
+input-output nodal domain locations, and that the estimated
+Kˆ κk is a mapping between the residues and these
+locations. Since the output location k is known, the localization
+problem can be solved by determining κ. This is done by
+comparing Kˆ κk to the most up-to-date set of keys Kk provided
+by the central ISO. Matching key(s) indicate possible area(s) in
+which the disturbance input may have entered. For example,
+2556
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 5, SEPTEMBER 2015
+Algorithm 3 Real-Time Attack Localization From Area k
+Require: Local PMU measurements, localization keys Kk,
+modes of AE
+1: Run System Identification to estimate (Aˆ E, Bˆ E, Cˆ E)
+2: Extract slow modes λˆi i = 2, . . . , pˆ, and residues Rˆiκk, i =
+2, . . . , pˆ
+3: Wait to receive Kk and modes of LmE from central operator
+4: Construct estimated localization key
+p
+Kˆ κk = {sign(Rˆ κ2k), . . . , sign(Rˆ κk)}
+5: for κ = 1 → p do
+6: Compare Kˆ κkto elements of Kk
+7: if Match, i.e., Kˆ κk = [Kk]l then
+8: Attack may have occurred in Area l
+9: end if
+10: end for
+Fig. 2. (a) Kundur system with areas: G1E = {G1, G2} and G2E = {G3, G4}.
+(b) Equivalent aggregate topology GE.
+if Kˆ κk = [Kk]3, then the disturbance may have occurred in
+Area 3. Notice that this matching does not have to be unique.
+In fact, it should be clear that this matching will only be unique
+if and only if for k = l we have [Ki]k = [Ki]l ∀i = 1, . . . , p.
+For example, if the equivalent network is a complete graph,
+then the set of keys Kk constructed in Step 2 will preclude
+uniquely identifying the area in which the disturbance entered.
+We refer the reader to [15] for further discussion of classes
+of graphs in which this step will result in a unique localization.
+The next section provides a concrete implementation of
+Steps 1)-3) using realistic power system models.
+V. CASE-STUDIES
+These case studies provide a concrete implementation of
+Steps 1)-3). We begin by describing the steps on a fourmachine
+two-area Kundur system (Fig. 2) following an excitation
+of generator 2. Afterwards, the localization algorithm is
+demonstrated on a modified IEEE 39-bus model (Fig. 4).
+A. Two-Area Kundur System
+The system consists of four generators G1-G4 as shown in
+Fig. 2. The system parameters are provided in d2asbegh.m
+Fig. 3. Measured outputs following an attack in the two-area Kundur system.
+TABLE I
+INPUT LOCALIZATION KEYS FOR THE
+KUNDUR SYSTEM IN FIG. 2
+in the Power System Toolbox [27]. Generators G1 and G2
+belong to Area 1, while G3 and G4 belong to Area 2. At t0 = 0
+an attack is induced by suddenly changing the voltage reference
+of the excitation controller of G1 (inside of Area 1),
+causing a disturbance in the network. The phase angle and
+frequency of G1 and G3 are measured until tf = 10 sec
+using PMUs at their terminal buses. Fig. 3 shows these output
+measurements that are sent to the central operator. Thereafter,
+Steps 1)-3) are carried out as follows.
+1) Topology Identification: At t = tf , the central operator
+takes the measurements y(t) shown in Fig. 3 and initializes
+Algorithm 1. Next, the NLS problem (11) is formulated and
+solved in t1 s. The identified equivalent topology GE for the
+two-area system is shown in Fig. 3(b), and the asymmetric
+Laplacian matrix is
+The nonzero eigenvalues of AE are
+LmE =
+−10.97 10.97
+8.56 −8.59 .
+{−0.052 ± 4.4065j}.
+(16)
+(17)
+2) Centralized Key-Building: At this point (t = tf + t1),
+the central operator runs Algorithm 2 to determine the array
+of localization keys. He first runs an eigenvalue decomposition
+on LmE in (16) to determine the λ2 nodal domains. There are
+always exactly two nodal domains corresponding to λ2-one
+positive and one negative-hence one of the aggregate areas
+comprises the positive nodal domain while the other comprises
+the negative nodal domain. The central operator next
+constructs the 2 × 2 array of localization keys K. For the twoarea
+system, the length of each key is (2 − 1) = 1 bit. The
+localization keys are shown in Table I. This entire step takes
+t2 s. The central operator transmits individual rows of Table I
+to the local area operator corresponding to that row. That is,
+the first row is sent to Area 1 and the second row is sent to
+Area 2. Assuming there is some network delay td, the row
+of keys Kk is received at the control room of Area k at time
+t = tf + t1 + t2 + td.
+NUDELL et al.: REAL-TIME ATTACK LOCALIZATION ALGORITHM FOR LARGE POWER SYSTEM NETWORKS
+2557
+TABLE II
+SLOW POLES AND RESIDUES RECOVERED FROM δ3
+Fig. 4. IEEE 39-bus power system model with areas: G1E = {G1},
+G2E = {G2, G3}, G3E = {G4, G5, G6, G7}, and G4E = {G8, G9, G10}.
+3) Attack Localization: The local area operators can begin
+Step 3 at the same time as the central operator initializes
+Step 1). For example, let us consider the perspective of the
+operator in Area 2. Using his measurements δ3(t), t =
+t0, . . . , tf , from generator G3, he starts Algorithm 3. The
+estimated poles and residues are shown in Table II. If this
+subroutine takes t3 < t1 + t2 + td s to execute, the operator
+in Area 2 must wait until he receives K2 and the estimates of
+the slow poles from the central ISO at t = tf + t2 + td before
+proceeding.
+Once the set of keys K2 and slow poles (17) have been
+received, the operator uses only the poles in Table II that match
+those in (17). The corresponding residues are then used to construct
+Kˆ κ2 = {−}. This estimated key is compared to those in
+K2 (the second row of Table I). In this case, the estimated
+key only matches the first element of K2. Hence, the operator
+in Area 2 infers that the disturbance must have occurred
+in Area 1. An identical procedure can be carried out by the
+operator in Area 1 with the same conclusion.
+B. IEEE 39-Bus System
+We next summarize the results of the localization algorithm
+following an attack on generator G6 in Area 3 in a modified
+IEEE 39-bus model2 shown in Fig. 4. The model parameters
+of Fig. 4 have been derived from [28]. We consider a 4-area
+partitioning of the network. The attack occurs at t0 = 0, and
+by tf = 20 sec enough data has been recorded to capture the
+2The lines typically connecting buses 4 and 5 and buses 16 and 17 has
+been removed to improve the coherency of the areas.
+Fig. 5. Measured outputs following an attack in IEEE 39-bus system.
+TABLE III
+INPUT LOCALIZATION KEYS FOR THE IEEE
+39-BUS SYSTEM IN FIG. 4
+TABLE IV
+POLES AND RESIDUES RECOVERED FROM ω1. VALUES THAT ARE USED
+TO BUILD THE LOCALIZATION KEY ARE IN BOLDFACE
+slow oscillatory modes of the network. Fig. 5 shows the output
+measurements that are sent to the central operator. Steps 1)-3)
+are carried out as follows. The identified equivalent topology
+GE is shown in Fig. 6(a), with asymmetric Laplacian matrix
+(18)
+⎡ −8.883 5.497 0
+LmE = ⎢⎢⎣ 1102..0389228 −483..346.0116259 −1616.1.69.4185714
+3.386 ⎤
+23..536520 ⎥⎥⎦ .
+−21.443
+Notice that in Fig. 6(a), Areas 1 and 3 are not connected
+and the corresponding elements in the identified Laplacian
+matrix (18) are identically zero. The eigenvalues of AE are
+{−0.30 ± 3.083j, −0.27 ± 4.966j, −0.28 ± 6.297j}. (19)
+The resulting nodal domains corresponding to λk,
+k = 2, . . . , 4, are shown in Fig. 6. The array of localization
+keys K constructed using these nodal domains is provided in
+Table III.
+Using his measurements of phase angle y1(t), t =
+t0, . . . , tf , from generator 1, the local operator starts
+Algorithm 3. The estimated poles and residues are shown in
+Table IV. Notice that two additional slow poles were identified
+by ERA. Once the set of keys K1 and slow poles (19)
+have been received, the local operator uses the estimated
+poles in Table IV that match those sent by the central ISO
+(shown in bold) and the corresponding residues to construct
+Kˆ κ1. Evaluating the sign of the real part of the residues in
+Table IV according to (14), he finds Kˆ κ1 = {−, +, +}, which
+matches the third element of K1 in Table III, i.e., Kˆ κ1 = [K1]3.
+2558
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 5, SEPTEMBER 2015
+Fig. 6. (a) Identified GE for IEEE 39-bus model. (b)-(d) λ2-λ4 nodal domains of GE. Notice that there are only two nodal domains for each of λ2-λ4.
+The operator in Area 1, therefore, infers that the disturbance
+has occurred in Area 3. This procedure can be repeated by the
+operators in Areas 2, 3, and 4 separately.
+VI. CONCLUSION
+In this paper, we developed a novel measurement-based disturbance
+localization algorithm for large-scale power systems
+that can be carried out in real-time using synchrophasor measurements.
+The cyber-physical infrastructure underlying the
+modern power grid enables the three steps of the proposed
+algorithm to be completely measurement-based, that is relying
+on minimal information of the actual power system network.
+Therefore, it captures the most up-to-date wide-area network
+configuration without relying on a static model of the network
+as is used in conventional monitoring. The algorithm
+makes use of concepts from graph theory, and yet is numerically
+efficient to execute. It also preserves data privacy of the
+different utilities. The different steps of the algorithm were
+validated using IEEE 9-bus and 39-bus power system models.
+REFERENCES
+[1] A. Phadke and J. Thorp, Synchronized Phasor Measurements and Their
+Applications (Power Electronics and Power Systems). New York, NY,
+USA: Springer, 2008.
+[2] J. Quintero, G. Liu, and V. Venkatasubramanian, “An oscillation monitoring
+system for real-time detection of small-signal instability in large
+electric power systems,” in Proc. IEEE Power Eng. Soc. Gen. Meeting,
+Tampa, FL, USA, Jun. 2007, pp. 1-8.
+[3] L. Zhao and A. Abur, “Multi area state estimation using synchronized
+phasor measurements,” IEEE Trans. Power Syst., vol. 20, no. 2,
+pp. 611-617, May 2005.
+[4] S. Ghiocel et al., “Phasor-measurement-based state estimation for synchrophasor
+data quality improvement and power transfer interface
+monitoring,” IEEE Trans. Power Syst., vol. 29, no. 2, pp. 881-888,
+Mar. 2014.
+[5] A. Chakrabortty, “Wide-area damping control of power systems using
+dynamic clustering and TCSC-based redesigns,” IEEE Trans. Smart
+Grid, vol. 3, no. 3, pp. 1503-1514, Sep. 2012.
+[6] Y. Liu, P. Ning, and M. K. Reiter, “False data injection attacks against
+state estimation in electric power grids,” ACM Trans. Inf. Syst. Sec.,
+vol. 14, no. 13, pp. 1-33, Jun. 2011.
+[7] O. Kosut, L. Jia, R. J. Thomas, and L. Tong, “Malicious data attacks
+on the smart grid,” IEEE Trans. Smart Grid, vol. 2, no. 4, pp. 645-658,
+Dec. 2011.
+[8] A. Giani et al., “Smart grid data integrity attacks: Characterizations
+and countermeasures,” in Proc. IEEE Int. Conf. Smart Grid Commun.
+(SmartGridComm), Brussels, Belgium, Oct. 2011, pp. 232-237.
+[9] A. Teixeira, S. Amin, H. Sandberg, K. Johansson, and S. Sastry, “Cyber
+security analysis of state estimators in electric power systems,” in
+Proc. 49th IEEE Conf. Decis. Control, Atlanta, GA, USA, Dec. 2010,
+pp. 5991-5998.
+[10] O. Vukovic, K. C. Sou, G. Dan, and H. Sandberg, “Network-aware
+mitigation of data integrity attacks on power system state estimation,”
+IEEE J. Sel. Areas Commun., vol. 30, no. 6, pp. 1108-1118, Jul. 2012.
+[11] F. Pasqualetti, F. Dorfler, and F. Bullo, “Attack detection and identification
+in cyber-physical systems,” IEEE Trans. Autom. Control, vol. 58,
+no. 11, pp. 2715-2729, Nov. 2013.
+[12] R. B. Myers and D. J. Trudnowski, “Effects of forced oscillations on
+spectral-based mode-shape estimation,” in Proc. IEEE Power Eng. Soc.
+Gen. Meeting, Vancouver, BC, Canada, Jun. 2013, pp. 1-6.
+[13] W. Wang and Z. Lu, “Cyber security in the smart grid: Survey and
+challenges,” Comput. Netw., vol. 57, no. 5, pp. 1344-1371, 2013.
+[14] Z. Zhang, S. Gong, A. D. Dimitrovski, and H. Li, “Time synchronization
+attack in smart grid: Impact and analysis,” IEEE Trans. Smart Grid,
+vol. 4, no. 1, pp. 87-98, Mar. 2013.
+[15] T. R. Nudell and A. Chakrabortty, “Graph-theoretic methods
+for measurement-based input localization in large networked
+dynamic systems,” IEEE Trans. Autom. Control, 2015, Doi:
+10.1109/TAC.2015.2398911.
+[16] S. Nabavi and A. Chakrabortty, “Topology identification for dynamic
+equivalent models of large power system networks,” in Proc. Amer.
+Control Conf., Washington, DC, USA, Jun. 2013, pp. 1138-1143.
+[17] J. Ma, R. Diao, Y. Makarov, P. Etingov, and J. Dagle, “Event classification
+and identification based on characteristic ellipsoid of phasor
+measurement,” in Proc. North Amer. Power Symp. (NAPS), Boston, MA,
+USA, Aug. 2011, pp. 1-6.
+[18] M.-A. Massoumnia, G. C. Verghese, and A. Willsky, “Failure detection
+and identification,” IEEE Trans. Autom. Control, vol. 34, no. 3,
+pp. 316-321, Mar. 1989.
+[19] T. Biyikog˘lu, J. Leydold, and P. F. Stadler, Laplacian Eigenvectors of
+Graphs, J. Morel, F. Takens, and G. Teissier, Eds. Berlin, Germany:
+Springer-Verlag, 2007.
+[20] P. M. Anderson and A. A. Fouad, Power System Control and Stability,
+2nd ed. Hoboken, NJ, USA: Wiley, 2003.
+[21] F. Dorfler and F. Bullo, “Kron reduction of graphs with applications to
+electrical networks,” IEEE Trans. Circuits Syst. I, Reg. Papers, vol. 60,
+no. 1, pp. 150-163, Jan. 2013.
+[22] J. Chow and P. Kokotovic, “Time scale modeling of sparse dynamic
+networks,” IEEE Trans. Autom. Control, vol. 30, no. 8, pp. 714-722,
+Aug. 1985.
+[23] J. Hauer, C. Demeure, and L. Scharf, “Initial results in Prony analysis of
+power system response signals,” IEEE Trans. Power Syst., vol. 5, no. 1,
+pp. 80-89, Feb. 1990.
+[24] J.-N. Juang and R. Pappa, “An eigensystem realization algorithm for
+modal parameter identification and model reduction,” J. Guid. Control
+Dynam., vol. 8, no. 5, pp. 620-627, 1985.
+[25] T. R. Nudell and A. Chakrabortty, “A graph-theoretic algorithm for
+localization of forced harmonic oscillation inputs in power system networks,”
+in Proc. Amer. Control Conf., Portland, OR, USA, Jun. 2014,
+pp. 1334-1340.
+[26] N. Martins and L. Lima, “Determination of suitable locations for power
+system stabilizers and static VAR compensators for damping electromechanical
+oscillations in large scale power systems,” in Proc. Power Ind.
+Comput. Appl. Conf., Seattle, WA, USA, May 1989, pp. 74-82.
+[27] J. Chow and K. Cheung, “A toolbox for power system dynamics and
+control engineering education and research,” IEEE Trans. Power Syst.,
+vol. 7, no. 4, pp. 1559-1564, Nov. 1992.
+[28] T. Athay, R. Podmore, and S. Virmani, “A practical method for the direct
+analysis of transient stability,” IEEE Trans. Power App. Syst., vol. 98,
+no. 2, pp. 573-584, Mar. 1979.
+NUDELL et al.: REAL-TIME ATTACK LOCALIZATION ALGORITHM FOR LARGE POWER SYSTEM NETWORKS
+2559
+Thomas R. Nudell (S'10) received the B.A. degree in physics from
+Kalamazoo College, Kalamazoo, MI, USA, in 2009, and the M.S. degree
+in electrical engineering along with a graduate certificate in renewable electric
+energy systems and the Ph.D. degree in electrical engineering from North
+Carolina State University, Raleigh, NC, USA, in 2011 and 2014, respectively.
+His current research interests include monitoring, analysis, and control of
+large-scale networked dynamic systems, and power systems.
+Dr. Nudell is a Member of Phi Beta Kappa.
+Seyedbehzad Nabavi (S'12) received the B.S. degree from the Amirkabir
+University of Technology (Tehran Polytechnic), Tehran, Iran, in 2009, and
+the M.S. degree from North Carolina State University, Raleigh, NC, USA,
+in 2011, where he is currently pursuing the Ph.D. degree, all in electrical
+engineering.
+His current research interests include applied control theory and wide-area
+monitoring of large-scale power systems.
+Aranya Chakrabortty (S'02-M'06-SM'15) received the Ph.D. degree in
+electrical engineering from Rensselaer Polytechnic Institute, Troy, NY, USA,
+in 2008.
+Since 2010, he has been an Assistant Professor in the Department
+of Electrical and Computer Engineering, North Carolina State University,
+Raleigh, NC, USA, where he is also affiliated with the FREEDM Systems
+Center. His current research interests include all branches of control theory
+with applications to power systems, especially in wide-area monitoring and
+control using synchrophasors.
+Dr. Chakrabortty was the recipient of the National Science Foundation
+CAREER Award in 2011.

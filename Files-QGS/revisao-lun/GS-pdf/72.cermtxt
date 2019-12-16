@@ -1,0 +1,767 @@
+53rd IEEE Conference on Decision and Control
+December 15-17, 2014. Los Angeles, California, USA
+Coding Sensor Outputs for Injection Attacks Detection
+Fei Miao
+Quanyan Zhu
+Miroslav Pajic
+George J. Pappas.
+Abstract- This paper considers a method of coding the
+sensor outputs in order to detect stealthy false data injection
+attacks. An intelligent attacker can design a sequence of data
+injection to sensors that pass the state estimator and statistical
+fault detector, based on knowledge of the system parameters.
+To stay undetected, the injected data should increase the state
+estimation errors while keep the estimation residues in a small
+range. We employ a coding matrix to the original sensor outputs
+to increase the estimation residues, such that the alarm will be
+triggered by the detector even under intelligent data injection
+attacks. This is a low cost method compared with encryption
+over sensor communication networks. We prove the conditions
+the coding matrix should satisfy under the assumption that the
+attacker does not know the coding matrix yet. An iterative
+optimization algorithm is developed to compute a feasible
+coding matrix, and, we show that in general, multiple feasible
+coding matrices exist.
+I. INTRODUCTION
+Cyber-physical systems (CPSs) integrate computation and
+communications to interact with physical processes. Many
+applications are considered as CPSs, including high confidence
+medical devices, energy conservation, environmental
+control, and safety critical infrastructures-such as water supply
+systems, electric power, and communication systems [1].
+Therefore, security is a critical aspect of these systems, and
+CPSs involve additional challenges in control layer. The
+problem of secure control is defined, and defenses from
+information security, sensor network security are analyzed
+in [2]. However, due to the interaction of cyber systems with
+physical world, these mechanisms alone are not sufficient for
+the security of CPSs [2].
+The reasons that CPSs are vulnerable to cyber attacks and
+key challenges are summarized in [3]. Novel attack-detection
+algorithms besides existing information protection methods
+in cyber security area can be designed, by understanding
+how attacks affect state estimation and control of the system.
+Stealthy attacks from an intelligent attacker that can access
+a partial model of the system are synthesized in [4], and
+tools to protect state-estimation components in CPSs are developed.
+Since large numbers of measurements are sent over
+This material is based on research sponsored by DARPA under agreement
+number FA8750-12-2-0247. The U.S. Government is authorized to reproduce
+and distribute reprints for Governmental purposes notwithstanding any
+copyright notation thereon. The views and conclusions contained herein are
+those of the authors and should not be interpreted as necessarily representing
+the official policies or endorsements, either expressed or implied, of DARPA
+or the U.S. Government.
+F. Miao, M. Pajic and G. J. Pappas are with the Department
+of Electrical and Systems Engineering, University of Pennsylvania,
+Philadelphia, PA, USA 19014. Q. Zhu is with Department
+of Electrical and Computer Engineering, New York University,
+Brooklyn, NY, USA 11201. Email: fmiaofei, pajic,
+pappasgg@seas.upenn.edu,fquanyan.zhug@nyu.edu
+unencrypted communication channels in power grids [5], the
+authors developed two algorithms to maximize the utility of
+encrypted devices placed to increase system security.
+Fault detection, isolation and reconfiguration (FDIR)
+methods have been explored to ensure system safety requirements
+and robustness [6]. Although active techniques have
+been designed to tackle various types of attacks, fundamental
+limitations still exist, as characterized in [7]. Fawzi et al.
+propose estimation and control schemes of noise free linear
+systems, when some of the sensors or actuators are corrupted
+in [8]. Pajic et al. present a robust state estimation method
+in presence of attacks to no more than half of the sensors
+for systems with noise and modeling errors [9]. In contrast,
+we assume a different case where the attacker can inject an
+arbitrary vector to the communication between sensors and
+the estimator/detector/controller block, thus no element of
+the injection vector is constrained to be zero.
+In this work, we consider a type of deceptive cyber attackfalse
+data injection attacks to sensor outputs. We assume
+that there is no physical attack on individual measurements
+or sensors. The monitoring system can detect malicious
+behaviors in general. Miao et al. design a stochastic game
+approach for replay attacks detection when the system is
+equipped with an active controller, a filter and a statistical
+detector [10]. However, with knowledge of the system model,
+an intelligent cyber attacker is able to carefully design
+a data injection sequence, such that the state estimation
+error increases without triggering the alarm of the monitor
+[11], [12]. It is also shown that by only compromising
+actuators, attackers can never introduce infinite estimation
+errors that passing a monitor like 2 detector [12]. Therefore,
+we focus on intelligent sensor false data injection attacks
+and assume actuators are secure in this paper. Regarding
+the computational overhead of encryptions on embedded
+architectures [13], we propose an alternative low cost method
+to code the sensor measurements for detection.
+The main contribution of this work is a low cost method
+of coding sensor outputs to detect stealth sensor false data
+injection attacks. We assume that the coding matrix is
+secured, sent to sensors by a side channel before the coding
+starts. We show that even if the attacker knows the system
+model without the coding scheme, the system can detect
+the original stealthy sensor injections by coding the sensor
+outputs according to certain conditions. We also design an
+iterative optimization algorithm to compute such coding
+matrices, and show that in general, multiple feasible coding
+matrices exist. By encrypting only the coding matrix channel
+once, the coding approach saves encryption cost compared
+with encrypting all sensor outputs. Results presented in this
+978-1-4673-6090-6/14/$31.00 ©2014 IEEE
+5776
+work also provide a basis for the analysis of situations where
+the attacker can learn the coding scheme in some steps. In
+this case, the system can either change a new coding matrix
+or randomly use a set of coding matrices to fool the attacker.
+The paper is organized as follows. In Section II we
+describe the system and attack models. The conditions that
+a feasible coding matrix should satisfy are presented in Section
+III, with a proof in Appendix. An iterative optimization
+algorithm to find a feasible coding matrix is developed in
+Section IV. Section V shows illustrative examples. Conclusions
+are given in Section VI.
+II. SYSTEM AND ATTACK MODEL
+We will introduce the normal system model and deception
+attack model in this section. The system architecture with
+a discrete-time linear time-invariant (LTI) system and false
+data injection attack to sensors is shown in Figure 1.
+A. Linear system model
+Assume the CPS is a discrete time LTI system with the
+following form:
+xk+1 = Axk + Buk + wk;
+yk = Cxk + vk;
+(1)
+where xk 2 Rn is the system state vector at time k, uk 2 Rm
+is the control input at time k, and yk 2 Rp is the sensor
+observation vector. We do not have specific restrictions for
+the linear control input uk here, and we will illustrate why the
+controller does not affect the detection of false data injection
+later. We assume wk N (0; Q) and vk N (0; R), are
+identical independent Gaussian noises and initial state of the
+system satisfies x0 N (0; ).
+The optimal Kalman filter used to estimate state x^kjk is:
+x^0j 1 = 0;
+P0j 1 =
+Pk+1jk = APkAT + Q;
+Kk+1 = Pk+1jkCT (CPk+1jkCT + R) 1;
+; x^k+1jk = Ax^k + Buk;
+Pk+1 = (I
+zk+1 = yk+1
+Kk+1C)Pk+1jk;
+C(Ax^k + Buk); x^k+1 = x^k+1jk + Kkzk+1:
+Under the assumption that (A; B) is stabilizable, (A; C) is
+detectable, we get a steady state Kalman filter, with the error
+a1 LTI S1
+aa2m.. Xk+y1k==ACxxk+k+Buvkk+wk SS...2p
+Attacker
+yak
+change yk
+to yk'
+yk/yk'
+covariance matrix P and Kalman gain matrix K:
+P , lim Pkjk 1; K , P CT (CP CT + R) 1:
+k!1
+By the property of Kalman filter, matrix (A KCA) is stable.
+Here zk+1 is the estimation residue. Without attacks, residue
+zk follows a Gaussian distribution N (0; CP CT + R).
+Define the quantities gk as: gk = zkT P 1zk, where P 1 is
+the error covariance matrix of Kalman filter, then gk satisfies
+a 2 distribution with p degrees of freedom. By using gk,
+we consider the standardized residue sequence k = P 21 zk
+for a monitoring system-a 2 failure detector, and assume
+there exists a such that limk!1 kE kk . We denote
+as the threshold for the alarm, meaning that the alarm is
+triggered when gk > .
+B. False data injection attack model
+In this paper, we assume that actuators are secure and
+only consider the case of sensor attacks. It has been shown
+that by only compromising actuators, attackers can never
+induce infinite estimation error without being detected under
+monitoring systems like a 2 detector [12]. Therefore, we
+focus on intelligent sensor false data injection in this paper.
+The system model under attack is described as:
+x0k+1 = Ax0k + Bu0k + wk; yk0 = Cx0k + yka + vk;
+(2)
+where ya
+k 2 Rm is an arbitrary vector injected by the attacker
+at time k. Assume the adversary has knowledge of the system
+model described in Section II-A, and the ability to inject
+data over communication network between sensors and the
+estimator/detector/controller.
+C. The difference between normal and compromised systems
+To illustrate how the sensor injection sequence yka will
+affect the estimation and monitoring system, we examine
+how the estimation error and residue will change with yka.
+Let x^0k be the state estimation of the compromised system,
+zk0 = yk0+1 C(Ax^0k + Bu0k) be the estimation residue of
+the compromised system. Then, the difference between the
+normal and the compromised systems can be captured by:
+The dynamics of the above difference vectors satisfy:
+ek , xk
+ek , e0
+k
+x^k; e0k , x0
+k
+ek; zk , zk0
+x^0 ;
+k
+zk:
+ek+1 = (A
+zk+1 = CA
+KCA) ek
+ek + yka;
+a
+Kyk+1;
+(3)
+(4)
+Hence the difference vectors between normal and compromised
+systems - zk(ya); ek(ya) - are functions of the
+attack sequence ya , (y0a; y1a; : : : ). To simplify notations,
+we concisely denote these vectors as zk; ek.
+The objectives of the attacker include maximizing the
+estimation error e0k without triggering the alarm, while
+increasing x0k to infinity. When the system is secured,
+limk!1 E[ek] ! 0, and zk is in a small range. Thus the
+attacker's objective is equivalent to increasing k ekk2 (the
+difference between estimation error of the normal and compromised
+systems) without increasing k zkk2 much. The
+5777
+uk
+Controller
+Estimator
+uk-1
+Detector
+y'k=Cxk+yak+vk
+Fig. 1. System diagram, assume the attacker can inject arbitrary false data
+vector yka to sensor outputs.
+probability that yka is detected is P r(gk0 = (zk0)0T P 1zk0 >
+). Since computing gk0 is integrating Gaussian on an ellipsoid,
+the stealthy requirement can be approximated by
+keeping kzk0k2 small. Residues of the normal system zk is
+bounded, and the attacker should keep the change of residues
+bounded make the injection stealthy. It means the following
+inequality should hold
+k zkk2
+M;
+(5)
+where M is a residue norm change threshold designed by
+the attacker. The compromised estimation residue should be
+close to that of the normal system, to fool the monitoring
+system. 1 When yka can be an arbitrary vector, a necessary and
+sufficient condition for a stealth yka that can increase ke0kk2,
+kx0kk2 to infinity while keep kzk0k2, k zkk2 bounded is derived
+in [12], [11]. One of the conditions that Cv 2 span(I),
+i.e., there exists y satisfying y = Cv is always satisfied by
+the attack model (2). Hence, we have the following corollary.
+Corollary 1: There exists a stealth sequence yka; k =
+0; 1; : : : ; given the attacked system model (2), if and only
+if matrix A has an unstable eigenvalue and the corresponding
+eigenvector v, such that v 2 span(Qoa), where
+Qoa is the controllability matrix associated with the pair
+(A KCA; K).
+III. CODING SENSOR OUTPUTS FOR DETECTING
+STEALTH SENSOR DATA INJECTION
+Existing active monitor schemes (design some additive
+control input ud) and fault detection filters have limitations,
+k
+that even with secured actuators, they can not detect stealthy
+data injection attacks. It is necessary to design some inexpensive
+techniques to compensate for the vulnerability of the
+system under intelligent sensor data injection attacks.
+A. Limitations of existing approaches
+The limitation of active monitor approach: Under the
+assumption that actuators work appropriately for the attacked
+system (2), the challenge here is whether adding udk to
+the pre-designed linear control input uk (like optimal LQG
+control) can detect stealthy sensor data injections. It is
+worth noting that active monitor approaches does not help
+given sensor data injection attacks satisfying Theorem 1. For
+model (2), the control input does not affect the estimation
+residue change quantity zk+1 according to (4), which
+means there exists no u~k = uk + udk; u~0k = u0k + udk that can
+increase k zk+1k2 under yka. This is because any additional
+control input will be eliminated by the deduction of zk+1 and
+zk0+1 to get zk+1. The limitations of active monitors for a
+unified LTI model are proved in Theorem 4.7 of [7]. 2 In this
+perspective, different linear controllers are equivalent under
+stealth sensor data injection attacks, and we do not restrict
+the controller model for designing our detection techniques.
+1The relation between the scale or norm of the injection sequence and
+the alarm trigger threshold is shown in Theorem 1 in [12].
+2A different case when adding exogenous Gaussian distribution control
+input can detect replay attacks is discussed in [14].
+The limitation of fault detection filter: Besides Kalman
+filter, observer-based fault detection filters for LTI systems
+with unknown error have been developed. The design requirements
+usually include robustness to unknown inputs
+and sensitivity to faults. Such filters generate a different
+residue from zk of Kalman filter. Consider the following
+form of residual generator and residual evaluator (including a
+threshold and a decision logic unit, see [15] for details) [15]:
+x^k+1 = Ax^k + Buk + H(yk
+y^k);
+y^k = Cx^k; rk = V (yk
+y^k);
+(6)
+where x^k 2 Rn and y^k 2 Rp represent the state and
+output estimation vectors, respectively, and rk is the residual
+signal. This fault detector shares the same limitation with
+Kalman filter, i.e., the intelligent sensor data injection attack
+is stealth for the filter described as (6), since the residue is
+still observer based difference between yk and y^k.
+B. Coding sensor outputs to detect stealth data injection
+Since existing monitoring system can not detect intelligent
+false data injection attacks, and encryption method has a
+constraint of significant computation overhead, we propose
+a design of coding the sensor outputs to detect stealth
+sensor data injection attacks. An intelligent attacker designs
+the sequence yka carefully to keep the change of residue
+k zkk2 M , where M is a constant. Thus the objective of
+a detection approach is equivalent to increasing k zkk2 to
+infinity as time goes to infinity.
+The necessary and sufficient conditions for stealth false
+sensor data injection in Corollary 1 assume that the attacker
+knows (A; B; C; K). Parameters A and B are related to
+physical dynamics that may not be altered, while C is
+related to the sensor measurements, corresponding specific
+physical states. Without changing the physical setup, we still
+can manipulate the sensor outputs. To violate the attacker's
+design, we consider the method of transforming sensor
+outputs as shown in Figure 2-instead of sending the output
+vector yk = Cxk + vk to the estimator/controller/detector,
+sensors are transmitting the value:
+Yk =
+(Cxk + vk); C 2 Rp n;
+(7)
+where 2 Rp p is an invertible matrix. One can think of
+as an inexpensive code. We assume that the attacker does not
+know the matrix , and designed a sequence of stealth attack
+signal yka with parameters (A; B; C; K). One can compare
+with a secured key. By encrypting only the coding matrix
+channel once, the coding approach saves encryption cost
+Fig. 2. System diagram when coding sensor outputs with a matrix
+that satisfies the conditions of Theorem 1. Assume the attacker can inject
+arbitrary false data vector yka to sensor outputs.
+5778
+compared with encrypting all sensor outputs. In this case,
+the false sensor value after transforming changes to:
+Yk0 =
+Cxk + yka +
+vk:
+(8)
+Assume the corresponding Kalman filter with sensor output
+Yk has a steady state estimation error covariance matrix P 0
+and a Kalman gain matrix K0 that satisfy
+K0 = P 0CT T ( CP 0CT T +
+R) 1:
+Similarly as (4), define e0k; zk0 as the change of state
+estimation and residue for the sensor output (7), (8). With
+, a stealth data injection designed for (1) (with parameters
+(A; B; C; K)), k zk0k2 increases to infinity as k ! 1 under
+certain conditions. In the following theorem, we show the
+sufficient conditions that should satisfy for any stealth
+sequence of yka; k = 0; 1; : : : that satisfies Theorem 1.
+Theorem 1: Given an attacked system model (2), assume
+that the attacker designs a sequence of sensor data injection
+yka; k = 0; 1; : : : , based on one unstable eigenvector v of A
+that satisfies Corollary 1. If there exists an invertible matrix
+such that (A; C) is detectable, and the direction of Cv
+is not the same with that of Cv, i.e.,
+(Cv)0 Cv
+k Cvk2kCvk2
+6= 1;
+then after injecting yka the estimation residue change k zk0k2
+is increased , by coding sensor outputs (7) with .
+Proof: See Appendix.
+We call a matrix that satisfies the conditions of Theorem 1
+a feasible coding matrix. Theorem 1 proves that even the
+attacker knows system parameters (A; B; C; K), without
+changing the physical structure or altering A; B, we can
+utilize the sensor data to get different residues for detecting.
+Leveraging sensor outputs is the key reason to detect a
+stealth sensor data injection. It is worth noting that here we
+do not constrain specific structure of the matrix besides
+conditions in Theorem 1. For an LTI system, C is simply
+a linear transform of the original sensor measurement. When
+A has several unstable eigenvectors satisfying Corollary 1,
+the following lemma extends the result of Theorem 1.
+Lemma 1: Given an attacked system (2) with a set of
+unstable eigenvectors v1; : : : ; vu satisfying Corollary 1, if
+is an invertible matrix such that (A; C) is detectable, and
+(Cv~)0 Cv~
+k Cv~k2kCv~k2
+6= 1;
+for any linear combination of v1; : : : ; vu - v~, then is a
+feasible coding matrix to increase k zk0k2 for any stealth
+data injection to attacked system (2).
+Remark 1: When the attacker is able to learn by analyzing
+sensor outputs and actuator inputs, the system can send
+a new before the attacker figures out the current applied
+coding matrix. This will be an avenue for future work.
+IV. ALGORITHM TO COMPUTE A CODING MATRIX
+To compute a set of feasible coding matrices, we first
+analyze requirements of an optimal coding matrix, and then
+(9)
+(10)
+decouple the requirements to an approximate optimization
+problem and a corresponding system parameter design problem.
+The constraints are relaxed step by step to achieve
+an iterative algorithm, such that each iteration step of the
+algorithm is a convex optimization problem.
+The transformed observer data should maximize the difference
+between estimation residue of the normal and attacked
+system - k zk0k2, which is equivalent to maximizing
+k Cv Cvk2 (or v~), by the proof of Theorem 1. We do
+not want to sacrifice the state estimation performance of the
+coded the system, and e0k should not increase fast compared
+with ek, thus we require that (A; C) is detectable for a
+steady state Kalman filter. With transformed sensor values
+Yk in (7), we compute a new gain matrix K0 for the steady
+state Kalman filter, such that A~ = A K0 CA is stable.
+Hence the estimation error of the normal system with sensor
+output Yk = Cxk + vk satisfies
+lim E[e~k+1] = (A K0 CA)E[e~k] ! 0: (11)
+k!1
+The norm of should be bounded, because computable
+values of the estimator, controller, and detector are bounded.
+These requirements and objective are described as
+maximize k Cv
+subject to k k2 ;
+(A; C) detectable;
+Cvk2
+invertible;
+(A
+K0 CA) stable:
+(12)
+The above problem (12) is not convex, since maximizing a
+norm is a concave function of . There is no closed form
+equation between K0 and for the constraint related to K0.
+To decouple the design process, we ignore the constraint
+related to K0 and detectability of (A; C), compute an
+optimal satisfying other constraints first, and check the
+ignored constraints later.
+Given the system parameter matrices C, A, ignoring the
+requirement about K0, the objective of (12) is approximately
+to find an invertible, bounded that maximizes k Cv
+Cvk2. In general, when is unbounded, k Cv Cvk2 !
+1. Considering the direction change of vector Cv after
+transformed by Cv, the optimal direction to maximize the
+difference between Cv and Cv is the orthogonal direction.
+Thus, we have the following Lemma 2.
+Lemma 2: Assume the attacker designs a sequence of
+injections that satisfies Corollary 1, based on an unstable
+eigenvector v. If there exists a feasible solution of that
+satisfies the following constraints (13),
+(Cv)0 Cv = 0; k k2
+;
+is invertible;
+(13)
+and (A; C) is detectable, then we have an optimal direction
+coding matrix that satisfies Theorem 1.
+Remark 2: When should work for any linear combination
+of multiple unstable eigenvectors v~, we start from an
+invertible orthogonal rotation matrix that rotates any vector
+through 2 angle. Then check other constraints, if they are
+violated, we will find a heuristic algorithm. This will be an
+avenue for future work.
+5779
+For system with only one unstable eigenvector that satisfies
+Corollary 1, solving (13) directly may not return a feasible
+satisfying Theorem 1. The following convex optimization
+formulation presents a relaxed problem as one iteration.
+When = 0, is not invertible, though (Cv)0 Cv = 0.
+So we use a conservative constraint 0 to replace the
+invertible constraint. Log determinant function of 0
+will drive away from an all zero elements matrix, and the
+objective function is concave. There always exists a solution
+for (13) (an orthogonal rotation matrix), however, when
+we restrict the solution space to be positive-semidefinite
+(SDP), and (A; C) to be detectable, (Cv)0 Cv = 0 is
+a strict constraint. When this is the case, we relax (13) to an
+inequality constraint with a small , and get the formulation:
+maximize
+subject to
+log det
+k k2
+j(Cv)0 Cvj
+;
+kCvk22;
+0:
+(14)
+Thus, we have the following iteration algorithm. Algorithm 1
+starts from the constraint that (Cv)0 Cv = 0, i.e., the
+orthogonal transform. During each iteration, the algorithm
+relaxes the constraint, increases , till there is a feasible
+satisfying (A; C) is detectable. With such a and
+a corresponding K0, (11) is guaranteed. The change of
+estimation error of the coded system under a data injection
+attack- e0k should not increase too fast compared with
+ek. It means we do not need to sacrifice the estimation
+performance to detect stealth data injection attacks. This
+result is also shown in Section V.
+Algorithm 1 : Compute a feasible coding matrix
+Input: System model parameters A; B; C; K , an unstable
+eigenvalue and eigenvector ; v of A, and a stealth sensor
+data injection sequence yka.
+Initialization: Set the total iteration step number T , = 0,
+and -the increase step size of .
+Iteration: For t = 1; 2 : : : ; T , compute problem (14):
+If there is no feasible , let = + , t = t + 1.
+If there exists a , check the detectability of (A; C):
+if (A; C) is not detectable, let = + , t = t + 1;
+else if (A; C) is detectable, compute a steady state Kalman
+filter gain matrix K0 corresponding to the new sensor outputs
+Yk = Cxk + vk, and stop the iteration, return the result.
+Return: A feasible transform matrix and a corresponding
+steady state kalman filter gain matrix K0.
+Algorithm 1 is terminated once a feasible is computed.In
+the worst case, when ! , solution = I satisfies all
+the constraints, and (A; I C) is detectable, Algorithm 1 will
+terminate. It is worth noting that Theorem 1 is a sufficient
+condition. Even the direction of Cv is the same with that
+of Cv, with Cv 6= Cv we still increase k zk02. The norm
+increasing speed is relatively slow though. This is explained
+in the proof of Theorem 1.
+35
+30
+e
+g
+n25
+a
+h
+c
+ie20
+u
+d
+s
+re15
+f
+o
+rm10
+o
+N5
+00
+e50
+g
+n
+a
+h
+c40
+r
+o
+r
+re30
+n
+o
+iitt20
+a
+m
+s
+e
+f10
+o
+m
+ro0
+n 0
+50 T1im00e 150 200
+Fig. 5. Comparison of norm of estimation error change between the original
+system and coded system, ek and e0k, for 2 that satisfies Theorem 1
+but is not an SDP matrix.
+5780
+V. ILLUSTRATIVE EXAMPLES
+We show the effects of coding sensor outputs by examples
+of two-dimensional LTI systems. Consider a detectable 2dimensional
+linear system with parameters:
+A =
+0:8
+0:5
+10 ; B =
+01:5 ; C =
+2
+0
+01:5 ; D = 0;
+where A has an unstable eigenvalue = 1 and eigen[v0e:c0t5o8r8v0:=058[08]T1],Ty.1aO=ne[0s:t1e2a8lt6h
+att0ac:9k70se6q]Tu,enycke=is:ykay0a2 =
+y0a; k 2. By Algorithm 1, we get a feasible coding matrix
+1. Note that Theorem 1 does not require to be an SDP
+matrix. Another feasible matrix 2 that satisfies Theorem 1,
+but not an SDP calculated by Algorithm 1 is shown.
+1 =
+2
+0:5
+0:5
+1
+; 2 =
+1
+2
+01 :
+Figure 3 shows the comparison result of zk, zk0, and
+zk0 increases with time k after coded by 1, while without
+coding zk is bounded. Figure 4 shows that for the sensor
+outputs transformed by 2, zk0 increases with time k, while
+Comparison of estimation residue change under attack
+norm of residue change of original system
+norm of residue change of coded system
+50 T1im00e
+Fig. 3. Comparison of norms of
+150
+200
+zk, zk0 for 1
+Comparison of estimation residue change under attack
+20
+egn nnoorrmm ooff rreessiidduuee cchhaannggee ooff tchoedeodrigsiynsatlesmystem
+a15
+h
+c
+e
+u
+id10
+s
+e
+fr
+ro5
+m
+o
+n
+00 50 150
+T1im00e 200
+Fig. 4. Comparison of norm of residue change between the original system
+and coded system, zk and zk0, for 2 that satisfies Theorem 1 but is
+not an SDP matrix.
+Comparison of estimation error change under attack
+estimation error change of the original system
+estimation error change of the coded system
+the original system zk stays inside a bounded range. For the
+transformed sensor outputs, change of the estimation error
+e0k increases even slower than ek under data injection
+attack as shown in Figure 5. By comparing the change of
+estimation error ek and e0k, we show that estimation error
+of a coded system does not necessarily increase faster than
+the original system.
+VI. CONCLUSION
+In this work, we have proposed a method of coding
+sensor outputs to detect stealth sensor data injection attacks,
+designed by an intelligent attacker with system model
+knowledge. Without changing physical setup, we transform
+the sensor outputs and provide conditions when a linear
+combination of original sensor outputs can help to detect
+a stealthy injection sequence. An iterative optimization algorithm
+is developed to compute a feasible transform matrix
+efficiently, and examples show detection effects after coding
+sensor values. In the future, we will explore scenarios where
+the attacker is capable to learn the coding matrix.
+APPENDIX
+Proof of Theorem 1
+Proof: Given a system under data injection attacks
+as (2), we assume that the system has one unstable eigenvector
+v with corresponding eigenvalue . According to the
+definition in equation (3), the dynamics of ek; zk satisfy
+Similarly, for coded sensor outputs (8),
+ek+1 = (A
+KCA) ek
+a
+zk+1 = CA ek + yk :
+Kyka+1;
+e0k+1 = (A
+zk0+1 =
+a
+CA e0k + yk ;
+K0 CA) e0
+k
+K0yka+1;
+Based on the proof of Theorem 1 in [12], the only component
+of ek that goes to infinity eventually is
+ckv; lim ck = 1;
+k!1
+and
+ek can be decomposed as
+ek = ckv + 1k; k 1kk2
+M1:
+To keep zk bounded as k ! 1, any stealth injection
+sequence yka must satisfy
+yka =
+ck Cv + 2k; k 2kk2
+M2; k = 0; 1; 2; : : : ; (19)
+where M2 is a constant such that k zkk2 M for all k.
+We assume that the attacker does not know , and designs
+a injection sequence for the original system (1) as described
+in (19). Similarly as ek, the only component of e0k that
+can goes to infinity is ck , since matrix A is not changed
+by the coding matrix . However, with any yka in (19), zk0
+can be decomposed as
+zk0 = ck ( Cv
+Cv) + 3k; k = 0; 1; 2; : : : ;
+(20)
+k zk0k ! 1 as k ! 1.
+where 3k is a bounded vector components of zk0. When
+satisfies equation (9), Cv Cv 6= 0. With ck ! 1,
+When there are a set of unstable eigenvectors v1; : : : ; vu
+and eigenvalues 1; : : : ; u, the above proof still holds after
+replacing ckv with Pu i=1 cik iCvi.
+i=1 cikvi, ck Cv with Pu
+When (A; C) is detectable, there exists a steady state
+Kalman filter with parameter K0 for the coded system, and
+the corresponding fault detector. Hence, when the attacker
+designs a stealth injection sequence without knowledge of
+, the system can detect it by increasing k zk0k2 with .
+REFERENCES
+[1] K.-D. Kim and P. R. Kumar, “Cyber-physical systems: A
+perspective at the centennial,” Proceedings of the IEEE, pp.
+1287-1308, 2012.
+[2] A. Cardenas, S. Amin, and S. Sastry, “Secure control: Towards
+survivable cyber-physical systems,” in 28th International Conference
+on Distributed Computing Systems Workshops, 2008,
+pp. 495-500.
+[3] A. Cardenas, S. Amin, B. Sinopoli, A. Giani, A. Perrig, and
+S. Sastry, “Challenges for securing cyber physical systems,”
+in Workshop on future directions in cyber-physical systems
+security, 2009.
+[4] A. Teixeira, S. Amin, H. Sandberg, K. Johansson, and S. Sastry,
+“Cyber security analysis of state estimators in electric
+power systems,” in 2010 49th IEEE Conference on Decision
+and Control (CDC), 2010, pp. 5991-5998.
+[5] G. Da´n and H. Sandberg, “Stealth attacks and protection
+schemes for state estimators in power systems,” in 2010 First
+IEEE International Conference on Smart Grid Communications
+(SmartGridComm), 2010, pp. 214-219.
+[6] I. Hwang, S. Kim, Y. Kim, and C. Seah, “A survey of fault
+detection, isolation, and reconfiguration methods,” Control
+Systems Technology, IEEE Transactions on, vol. 18, no. 3,
+pp. 636-653, 2010.
+[7] F. Pasqualetti, F. Do¨rfler, and F. Bullo, “Attack detection and
+identification in cyber-physical systems,” IEEE Transactions
+on Automatic Control, vol. 58, no. 11, pp. 2715-2729, Nov
+2013.
+[8] H. Fawzi, P. Tabuada, and S. Diggavi, “Secure estimation and
+control for cyber-physical systems under adversarial attacks,”
+IEEE Transactions on Automatic Control, vol. 59, no. 6, pp.
+1454-1467, 2014.
+[9] M. Pajic, J. Weimer, N. Bezzo, P. Tabuada, O. Sokolsky,
+I. Lee, and G. Pappas, “Robustness of attack-resilient state
+estimators,” in 2014 ACM/IEEE International Conference on
+Cyber-Physical Systems (ICCPS), 2014, pp. 163-174.
+[10] F. Miao, M. Pajic, and G. Pappas, “Stochastic game approach
+for replay attack detection,” in IEEE 52nd Annual Conference
+on Decision and Control (CDC), Dec 2013, pp. 1854-1859.
+[11] Y. Mo and B. Sinopoli, “False data injection attacks in control
+systems,” in First Workshop on Secure Control Systems, CPS
+Week, 2010.
+[12] W. C.Kwon and I. Hwang, “Security analysis for cyberphysical
+systems against stealthy deception attacks,” in Amerian
+Control Conference (ACC), June 2013.
+[13] P. Ganesan, R. Venugopalan, P. Peddabachagari, A. Dean,
+F. Mueller, and M. Sichitiu, “Analyzing and modeling encryption
+overhead for sensor network nodes,” in 2nd ACM
+International Conference on Wireless Sensor Networks and
+Applications, 2003, pp. 151-159.
+[14] Y. Mo and B. Sinopoli, “Secure control against replay attacks,”
+in Communication, Contro, and Computing, 47th Annual
+Allerton Conference on, 2009, pp. 911-918.
+[15] M. Zhong, S. X. Ding, J. Lam, and H. Wang, “An LMI
+approach to design robust fault detection filter for uncertain
+LTI systems,” Automatica, vol. 39, no. 3, pp. 543 - 550, 2003.
+(15)
+(16)
+(17)
+(18)
+5781

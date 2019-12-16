@@ -1,0 +1,920 @@
+49th IEEE Conference on Decision and Control
+December 15-17, 2010
+Hilton Atlanta Hotel, Atlanta, GA, USA
+Cyber Security Analysis of State Estimators in Electric Power Systems
+Andre´ Teixeira∗, Saurabh Amin†, Henrik Sandberg∗, Karl H. Johansson∗, and Shankar S. Sastry†
+Abstract- In this paper, we analyze the cyber security of
+state estimators in Supervisory Control and Data Acquisition
+(SCADA) systems operating in power grids. Safe and reliable
+operation of these critical infrastructure systems is a major
+concern in our society. In current state estimation algorithms
+there are bad data detection (BDD) schemes to detect random
+outliers in the measurement data. Such schemes are based on
+high measurement redundancy. Although such methods may
+detect a set of very basic cyber attacks, they may fail in the
+presence of a more intelligent attacker. We explore the latter by
+considering scenarios where deception attacks are performed,
+sending false information to the control center. Similar attacks
+have been studied before for linear state estimators, assuming
+the attacker has perfect model knowledge. Here we instead
+assume the attacker only possesses a perturbed model. Such a
+model may correspond to a partial model of the true system,
+or even an out-dated model. We characterize the attacker
+by a set of objectives, and propose policies to synthesize
+stealthy deceptions attacks, both in the case of linear and
+nonlinear estimators. We show that the more accurate model
+the attacker has access to, the larger deception attack he can
+perform undetected. Specifically, we quantify trade-offs between
+model accuracy and possible attack impact for different BDD
+schemes. The developed tools can be used to further strengthen
+and protect the critical state-estimation component in SCADA
+systems.
+I. INTRODUCTION
+Several infrastructures are of major importance to our
+society. Examples include the power grid, telecommunication
+network, and water supply, and due to how essential they are
+in our daily life they are referred to as critical infrastructures.
+These systems are operated by means of complex distributed
+software systems, which transmit information through wide
+and local area networks. Because of this fact, critical infrastructures
+are vulnerable to cyber attacks [1], [2]. These are
+performed on the information residing and flowing in the IT
+system.
+Power networks, for instance, are operated through
+SCADA systems complemented by a set of application
+specific software, usually called energy management systems
+(EMS). Modern EMS provide information support for a
+variety of applications related to power network monitoring
+and control. The power system state estimator (PSSE) is an
+on-line application which uses redundant measurements and
+This work was supported in part by the European Commission through the
+VIKING project, the Swedish Research Council, the Swedish Foundation
+for Strategic Research, and the Knut and Alice Wallenberg Foundation.
+H. Sandberg, A. Teixeira, and K. H. Johansson are with the Automatic
+Control Lab, Royal Institute of Technology, Stockholm, Sweden.
+{andretei,hsan,kallej}@ee.kth.se
+S. Amin and S. S. Sastry are with the TRUST Center, University of California,
+Berkeley. {saurabh,sastry}@eecs.berkeley.edu
+978-1-4244-7746-3/10/$26.00 ©2010 IEEE
+5991
+a network model to provide the EMS with an accurate state
+estimate at all times. The PSSE has become an integral tool
+for EMS, for instance for contingency-constrained optimal
+power flow. The PSSE also provides important information
+to pricing algorithms. SCADA systems collect data from
+remote terminal units (RTUs) installed in various substations,
+and relay aggregated measurements to the central master
+station located at the control center. Several cyber attacks
+on SCADA systems operating power networks have been
+reported [3], [4], and major blackouts, as the August 2003
+Northeast blackout, are worsened by the misuse of the
+SCADA systems [5]. The 2003 blackout also highlighted
+the need of robust state estimators that converge accurately
+and rapidly in such extreme situations, so that necessary
+preventive actions can be taken in a timely manner. As
+discussed in [1], there are several vulnerabilities in the
+SCADA system architecture, including the direct tampering
+of RTUs, communication links from RTUs to the control
+center, and the IT software and databases in the control
+center. For instance, the RTUs could be targets of denial-ofservice
+(DoS) or deceptions attacks injecting false data [6].
+Power networks, being systems where control loops are
+closed over communication networks, represent an important
+class of networked control systems (NCS). Unlike other IT
+systems where cyber security mainly involves encryption
+and protection of data, here cyber attacks may influence the
+physical processes through the digital controllers. Therefore
+focusing on encryption of data alone may not be enough
+to guarantee the security of the overall system, especially
+its physical component. In order to increase the resilience of
+these systems, one needs appropriate tools to first understand
+and then to protect NCS against cyber attacks. Some of the
+literature has already tackled these problems such as false
+data injection in power system state estimation [6], security
+constrained control [7], and replay attacks [8].
+Our work analyzes the cyber security of the PSSE in
+the SCADA system. In current implementations of PSSE
+algorithms there are bad data detection (BDD) schemes [9],
+[10] designed to detect random outliers in the measurement
+data. Such schemes are based on high measurement redundancy
+and are performed at the end of the state estimation
+process. Although such methods can detect basic attacks,
+they may fail in the presence of more intelligent attackers
+that wish to stay undetected, in which case the false data
+could be introduced in a coordinated manner so that it looks
+consistent to the detection mechanism, thus bypassing it. We
+explore the latter by considering scenarios where deception
+attacks are performed by sending false information to the
+control center. A related study was performed in [6] for linear
+state estimators, assuming the attacker has perfect model
+knowledge. Here we instead assume the attacker only possesses
+a perturbed model. Such a model may correspond to a
+partial model of the true system, or an out-dated model. We
+characterize the attacker by defining a set of objectives, and
+propose policies to synthesize stealthy deceptions attacks,
+both for linear and nonlinear estimators. We show that the
+more accurate model the attacker has access to, the larger
+deception attack he can perform undetected. Specifically,
+we quantify trade-offs between model accuracy and possible
+attack impact for different BDD schemes.
+The outline of this paper is as follows. We present the
+main concepts behind state estimation in power systems, the
+attacker model, and problem formulation in Section II. The
+properties of the estimation algorithm which are deployed in
+practice are discussed in Section III. In Section IV, two common
+BDD methods are reviewed. The analysis of stealthy
+deception attacks with partial knowledge is performed in
+Section V. An example that illustrates the results is presented
+in Section VI, followed by the conclusions in Section VII.
+II. STEALTHY DECEPTION ATTACKS ON PSSE
+We focus on additive deception attacks aimed toward
+manipulating the measurements to be processed by the PSSE
+in such a manner that the resulting systematic errors introduced
+by the adversary are either undetected or only partially
+detected by a BDD method. We call such attacks stealthy
+deception attacks on the PSSE. We are also interested in
+finding the class of stealthy deception attacks that do not
+pose significant convergence issues for the estimator. Attacks
+affecting the convergence of the PSSE are related to data
+availability, as they can be seen as DoS attacks. However
+the focus of this work is on deception attacks, which are
+related to data integrity. Note that the non-convergence of
+the PSSE without any attack can have several reasons, such
+as low measurement redundancy and topology and parameter
+errors. Since this is not related to the security of the PSSE,
+we assume the estimator converges if no attack is performed.
+A. PSSE
+The basic PSSE problem is to find the best n-dimensional
+state x for the measurement model
+z = h(x) + ǫ,
+(1)
+in a weighted least square (WLS) sense. Here z is the
+m-dimensional vector of measurements, h is a nonlinear
+function modeling the power network, and ǫ ∼ N (0, R)
+is a vector of independent zero-mean Gaussian variables
+with covariance matrix R = diag(σ12, . . . , σm2). For an
+electric power network with N buses, the state vector x =
+(θ⊤, V ⊤)⊤, where V = (V1, . . . , VN )⊤ is the vector of bus
+voltage magnitudes and θ = (θ2, . . . , θN )⊤ the vector of
+phase angles. Without loss of generality, bus 1 is considered
+as the reference bus with θ1 = 0, so the state dimension is
+n = 2N − 1. Detailed formulae relating measurements z and
+state x may be found in [11].
+Defining the residual vector r(x) = z −h(x), we can write
+the WLS problem as
+min J (x) =
+x∈Rn
+1
+2
+r(x)⊤R−1r(x).
+The PSSE yields a state estimate xˆ as a minimizer to
+this minimization problem. The measurement estimates are
+defined as zˆ := h(xˆ). The WLS estimate xˆ satisfies the
+following first order necessary condition for optimality
+F (xˆ) := ∇J (xˆ) = −H⊤(xˆ)R−1r(xˆ) = 0,
+(2)
+where H = dh/dx is the m × n dimensional measurement
+Jacobian matrix. The solution xˆ of the nonlinear equation
+F (xˆ) = 0 may be obtained by the Newton method in which
+a linear equation is solved at each iteration to compute the
+correction Δxk := xk+1 − xk:
+[F ′(xk)](Δxk) = −F (xk),
+k = 0, 1, . . . ,
+(3)
+where the Hessian matrix [F ′(xk)] = ∇2J (xk) is given by
+m
+[F ′(xk)] = H⊤(xk)R−1H(xk) + X
+i=1
+σi2
+ri(xk) ∇2ri(xk).
+The iterates (3) guarantee the convergence to a local minimum
+as long as the generated sequence {xk} converges
+and the matrices [F ′(xk)] remain non-singular during the
+iteration process. A nearly singular Hessian matrix [F ′(xk)]
+can result in a convergence failure. A precise statement of
+local convergence is presented in the Appendix.
+The second order information in [F ′(xk)] is computationally
+expensive, and its effect often negligible when applied to
+PSSE. Thus, the symmetric approximation is used in practice
+[F ′(xk)] ≈ H⊤(xk)R−1H(xk) =: Kk
+where Kk is called the gain (or information) matrix. This
+approximation leads to the Gauss-Newton steps obtained by
+solving the so called normal equations:
+H⊤(xk)R−1H(xk) (Δxk) = H⊤(xk)R−1r(xk),
+(4)
+for k = 0, 1, . . . For an observable power network, the
+measurement Jacobian matrix H(xk) is full column rank.
+Consequently, the gain matrix Kk = Pim=1 Hi⊤(xkσ)2Hi(xk)
+in (4) is positive definite and the Gauss-Newton steip generates
+a descent direction, i.e., for the direction Δxk =
+xk+1 − xk the condition ∇J (xk)⊤Δxk < 0 is satisfied. We
+now present the attacker model.
+B. Attacker Model
+The goal of a stealthy deception attacker is to compromise
+the telemetered measurements available to the PSSE such
+that: 1) The PSSE algorithm converges; 2) For the targeted
+set of measurements, the estimated values at convergence are
+close to the compromised ones introduced by the attacker;
+and 3) The attack remains fully undetected by the BDD
+scheme.
+As a consequence of the attacker's stealthy action, the
+incorrect state estimates generated by the PSSE can have
+5992
+Attacker
+a
+z = h(x) +
+Power Grid
+State xˆ Bad Data
+Estimator r = z−zˆ Detection
+xˆ
+Contingency
+Analysis
+Optimal u∗
+Power Flow
+Operator
+Control Center
+Alarm!
+u
+Fig. 1. The state estimator under a cyber attack
+different effects on other power management functions. In
+fact, as depicted in Figure 1, the state estimate is used as
+an input to other software applications, in particular the
+contingency analysis and optimal power flow.
+Let the corrupted measurement be denoted za. We assume
+the following additive attack model
+za = z + a,
+(5)
+where a ∈ Rm is the attack vector introduced by the
+attacker. The vector a has zero entries for uncompromised
+measurements. Under attack, the normal equations (4), give
+the estimates
+x˜k+1 = x˜k + H⊤(x˜k)R−1H(x˜k) −1 H⊤(x˜k)R−1ra(x˜k),
+for k = 0, 1, . . . , where x˜k is the biased estimate at iterate
+i, and ra(x˜k) := za − h(x˜k). If the local convergence
+a
+conditions hold, then these iterations converge to xˆ , which
+is the biased state estimate resulting from the use of za. Thus,
+the convergence behavior can be expressed as the following
+statement:
+1) The sequence {x˜0, x˜1, . . . } generated by the mapping
+G(x) = x + (H⊤(x)R−1H(x))−1H⊤(x)R−1ra(x)
+converges to a fixed point xˆa of G in a region Sϑa,
+where Sϑa is a closed ball in Rn of radius ϑ governed by the
+conditions required for the local convergence to hold. We
+will occasionally use the notation xˆa(za) to emphasize the
+dependence on za.
+The BDD schemes for PSEE are based on checking if
+the weighted p-norm of the measurement residual is below
+some threshold τ , which is selected based on permissible
+false-alarm rate. Thus, the attackers action will be undetected
+by the BDD scheme provided that the following condition
+holds:
+2) The measurement residual under attack ra := r(xˆa) =
+za − h(xˆa), satisfies the condition kW r(xˆa)kp < τ .
+Finally, let the target set be represented by Itgrt containing
+indices of the measurements which are targeted by the
+attacker. For each i ∈ Itgrt, the attacker would like the
+estimated measurement zˆia := hi(xˆa(za)) to be equal to the
+actual corrupted measurement zia. However, such a condition
+may not be satisfied since corrupted measurements may not
+be consistent with the model, and can result in violation of
+conditions 1), and 2) mentioned above. Therefore, we arrive
+5993
+at the following condition which will additionally govern the
+synthesis of attack vector a:
+3) The attack vector a is chosen such that |zia − zˆia| < η
+for i ∈ Itgrt, where η is a small positive constant.
+The aim of a stealthy deception attacker is then to find and
+apply an attack a that satisfies conditions 1), 2), and 3). In
+Section V, we take a similar approach as in [6] to synthesize
+stealthy attack policies of the form of a = H˜ c, where H˜ is
+the imperfect model known by the attacker. Unlike in [6],
+we do not assume the attacker has the exact model of the
+system and we consider both linear and nonlinear estimators.
+III. PSSE ITERATES AS LINEAR WLS PROBLEMS
+As seen in the previous section, solving the normal equation
+is the corner stone of the estimation algorithm. In this
+section we take a closer look on the normal equation and
+show that it can be seen as the solution for a linear least
+squares problem. This is quite useful as it provides a unified
+interpretation of the residual for both the linear and nonlinear
+estimation algorithms.
+The normal equation can be interpreted as the solution of
+a linear least squares problem. In particular, writing H(xk)
+as H, and Δxk as Δx, and r(xk) = z − h(xk) as Δz for
+notational convenience, and defining Δz¯ = R−1/2Δz and
+H¯ = R−1/2H, the k−th iteration as given by equation (4)
+is the solution of the linear least squares problem
+min(Δz¯ − H¯ Δx)⊤(Δz¯ − H¯ Δx).
+Δx
+It can be obtained as a solution of the overdetermined system
+of equations
+H¯ Δx ∼= Δz¯.
+Given that H¯ has full column rank and using the notation of
+the pseudo-inverse H¯ † := (H¯ ⊤H¯ )−1H¯ ⊤,
+Δx = H¯ †Δz¯ = (H¯ ⊤H¯ )−1H¯ ⊤Δz¯.
+For the approximate (linear) model
+Δz¯ = H¯ Δx¯ + ǫ¯
+r¯ = S¯ǫ¯,
+where ǫ¯ = R−1/2ǫ, the measurement residual can be expressed
+as
+where S¯ = (I − H¯ (H¯ ⊤H¯ )−1H¯ ⊤) is called the
+weighted sensitivity matrix. Since the matrix T¯ =
+H¯ (H¯ ⊤H¯ )−1H¯ ⊤ is symmetric and orthogonal with range
+space Im(H¯ (H¯ ⊤H¯ )−1H¯ ⊤)) same as Im(H¯ ), we call it the
+orthogonal projector onto Im(H¯ ) and denote it by PIm(H¯ ).
+Such matrix is known as the hat matrix in the power system
+literature [11], [12]. Consequentially, we see that S¯ in (7) is
+the orthogonal projector onto the null-space (kernel) of H¯ ⊤,
+i.e. S¯ = (I − PIm(H¯ )) = PKer(H¯ ⊤).
+(6)
+(7)
+IV. BAD DATA DETECTION
+The measurements used in PSSE may be corrupted by
+random errors and so a necessary security capability of the
+PSSE is BDD [11], [12], [10]. Traditionally, the bad data is
+understood as a result of parameter errors which corrupt the
+values of modeled circuit elements, incorrect network topology
+descriptions, and gross measurement errors due to device
+failures and incorrect meter scans. However, in view of new
+security threats, bad data can be deliberately introduced by
+an active adversary which manipulates the communication
+between remote RTUs and the SCADA system.
+Through BDD the PSSE detects measurements corrupted
+by errors whose statistical properties exceed the presumed
+standard deviation or mean. This is achieved by hypothesis
+tests using the statistical properties of the weighted measurement
+residual (7). We now introduce two of the BDD
+hypothesis tests widely used in practice, the performance
+index test and the largest normalized residual test. These
+indices are used to model the BDD objective in Section IIB.
+1) Performance index test: For the measurement error
+ǫ¯ ∼ N (0, I), the random variable y := Pim=1 ǫ¯i2 has a chisquare
+distribution with m degrees of freedom (χ2m) with
+E {y} = m. Consider the quadratic cost function evaluated
+at the optimal estimate xˆ
+J (xˆ) = r¯⊤r¯ = ǫ¯⊤S¯ǫ¯.
+(8)
+Recalling that rank(H¯ ) = n, Im(H¯ ) ⊕ Ker(H¯ ⊤) = Rm,
+and using the definition of orthogonal projector, we note
+that S¯ = PKer(H¯ ⊤), and we have rank(S¯) = m − n.
+Therefore, in the absence of bad data, the quadratic form
+ǫ¯⊤S¯ǫ¯ has a chi-squares distribution with m − n degrees of
+freedom, i.e. J (xˆ) ∼ χ2m−n with E {J (xˆ)} = m − n. The
+main idea behind the performance index test is to use J (xˆ)
+as an approximation of y and check if J (xˆ) follows the
+distribution χ2m−n. This can be posed as a hypothesis test
+with a null hypothesis H0, which if accepted means there
+is no bad data, and an alternative bad data hypothesis H1
+where
+H0 : E {J (xˆ)} = m − n,
+H1 : E {J (xˆ)} > m − n
+Defining α ∈ [0, 1] as the significance level of the test
+corresponding to the false alarm rate, and τχ(α) such that
+Z τχ(α)
+0
+gχ(u)du = 1 − α,
+(9)
+where gχ(u) is the probability distribution function (pdf) of
+χ2m−n, and noting that J (xˆ) = kR−1/2r(xˆ)k2 the result of
+the test is
+reject H0 if kR−1/2rk2 > qτχ(α),
+accept H0 if kR−1/2rk2 ≤ qτχ(α).
+2) Largest normalized residual test: From (7), we note
+that r¯ ∼ N (0, S¯) and equivalently r ∼ N (0, Ω) with Ω =
+R1/2S¯R1/2. Now consider the normalized residual vector
+rN = D−1/2r,
+(10)
+with D ∈ Rm×m being a diagonal matrix defined as D =
+diag(Ω). In the absence of bad data each element riN , i =
+1, . . . , m of the normalized residual vector then follows a
+normal distribution with zero mean and unit variance, i.e.
+riN ∼ N (0, 1), ∀i = 1, . . . , m. Thus, bad data could be
+detected by checking if riN follows N (0, 1). Posing this as
+hypothesis test for each element riN
+H0 : E riN
+= 0,
+H1 : E
+|riN |) > 0
+Again defining α ∈ [0, 1] as the significance level of the
+test and τN such that
+Z τN (α)
+−τN (α)
+gN (u)du = 1 − α,
+(11)
+where gN (u) is the pdf of N (0, 1), and noting (10), the
+result of the test is
+reject H0 if kD−1/2rk∞ > τN (α)
+accept H0 if kD−1/2rk∞ ≤ τN (α)
+We observe that for the case of single measurement with
+bad data, the largest normalized residual element |riN | corresponds
+to the corrupted measurement [11]. It is clear that
+both tests may be written as kW r(xˆ)kp < τ , for suitable W ,
+p, and τ .
+V. DECEPTION ATTACKS ON LINEAR STATE ESTIMATOR
+Several scenarios of stealthy deception attacks on PSSE for
+the DC case have been analyzed in [6]. The authors of [6]
+considered linear models, which were fully known by the
+attacker, and focused on additive attack policies that would
+guarantee the measurement residual to remain unchanged for
+the linear least squares algorithm. The feasibility of such attack
+policies was then analyzed for several IEEE benchmarks
+under different resource constraints of the attacker (for e.g.,
+number of sensors the attacker could corrupt) and attacker
+objectives (for e.g., random attack, targeted attack). The main
+result related to attack policies was that if the attack vector a
+was in the range space of H, then the measurement residual
+ra = (z + a) − Hxˆ would be the same as the residual r
+when there was no attack. Thus, such attack vectors would
+not increase the residual. Such undetectable errors have been
+analyzed previously within the power system's community,
+see [9], [13].
+In this section we analyze how the attacker may fulfill the
+objective Section II-B, and thereby remain undetected.
+A. Attack Synthesis
+In general a stealthy attack requires the corruption of
+more measurements than the targeted ones, see [6], [14].
+This relates to the fact that a stealthy attack must have the
+attack vector a fitting the measurement model, which for the
+weighted linear case is equivalent to have a ∈ Im(H¯ ).
+5994
+We now present a general methodology for synthesizing
+stealthy attacks for the linear case with specific target constraints.
+Suppose the attacker wishes to compute an attack
+vector a such that z¯a = z¯+a satisfies a set of goals, encoded
+by a ∈ G, and the attack is stealthy, i.e. a ∈ Im(H¯ ).
+Assuming the attacker knows the weighted measurement
+model H¯ , such attack could be computed by solving the
+optimization problem
+main kakp
+s.t. a ∈ G, a ∈ Im(H¯ ) ,
+corresponding to the ”least-effort“ attack in the p-norm sense.
+An interesting case is that of p = 0, which means the
+attacker is computing the attack with minimum cardinality,
+e.g., minimizing the number of sensors to corrupt. Another
+particular formulation is the 2-norm case with a single attack
+target, zai = zi + 1 or ai = 1. By recalling that a ∈ Im(H¯ )
+means that a = H¯ c for a given c, the optimization problem
+may be recast as
+mcin kH¯ ck22
+,
+s.t. ei⊤H¯ c = 1
+where ei is a unitary vector with 1 in the i-th component.
+Recall T¯ = PIm(H¯ ) = H¯ H¯ †.
+Proposition 1: The optimal solution a∗ to the optimization
+problem (13) is given by a∗ = T¯T¯ii ei
+Proof: The Lagrangian of this optimization problem
+is L(c, ν) = cH¯ ⊤H¯ c + ν(ei⊤H¯ c − 1) and the KKT conditions
+[15] for an optimal solution (c∗, ν∗) are
+( H¯ ⊤H¯ c∗ + ν∗H¯ ⊤ei = 0
+ei⊤H¯ c∗ − 1 = 0
+.
+Since it is assumed the power network is observable, the
+solution for the first equation is c∗ = ν∗H¯ †ei. Including
+this in the second equation results in ν∗ei⊤T¯ei = 1 which
+is equivalent to ν∗ = T¯1ii with T¯ii being the i-th diagonal
+¯
+element of T¯. We then have that a∗ = H¯ c∗ = T¯Tii ei.
+In the power system's literature, the hat matrix T¯ is known
+to have information regarding measurement redundancy and
+correlation. This result highlights a new meaning: each
+column of T¯ actually corresponds to an optimal attack vector
+yielding a zero residual.
+B. Relaxing the Assumptions on Adversarial Knowledge
+Here we consider the scenario where the attacker is
+performing an attack according to (12), but having only a
+partial or corrupted knowledge of the measurement model.
+Such knowledge may be obtained, for instance, by recording
+and analyzing data sent from the RTUs to the control center
+using suitable statistical methods. The corrupted measurement
+model may also correspond to an out-dated model or
+an estimated model using the power network topology, usual
+parameter values and uncertain operating point. We further
+assume that the covariance matrix R is known.
+In the following analysis we provide bounds on the
+measurement residual under this kind of attack scenario.
+(12)
+(13)
+(14)
+5995
+These bounds give some insights on what attacks may go
+undetected, given the model uncertainty. For the moment we
+assume there are no random errors in the measurements and
+so we consider the weighted measurements z¯ = H¯ x.
+Let the perturbed measurement model known by the
+attacker be denoted by H˜ , such that
+H˜ = H¯ + ΔH¯ ,
+(15)
+(16)
+(17)
+and consider the linear policy to compute attacks on the
+measurements to be a = H˜ c, resulting in the corrupted set
+of measurements z¯a = z¯ + a. Recall the objectives of the
+attacker as defined in Section II-B.
+The third objective, being undetected, depends both on the
+desired bias on the flow measurements a and on the model
+uncertainty ΔH¯ . The measurement residual under attack,
+ra := r¯(z¯a), can be written as
+r¯(z¯a) = S¯(z¯ + H˜ c) = S¯z¯ + r¯a.
+Using (15) and the fact that S¯ = PKer(H¯ ⊤), we can rewrite
+it as
+r¯(z¯a) = S¯(z¯ + H¯ c) + S¯ΔH¯ c = S¯ΔH¯ c.
+We denote r¯a = S¯ΔH¯ c as the residual due to the attack,
+since it only depends on c and ΔH¯ . Furthermore, we see
+that kr¯ak ≤ kS¯kkΔH¯ kkck = kΔH¯ kkck, since S¯ is an
+orthogonal projector, showing that the residual norm is linear
+in terms of the model uncertainty. However, this bound
+does not capture an important property of the sensitivity
+matrix S¯, i.e., S¯ is the orthogonal projector onto Ker(H¯ ⊤).
+To show this, assume H˜ = δH¯ for some nonzero δ,
+yielding ΔH¯ = (1 − δ)H¯ . From the previous result we have
+kr¯ak ≤ k(1 − δ)H¯ kk k
+c . However, since S¯ is the orthogonal
+projector onto Ker(H¯ ⊤) and this subspace is the orthogonal
+complement of Im(H¯ ) we know that r¯a = S¯ΔH¯ c = 0.
+Therefore, although there is model uncertainty, the residual is
+still zero. This reasoning indicates that there is a geometrical
+meaning in the residual, since all the model perturbations
+ΔH¯ spanning Im(H¯ ) will yield a zero residual. To further
+explore this property, we will make use of the so-called
+principal angles and projection theory described in [16]. The
+main results and definitions used in this work are now given.
+Definition 1 ([16]): Let M1 and M2 be subspaces of Cm.
+The smallest principal angle γ1 ∈ [0, π/2] between M1 and
+M2 is defined by
+cos(γ1) = um∈aMx1 vm∈aMx2 |uH v|
+(18)
+subject to kuk = kvk = 1
+Lemma 1 ([16]): Let P1, P2 ∈ Rm×m be orthogonal
+projectors of M1 and M2, respectively. Then the following
+holds
+kP1P2k2 = cos(γ1) (19)
+Proposition 2: Let γ1 be the smallest principal angle
+between Ker(H¯ ⊤) and Im(H˜ ). The residual increment due
+to a deception attack following the policy a = H˜ c satisfies
+kr¯ak2 ≤ cos γ1kak2. (20)
+Proof: Recall the so-called hat matrix defined by T¯ =
+H¯ H¯ †, which is the orthogonal projector onto Im(H¯ ) and
+define T˜ = PIm(H˜ ) = H˜ H˜ †. The residual under attack in
+Eq. (16) may be rewritten as
+considered acceptable, δ¯λ. Given reasonable values of α, the
+attacker is able to compute feasible values of λ by solving
+(21)
+(22)
+r¯a = S¯T˜H˜ c,
+since T˜H˜ = H˜ . The residual norm can be upper bounded
+as
+kr¯ak2 ≤ kS¯T˜k2kH˜ ck2 = cos γ1kak2,
+where γ1 is the smallest principal angle between Ker(H¯ ⊤)
+and Im(H˜ ).
+Analyzing the example where H˜ = δH¯ , we see that
+Im(H˜ ) = Im(H¯ ) is orthogonal to Ker(H¯ ⊤). Hence the
+smallest principal angle between these subspaces is γ1 = π2 ,
+yielding kr¯ak2 ≤ cos(γ1)kak2 = 0.
+Thus we achieved a tighter bound that explores the geometrical
+properties of the residual subspace. In brief, γ1
+measures how close the subspaces Ker(H¯ ⊤) and Im(H˜ ) are
+from each other. In order for the model uncertainty not to
+affect the residual, it is desired that Ker(H¯ ⊤) and Im(H˜ )
+are as close to orthogonal as possible. For some insights on
+the physical interpretation of this geometrical property, see
+Section VI.
+C. Stealthy Attacks
+Consider the measurement residual under attack in (16).
+Taking into account the random error vector ǫ¯ we can rewrite
+the residual as
+r¯(z¯a) = S¯ǫ¯ + S¯a.
+(23)
+The residual then has the following distribution r¯(z¯a) ∼
+N (r¯a, S¯). Note that due to the model uncertainties the
+residual has a non-zero mean, which increases the chances
+of triggering an alarm in the BDD. Recall that one of the
+attacker's objective is to keep such probability as low as
+possible, i.e. kW r(xˆa)kp < τ . We now provide insights
+on how such objective may be fulfilled for the two BDD
+schemes presented in Section IV.
+1) Performance index test: Recall that without any attack
+on the measurements we have J (xˆ) ∼ χ2m−n. Under attack
+the cost function Ja(xˆ) = r¯(z¯a)⊤r¯(z¯a) will have the socalled
+non-central chi-squares distribution [17], due to the
+non-zero mean which affects all the statistical moments of
+the χ2m−n distribution. We denote Ja(xˆ) ∼ χ2m−n(λ) where
+λ = kS¯a 2
+k2. Recalling the relationship between the false
+alarm probability α and the detection threshold τχ(α) in (9),
+in the presence of attacks we have
+Z ∞
+τχ(α)
+gλ(u)du = α + δλ(λ),
+(24)
+with gλ(u) being the pdf of χ2m−n(λ). We call δλ(λ) the
+increase in the alarm probability that the attacker must
+minimize to remain undetected. It is not possible to attack
+the PSSE and guarantee that no alarm is triggered, due to
+the presence of random measurement errors. Therefore we
+assume the attacker has an upper limit on δλ(λ) which is
+Z ∞
+τχ(α)
+gλ(u)du ≤ α + δ¯λ.
+Under the reasonable assumption that δλ(λ) increases
+with λ, since the mean of χ2m−n(λ) is shifted along the
+positive direction and its variance increases as λ increases,
+we provide the following result.
+Proposition 3: Suppose that δλ(λ) increases with λ.
+Given α and δ¯λ an attack is stealthy regarding the performance
+index test if the following holds
+cos γ1kak2 ≤ qλ¯(α, δ¯λ)
+where λ¯(α, δ¯λ) is the maximum value of λ for which (25)
+is satisfied.
+Proof: First note that from our assumption δλ(λ)
+increases with λ. Therefore stealthy attack vectors satisfy
+kr¯ak2 ≤ √λ¯, as this implies by definition that λ ≤ λ¯ and
+δλ(λ) ≤ δ¯λ. The rest of the proof follows from Prop. 2.
+2) Largest normalized residual test: Recall that the residuals
+without attack follow a normal distribution r¯ ∼ N (0, S¯),
+whereas under attack we have r¯a ∼ N (d, S¯) with d = S¯a.
+Each element of the normalized residual vector then has
+distribution raNi ∼ N (diN , 1) with diN = Di−i 1/2di being
+the bias introduced by the attack vector. Similarly as before,
+defining δ¯d as the maximum admissible increase in the alarm
+probability and given α, the biases diN providing the required
+level of stealthiness satisfy the inequality
+Z τN (α)
+−τN (α)
+gdNN (u)du ≥ 1 − α − δ¯d,
+i
+with gdNN (u) being the pdf of raNi .
+i
+Proposition 4: Given α and δ¯d an attack is stealthy regarding
+the largest normalized residual test if the following
+holds
+kD−1/2k2 cos γ1kak2 ≤ d¯N (α, δ¯d) ,
+where d¯N (α, δ¯d) is the maximum value of kdN k∞ for which
+(27) is satisfied with diN = kdN k∞.
+Proof: Clearly it is sufficient to require (27) to hold
+for |diN | = kdN k∞, as this corresponds to the worstcase
+bias. Note that the increase in alarm probability δd
+increases with |diN | due to the symmetrical nature of gdNN (u).
+i
+Thus (27) reaches equality for kdN k∞ = d¯N and a sufficient
+condition for (27) to hold is to have kdN k∞ ≤ d¯N . Recalling
+dN = D−1/2S¯a and k · k∞ ≤ k · k2, we conclude the
+attack is stealthy if kD−1/2S¯ak2 ≤ d¯N , which is satisfied by
+kD−1/2k2kS¯ak2 ≤ d¯N . The rest follows from Proposition 2.
+The main result of this section is as follows:
+Theorem 1: Given the perturbed model H˜ , the false-alarm
+probability α and the maximum admissible increase in alarm
+probability δ¯, an attack following the policy a = H˜ c is
+stealthy if
+kak2 ≤ β(α, δ¯) ,
+(29)
+(25)
+(26)
+(27)
+(28)
+5996
+where β(α, δ¯) is given by:
+• β(α, δ¯) = √cλ¯o(sαγ,δ1¯λ) , for the performance index test;
+• β(α, δ¯) = kD−d¯1N/(2αk,2δ¯cdo)s γ1 , for the largest normalized
+residual test.
+Proof: Assuming the BDD method is the performance
+index and taking β(α, δ¯) = √cλ¯o(sαγ,δ1¯λ) , the proof directly follows
+from Proposition 3. For the largest normalized residual,
+defining β(α, δ¯) = kD−d¯1N/(2αk,2δ¯cdo)s γ1 the proof follows from
+Proposition 4.
+Note that in the scenario analyzed here, the designer of the
+BDD scheme chooses both the detection method as well as
+the false-alarm probability α. These elements are fixed and
+usually unknown to the attacker, who defines the maximum
+risk δ¯ he is willing to take and has some knowledge of
+the power network H˜ , that is used to compute the attack
+vector a. However α can be estimated by reasonable values
+and the same happens for the degrees of freedom of the
+chi-squares distribution. Although the exact value of γ1 is
+not accessible to an attacker tampering only with RTUs,
+additional knowledge such as the topology of the network
+may be used to compute worst-case estimates of γ1, as it is
+shown in the next section.
+VI. CASE STUDY
+An interesting analysis is to understand what is the worstcase
+uncertainty for the attacker, ΔH¯ , maximizing the orthogonality
+between Im(H˜ ) and Im(H¯ ). This corresponds
+to maximizing the effect of the attack vector a on the
+measurement residual. From the attacker's view, this could
+lead to a set of robust attack policies. As for the control
+center this could be useful to implement security measures
+based on decoys, for instance. It is known that the network
+model used in the PSSE can be kept in the databases of
+the SCADA system with little protection. Thus a possible
+defensive strategy would be, for instance, to disseminate a
+perturbed model with fake but ”genuine“ looking parameter
+values in the database which, if retrieved and used by an
+attacker, would produce large residuals and increase the
+detection of intelligent attacks.
+The first observation at this point is that it is of little
+interest to consider cases when only the maximum magnitude
+of the model perturbation is considered,i.e. kΔH¯ k ≤ ω.
+Note that this formulation only tells us that the uncertainty
+is within a ball of radius ω from the nominal model H¯ . Thus
+one can always choose a worst-case perturbation satisfying
+kΔH¯ k = ω which is orthogonal to H¯ , yielding kS¯T¯Δk = 1.
+Hence scenarios where the uncertainty is more structured are
+of greater interest.
+We now apply the previous results to the scenario where
+the attacker knows the exact topology of the network but has
+an error on the transmission line's parameters of ±20%. The
+detectability of attacks in this scenario is intimately related
+to the detectability of parameter or topology errors [13],
+[18]. Consider the power network in Fig. 2 with the data
+in Table I. The network shown in Fig. 2 corresponds to
+the bus-branch model of a, possibly larger, power network
+0.005
+0.01
+0.015 0.02 0.025
+δ (Risk Increase)
+0.03
+0.035
+0.04
+Fig. 3. Attack stealthiness as a function of the detection risk. The solid
+line represents the 2-norm of the optimal attack vector a∗ constrained by
+ab1 = 1, where ab1 is the power flow in branch b1. The curves denoted as
+χ2 and LNR represent the value of β(0.05, δ) for the performance index
+test and largest normalized residual test, respectively. From these results,
+we conclude that the LNR test is more sensitive to this kind of attacks.
+5997
+2
+5
+3
+6
+∼
+Fig. 2. Power network with 6 buses
+TABLE I
+DATA OF THE NETWORK IN FIG. 2
+Branch
+b1
+b2
+b3
+b4
+b5
+b6
+b7
+From bus
+1
+1
+6
+6
+5
+4
+3
+To bus
+4
+2
+5
+3
+4
+2
+2
+Reactance (pu)
+0.370
+0.518
+1.05
+0.640
+0.133
+0.407
+0.300
+Parameter Error
+-20%
++20%
+-20%
+-20%
+-20%
+-20%
++20%
+computed by the EMS after analyzing which buses and
+branches are energized, based on measurements from RTUs
+such as breaker status. This model is then used by the PSSE,
+together with the list of available measurements, to compute
+the measurement model. In this example we consider the
+linear case where z = H x. The parameter errors in Table. I
+were computed so that cos(γ1) = kS¯T˜k2 is maximized
+for errors up to ±20%, corresponding to the worst-case
+uncertainty. This actually corresponds to the constrained
+maximization of a convex function, which was solved using
+the numerical solvers available in MATLAB.
+In Fig. 3 we show how the maximum 2-norm of a stealthy
+9
+8
+7
+6
+3
+2
+1
+) 5
+δ
+,
+5
+0
+.
+0
+(β4
+00
+1
+4
+∼
+χ2
+LNR
+||a*||2
+attack vector β(α, δ) in terms of Theorem 1 varies with
+respect to the increased detection risk δ, for α = 0.05.
+As it is seen, the performance index test allows for larger
+attacks than the largest normalized residual test. Since attacks
+following a = H˜ c have a similar meaning to multiple
+interacting bad data, this validates the known fact that largest
+normalized residual test is more robust to such bad data than
+the performance index test [11]. Note that the norm of the
+optimal attack vector in the sense of (13) when targeting
+the power flow between buses 1 and 4 is also shown. We
+see that such attack would have a small risk, even for the
+largest normalized residual.
+VII. CONCLUSIONS
+In this work we provided methods to analyze cybersecurity
+of PSSE in scenarios where the attacker has a
+limited knowledge of the network and unlimited resources. In
+particular we proposed a framework to model such attackers,
+which is capable of taking into account resource constraints.
+We also explored and considered two BBD methods widely
+used and showed that such tools do not guarantee security
+against cyber-attacks.
+REFERENCES
+[10] L. Mili, T. V. Cutsem, and M. Ribbens-Pavella, “Bad data identification
+methods in power system state estimation - a comparative study,” in
+IEEE Trans. Power App. Syst., Nov. 1985.
+[11] A. Abur and A. Exposito, Power System State Estimation: Theory and
+Implementation. Marcel-Dekker, 2004.
+[12] A. Monticelli, “Electric power system state estimation,” in Proc. IEEE,
+vol. 88, no. 2, Feb. 2000.
+[13] F. F. Wu and W.-H. E. Liu, “Detection of topology errors by state
+estimation,” IEEE Trans. Power Syst., no. 1, Feb. 1989.
+[14] H. Sandberg, A. Teixeira, and K. H. Johansson, “On security indices
+for state estimators in power networks,” in Preprints of the 1st
+Workshop on Secure Control Systems, CPS Week 2010, Stockholm,
+Sweden.
+[15] S. Boyd and L. Vandenberghe, Convex Optimization. Cambridge
+University Press, 2004.
+[16] A. Gala´ntai, “Subspaces, angles and pairs of orthogonal projections,”
+Linear and Multilinear Algebra, vol. 56, no. 3, pp. 227-260, Jun.
+2006.
+[17] R. J. Muirhead, Aspects of Multivariate Statistical Theory. John Wiley
+& Sons, 1982.
+[18] W.-H. E. Liu, F. F. Wu, and S.-M. Lun, “Estimation of parameter
+errors from measurement residuals in state estimation,” IEEE Trans.
+Power Syst., no. 1, Feb. 1992.
+APPENDIX
+CONVERGENCE OF NEWTON'S METHOD
+For Newton method applied to WLS estimation problem,
+we have F (x) = −H (x)⊤R−1(z − h(x)). Assuming that
+[F ′(x)] is nonsingular, following (3) we define
+[1] A. Giani, S. Sastry, K. H. Johansson, and H. Sandberg, “The VIKING
+project: an initiative on resilient control of power networks,” in Proc.
+2nd Int. Symp. on Resilient Control Systems, Idaho Falls, ID, USA,
+Aug. 2009, pp. 31-35.
+[2] A. Ca´rdenas, S. Amin, and S. Sastry, “Research challenges for the
+security of control systems.” in Proc. 3rd USENIX Workshop on Hot
+topics in security. USENIX, July 2008, p. Article 6.
+[3] “Electricity grid in U.S. penetrated by spies,” The Wall Street Journal,
+p. A1, April 8th 2009.
+[4] “Cyber war: Sabotaging the system,” CBSNews, November 8th 2009.
+[5] “Final report on the August 14th blackout in the United States and
+Canada,” U.S.-Canada Power System Outage Task Force, Tech. Rep.,
+April 2004.
+[6] Y. Liu, M. K. Reiter, and P. Ning, “False data injection attacks against
+state estimation in electric power grids,” in Proc. 16th ACM Conf. on
+Computer and Communications Security, New York, NY, USA, 2009,
+pp. 21-32.
+[7] S. Amin, A. Ca´rdenas, and S. Sastry, “Safe and secure networked (A1) c < 1
+control systems under denial-of-service attacks.” in HSCC, ser. (A2) k G(x0) − x0 k< (1 − c)ǫ
+Lecture Notes in Computer Science, R. Majumdar and P. Tabuada,
+Eds., vol. 5469. Springer, 2009, pp. 31-45. then
+[8] Y. Mo and B. Sinopoli, “Secure control against replay attack,” in Proc.
+47th Annual Allerton Conf., Monticello, IL, USA, Sep. 2009, pp. 911918.
+[9] K. A. Clements, G. R. Krumpholz, and P. W. Davis, “Power system
+state estimation residual analysis: An algorithm using network topol- − x
+ogy,” in IEEE Trans. Power App. Syst., Apr. 1981.
+G(x) = x − [F ′(x)]−1F (x).
+(30)
+G : Rn → Rn. A solution x∗ = G(x∗) is called the fixed
+point of G. Since G arises as an iteration function for the
+equation F (x) = 0, x∗ is a fixed point of G if and only
+if F (x∗) = 0. The local convergence theorem for Newton
+iterates is as follows:
+Theorem 2: Let F be continuously differentiable function,
+and [F ′(x)] be nonsingular with elements continuous in the
+ball S := {x ∈ Rn| k x − x0 k< ǫ}. Let us define
+c := max k G′(ξ) k∞ .
+ξ∈S
+Suppose the following conditions are satisfied
+• There exists a unique solution of F (x) = 0 in S,
+• the sequence {x0, x1, x2, . . .} generated by G will converge
+to the fixed point x∗ of G in S,
+• k xi ∗ k< 1 −cc k xi − xi−1 k.
+5998

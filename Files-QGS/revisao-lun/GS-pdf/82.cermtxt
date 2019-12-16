@@ -1,0 +1,1784 @@
+1306
+IEEE JOURNAL ON SELECTED AREAS IN COMMUNICATIONS, VOL. 31, NO. 7, JULY 2013
+Sparse Attack Construction and State
+Estimation in the Smart Grid: Centralized and
+Distributed Models
+Mete Ozay, In˜ aki Esnaola, Fatos T. Yarman Vural, Sanjeev R. Kulkarni, and H. Vincent Poor
+Abstract-New methods that exploit sparse structures arising
+in smart grid networks are proposed for the state estimation
+problem when data injection attacks are present. First, construction
+strategies for unobservable sparse data injection attacks
+on power grids are proposed for an attacker with access to all
+network information and nodes. Specifically, novel formulations
+for the optimization problem that provide a flexible design of the
+trade-off between performance and false alarm are proposed. In
+addition, the centralized case is extended to a distributed framework
+for both the estimation and attack problems. Different
+distributed scenarios are proposed depending on assumptions
+that lead to the spreading of the resources, network nodes and
+players. Consequently, for each of the presented frameworks a
+corresponding optimization problem is introduced jointly with an
+algorithm to solve it. The validity of the presented procedures
+in real settings is studied through extensive simulations in the
+IEEE test systems.
+Index Terms-Smart grid security, false data injection, distributed
+optimization, sparse models, attack detection.
+I. INTRODUCTION
+P generators and loads that are connected by transmission
+OWER networks are complex systems consisting of
+and distribution lines [1]. These systems can be modeled by
+complex networks, in which the generators and loads are
+represented by physically distributed nodes and power lines
+are represented by edges that connect the nodes. Because of
+the geographic and physical distribution of the nodes and the
+power transmission constraints [2], various structural properties
+of complex networks are observed in power networks [3].
+For instance, the distribution of electrical distances of Eastern,
+Western and Texas interconnects in the North American power
+network obeys a power-law distribution, which leads to scale
+free and hierarchical network structures [3].
+The aforementioned structural properties of power networks
+constrain the way in which both attack and defense schemes
+are designed for the smart grid. Several attack vector construction
+and detection methods have been introduced using either
+centralized [1], [4], [5], [6] or distributed [7], [8] models.
+Manuscript received September 21, 2012; revised March 15, 2013. This
+research was supported in part by the Center for Science of Information
+(CSoI), an NSF Science and Technology Center, under Grant CCF-0939370,
+by the U. S. Air Force office of Scientific Research under MURI Grant
+FA9550-09-1-0643, and by the U. S. Army Research Office under MURI
+Grant W911NF-11-1-0036 and Grant W911NF-07-1-0185.
+M. Ozay, I. Esnaola, S. R. Kulkarni, and H. V. Poor are with the Department
+of Electrical Engineering, Princeton University, Princeton, NJ 08544, USA (email:
+{mozay, jesnaola, kulkarni, poor}@princeton.edu).
+F. T. Y. Vural is with the Department of Computer Engineering, Middle
+East Technical University, Ankara, Turkey (e-mail: vural@ceng.metu.edu.tr).
+Digital Object Identifier 10.1109/JSAC.2013.130713.
+Data sparsity properties have been analyzed for constructing
+unobservable sparse attack vectors by Liu et al. [1]. Kosut et al.
+[5] have introduced the relationship between attack detectability
+and network observability using a graph-theoretic model.
+Xie et al. [9] proposed a distributed wide-area state vector
+estimation algorithm which is also employed for bad data
+detection [7]. However, they do not exploit the sparsity and
+instead they define the state estimation problem as a weighted
+least squares (WLS) problem. Pasqualetti et al. [10] solved
+a similar WLS problem using a measurement distributed
+decomposition method for distributed state estimation and
+attack detection. Yang et al. [11] have proposed a hierarchical
+architecture to construct sparse attack vectors using combinatorial
+search methods. Vukovic et al. [12] have analyzed
+various mitigation schemes of data integrity attacks for state
+estimation. Recent advances for attack vector construction and
+state vector estimation methods in power systems have been
+reviewed in [13] and [14].
+The centralized attack schemes proposed in this paper
+follow the undetectability criteria given in [1]. First, sparse
+targeted false data injection attacks are introduced which
+provide a strategy for tampering with the measurements from
+meters in order to build a specific data injection vector. In
+the second proposed method, called strategic sparse attacks,
+the sparse attack vector is constructed by assuming that the
+attacker has control over only a set of measurements and that
+the system has secure measurements that cannot be considered
+in the construction of the attack vector.
+Since power grid networks are large scale networks, system
+monitoring and security control as envisioned for the smart
+grid are challenging problems. Therefore, decentralized options
+in which the computational complexity is distributed
+throughout the network are desirable. For this reason, distributed
+estimation techniques arise as strong candidates to
+incorporate adaptability to dynamic network topologies and
+flexible reconfiguration in case of sub-network faults. Additionally,
+distributed estimation techniques do not require all
+network state information to be available to each group, which
+facilitates operating with limited knowledge about the state of
+the network. However, the distributed structure of the networks
+may lead to critical attacks. For instance, distributed and
+collective attacks to active nodes, which have higher numbers
+of connections than the rest of the nodes, may cause larger
+damage to the network (i.e., the group of nodes connected
+to active nodes), because of its scale-free and hierarchical
+structure [3], [15].
+0733-8716/13/$31.00 © 2013 IEEE
+OZAY et al.: SPARSE ATTACK CONSTRUCTION AND STATE ESTIMATION IN THE SMART GRID: CENTRALIZED AND DISTRIBUTED MODELS
+1307
+We introduce two distributed attack models that make use of
+the sparsity of the attack vectors. The first model, Distributed
+Sparse Attacks, assumes that the attacks are directed at clusters
+of measurements. In this setting, attackers have access to a
+subset of the measurements observed by the nodes in the
+cluster. The goal is to achieve a consensus on the design
+of the attack vectors by iteratively computing them for the
+measurements observed in each cluster. The second model,
+Collective Sparse Attacks, assumes that the network topology
+is known by the attackers and may access the measurements
+observed in the whole network. However, attacks occur in
+groups, i.e., state variables in the same group are attacked
+by the same attack vectors.
+In addition, we introduce two distributed state vector estimation
+methods from the perspective of the network operator.
+The first method, Distributed State Vector Estimation,
+considers the scale-free or hierarchical structure of the
+network, i.e., the observed measurements are grouped into
+clusters. Then, local state vector estimates are computed
+using local measurements by either local network operators or
+smart Phasor Measurement Units (PMUs). Using an iterative
+message-passing sparse optimization algorithm, each local
+operator or unit sends the estimated state vectors to centralized
+network processors, which update the state vector estimates.
+The second method, called Collaborative Sparse State Vector
+Estimation, assumes that different vector operators estimate
+a subset of state variables. For instance, different network
+operators may have expertise or special tools in order to
+estimate specific state variables and as a result, state vector
+variables are assumed to be distributed in groups and locally
+accessed by network operators. In this method, each network
+operator computes an estimate of the subset of the state
+variables using local data, and these estimates are then sent
+to a centralized operator in order to update their values.
+We analyze the proposed state vector estimation methods
+for attack detection and identification using a residuals test
+method in Section VII.
+All the optimization problems presented in this paper are
+solved using the Alternating Direction Method of Multipliers
+(ADMM) algorithm [16]. Parameter and stopping criteria
+selection methods of ADMM are given in [16] and [17].
+Moreover, convergence properties of ADMM are analyzed in
+[16] and [18].
+In the next section, we review the unobservable false data
+injection and state vector estimation problems. Section III
+describes centralized sparse attack methods in which the
+sparse structure of the problem is exploited. In Section IV, we
+introduce distributed and collaborative state vector estimation
+methods. We introduce distributed and collective sparse attack
+models in Section V, and their computational complexity is
+analyzed in Section VI. We assess the validity of the proposed
+methods using real-world power systems in Section VII. The
+paper concludes with Section VIII.
+II. PROBLEM FORMULATION
+A. System Model
+A review of the problem formulation of false data injection
+attacks and the state vector estimation problem for attacked
+systems follows. Consider the DC power flow state acquisition
+problem [1] given by
+z = Hx + n,
+(1)
+where z ∈ RN is the vector of measurements, x ∈ RD is the
+state vector which consists of the voltage phase angles at the
+buses, H ∈ RN×D is the measurement Jacobian matrix and
+n ∈ RN is the measurement noise.
+The goal of the network operator is to estimate the state
+vector and decide whether an attack is present. If the noise is
+normally distributed with zero mean and independent components,
+then the following estimator can be employed [1]:
+xˆ = (HT ΛH)−1HT Λz ,
+(2)
+where Λ is a diagonal matrix whose diagonal elements are
+given by Λii = ξi−2, and ξi2 is the variance of the i-th
+measurement for i = 1, ..., N . The network operator decides
+that an attack is present if ∥z − Hxˆ∥22 > τ , where ∥ ⋅ ∥2 is the
+2-norm and τ ∈ R is a given threshold. If ∥z − Hxˆ∥22 ≤ τ then
+no attack is declared.
+The goal of the attacker is to inject a false data vector
+a ∈ RN into the measurements without being detected by the
+operator. Since the attack is performed by changing the values
+of a subset of all the measurements, the resulting observation
+model for the operator is
+(3)
+(4)
+˜z = Hx + a + n.
+Note that for the attack vector ai ≠ 0, ∀i ∈ A, where A is the
+set of measurement variable indices with which the attacker
+tampers. On the other hand, the measurements over which the
+attacker has no control are the secure variables, ai = 0, ∀i ∈ S.
+Note that S = A¯ where (¯⋅) is the set complement operator and
+∣A ∪ S∣ = N where ∣ ⋅ ∣ denotes set cardinality.
+Imposing the constraint a = Hc, where c ∈ RD is an
+injected data vector guarantees undetectability via residual
+tests since it lies in the column space of H [1], [5]. Note
+that (3) can be rewritten as
+˜z = Hx˜ + n,
+where x˜ = x + c is what an operator unaware of the attack
+tries to estimate instead of the actual state vector x.
+B. Sparsity in the System
+Assuming that an attacker can tamper with a limited number
+of meters poses the optimization problem in a framework in
+which the attack vector is sparse. Specifically, if k meters
+are controlled by the attacker, then a is at most k-sparse,
+i.e., ∥a∥0 ≤ k, where ∥ ⋅ ∥0 is the l0 norm. In [1] Liu
+et al. prove the existence of unobservable attack vectors if
+k ≥ N − D + 1. Finding the sparsest attack vector that satisfies
+a = Hc is computationally intractable in general. Surprisingly,
+the solution can be relaxed into a convex optimization problem
+by using the 1-norm as the objective function instead of the
+0-norm [19], [20]. Based on sparse reconstruction techniques,
+Kim and Poor [4] provide a greedy approach for the attack
+vector construction when a subset of the measurements is
+controlled by the attacker while the remaining measurements
+are secured.
+1308
+IEEE JOURNAL ON SELECTED AREAS IN COMMUNICATIONS, VOL. 31, NO. 7, JULY 2013
+TABLE I
+RANK VALUES OF MEASUREMENT JACOBIAN MATRICES OF IEEE TEST
+SYSTEMS AND THE 3375-BUS POLISH SYSTEM PLUS - WINTER 2007-08
+EVENING PEAK SYSTEM.
+System
+9-Bus
+14-Bus
+30-Bus
+39-Bus
+57-Bus
+118-Bus
+300-Bus
+3375-Bus
+N
+19
+34
+71
+85
+137
+304
+711
+7536
+D
+9
+14
+30
+39
+57
+118
+300
+3375
+Rank
+8
+3
+29
+38
+57
+118
+300
+3375
+R
+72.00 %
+80.25 %
+90.89 %
+93.27 %
+95.22 %
+97.64 %
+99.09 %
+99.92 %
+A second scenario in which the sparsity of the system can be
+exploited is in the estimation of the state vector. Considering
+that system states are given by a random process {xt}, the
+components of the state vector that change significantly during
+an interval (t, t′) are defined as
+Xt,t′ = {i ∶ ∣xt(i) − xt′ (i)∣ ≥ }
+where defines the threshold for change significance. That
+being the case, the operator does not need to estimate all state
+variables for each time t. Assuming that it has a previous
+state estimate, xˆt, from time t, it can estimate the values that
+changed above the threshold by realizing that
+yt′ − yt = Hxt′ − Hxˆt + zt′ − zt
+= H(xt′ − xˆt) + zt′ − zt
+= Hδt,t′ + zt′ − zt,
+where δt,t′ = xt′ −xˆt has significantly changed variables given
+by indices Xt,t′ . By choosing the significance threshold, , and
+the estimation time interval appropriately, δ becomes a nearly
+sparse vector whose k largest components can be recovered by
+solving a standard compressed sensing problem of the form
+minimize
+subject to
+∥δ∥1
+∥yt′ − yt − Hδ∥22 < γ,
+where γ is a regularization parameter.
+An additional optimization constraint is imposed by the rank
+deficiency observed in the measurement Jacobian matrix H of
+several IEEE test systems, such as the IEEE 39-Bus [21]. In
+Table I, we show the values of N , D, rank and R (the ratio
+of the number of nonzero elements of the entries of H) for
+test systems. We observe that 9-Bus, 14-Bus, 30-Bus and 39Bus
+test systems are rank deficient. Although H matrices of
+57-Bus, 118-Bus, 300-Bus and 3375-Bus test systems are not
+rank deficient, their R values are greater than those of the
+rank-deficient matrices. Note that the sparseness increases as
+the system size increases. Following the sparse nature of the
+system, (3) and (4) are formulated as 1-norm optimization
+problems [4].
+III. CENTRALIZED DATA SPARSE ATTACKS
+A. Sparse Targeted False Data Injection Attacks
+Targeted False Data Injection Attacks consist of attackers
+constructing false data injection vectors a corresponding to
+a given attack vector c. In this section, we introduce two
+models that employ LASSO and regressor selection algorithms
+to solve the targeted false data injection problem.
+(5)
+(6)
+(7)
+(8)
+(9)
+1) Targeted LASSO Attacks: The sparseness of c is exploited
+for targeted false data injection attacks [1], where
+cj ∈ R are fixed and defined by attackers ∀j ∈ I, for a
+set I of indices of the state vector variables that will be
+attacked. However, cj ∈ R are randomly selected by the
+attacker according to a probability distribution ∀j ∈ I¯, where
+I¯ is the set of off-target variables which are not specifically
+determined by the attackers. In other words, the attackers do
+not have control on the variables cj ∈ I¯. Note that, ∣I ∪I¯∣ = D.
+In order to compute the off-target and targeted attack
+vectors, we employ the following decomposition [1]:
+a = Hc = ∑ cihi + ∑ cj hj ,
+i∈I¯ j∈I
+where hl is the l-th column of H. Then, we define a submatrix
+HI¯ of H as HI = (hji , ⋯, hjD−∣I¯∣ ), ∀ji ∈ I¯ and 1 ≤
+¯
+i ≤ D − ∣I∣ [1] and construct a vector b in the range space of
+the attacked measurements, such that b = ∑j∈I hj cj . Using
+¯
+this construction, we relate b to the measurements HI , such
+that PI¯ = HI¯(HI¯T HI¯)−1HI¯T , BI¯ = PI¯ − I and y = BI¯b
+¯
+[1]. Therefore, we can compute a by solving y = BI a [1].
+We assume that given an attack vector a, the attack strategy
+of an attacker is to find a sparse a, such that y = BI¯a.
+Then, using l1 relaxations for sparse vector estimation [19],
+[20], [22], we introduce the following optimization problem
+to model the sparse false data injection attack:
+minimize
+subject to
+∥a∥1
+y = BI¯a.
+(11) is called basis pursuit and can be employed to find a
+sparse solution vector c [19], [20], [22]. In order to solve
+the optimization problem above using ADMM [16], (11) is
+formulated as
+minimize
+subject to
+I(a) + ∥β∥1
+a − β = 0,
+¯
+where I(a) is the indicator function for {a ∈ RN ∶ y = BI a}
+and β ∈ RN is the optimization variable. The sparsity of a is
+governed by ∥β∥1 using a scalar real number λ > 0, which
+is a regularization parameter. Moreover, in order to reduce
+¯
+the probability of the attack being detected, ∥y − BI a∥22 can
+be used as a cost function which results in the optimization
+problem
+minimize
+subject to
+¯
+∥y − BI a∥22 + λ∥β∥1
+a − β = 0.
+Problem (13) is a LASSO optimization [22] and can be solved
+via ADMM [16] as follows:
+Algorithm 1 (LASSO via ADMM):
+● INPUT:
+¯
+- Projection matrix defined by secure set BI
+- Projected vector containing injected data y
+- Penalty parameter ρ
+- Maximum number of iterations t′
+● OUTPUT:
+- Attack vector candidate a d=ef at
+● PROCEDURE:
+(10)
+(11)
+(12)
+(13)
+OZAY et al.: SPARSE ATTACK CONSTRUCTION AND STATE ESTIMATION IN THE SMART GRID: CENTRALIZED AND DISTRIBUTED MODELS
+1309
+1) Initialize t = 0, β = 0 and u = 0
+2) Compute ridge regression with penalty parameter ρ:
+c. Following these definitions, the strategic sparse attack is
+defined as
+at+1 = ((BI¯)T BI¯ + ρI)−1((BI¯)T y + ρ(βt − ut))
+(14)
+3) Perform soft thresholding defined by proximity
+operator Πκ(φ) = (φ − κ)+ − (−φ − κ)+, where
+(φ)+ = max(φ, 0):
+4) Update:
+βt+1 = Πλ/ρ(ut + at+1)
+ut+1 = ut + at+1 − βt+1
+5) Return to step 2 if a stopping criterion is not
+satisfied and t < t′
+2) Selective Targeted Attacks: The previous approach provides
+an implicit control of the sparsity of a using parameter
+λ. In the following, the sparsity is explicitly controlled by
+introducing the constraint ∥a∥0 ≤ k in (11) in the optimization
+problem as
+minimize
+subject to
+¯
+∥y − BI a∥22
+∥a∥0 ≤ k .
+This optimization problem can also be solved via ADMM
+with a minor modification of Algorithm 1. Specifically, hardthresholding
+Π∗λ/ρ(at+1 + ut) is employed in the update of β,
+such that k largest magnitude elements of ut + at+1 are kept
+and zeros are assigned to the remaining elements [16].
+B. Strategic Sparse Attacks
+In this section, we propose two algorithms to compute the
+attack vector c based on the formulations of LASSO Attacks
+and Selective Sparse Attacks for the strategic sparse attack
+model case introduced by Kim and Poor [4]. To this end,
+we first redefine the sparse data injection attack problem for
+ADMM. Then, we solve the optimization problems using
+LASSO and Regressor Selection algorithms.
+1) Strategic Sparse Attacks with LASSO: In Strategic
+Sparse Attacks, a row-wise decomposition of the Jacobian
+measurement matrix is employed based on the set A of
+attacked measurement indices denoting the meters to which
+an attacker has access, and the set S of secure measurement
+indices, i.e., the indices of meters which cannot be
+tampered by an attacker. Specifically, a sub-matrix HS =
+(Hji,∶, ⋯HjN−∣S∣,∶), ∀ji ∈ S, of H is constructed in order to
+represent the secure measurements, where Hji,∶ is the ji-th
+row of H, such that HS c = 0. Similarly, sub-matrix HA is
+defined for attacked measurements. As a result, the attacker's
+strategy is defined to find a solution c to the following
+optimization problem:
+minimize
+subject to
+∥HAc∥0
+HS c = 0 ,
+∥c∥∞ ≥ ψ ,
+where ψ ≥ 0 is a given constant [4].
+Define hi as the i-th column vector of H, the sub-matrix
+Hi ∈ RN×(D−1) formed by removing the i-th column of H,
+and σi ∈ RD−1 formed by removing the i-th variable of
+(15)
+(16)
+(17)
+(18)
+(19)
+(20)
+(21)
+(22)
+minimize
+subject to
+minimize
+subject to
+∥HiAσi + hiA∥1
+HiS σi + hiS = 0 .
+∥σi∥1
+HiS σi + hiS = 0 .
+Since H and c are sparse, it follows that the problem can
+be reformulated as
+Since (20) is a LASSO problem, we reformulate (20) as an
+ADMM optimization problem as follows:
+minimize
+subject to
+∥HiS σi + hiS ∥22 + λ∥θi∥1
+σi − θi = 0 ,
+where θi ∈ RD−1 is the optimization variable. In order to solve
+(21), Algorithm 1 can be employed with inputs HS , y = 1
+i
+and θi. This procedure is repeated for i = 1, ..., D in order to
+compute c = (c1, ..., cD).
+2) Selective Strategic Sparse Attacks: As discussed in the
+previous section, the sparsity of ci can be bounded explicitly
+by converting (20) to the equivalent regressor selection
+problem given by
+minimize
+subject to
+∥HiS σi + hiS ∥22
+∥σi∥0 ≤ k .
+In this formalism, we relax the constraint in HS c = 0 and
+introduce a sparsity constraint in the construction of attack
+vectors c, such that we compute an attack vector with at
+most k non-zero elements. The solution to (22) is the same
+as the one proposed for (21) except for substituting the soft
+thresholding operator in step 3 by a hard thresholding.
+C. Computational Complexity of Centralized Sparse Attacks
+The optimization problems of the centralized sparse attacks
+are solved using Algorithm 1. The computational complexity
+of the algorithm is dominated by the attack vector update
+step in (14) which solves a ridge regression problem [23].
+Therefore, the computational complexity of the algorithm is
+Υ1 ∈ O(t′α3), where
+1) α = min(N, ∣I¯∣) for targeted attacks given in Section
+III.A, and
+2) α = min(N, D −1), for strategic attacks given in Section
+III.B.
+Note that, the computational complexity of the algorithm is
+increased by an additional term D (the dimension of the attack
+vector) to O(t′Dα3) for strategic attacks, since the algorithm
+is implemented D times.
+In the implementation, the running or iteration time t′ can
+be relaxed by using performance based early stopping criteria
+as suggested in [16].
+IV. DISTRIBUTED AND COLLABORATIVE SPARSE STATE
+VECTOR ESTIMATION
+A sparse state vector estimation model, called Distributed
+Sparse State Vector Estimation, is first introduced in order
+to estimate the state vectors under attack on the network
+measurements using an instance distributed LASSO algorithm.
+In the second model, called Collaborative Sparse State Vector
+Estimation, we assume that the topological information of the
+network and the measurements are available to the network
+operator. However, the network operator can choose to process
+different groups of state vectors using the Group LASSO
+algorithm. We solve the optimization problems using the
+ADMM algorithm.
+A.
+Distributed Sparse State Vector Estimation
+Measurements are distributed in the network and usually
+form clusters following the topological properties of the
+network. Additionally, observation vectors and measurement
+matrices are partitioned into G blocks denoted by Gi with
+∣Gi∣ = Ni for i = 1, . . . , G. As a result, the attacks can also be
+partitioned. Taking this into account, (3) can be rewritten as
+⎡⎢ ˜z1 ⎥⎤ ⎡⎢ H1 ⎤⎥ ⎡⎢ a1 ⎤⎥ ⎡⎢ n1 ⎤⎥
+⎢⎢ ⋮ ⎥⎥ = ⎢⎢ ⋮ ⎥⎥ x + ⎢⎢ ⋮ ⎥⎥ + ⎢⎢ ⋮ ⎥⎥ , (23)
+⎢ ⎥ ⎢ ⎥ ⎢ ⎥ ⎢ ⎥
+⎢⎣˜zG⎥⎦ ⎢⎣HG⎥⎦ ⎢⎣aG⎥⎦ ⎢⎣nG⎥⎦
+where ˜zi ∈ RNi is the measurement observed in the i-th cluster
+of nodes through measurement matrix Hi ∈ RNi×D and noise
+ni ∈ RNi , and which is under attack ai ∈ RNi with i = 1, ..., G.
+For each cluster, we consider the penalty function
+where x˜i is the state vector estimated at cluster i. Note that
+fi = ∥˜zi − Hix˜i∥22 ,
+G
+f ≡ ∥˜z − Hx˜∥22 = ∑ fi.
+i=1
+Therefore, we can write the distributed optimization problem
+in the following way:
+1310
+IEEE JOURNAL ON SELECTED AREAS IN COMMUNICATIONS, VOL. 31, NO. 7, JULY 2013
+(24)
+(25)
+(26)
+2) For i = 1, . . . , G compute the Tikhonov-regularized
+least squares estimate with penalty parameter ρ
+given by
+x˜it+1 = (HiT Hi + ρI)
+−1
+(HiT z˜i + ρ(βt − uit)) .
+(27)
+3) Perform a soft thresholding given by
+where the 1 proximity operator is defined as
+βt+1 = Π λ (
+ρG
+1 G
+∑ (x˜it+1 + uit)) ,
+G i=1
+Πκ(φ) = (φ − κ)+ − (−φ − κ)+
+and (φ)+ = max(φ, 0).
+4) For i = 1, . . . , G update
+(28)
+(29)
+(30)
+uit+1 = uit + x˜it+1 − βt+1.
+5) Return to step 2 if the halting criterion is not
+satisfied and t < t′.
+Note that Hi is a sparse matrix or vector (depending on Gi).
+Still, (HiT Hi + ρI) is invertible since ρ > 0.
+Algorithm and optimization variables are initialized in the
+first step of the algorithm. In the second step, each network
+operator computes a local estimate using Tikhonov-regularized
+least squares [24], [25]. Then the local estimates are gathered
+to update the global variable β in the third step. Finally, the
+updated β is distributed or broadcast to the clusters to update
+the dual variables ui, ∀i = 1, . . . , G, in the fourth step, and
+the halting criterion is checked in the last step.
+B. Collaborative Sparse State Vector Estimation
+In the distributed sparse attacks scenario, measurements
+are assumed to be distributed across clusters and operators
+have access only to local measurements. Alternatively, when
+collective sparse attacks are considered, operators know the
+whole topology of the network and the Jacobian measurement
+matrix H. However, in a distributed framework operators
+observe a subset of state vector variables, i.e., each operator
+may observe different groups of buses.
+In this setting, the observation model (3) can be rewritten
+as
+⎡⎢ x1 ⎤⎥
+˜z = [Hˆ 1⋯ HˆG] ⎢⎢ ⋮ ⎥ + a + n ,
+⎥
+⎢ ⎥
+⎢⎣xG⎥⎦
+(31)
+(32)
+(33)
+(34)
+where z˜ ∈ RN is the measurement vector, xi ∈ RDi is the
+state vector, n ∈ RN is a noise vector and Hˆ i ∈ RN ×Di is
+the Jacobian measurement submatrix formed by selecting the
+columns given by the indices of the subset of state variables
+assigned to cluster i. Given this structure, the optimization
+problem can be stated as
+minimize
+subject to
+G
+∥Hv − ˜z∥22 + λ ∑ ∥x˜i∥2
+i=1
+x˜i − vˆi = 0, i = 1, ..., G ,
+minimize
+G
+∥Hx˜ − ˜z∥22 + λ ∑ ∥x˜i∥2.
+i=1
+By introducing an optimization variable v ∈ RD, it follows
+that
+minimize
+subject to
+G
+∑ fi + g(β)
+i=1
+x˜i − β = 0,
+i = 1, ..., G ,
+where β ∈ RD is the optimization variable, g(β) = λ∥β∥1
+is the regularization function and λ ∈ R is the regularization
+parameter, which controls the sparsity of the solution vector.
+Since network operators accessing the local data should agree
+on the estimated state vector, we introduce a consensus
+constraint in (26). In other words, (26) is considered as a
+global consensus problem in which β is used as the global
+optimization variable.
+We solve (26) using an ADMM implementation as described
+in the following algorithm.
+Algorithm 2 (Distributed Estimation via ADMM):
+● INPUT:
+- Projection matrix H
+- State measurements ˜z
+G
+- Set of clusters {Gi}i=1
+- Penalty parameter ρ
+- Maximum number of iterations t′
+● OUTPUT:
+- Estimated state vector x˜ ≡ x˜t
+● PROCEDURE:
+1) Initialize t = 0, β0 = 0, u0 = 0.
+OZAY et al.: SPARSE ATTACK CONSTRUCTION AND STATE ESTIMATION IN THE SMART GRID: CENTRALIZED AND DISTRIBUTED MODELS
+1311
+is equivalent to (32), where vˆi is the estimate of v for x˜i [16].
+In order to solve (34), the proposed ADMM implementation
+is described below.
+Algorithm 3 (Collaborative Estimation via ADMM):
+● INPUT:
+- Projection matrix H
+- State measurements ˜z
+G
+- Set of clusters {Gi}i=1
+- Penalty parameter ρ
+- Maximum number of iterations t′
+● OUTPUT:
+- Estimated state vector x˜ ≡ x˜t
+● PROCEDURE:
+1) Initialize t = 0, β0 = 0, v0 = 0, θ0 = 0 and x˜0 = 0.
+2) For i = 1, . . . , G compute
+x˜it+1 = argmin (ρ∥θit∥22 + λ∥x˜i∥2) ,
+x˜i
+where θit = Hˆ i (x˜i − x˜it) − v¯t + Hx˜t + ut and
+t G t
+Hx˜ = G1 ∑i=1 Hˆix˜i .
+3) Update
+v¯t+1 = G 1+ ρ
+ut+1 = ut + Hx˜
+(˜z + ρHx˜
+t+1
++ ρut),
+t+1 − v¯t+1.
+(35)
+(36)
+(37)
+4) Return to step 2 if the halting criterion is not
+satisfied and t < t′.
+V. DISTRIBUTED AND COLLECTIVE SPARSE ATTACKS
+In Section III, we introduced centralized sparse attack methods.
+In this section, two distributed attack models are proposed
+in order to employ sparse attacks in a distributed framework.
+For this purpose, the structure of the measurements and
+the attack vectors is redefined, followed by a formulation
+of the false data injection problem as a distributed sparse
+optimization problem.
+The proposed distributed attack models are motivated by
+two distributed attack scenarios.
+1) In Distributed Sparse Attacks, measurements are assumed
+to be distributed in the network and may form
+clusters following the topological properties of the network.
+Therefore, different attackers located in different
+clusters can construct attack vectors by just analyzing
+the local measurements observed in the clusters.
+2) Collective Sparse Attacks model assumes that attackers
+know the whole topology of the network and the Jacobian
+measurement matrix H. However, in this case the
+attacks are directed at a group of state vector variables
+distributed in the network, i.e., each attack injects false
+data into the state vector variables of the corresponding
+cluster.
+Although linear sparse attacks are considered for the implementation
+of distributed attacks in this work, the proposed parallelization
+and distributed processing strategies can be used
+as design patterns for developing distributed sparse targeted
+false data injection attacks and strategic sparse attacks.
+A. Distributed Sparse Attacks
+A linear sparse attack model is considered, in which given
+an attack vector, a, the attack strategy is to find a sparse
+injection vector, c, such that a = Hc [1]. Using an 1
+relaxation for sparse vector estimation [19], [20], [22], the
+following optimization problem is considered:
+minimize
+subject to
+∥c∥1
+a = Hc.
+As noted before, measurements are assumed to be distributed
+in the network and may form clusters following
+the topological properties of the network. Similar to the
+partitioning presented in the previous section, the Jacobian
+measurement matrix is partitioned into G number of submatrices,
+which results in a partitioning of the attack vector given
+by
+⎡⎢ a1 ⎤⎥ ⎡⎢ H1 ⎤⎥
+⎢⎢ ⋮ ⎥⎥ = ⎢⎢ ⋮ ⎥⎥ c. (39)
+⎢ ⎥ ⎢ ⎥
+⎢⎣aG⎥⎦ ⎢⎣HG⎥⎦
+Note that, (39) can also be employed in the distributed false
+data vector construction described in (23).
+In order to solve (38) in the distributed form set by (39)
+using a distributed optimization algorithm, the loss function
+is assumed to be separable, such that
+2
+fi = ∥ai − Hici∥2.
+G
+Note that, ∑i=1 fi = f . Moreover, the optimization problem
+(38) is assumed to be feasible [16]. Therefore, the distributed
+optimization problem for (38) can be reformulated as
+minimize
+subject to
+G
+∑i=1 fi + g(φ)
+ci − φ = 0,
+i = 1, ..., G ,
+where φ ∈ RNi is the optimization variable, g(φ) = λ∥φ∥1
+is the regularization function and λ ∈ R is the regularization
+parameter which controls the sparsity of the solution vector.
+Interestingly, the optimization problem (42) is the same as the
+one posed in (26) and therefore, Algorithm 2 can be used to
+solve it.
+B. Collective Sparse Attacks
+The collective sparse attacks model assumes that attackers
+know the whole topology of the network and the Jacobian
+measurement matrix H. However, in this case the attacks
+are directed at a group of state vector variables, i.e., each
+attack injects false data into the state vector variables of
+the corresponding cluster. Within this setting, (38) can be
+rearranged as
+⎡⎢ c1 ⎤⎥
+a = [ Hˆ1⋯ HˆG] ⎢ ⋮ ⎥⎥ ,
+⎢
+⎢ ⎥
+⎢⎣cG⎥⎦
+(38)
+(40)
+(41)
+(42)
+(43)
+(44)
+where the injection vector ci ∈ RDi is computed by the i-th
+attacker using Jacobian measurement submatrix Hˆ i for i =
+1, ..., G. Following this decomposition, the optimization can
+be posed as
+minimize
+G
+∥Hc − a∥22 + λ ∑ ∥ci∥2.
+i=1
+1312
+IEEE JOURNAL ON SELECTED AREAS IN COMMUNICATIONS, VOL. 31, NO. 7, JULY 2013
+Introducing the optimization variables, ψ ∈ RD, yields a new
+formulation
+minimize
+subject to
+G
+∥Hψ − a∥22 + λ ∑ ∥ci∥2
+i=1
+ci − ψˆi = 0 , i = 1, ..., G ,
+(45)
+(46)
+where ψˆi is the estimate of ψ for ci [16]. In the same fashion
+as with the previous problem, the optimization problem (46)
+is the same as (32) and therefore, Algorithm 3 can be used to
+solve it.
+VI. COMPUTATIONAL COMPLEXITY OF DISTRIBUTED
+ALGORITHMS
+We solve the distributed optimization problems using two
+main approaches, namely measurement distributed and attribute
+distributed optimization as given in Algorithm 2 and
+Algorithm 3 respectively. In the measurement distributed approach,
+we assume that the measurements are distributed and
+the local solutions of the optimization algorithms are computed
+in the clusters. In the attribute distributed approach, we
+assume that the state or attack vector variables are distributed
+and local estimates are computed in the clusters.
+If we ignore communication times required to gather and
+broadcast the locally estimated vectors x˜i and local variables
+ui, then the computational complexity of Algorithm 2 is
+dominated by the x˜i-update step in (27), ∀i = 1, . . . , G. Since
+the partitioned Jacobian matrix Hi is used in (27), the computational
+complexity of (27) is O(αi3), where αi = min(Ni, D)
+in each cluster Gi. Then, the complexity of Algorithm 2 is
+Υ2 ∈ max (t′O(α13), . . . , t′O(α3G)), since a central processor
+which employs the third step of the algorithm should wait to
+gather all the local estimates from the processors in the clusters.
+If we define the maximum communication complexity
+of gathering the local data as Υg and that of broadcasting
+as Υb, then the complexity of Algorithm 2 is increased to
+Υ2 + Υg + Υb.
+Similarly, G parallel regularized least squares problems
+are solved in Gi variables in the x˜i-update step (35) of
+Algorithm 3. Since data partitioning by attribute is employed,
+the computational complexity of (35) is O(αi3), where αi =
+min(N, Di). Similarly, the complexity of Algorithm 3 is
+Υ3 ∈ max (t′O(α13), . . . , t′O(α3G)), and the communication
+cost increases the complexity to Υ3 + Υg + Υb.
+In the implementations, several practical tricks such as
+caching can be used to decrease the computational complexity
+of the local optimization algorithms (27) and (35). For further
+details, please refer to [16].
+VII. NUMERICAL RESULTS
+In this section, the validity of the proposed algorithms is
+assessed by numerically evaluating the performance of the
+algorithms for IEEE 9-Bus, IEEE 30-Bus, IEEE 57-Bus and
+IEEE 118-Bus test systems [21]. For each data point 100
+realizations are simulated. For all simulation results, λ is fixed
+as [16]
+λ = Cλmax,
+(47)
+where C is a constant, λmax = ∥H˜z∥∞ for distributed sparse
+state vector estimation methods, and λmax = ∥Ha∥∞ for
+distributed attack models. In addition, λmax can be considered
+as a critical value of the regularization parameter λ above
+which the estimated state and attack vectors take zero values.
+Consequently, C determines the sparsity of the solutions of the
+optimization problems and the number of iterations required to
+obtain the solutions, i.e. the estimated state and attack vectors.
+For that reason, an optimal λˆ or Cˆ is computed by analyzing
+the solution (or regularization) path of the optimization algorithms
+using a given training dataset. A detailed analysis of the
+impact of C on the number of algorithm iterations required
+to obtain an optimal solution is given in [16] for ADMM
+implementations of LASSO type algorithms. We choose the
+penalty parameter as ρ = 1, the absolute tolerance as 10−4,
+the relative tolerance as 10−2 and set the maximum number
+of iterations t′ = 10000.
+In the experiments, it is assumed that the attacker has
+access to k measurements. For each realization, a k-sparse
+attack vector, a, is randomly generated by selecting the nonzero
+indices following a uniform distribution and Gaussian
+distributed amplitudes with the same mean and variance values
+as z. For distributed instances of the problem, the number
+of clusters, G, is uniformly distributed from the set of all
+prime divisors of N . On the other hand, for the collaborative
+instances, G is chosen from the set of all prime divisors of
+D.
+A. Results for Centralized Data Injection Attacks
+In order to assess the performance, the following parameters
+are computed in the simulations:
+1) P r(ˆai ≠ 0, ai ≠ 0) or simply P r(ˆa′i, a′i), which is the
+probability of correctly constructing an attack variable
+aˆi ≠ 0 of a false data injection vector a.
+2) P r(ˆai = 0, ai = 0) or simply P r(ˆai, ai), which is the
+probability of correctly constructing a secure variable
+aˆi = 0 of a false data injection vector a.
+Since P r(ˆa′i, a′i) + P r(ˆai, a′i) = 1 and P r(ˆai, ai) +
+P r(ˆa′i, ai) = 1, probabilities of incorrect constructions can
+be computed from the results.
+False data construction probabilities of Targeted LASSO
+Attacks (TLA), Strategic LASSO Attacks (SLA), Targeted
+Selective Attacks (TSA) and Strategic Selective Attacks (SSA)
+are compared in the following.
+In Figure 1, the experiments for TLA and TSA are analyzed
+and the changes of false data vector construction probabilities
+are depicted for a varying number of attack variables, Nk , for
+each test system. The construction probabilities do not increase
+or decrease smoothly for TLA (Figures 1.a and 1.b.), since λ
+is computed dynamically by (47) for each realization and test
+system. Therefore, sparseness is not explicitly controlled in
+LASSO Attacks. On the other hand, the dynamic computation
+of λ using (47) enables estimation of the sparseness of the
+attacks and the randomness in H. Therefore, the false data
+vector a is constructed with similar probabilities independent
+of the test system and sparsity level Nk of the attack vectors
+in the TLA case. For instance, P r(ˆa′i, a′i) obtains values
+in the range [0.5, 0.7] in Figure 1.a and P r(ˆai, ai) obtains
+OZAY et al.: SPARSE ATTACK CONSTRUCTION AND STATE ESTIMATION IN THE SMART GRID: CENTRALIZED AND DISTRIBUTED MODELS
+1313
+0.2
+0.4
+0.6
+k
+′ N
+(a) P r(ˆa′i, a i) for TLA
+IEEE 9−Bus
+IEEE 30−Bus
+IEEE 57−Bus
+IEEE 118−Bus
+0.8
+1
+IEEE 9−Bus
+IEEE 30−Bus
+IEEE 57−Bus
+IEEE 118−Bus
+0.8
+1
+0.2
+0.4
+0.6
+k
+′N
+(c) P r(ˆa′i, a i) for TSA
+Fig. 1. False data vector construction probabilities for for TLA and TSA.
+values in the range [0.3, 0.5] in Figure 1.b. Since sparseness
+can be controlled in Selective Attacks, a smooth change of
+the construction probabilities of false data vector variables is
+observed for TSA in Figure 1.c and Figure 1.d.
+Note that, if the regularization parameter for LASSO is
+optimized, the solution vectors for LASSO and Regressor
+selection algorithms coincide [16]. In Figure 2, it can be seen
+that similar solutions are attainable, i.e. both methods construct
+similar attack vectors. For instance, we observe that the
+attacked variable construction probabilities increase similarly
+in Figures 2.a and 2.c, while secure variable construction
+probabilities decrease similarly in Figures 2.b and 2.d for SLA
+and SSA.
+B. Results for Attack Detection using Distributed Sparse State
+Vector Estimation
+In this work, our primary interest from the network operator's
+point of view is the distributed estimation of the state
+vectors. In this section, we analyze the proposed state vector
+estimation methods by employing them for the attack detection
+problem using a modified Normalized Residual Test (NRT)
+procedure [6].
+In the attack detection procedure, we first estimate the state
+vectors xˆ using the algorithms proposed in Section III. Then,
+the error of the system is computed as ∥z−Hxˆ∥22 and the resid2
+ual of an observed measurement i is given by ∥zi − (Hxˆ)i ∥2,
+where (⋅)i denotes the i-th element of the argument vector.
+Following the classical detection criterion, it is declared that
+the observation i is attacked if ∥zi − (Hxˆ)i∥22 > τ . Since
+our goal is to detect the attacks on specific measurements,
+we do not remove the attacked measurement vectors at each
+1
+0.8
+)i0.6
+aaˆi
+,
+(
+rP0.4
+0.2
+00
+1
+0.8
+)i0.6
+aaˆi
+,
+(
+rP0.4
+0.2
+00
+1
+0.8
+)i0.6
+(aaˆi
+,
+rP0.4
+0.2
+00
+1
+0.8
+)i0.6
+(aaˆi
+,
+rP0.4
+0.2
+00
+IEEE 9−Bus
+IEEE 30−Bus
+IEEE 57−Bus
+IEEE 118−Bus
+0.2
+0.4
+0.6
+k
+(b) P r(ˆai, aiN) for TLA
+0.8
+1
+IEEE 9−Bus
+IEEE 30−Bus
+IEEE 57−Bus
+IEEE 118−Bus
+0.2 0.4
+k
+(d) P r(ˆai, aiN) for TSA
+0.6
+0.8
+1
+iteration of the algorithm unlike the NRT method proposed
+in [6]. In addition, such a removal process disturbs the data
+space. Therefore, the proposed estimation methods should be
+re-implemented and the regularization parameters should be
+re-estimated on the updated datasets, leading to additional
+computational costs.
+In the experiments, both algorithms operate with fixed
+parameter C = 21 for the regularization parameter λ. In
+addition, τ is chosen as 2ξn∥I − H(HT Σ−n1H)−1HT Σ−n1∥∞,
+where ξn and Σn are the variance and the covariance matrix
+of the noise n in (1) respectively, as suggested in [26].
+In this section, we construct the attack vectors using Random
+False Data Injection Attacks when the attacker has access
+to any k meters to construct k-sparse attack vectors a, as
+suggested by Liu, Ning and Reiter [1].
+Performance indices Precision (Prec), Recall (Rec) and
+Accuracy (Acc) are defined as
+P rec = tpt+pf p ,
+Rec = tpt+pf n ,
+Acc = tp+ttnp++ftnn+f p , (48)
+where true positive (tp), true negative (tn), false positive (fp),
+and false negative (fn) are defined in Table II. For instance,
+tp represents the number of attacked measurements that are
+correctly detected. On the other hand, fp represents the number
+of secure measurements that are wrongly declared as attacked.
+Note that, P rec is equal to P r(ˆai = ai), which is the
+probability that a network operator can successfully detect k
+specific attacks for all ˆai ≠ 0.
+Results for different numbers of measurement clusters, G,
+are considered in Figure 3. In this experiment, each operator
+has access to locally observed measurements, state vectors and
+submatrices. The simulated cases are G = ∣N ∣ and G = ∣D∣, for
+1
+0.8
+)i0.6
+a
+,
+aˆi
+(
+rP0.4
+0.2
+0
+0
+1
+0.8
+)i0.6
+a
+,
+aˆi
+(
+rP0.4
+0.2
+0
+0
+IEEE 9−Bus
+IEEE 30−Bus
+IEEE 57−Bus
+IEEE 118−Bus
+IEEE 9−Bus
+IEEE 30−Bus
+IEEE 57−Bus
+IEEE 118−Bus
+1
+0.9
+0.8
+e
+c
+na0.7
+m
+r
+fro0.6
+e
+P
+0.5
+0.4
+1
+0.8
+e
+cn0.6
+a
+m
+r
+o
+fre0.4
+P
+0.2
+G=1
+G=3
+G=19
+G=57
+1
+G=1
+G=137
+1
+0
+0
+0.9
+0.8
+0.7
+ce0.6
+n
+a
+rm0.5
+o
+fr
+e0.4
+P
+0.3
+0.2
+0.1
+0
+1
+0.9
+0.8
+ce0.7
+n
+a
+rm0.6
+o
+fr
+e0.5
+P
+0.4
+0.3
+0.2
+G=1
+G=137
+1
+G=1
+G=3
+G=19
+G=57
+1
+0.9
+0.8
+0.7
+ce0.6
+n
+a
+rm0.5
+o
+fr
+e0.4
+P
+0.3
+0.2
+0.1
+1
+0.8
+e
+cn0.6
+a
+m
+r
+o
+fre0.4
+P
+0.2
+0
+0
+0.2
+0.4
+0.6
+0.8
+k
+N
+(a) Accuracy for the distributed case.
+0
+0.2
+0.4
+0.6
+0.8
+k
+N
+(b) Accuracy for the collective case.
+0
+0.2
+0.4
+0.6
+0.8
+k
+N
+(c) Precision for the distributed case.
+G=1
+G=137
+1
+G=1
+G=3
+G=19
+G=57
+1
+1314
+IEEE JOURNAL ON SELECTED AREAS IN COMMUNICATIONS, VOL. 31, NO. 7, JULY 2013
+0.2
+0.4
+0.6
+k
+′ ′N
+(a) P r(ˆai, a i) for SLA
+0.8
+1
+0.2
+0.4
+0.6
+k
+N
+(b) P r(ˆai, ai) for SLA
+0.8
+1
+0.2
+0.4
+k
+′ ′N
+(c) P r(ˆai, a i) for SSA
+0.6
+0.8
+1
+0.2
+0.4
+0.6
+k
+N
+(d) P r(ˆai, ai) for SSA
+0.8
+1
+Fig. 2.
+False data vector construction probabilities for SLA and SSA.
+1
+0.8
+)i0.6
+a
+,
+aˆi
+(
+rP0.4
+0.2
+0
+0
+1
+0.8
+)i0.6
+a
+,
+aˆi
+(
+rP0.4
+0.2
+0
+0
+IEEE 9−Bus
+IEEE 30−Bus
+IEEE 57−Bus
+IEEE 118−Bus
+IEEE 9−Bus
+IEEE 30−Bus
+IEEE 57−Bus
+IEEE 118−Bus
+0
+0.2
+0.4
+0.6
+0.8
+k
+N
+(d) Precision for the collective case.
+0.2
+0.4
+0.6
+0.8
+k
+N
+(e) Recall for the distributed case.
+0.2
+0.4
+0.6
+0.8
+k
+N
+(f) Recall for the collective case.
+Fig. 3.
+Experiments for the IEEE 57-bus test system with various G values.
+distributed and collective state estimation algorithms respec3,
+which shows that the optimality loss with respect to
+tively. Therefore, G = ∣N ∣ and G = ∣D∣ are the extreme cases
+for distributed processing scenarios. However, the algorithms
+have similar performance for different values of G in Figure
+centralized strategies is small in the simulated settings.
+Figure 4 shows the results of distributed and collective state
+vector estimation algorithms for G = 1. Note that, the case
+0.2
+0.4
+0.6
+0.8
+k
+N
+(a) Distributed detection for 9-bus.
+0.2
+0.4
+0.6
+0.8
+k
+(b) Collective deteNction for 9-bus.
+Prec
+Acc
+Rec
+1
+Prec
+Acc
+Rec
+1
+1
+0.8
+e
+cn0.6
+a
+m
+r
+o
+fre0.4
+P
+0.2
+00
+1
+0.8
+e
+cn0.6
+a
+m
+r
+o
+fre0.4
+P
+0.2
+00
+1
+0.8
+e
+cn0.6
+a
+m
+r
+o
+fre0.4
+P
+0.2
+00
+1
+0.8
+e
+cn0.6
+a
+m
+r
+o
+fre0.4
+P
+0.2
+00
+Prec
+Acc
+Rec
+1
+Prec
+Acc
+Rec
+1
+OZAY et al.: SPARSE ATTACK CONSTRUCTION AND STATE ESTIMATION IN THE SMART GRID: CENTRALIZED AND DISTRIBUTED MODELS
+1315
+0.2
+0.4
+0.6
+0.8
+k
+N
+(c) Distributed detection for 57-bus.
+0.2
+0.4
+0.6
+0.8
+k
+N
+(d) Collective detection for 57-bus.
+Fig. 4. Distributed estimation performance indices for IEEE 9-bus and IEEE 57-bus test systems.
+TABLE II
+DEFINITIONS OF tp, fp, tn, AND fn
+Classified as Attacked
+Classified as Secure
+Attacked
+tp
+fn
+Secure
+fp
+tn
+G = 1 represents a centralized processing scenario in which
+all of the observed measurements and the whole Jacobian
+measurement matrix are available to network operators. It
+can be seen that the performance values of distributed and
+collective estimation methods are similar for the IEEE-9-bus
+test system in Figure 4.a and Figure 4.b respectively. However,
+the results in Figures 4.c and 4.d show that for low values of
+k/N the precision fluctuates and stabilizes around 0.9 as k/N
+increases for the IEEE-57-bus test system. In addition, the
+slopes of the curves representing the increases of accuracy
+and recall values are slightly smaller in Figures 4.c and 4.d
+than the ones for the IEEE-9-bus test system case.
+C. Results for Distributed and Collective Sparse Attacks
+In order to measure the detectability of the attacks from the
+perspective of the network operators, Error = ∥zi−(Hxˆ)i∥22 is
+considered. Throughout this section, both algorithms operate
+with fixed parameter C = 12 .
+In Figure 5, the results of the distributed attack experiments
+for the IEEE-57-bus test system are shown. Remarkably, the
+proposed algorithms are capable of successfully injecting data
+with high probability for a large range of sparsity ranges.
+However, it can be seen in Figures 5.a and 5.b that P r(ˆa′i, a′i)
+decreases and Error increases as G decreases. This is due
+to the fact that the optimization is very sensitive to the
+optimization of the regularization parameter λ. Interestingly,
+in the simulation settings evaluated for this paper, it has been
+observed that the proposed algorithms are more robust to
+variations of λ when smaller values of G are considered.
+It is known [27] that the optimization of the regularization
+parameter in the centralized case is hard. Surprisingly, as the
+fragmentation of the optimization problem increases, i.e., for
+lower values of G, the performance of the algorithm is less
+sensitive to the tuning of the regularization parameter. For instance,
+the injection vectors are computed and the optimization
+variables are updated locally in each group with respect to a
+global regularization parameter in distributed and collective
+attacks. In other words, the group-wise local regularization
+paths (i.e., the set of solutions) are computed and used to
+approximate a global regularization path. Since the paths of
+Group LASSO are piecewise differentiable, approximating the
+global path by the local paths may be a challenge as G
+increases. A solution to this challenge is to compute groupwise
+parameters in an adaptive scheme [28].
+VIII. CONCLUSION
+In this paper, we have considered centralized and distributed
+models for sparse attack construction and state estimation
+in the smart grid. For a centralized scenario, two methods,
+LASSO Attacks and Selective Attacks, have been introduced
+for the construction of false data vectors and attack vectors for
+a given attack model. The presented methods are used in two
+well-known attack models, Targeted and Strategic Attacks.
+We have shown that Selective Attacks provide control of
+the sparsity of the attack vectors, explicitly. Therefore, a construction
+method has been proposed for false data and attack
+k
+N
+(a) P r(ˆa′i, a′i) of distributed attacks.
+0.2
+0.4
+0.6
+0.8
+1
+0.2
+0.4
+0.6
+0.8
+k
+(b) Error of distriNbuted attacks.
+0.990
+k
+N
+(c) P r(ˆa′i, a′i) of collective attacks.
+0.2
+0.4
+0.6
+0.8
+1
+0.2
+0.4
+0.6
+0.8
+k
+N
+(d) Error of collective attacks.
+G=1
+G=137
+1
+G=1
+G=3
+G=19
+G=57
+1
+1
+0.98
+0.96
+)
+ˆ,aaii0.94
+(r0.92
+P
+0.9
+0.88
+0.860
+1.005
+1
+)
+ˆaaii
+,
+(
+r
+P0.995
+G=1
+G=137
+G=1
+G=3
+G=19
+G=57
+120
+110
+100
+r
+o
+r
+r
+E90
+80
+700
+80
+75
+70
+r
+6r5
+o
+r
+E
+60
+55
+500
+1316
+IEEE JOURNAL ON SELECTED AREAS IN COMMUNICATIONS, VOL. 31, NO. 7, JULY 2013
+Fig. 5. Experiments for the IEEE 57-bus test system.
+vectors, which contain a given number of attacked and secure
+variables. Incidentally, the randomness of the parameters of
+the attack models may decrease the unobservability of the
+attack vectors and the control for the construction of false data
+vectors. For instance, random construction of the sub-matrices
+in Targeted Attacks may inject additional randomness into the
+probabilities of constructing false data vectors a.
+For the case in which the distributed nature of the network
+is considered, new distributed sparse state vector estimation
+and attack detection methods have been introduced. In the
+Distributed State Vector Estimation method, it is assumed
+that the observed measurements are distributed in clusters in
+the network. The state vectors are estimated using local data
+measurements in the clusters by either local network operators
+or PMUs. The estimates are then updated by centralized
+processors. In Collaborative Sparse State Vector Estimation,
+operators estimate a subset of variables of the state vectors.
+Therefore, state vector variables are assumed to be distributed
+in groups and accessed by the network operators locally. In this
+scenario, network operators compute their local estimates and
+send the estimated values to a centralized network operator in
+order to update the estimated values.
+In the experiments, it has been observed that both state
+vector estimation methods perform similarly for a varying
+number of attacks in different test systems. Besides, accuracy
+and precision values of the proposed methods decrease as
+the system size increases and the performance values do not
+change as the number of clusters increases. In other words,
+we can achieve similar performance when we implement the
+algorithms in centralized (G = 1) and massively distributed
+scenarios (G = N or G = D).
+When the Distributed Sparse Attacks model is considered,
+it is assumed that attackers process only local measurements
+in order to achieve a consensus for attack vectors. In the
+Collective Sparse Attacks case, the topological information of
+the network and the measurements is available to attackers.
+However, the attackers employ attacks on variable groups of
+state vectors.
+It has been observed in the experiments that the Collective
+Sparse Attacks model performs better than the Distributed
+Sparse Attacks model for the construction of unobservable attack
+vectors. Surprisingly, better performance of the algorithm
+with higher G values is achieved than smaller G values when
+larger systems are considered. This is due to the fact that one
+of the challenges of the proposed methods is the estimation of
+algorithm parameters, e.g., the maximum number of iterations
+and the regularization parameter λ. For the case in which the
+sparsity degree, k, of the solution vectors are known a priori,
+regressor selection algorithms can be employed in order to
+control the sparsity of the solutions.
+REFERENCES
+[1] Y. Liu, P. Ning, and M. K. Reiter, “False data injection attacks against
+state estimation in electric power grids,” in Proc. 16th ACM Conf.
+Comput. Commun. Security, ser. CCS '09. New York, NY, USA: ACM,
+2009, pp. 21-32.
+[2] L. Sankar, S. Kar, R. Tandon, and H. V. Poor, “Competitive privacy in
+the smart grid: An information-theoretic approach,” in Proc. 2nd IEEE
+Int. Conf. Smart Grid Communications, Brussels, Belgium, Oct. 2011,
+pp. 220-225.
+[3] E. Cotilla-Sanchez, P. Hines, C. Barrows, and S. Blumsack, “Comparing
+the topological and electrical structure of the North American electric
+power infrastructure,” IEEE Syst. J., vol. 6, no. 4, pp. 616-626, Dec.
+2012.
+OZAY et al.: SPARSE ATTACK CONSTRUCTION AND STATE ESTIMATION IN THE SMART GRID: CENTRALIZED AND DISTRIBUTED MODELS
+1317
+[4] T. T. Kim and H. V. Poor, “Strategic protection against data injection
+attacks on power grids,” IEEE Trans. Smart Grid, vol. 2, no. 2, pp.
+326-333, 2011.
+[5] O. Kosut, L. Jia, R. J. Thomas, and L. Tong, “Malicious data attacks
+on the smart grid,” IEEE Trans. Smart Grid, vol. 2, no. 4, pp. 645-658,
+2011.
+[6] A. Abur and A. Expo´sito, Power System State Estimation: Theory and
+Implementation, ser. Power Engineering. Marcel Dekker, 2004.
+[7] A. Tajer, S. Kar, H. V. Poor, and S. Cui, “Distributed joint cyber attack
+detection and state recovery in smart grids,” in Proc. 2nd IEEE Int.
+Conf. Smart Grid Communications, Brussels, Belgium, Oct. 2011, pp.
+202-207.
+[8] M. Ozay, I. Esnaola, F. T. Y. Vural, S. R. Kulkarni, and H. V. Poor,
+“Distributed models for sparse attack construction and state vector
+estimation in the smart grid,” in Proc. 3rd IEEE Int. Conf. Smart Grid
+Communications, Tainan City, Taiwan, Nov. 2012.
+[9] L. Xie, D.-H. Choi, S. Kar, and H. V. Poor, “Fully distributed state
+estimation for wide-area monitoring systems,” IEEE Trans. Smart Grid,
+vol. 3, no. 3, pp. 1154-1169, Sept. 2012.
+[10] F. Pasqualetti, R. Carli, and F. Bullo, “A distributed method for state
+estimation and false data detection in power networks,” in Proc. 2nd
+IEEE Int. Conf. Smart Grid Communications, Brussels, Belgium, Oct.
+2011, pp. 469-474.
+[11] Q. Yang, J. Yang, W. Yu, N. Zhang, and W. Zhao, “On a hierarchical
+false data injection attack on power system state estimation,” in Proc.
+IEEE Global Communications Conference (GLOBECOM 2011), Houston,
+TX, USA, Dec. 2011, pp. 1-5.
+[12] O. Vukovic, K. C. Sou, G. Dan, and H. Sandberg, “Network-aware
+mitigation of data integrity attacks on power system state estimation,”
+IEEE J. Sel. Areas Commun., vol. 30, no. 6, pp. 1108-1118, July 2012.
+[13] Y.-F. Huang, S. Werner, J. Huang, N. Kashyap, and V. Gupta, “State
+estimation in electric power grids: Meeting new challenges presented
+by the requirements of the future grid,” IEEE Signal Process. Mag.,
+vol. 29, no. 5, pp. 33-43, Sept. 2012.
+[14] W. Wang and Z. Lu, “Cyber security in the smart grid: Survey and
+challenges,” Comput. Netw., 2013, in press.
+[15] D. P. Chassin and C. Posse, “Evaluating north american electric grid
+reliability using the Baraba´si-Albert network model,” Physica A: Statistical
+Mechanics and its Applications, vol. 355, no. 2-4, pp. 667-677,
+Sep. 2005.
+[16] S. Boyd, N. Parikh, E. Chu, B. Peleato, and J. Eckstein, “Distributed
+optimization and statistical learning via the alternating direction method
+of multipliers,” Found. Trends Mach. Learn., vol. 3, no. 1, pp. 1-122,
+Jan. 2011.
+[17] E. Ghadimi, A. Teixeira, I. Shames, and M. Johansson, “On the optimal
+step-size selection for the alternating direction method of multipliers,”
+in Proc. 3rd IFAC Workshop on Distributed Estimation and Control in
+Networked Systems, Santa Barbara, CA, USA, Sept. 2012.
+[18] B. He and X. Yuan, “On the o(1/n) convergence rate of the DouglasRachford
+alternating direction method,” SIAM J. Numer. Anal., vol. 50,
+no. 2, pp. 700-709, Apr. 2012.
+[19] E. J. Cande`s and T. Tao, “Decoding by linear programming,” IEEE
+Trans. Inf. Theory, vol. 51, no. 12, pp. 4203-4215, 2005.
+[20] D. L. Donoho, “Compressed sensing,” IEEE Trans. Inf. Theory, vol. 52,
+no. 4, pp. 1289-1306, 2006.
+[21] R. D. Zimmerman, C. E. Murillo-Sa´nchez, and R. J. Thomas, “MATPOWER:
+Steady-state perations, planning, and analysis tools for power
+systems research and education,” IEEE Trans. Power Syst., vol. 26, no. 1,
+pp. 12-19, Feb. 2011.
+[22] R. Tibshirani, “Regression shrinkage and selection via the LASSO,” J.
+R. Stat. Soc. (Series B), vol. 58, pp. 267-288, 1996.
+[23] Z. Zhang, G. Dai, C. Xu, and M. I. Jordan, “Regularized discriminant
+analysis, ridge regression and beyond,” J. Mach. Learn. Res., vol. 11,
+pp. 2199-2228, Aug. 2010.
+[24] A. Tikhonov and V. Arsenin, Solutions of Ill-posed Problems, ser. Scripta
+Series in Mathematics. Winston, 1977.
+[25] M. de Almeida, A. Garcia, and E. Asada, “Regularized least squares
+power system state estimation,” IEEE Trans. Power Syst., vol. 27, no. 1,
+pp. 290-297, Feb. 2012.
+[26] F. Pasqualetti, R. Carli, and F. Bullo, “A distributed method for state
+estimation and false data detection in power networks,” in Proc. 2nd
+IEEE Int. Conf. Smart Grid Communications, Brussels, Belgium, Oct.
+2011, pp. 469-474.
+[27] S. Rangan, A. K. Fletcher, and V. K. Goyal, “Asymptotic analysis of
+MAP estimation via the replica method and applications to compressed
+sensing,” IEEE Trans Inf. Theory, vol. 58, no. 3, pp. 1902-1923, 2012.
+[28] F. R. Bach, “Consistency of the group LASSO and multiple kernel
+learning,” J. Mach. Learn. Res., vol. 9, pp. 1179-1225, Jun. 2008.
+Mete Ozay is with the Department of Computer
+Engineering at Middle East Technical University. He
+was a visiting Ph.D. student and research collaborator
+at the Department of Electrical Engineering,
+Princeton University in 2011-2012. His research
+interests include pure and applied mathematics, theoretical
+computer science, and physics.
+I n˜aki Esnaola received the M.S. degree in Electrical
+Engineering from University of Navarra, Donostia,
+Spain in 2006 and a Ph.D. in Electrical Engineering
+from University of Delaware, Newark, DE in 2011.
+He is currently a Postdoctoral Research Associate at
+Princeton University, Princeton, NJ. In 2010-2011
+he was a Research Intern with Bell Laboratories,
+Alcatel-Lucent, Holmdel, NJ. His research interests
+include information theory and communication theory.
+Fatos T. Yarman Vural received the B.S. degree
+with honors in electrical engineering from the Technical
+University of Istanbul in 1973, the M.S. degree
+in electrical engineering from Bogazici University in
+1975, and the Ph.D. degree in electrical engineering
+and computer science from Princeton University
+in 1981. From 1981 to 1983, she was a research
+scientist in Marmara Research Institute in Turkey.
+From 1983 to 1985, she was a visiting professor at
+Drexel University. From 1985 to 1992, she was a
+technical and deputy manager at Yapitel Inc. Since
+1992, she has been a professor in the Computer Engineering Department of
+Middle East Technical University (METU). Her research area covers computer
+vision, image processing, pattern recognition, and artificial intelligence. She
+has been involved in teaching, consulting, and organizing conferences in these
+areas. She was the chair woman in the Computer Engineering Department
+between 1996-2000. She is a senior member of IEEE and a member of Turkish
+Informatics Foundation, Turkish Information Association, and chamber of
+Electrical Engineers in Turkey.
+Sanjeev R. Kulkarni (M'91, SM'96, F'04) received
+the B.S. in Mathematics, B.S. in E.E., and M.S.
+in Mathematics from Clarkson University in 1983,
+1984, and 1985, respectively; the M.S. degree in
+E.E. from Stanford University in 1985; and the
+Ph.D. in E.E. from M.I.T. in 1991. From 1985 to
+1991 he was a Member of the Technical Staff at
+M.I.T. Lincoln Laboratory working on the modelling
+and processing of laser radar measurements. In the
+spring of 1986, he was a part-time faculty member
+at the University of Massachusetts, Boston. Since
+1991 he has been with Princeton University, where he is currently Professor
+of Electrical Engineering and an affiliated faculty member in the Department
+of Operations Research and Financial Engineering and the Department of
+Philosophy. He spent January 1996 as a research fellow at the Australian
+National University, 1998 with Susquehanna International Group, and summer
+2001 with Flarion Technologies. Prof. Kulkarni received an ARO Young
+Investigator Award in 1992, an NSF Young Investigator Award in 1994, and
+several teaching awards at Princeton. He has served as an Associate Editor
+for the IEEE Transactions on Information Theory. Prof. Kulkarni's research
+interests include statistical pattern recognition, nonparametric estimation,
+learning and adaptive systems, information theory, wireless networks, and
+image/video processing.
+1318
+IEEE JOURNAL ON SELECTED AREAS IN COMMUNICATIONS, VOL. 31, NO. 7, JULY 2013
+H. Vincent Poor (S'72, M'77, SM'82, F'87) received
+the Ph.D. degree in EECS from Princeton
+University in 1977. From 1977 until 1990, he was
+on the faculty of the University of Illinois at UrbanaChampaign.
+Since 1990 he has been on the faculty
+at Princeton, where he is the Michael Henry Strater
+University Professor of Electrical Engineering and
+Dean of the School of Engineering and Applied
+Science. He has also held visiting appointments at
+several other institutions, including most recently
+Imperial College and Stanford. Dr. Poor's research
+interests are in the areas of stochastic analysis, statistical signal processing
+and information theory, and their applications in wireless networks and related
+fields including social networks and smart grid. Among his publications in
+these areas are the recent books Smart Grid Communications and Networking
+(Cambridge University Press, 2012) and Principles of Cognitive Radio
+(Cambridge University Press, 2013).
+Dr. Poor is a member of the National Academy of Engineering and the
+National Academy of Sciences, a Fellow of the American Academy of Arts
+and Sciences, an International Fellow of the Royal Academy of Engineering
+(U. K), and a Corresponding Fellow of the Royal Society of Edinburgh. He is
+also a Fellow of the IET, the Optical Society of America, and other scientific
+and technical organizations. In 1990, he served as President of the IEEE
+Information Theory Society, and in 2004-07 he served as the Editor-in-Chief
+of the IEEE TRANSACTIONS ON INFORMATION THEORY. He received a
+Guggenheim Fellowship in 2002, the IEEE Education Medal in 2005, and the
+Marconi and Armstrong Awards of the IEEE Communications Society in 2007
+and 2009, respectively. Recent recognition of his work includes the 2010 IET
+Ambrose Fleming Medal for Achievement in Communications, the 2011 IEEE
+Eric E. Sumner Award, a Royal Academy Distinguished Visiting Fellowship
+(2012), and honorary doctorates from Aalborg University, the Hong Kong
+University of Science and Technology, and the University of Edinburgh.

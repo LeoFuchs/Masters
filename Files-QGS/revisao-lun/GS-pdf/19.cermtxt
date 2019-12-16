@@ -1,0 +1,723 @@
+IEEE TRANSACTIONS ON SMART GRID, VOL. 4, NO. 3, SEPTEMBER 2013
+1235
+Ramp-Induced Data Attacks on Look-Ahead Dispatch
+in Real-Time Power Markets
+Dae-Hyun Choi, Student Member, IEEE, and Le Xie, Member, IEEE
+Abstract-This paper presents a new class of false data injection
+attacks on state estimation, which may lead to financial arbitrage
+in real-time power markets with an emerging look-ahead dispatch
+model. In comparison with prior work of cyber attack on static dispatch
+where no inter-temporal ramping constraint is considered,
+we propose a novel attack strategy with which the attacker can manipulate,
+in look-ahead dispatch, the limits of ramp constraints of
+generators. It is demonstrated that the proposed attack may lead to
+financial profits via malicious capacity withholding of selected generators,
+while being undetected by the existing bad data detection
+algorithm embedded in the state estimator. The feasibility of such
+cyber attacks and their economic impact on real-time electricity
+market operations are illustrated in the IEEE 14-bus system.
+Index Terms-Cyber security, economic dispatch, power system
+state estimation, ramp-induced data attack.
+I. INTRODUCTION
+C been facing an increasing number of potential cyber
+RITICAL infrastructure (e.g., the electricity grid) has
+attacks. Given the much stronger coupling between cyber and
+physical layers of smart grid, development of cyber security
+technology tailored for smart grid is of paramount importance.
+The main objective of this paper is to study the impact of
+cyber attacks on state estimation, which subsequently influence
+the result of the newly emerging look-ahead dispatch model
+in the real-time electricity market. Fig. 1(a), 1(b) illustrate the
+information flow in a three-layered framework (with physical,
+measurement, and control/computation layer) without and with
+such cyber attacks, respectively. The information includes the
+physical state such as the nodal power injection and flow and the
+dispatch instruction such as the optimal generation output and
+nodal price. Compared to Fig. 1(a), 1(b) describes that bad/malicious
+data injected into the measurement layer can lead to
+corrupted estimation of the states of the physical layer. Consequently,
+the attacker could distort the feedback information
+from control/communication layer back to the physical layer in
+two ways, leading to 1) physical insecurity in the power grid
+operations, and/or 2) financial misconduct in the power markets
+as shown in Fig. 1(b). This paper contributes to topic 2) using a
+more realistic dispatch model in power markets.
+Manuscript received June 20, 2012; revised September 09, 2012; accepted
+October 31, 2012. Date of publication May 31, 2013; date of current version
+August 21, 2013. This work was supported in part by the Power Systems Engineering
+Research Center, and in part by National Science Foundation ECCS
+Grant 1029873. Paper no. TSG-00380-2012.
+The authors are with the Department of Electrical and Computer Engineering,
+Texas A&M University, College Station, TX 77840 USA (e-mail:
+cdh8954@neo.tamu.edu; Lxie@ece.tamu.edu).
+Color versions of one or more of the figures in this paper are available online
+at http://ieeexplore.ieee.org.
+Digital Object Identifier 10.1109/TSG.2012.2228508
+Fig. 1. A three-layered framework illustrating cyber data attack. (a) Without
+cyber data attack. (b) With cyber data attack.
+A large body of literature has been accumulated recently on
+the subject of cyber security in power grids, ranging from risk
+mitigation [1], generation control security (e.g., automatic generation
+control (AGC) attack [2], [3]), control security in distribution
+system [4], and privacy protection [5]-[8]. A concise
+summary paper is presented in [9], including risk assessment
+methodology, power system control application and cyber infrastructure
+security. Meanwhile, many researchers have been
+studying false data injection attacks, which malfunction the state
+estimator by injecting false data into sensors. For the subject of
+false data injection attacks, two major categories of work have
+been presented:
+• Vulnerability analysis of state estimation: a false data injection
+attack was formulated and analyzed in [10], [11].
+Efficient algorithm to find sparse attacks and phasor measurement
+units (PMUs) placement algorithm to prevent
+sparse attacks were developed in [12], [13]. A distributed
+joint detection-estimation approach to malicious data attack
+was presented in [14]. In [15], it was shown that the
+attacker can hack the power grid without the knowledge of
+the power network topology, which can be estimated using
+linear independent component analysis (ICA).
+• Financial risk analysis in electricity market operations:
+this area examined the economic impact of false data injection
+attacks on electricity market operations. Undetectable
+and profitable attack strategies, which exploit virtual bidding
+mechanism, were proposed in [16]. In [17], a more
+general malicious data attack problem was formulated in
+the real-time electricity market.
+However, in [16], [17], the proposed attacks were characterized
+in static economic dispatch without modeling inter-temporal
+constraints.
+In this paper we present a new type of potential cyber attacks
+in more realistic economic dispatch model, i.e., look-ahead
+dispatch. Motivated by the increasing penetration of variable
+1949-3053 © 2013 IEEE
+1236
+IEEE TRANSACTIONS ON SMART GRID, VOL. 4, NO. 3, SEPTEMBER 2013
+resources such as wind and solar [18], look-ahead dispatch has
+been implemented by major Independent System Operators
+(ISOs)/Regional Transmission Organizations (RTOs) in the past
+few years in order to improve the market dispatch efficiency
+[19]-[21]. Look-ahead dispatch is different from conventional
+static dispatch in that it calculates the optimal dispatch in an
+extended period of time, taking into account inter-temporal
+ramp rates of generators of different technologies. In this paper,
+an attack strategy is demonstrated, in which the attacker could
+withhold generation capacity for financial gain by stealthily
+manipulating the ramp constraint limits of generators in look
+ahead dispatch. It should be noted that the proposed attack
+strategy is different from the capacity withholding methods
+used for a generation company to report capacity noticeably
+lower than its maximum capacity based on learning algorithm
+(e.g., SA-Q-Learning algorithm) [22], [23]. In contrast, the
+proposed method is to inject undetectable malicious data in
+order to withhold capacity for financial misconduct in real-time
+markets. The main contributions of this paper are two-fold:
+1) We formulate a malicious ramp-induced data (RID) attack
+problem in look-ahead dispatch. The attacker could
+stealthily change the ramp constraint limits of generators
+through manipulating sensors' data, aiming at increasing
+the nodal price by withholding capacity of generator.
+2) We propose a RID attack strategy with which the attacker
+could make a profit without being detected by RTOs in
+the real-time electricity market. Numerical examples are
+illustrated in the IEEE-14 bus system.
+The rest of this paper is structured as follows. Section II provides
+the brief overview of state estimation and real-time power
+market with look-ahead dispatch model. Section III states the
+cyber attack problem. The proposed attack formulation including
+required conditions, attack procedure and strategy,
+and attack performance metrics is elaborated in more detail in
+Section IV, which is followed by illustrative examples based on
+the IEEE 14-bus test system in Section V. Section VI presents
+the conclusions and future work.
+II. BACKGROUND
+The notations used in this paper are summarized in Table I.
+A. State Estimation Model
+We consider the linearized dc state estimation model:
+where
+State vector (nodal power injections).
+Measurement vector (power injection and flow
+measurements).
+Independent identically distributed (i.i.d.)
+Gaussian measurement error vector following
+.
+The system factor matrix specifying the
+relationship between and .
+TABLE I
+NOTATIONS
+Here the matrix is concatenated with two submatrices,
+and , which denote the distribution factor matrix and the identity
+matrix, respectively. The state estimation problem is to find
+the optimal estimate of to minimize the weighted least square
+of measurement error:
+(1)
+s.t.
+where is the estimated residual vector. If the system is observable
+(i.e., the system factor matrix is full rank), the unique
+weighted least squares estimate of is given by
+B. Real-Time Power Market With Look-Ahead Dispatch Model
+The electric power market consists of two-settlement system,
+day-ahead, and real-time spot markets. Recently, due to limited
+predictability in day-ahead and high inter-temporal variability
+of renewable resources (e.g., wind and solar), RTOs are upgrading
+real-time market clearing engine from static dispatch
+to look-ahead dispatch models for more flexible operations in
+support of high penetration of variable resources [19]. For the
+system operator, look-ahead dispatch is formulated as follows:
+(2)
+(3)
+(4)
+(5)
+(6)
+(7)
+(8)
+(9)
+CHOI AND XIE: RAMP-INDUCED DATA ATTACKS ON LOOK-AHEAD DISPATCH IN REAL-TIME POWER MARKETS
+1237
+In this formulation, the objective function is to minimize the
+total generation costs in (5). Equation (6) is the system-wide
+energy balance equations. Equations (7) and (8) are the ramp
+constraints and the physical capacity constraints of each generator,
+respectively. Equation (9) is the transmission line constraints.
+In this paper, we define one-step look-ahead dispatch
+with as static dispatch. The Lagrangian function of the
+aforementioned look-ahead dispatch is written as
+where all the Lagrangian multipliers at time ( , ,
+, , , , and ) are positive.
+According to the definition of the nodal price [24], and assuming
+that bus 1 is the slack bus, the locational marginal price
+(LMP) for each bus at time is given by
+where
+time
+,
+is the
+LMP for the slack
+.
+Alternatively, by the first-order KKT condition of look-ahead
+dispatch formulation, the LMP for each generator connected
+to bus is written as
+(10)
+bus 1 at
+,
+, and
+(11)
+Fig. 2. Statistical signal processing framework illustrating the relationship
+among sensor data, state estimation, and economic dispatch.
+and , corresponding to the ramp constraints at the
+future time influence the LMPs calculation at the current
+time . However, the LMP formulation in static dispatch
+(one-step look-ahead) does not capture future constraints.
+III. STATEMENT OF THE CYBER ATTACK PROBLEM
+A general problem of cyber attack against state estimation
+in economic dispatch can be illustrated in statistical signal processing
+framework in Fig. 2. It provides a graphical interpretation
+for the relationship among sensor's measurement, state estimation,
+and economic dispatch. The state set is partitioned
+into a finite number of nodal price subsets . The operation
+of economic dispatch is implicitly included in the state set
+. The measurement space is the collection of all realizable
+sensor's measurements . The set of probability measure
+provides a mathematical basis for describing the randomness of
+measurements. In the power system state estimation literature,
+the probability measure normally follows the Gaussian distribution.
+These random measurement errors can be filtered by the
+existing bad data processing algorithm. The objective of the attacker
+is to move the estimate from a certain nodal price subset
+to a desired nodal price subset by corrupting original measurements
+into while avoiding the bad data detection. Detailed
+attack model and formulation are described in Section IV.
+In the above framework, a potential cyber attack in lookahead
+dispatch is described as follows. The unit's initial
+generation power embedded in (7) is replaced, at every
+dispatch interval, by its corresponding estimate , which
+is processed and delivered by the state estimator. Therefore, in
+static dispatch the generation power of unit at becomes
+bounded by
+where the maximum and minimum limits of the ramp constraints,
+and , are
+(12)
+(13)
+(14)
+where
+otherwise (i.e., )
+serve from (11) that the Lagrangian multipliers,
+is the indicator function based on the set
+. In other words, when ,
+. We can obIf
+the attacker manipulates the estimate by injecting false
+data into so that the capacity limits of unit at are
+binding to stealthily changed ramp constraint limits, the optimal
+generation dispatch and nodal price might be miscalculated by
+RTOs. In this paper we define this type of attack as a ramp1238
+IEEE TRANSACTIONS ON SMART GRID, VOL. 4, NO. 3, SEPTEMBER 2013
+posed into two terms, corresponding to without and with attack,
+respectively:
+and by triangular inequality of the
+-norm
+,
+(17)
+(18)
+Fig. 3. Conceptual diagrams illustrating a ramp-induced data attack.
+induced data (RID) attack in a potential class of malicious intertemporal
+data attacks.
+Fig. 3 illustrates the RID attack, which withholds capacity
+of a marginal unit (a part-loaded generator). Left and right diagrams
+describe the generation characteristics of the marginal
+unit without and with the attack, respectively. is the feasible
+range of generation limited by the ramp rate of the marginal unit,
+and is an incremental (in this figure) or decremental system
+load from to . We note that as (for simplicity,
+we omit , instead emphasize the time) is manipulated by the attacker,
+can deviate, upwards or downwards, from the range
+of , leading to capacity withholding or capacity withdrawing,
+respectively. The right diagram in Fig. 3 shows that if is
+decreased to by the attacker at so that deviates
+upwards from the range of , the attacker succeeds in
+withholding capacity, resulting in a new dispatch output
+at . As a result, the infra-marginal unit (the unit with the
+next higher marginal cost) is dispatched to supply the excess demand,
+consequently leading to a uniformly higher market price.
+Remark 1: Define as the contribution of
+the attacker to changing the nodal price. The RID attack fails
+(i.e., the nodal price remains unchanged) if the value of this
+contribution belongs to the following interval:
+The feasible region of based on constraint (15) is defined
+as the price-invulnerable region.
+IV. FORMULATION OF THE RAMP-INDUCED DATA ATTACK
+A. Attack Model and Undetectability
+We consider the additive attack measurement model:
+(15)
+(16)
+where is the bad data detection threshold. For bypassing the
+bad data detection algorithm, the attacker aims at constructing
+the attack vector so that the value of added to
+still makes the above undetectable condition hold true.
+B. Requirements and Procedure for a Successful RID Attack
+From the analysis above, in order to implement a RID attack
+with profits, the attacker is required to have the knowledge of:
+R1) the system topology (e.g., distribution factor matrix),
+which remains constant at every dispatch interval;
+R2) the ramp rates of the targeted generators;
+R3) the amount of changing system load between two consecutive
+dispatch intervals.
+The system topology for the targeted power system in Requirement
+R1) can be simply obtained off-line by an internal intruder
+in a control center or estimated by linear independent component
+analysis (ICA) technique proposed in [15]. For Requirement
+R2), typical ramp rates are estimable for typical generators.
+Requirement R3) is feasible since the attacker can estimate
+an amount of changing system load from RTOs' website. With
+these assumptions, the procedure of the proposed RID attack is
+summarized as follows:
+Step 1): The attacker synchronizes the attack time with the
+start time at every dispatch interval. This step is necessary
+for injected false data to mislead economic
+dispatch via the state estimator.
+Step 2): The attacker determines sensors to compromise and
+computes the attack vector using the proposed attack
+strategy formulated in the next subsection.
+Step 3): The attacker injects the attack vector into sensors'
+measurements at the attack time set in Step 1). Then,
+these corrupted measurements are transmitted to the
+state estimator via SCADA network.
+Step 4): The state estimator based on received false measurements
+may lead to distorted generation output estimates.
+They are utilized for setting the ramp constraints
+in look-ahead dispatch.
+Step 5): Consequently, the manipulated ramp constraints result
+in the attacker's desired dispatch instruction.
+Then, it is sent to the dispatchable generators.
+Step 6): For the continuous attack, the procedure goes back
+to Step 2).
+C. Proposed Attack Strategy
+where is the attack vector, which leads to the corrupted measurement
+vector . The new residual vector can be decomIn
+this subsection we formulate a ramp-induced data attack
+strategy. The power system is assumed to have sufficient transmission
+capacity. As the first step toward understanding the impact
+of cyber attack on temporal ramp-constrained economic
+dispatch, we exclude the impact of spatial transmission congestion
+on the market clearning prices. In practice, temporal
+ramp constraints are coexisting with spatial transmission flow
+constraints. Therefore, for a successful RID attack in congested
+networks the attacker should know the targeted power system
+very well and as much as the system operator knows, however
+this scenario is unrealistic. Developing a feasible RID attack
+strategy in congested networks is beyond the scope of this paper
+and referred to as a future work.
+The proposed attacks are classified into the following three
+types:
+• Marginal unit attack: a injection measurement sensor associated
+with the marginal unit is compromised.
+• Binding unit attack: injection measurement sensors associated
+with the binding units are compromised.
+• Coordinated attack: injection measurement sensors associated
+with the binding units as well as the marginal unit
+are compromised.
+Here a binding unit represents two types of units: an intra-marginal
+unit with the lower marginal cost or an infra-marginal unit
+with the higher marginal cost than a marginal unit. The following
+proposed attack strategy and simulation results focus on
+intra-marginal unit attack belonging to binding unit attack.
+Remark 2: When there is no network transmission congestion,
+it is well acknowledged that static dispatch involves a
+single marginal unit and multiple binding units that produce
+their minimum or maximum outputs. On the other hand,
+look-ahead dispatch may involve multiple marginal units even
+if there is no congestion in the the transmission network. In this
+paper the marginal unit attack is associated with the marginal
+unit in static dispatch.
+For achieving undetectability and profitability, the attacker
+computes the attack vector by compromising sensors
+or , which is the solution of the following optimization
+problem:
+s.t.
+where
+CHOI AND XIE: RAMP-INDUCED DATA ATTACKS ON LOOK-AHEAD DISPATCH IN REAL-TIME POWER MARKETS
+1239
+and are the contributions of the attacker to
+changing the nodal price, corresponding to the marginal unit
+and binding unit attacks, respectively. The derivations of these
+contribution terms are referred to in Appendix A. The set
+represents the attack vector space, which describes the attack
+pattern related to the type and number of compromised sensors.
+is the minimum amount of power which the at(24)
+Here, and are two pairs of the
+nodal price and optimal generation dispatch with and without
+attack, respectively. is the marginal cost for generator .
+TABLE II
+COMPARISON BETWEEN RID ATTACK AND SPATIAL ATTACK
+(19)
+(20)
+(21)
+(22)
+where
+tacker should reduce at in order to withhold the capacity
+of unit at . Constraint (20) assures undetectability as the
+parameter is tuned with an appropriate value. Constraint (21)
+assures profitability since it enables unit to bind at the limit of
+the up-ramp constraint, leading to the increasing nodal price.
+Therefore, the attacker aims to maximize the margin in order
+to make a financial gain via capacity withholding with a high
+probability. The binary values of and in (21) determine the
+following three types of attacks:
+1) , : Marginal unit attack
+2) , : Binding unit attack
+3) , : Coordinated attack.
+Remark 3: Compared to the capacity withholding mentioned
+above, capacity withdrawing can benefit a load serving entity
+(LSE) by manipulating the down-ramp constraint limit. This
+type of the attack is feasible when constraint (21) is replaced
+with
+(23)
+Remark 4: Table II summarizes the characteristics of the RID
+attack, as well as the spatial attack proposed in [16]. Specifically,
+we note the vulnerability index. This quantifies the vulnerability
+of the targeted power system subject to each type of
+attack. If variables and (power flow at the Ex-ante
+market) become closer to constants and , respectively,
+the power system becomes more and more vulnerable to
+both attacks.
+D. Attack Performance Metrics
+The performance of the proposed RID attack is evaluated
+using the following performance metrics:
+1) Attack Profitability: Assuming that the power injection
+measurement sensor at generator is compromised, we define
+the attack profit efficiency (PE) of generator as the ratio of the
+profit with attack to without attack:
+2) Attack Undetectability: The system operator normally
+performs the Chi-squares test [25] for detecting bad data in the
+measurements. Bad (or malicious) data will bypass if
+where is the detection confidence probability, and and
+represent the number of measurements and state variables, respectively.
+3) Attack Vulnerability: Since the measurement noise follows
+a Gaussian distribution, the manipulated estimate of the
+state at generator is also a Gaussian random variable
+The probability of the distorted estimate being within the
+price-invulnerable region defined in Remark 1 is expressed as
+in terms of functions
+where the complementary Gaussian cumulative distribution
+function is defined as
+and
+1240
+IEEE TRANSACTIONS ON SMART GRID, VOL. 4, NO. 3, SEPTEMBER 2013
+We define as the price-invulnerable probability (PIP) with
+respect to generator . From (27), (28), (29), and (30), we specify
+the relationship among the ramp rate , the diagonal measurement
+covariance matrix , and the PIP as follows:
+1) The increase of the leads to the increase of the PIP.
+2) The decrease of the values of the diagonal elements in
+leads to the increase of the PIP.
+In other words, the deployment of more accurate sensors and
+generators with a faster ramp rate enables the power system to
+become more robust to the RID attack.
+V. NUMERICAL EXAMPLE
+In this section the economic impact of the proposed RID attack
+on the real-time electricity market operation is illustrated
+in the IEEE 14-bus system as shown in Fig. 4. Measurement
+configuration includes nodal power injection measurements at
+all generation and load buses, and power flow measurements at
+one end of each transmission line. This system has a total of 34
+measurements including 14 power injection and 20 power flow
+measurements, which assure the system observability. Table III
+shows the five generators' operating characteristics, including
+unit type (generation bus number), physical capacity limit, ramp
+rate, and marginal cost (MC).
+(25)
+(26)
+(27)
+(28)
+(29)
+(30)
+Fig. 4. IEEE 14-bus Test system.
+TABLE III
+GENERATOR PARAMETERS OF THE IEEE 14-BUS TEST SYSTEM
+In this section, three cases are simulated in the IEEE-14 bus
+system:
+• Case I: Marginal unit attack.
+• Case II: Binding unit attack.
+• Case III: Coordinated attack.
+The performance of the proposed RID attack is evaluated
+based on the one day load profile with a 5-min resolution. This
+load profile is obtained by interpolating a 15-min daily data in
+the ERCOT website. The load is scaled down to be consistent
+with the IEEE 14-bus test system's peak load data. The common
+goal of all three cases is to withhold the capacity of generator
+3 for the purpose of making a profit. A power injection sensor
+at generation bus 3 is compromised in Case I whereas a power
+injection sensor at generation 1 is compromised in Case II. Case
+III represents the coordinated attack, which compromises both
+sensors targeted in Case I and Case II.
+Fig. 5 show the comparison of the LMPs between static
+and look-ahead dispatch without attack and with attack
+in Cases I, II, and III. Due to no network transmission congestion,
+the prices in these figures denote the uniform LMPs for
+all the buses at every dispatch interval. In Fig. 5(a), the LMPs
+in look-ahead dispatch are oscillating around 40 $/MWh more
+than the ones in static dispatch. This phenomenon is due to the
+fact that the binding of generator 3 at the up- or down-ramp constraints
+at time makes its corresponding Lagrangian multiplier,
+or , become positive. As shown
+in (11), this leads to different LMPs at time than the ones from
+static dispatch. We observe from Fig. 5(b), 5(c), 5(d) that the
+LMPs in both dispatch models tend to increase with attack. This
+observation implies that the attacker successfully withholds the
+CHOI AND XIE: RAMP-INDUCED DATA ATTACKS ON LOOK-AHEAD DISPATCH IN REAL-TIME POWER MARKETS
+1241
+Fig. 5. LMP of static and look-ahead dispatch without attack and with Case I, II, and III attacks. (a) Without attack. (b) Case I attack. (c) Case II attack. (d) Case
+III attack.
+capacity of generator 3 by lowering its up-ramp constraint limit
+through the reduction of the initial estimate . Consequently,
+this leads to the shift of the marginal unit to another
+one with a more expensive marginal cost.
+Table IV shows the attack performance of Cases I, II, and
+III in both static and look-ahead dispatch. The second and third
+columns of this table indicate the attack profit efficiency at generation
+bus 3. We can observe from the comparison of these two
+columns several facts. First, the PE values in all three cases of
+both dispatch models are larger than 100. It indicates that the
+attacker makes an additional profit using the proposed attack
+strategy. Second, for all three cases, the PE in look-ahead dispatch
+is higher than in static dispatch. This observation might
+result from the fact that the attack leads to more increase of
+the nodal price in look-ahead dispatch than in static dispatch.
+Lastly, among three cases, Case I and Case II attacks yield the
+largest and smallest PE, respectively. The PE in Case III is between
+Case I and Case II. This result is natural since Case II
+and Case III attacks require an extra effort for withholding the
+binding unit's capacity as well as the marginal unit's capacity
+so that both attacks fail with a higher probability than Case I attack.
+Fig. 6 shows the amount of generator 3's capacity which
+all three attacks withhold between 80 and 90 time intervals. As
+expected, it is verified that Case I, Case III, and Case II attacks
+withhold capacity the most in a descending order. This fact also
+justifies the third observation mentioned above. The values of
+the estimated objective functions for all three cases are shown
+in the last column of Table IV. Based on the measurement configuration
+with and , the threshold of the
+Chi-squares test with a 99% confidence level is set to 37.6. For
+undetectability, the parameter in (20) is set to 3. Therefore, all
+three attacks in both dispatch models succeed in avoiding the
+Chi-squares bad data detection.
+Table VI shows the sensitivity of Case I attack performance
+with respect to the attack magnitude. In this table, the attack relative
+magnitude (ARM) is defined as where
+denotes an infinity norm. We observe from this table
+that the increase of the ARM leads to more profit (the third and
+fourth rows) in both dispatch models. However, the estimated
+objective function (the fifth row) used for the Chi-squares bad
+data test increases and the PIP (the last row) decreases. This implies
+that as the ARM increases the attack becomes more vulnerable
+to the bad data detection and fails with an increasing
+probability. Table V shows Case I attack performance with the
+varying ramp rate of generator 3 and measurement variance of
+Fig. 6. of static and look-ahead dispatch without attack and with
+Case I, II, and III attacks.
+TABLE IV
+ATTACK PERFORMANCE IN STATIC AND LOOK-AHEAD DISPATCH
+sensors. We first observe from this table that as the ramp rate
+of generator 3 increases the PE in both dispatch models decreases.
+Another observation is that the decrease of measurement
+variance leads to the decrease of the attack profit. These
+observations imply that the nodal prices become less manipulable,
+which is verified with the increasing PIP in Table V.
+VI. CONCLUSIONS
+This paper is concerned about cyber data attacks on state estimation
+and their effects on time-coupled look-ahead dispatch.
+With the assumption of no network transmission congestion, we
+propose an undetectable ramp-induced data attack method with
+which the attacker could manipulate the ramp constraint limits
+of generators for withholding generation capacity, subsequently
+leading to making a profit in the real-time power market. Numerical
+examples simulated in the IEEE 14-bus system demonstrate
+the undetectability and profitability of the proposed cyber
+data attack.
+In future work, a system-theoretical framework to analyze
+the effect of various types of spatial and temporal data attacks
+on real-time electricity market operations will be developed.
+The key challenge lies in how to analytically quantify the impact
+of manipulated sensor's measurement on the nodal price
+in space-time coupled optimization problem. Another important
+future direction is to design the robust real-time pricing model
+as countermeasures to mitigate the financial risks of a variety of
+cyber data attacks.
+APPENDIX
+DERIVATION OF ATTACK CONTRIBUTION
+In this appendix, we derive the two types of the attack contribution
+terms in the second inequality constraint of the attack
+formulation described in Section IV-C. We define the contributions
+of the marginal unit and binding unit attacks in the expected
+sense as
+where
+Here, is the manipulated estimate of generation power
+at generation bus . Then,
+where is the row vector of matrix , which corresponds
+to the injection measurement sensor of generator . (a) follows
+from . (b) follows from
+1242
+IEEE TRANSACTIONS ON SMART GRID, VOL. 4, NO. 3, SEPTEMBER 2013
+TABLE V
+IMPACT OF RAMP RATE AND MEASUREMENT VARIANCE ON THE ATTACK PERFORMANCE IN CASE I
+TABLE VI
+ATTACK PERFORMANCE WITH VARYING ATTACK MAGNITUDE IN CASE I
+where 1 is the
+together with
+element of vector
+. Similarly,
+and
+(31)
+(32)
+(33)
+(34)
+(35)
+(36)
+where (c) follows from
+.
+REFERENCES
+[1] D. Kundur, X. Feng, S. Liu, T. ZourntosK, and K. Butler-Purry, “Towards
+a framework for cyber attack impact analysis of the electric smart
+grid,” in Proc. 1st IEEE Smart Grid Commun. Conf., Oct. 2010.
+[2] P. M. Esfahani, M. Vrakopoulou, K. Margellos, J. Lygeros, and G. Andersson,
+“Cyber attack in a two-area powr system: Impact identification
+using reachability,” in Proc. Amer. Control Conf., Jun. 2010, pp.
+962-967.
+[3] S. Sridhar and G. Manimaran, “Data integrity attacks and their impacts
+on SCADA control system,” in Proc. IEEE Power Energy Soc. Gen.
+Meet., Jul. 2010, pp. 1-6.
+[4] R. Anderson and S. Fuloria, “Who controls the off switch?,” in Proc.
+1st IEEE Smart Grid Commun. Conf., Oct. 2010.
+[5] Y. E. Kim, C.-H. Ngai, and M. B. Srivastava, “Cooperative state estimation
+for preserving privacy of user behaviors in smart grid,” in Proc.
+2nd IEEE Smart Grid Commun. Conf., Oct. 2011.
+[6] L. Sankar, S. Kar, R. Tandon, and H. V. Poor, “Competitive privacy in
+the smart grid: An information-theoretic approach,” in Proc. 2nd IEEE
+Smart Grid Commun. Conf., Oct. 2011.
+[7] S. R. Rajagopalan, L. Sankar, S. Mohajer, and H. V. Poor, “Smart meter
+privacy: A utility-privacy framework,” in Proc. 2nd IEEE Smart Grid
+Commun. Conf., Oct. 2011.
+[8] S. Wang, L. Cui, J. Que, D.-H. Choi, X. Jiang, S. Cheng, and L. Xie, “A
+randomized response model for privacy preserving smart metering,”
+IEEE Trans. Smart Grid, vol. 3, no. 3, pp. 1317-1324, Sep. 2012.
+[9] S. Sridhar, A. Hahn, and M. Govindarasu, “Cyber-physical system security
+for the electric power grid,” Proc. IEEE, vol. 99, no. 1, pp. 1-15,
+2012.
+[10] Y. Liu, M. K. Reiter, and P. Ning, “False data injection attacks against
+state estimation in electric power grids,” in Proc. 16th ACM Conf.
+Comput. Commun. Security, Nov. 2009.
+[11] O. Kosut, L. Jia, R. Thomas, and L. Tong, “Malicious data attacks on
+smart grid state estimation: Attack strategies and countermeasures,” in
+Proc. 1st IEEE Smart Grid Commun. Conf., Oct. 2010.
+[12] T. T. Kim and H. V. Poor, “Strategic protection against data injection
+attacks on power grids,” IEEE Trans. Smart Grid, vol. 3, no. 2, pp.
+326-333, Jun. 2011.
+[13] A. Giani, E. Bitar, M. Garcia, M. McQueen, P. Khargonekar, and K.
+Poolla, “Smart grid data integrity attacks: Characterizations and countermeasures,”
+in Proc. 2nd IEEE Smart Grid Commun. Conf., Oct.
+2011.
+[14] A. Tajer, S. Kar, H. V. Poor, and S. Cui, “Distributed joint cyber attack
+detection and state recovery in smart grids,” in Proc. 2nd IEEE Smart
+Grid Commun. Conf., Oct. 2011.
+CHOI AND XIE: RAMP-INDUCED DATA ATTACKS ON LOOK-AHEAD DISPATCH IN REAL-TIME POWER MARKETS
+1243
+[15] M. Esmalifalak, H. A. Nguyen, R. Zheng, and Z. Han, “Stealth false
+data injection using independent component analysis in smart grid,” in
+Proc. 2nd IEEE Smart Grid Commun. Conf., Oct. 2011.
+[16] L. Xie, Y. Mo, and B. Sinopoli, “Integrity data attacks in power market
+operations,” IEEE Trans. Smart Grid, vol. 2, no. 4, pp. 659-666, Dec.
+2011.
+[17] L. Jia, R. J. Thomas, and L. Tong, “Malicious data attack on real-time
+electricity market,” in Proc. 2011 Int. Conf. Acoust., Speech, Signal
+Process., May 2011, pp. 5952-5955.
+[18] L. Xie, P. M. S. Carvalho, L. A. F. M. Ferreira, J. Liu, B. H. Krogh, N.
+Popli, and D. Ilic, “Wind integration in power systems: Operational
+challenges and possible solutions,” Proc. IEEE, vol. 99, no. 1, pp.
+1890-1908, Jan. 2011.
+[19] A. Ott, “Unit commitment in the PJM day-ahead and real-time markets,”
+in Proc. FERC Tech. Conf. Increasing Market Planning Efficiency
+Through Improved Software Hardware, Washington, DC, Jun.
+2010.
+[20] ERCOT, “Functional description of core market management system
+(MMS) applications for look-ahead SCED,” White Paper, 2011.
+[21] CAISO, Business Practice Manuals (BPM) Library: Market Operations,
+Version 11 Aug. 2010 [Online]. Available: http://bpm.caiso.com/
+bpm/bpm/version/000000000000096
+[22] H. Li and L. Tesfatsion, “Capacity withholding in restructured wholesale
+power markets: An agent-based test bed study,” in Proc. Power
+Syst. Conf. Expo., Mar. 2009.
+[23] A. Tellidou and A. Bakirtzis, “Agent-based analysis of capacity withholding
+and tacit collusion in electricity markets,” IEEE Trans. Power
+Syst., vol. 22, no. 4, pp. 1735-1742, Nov. 2007.
+[24] F. F. Wu, P. Varaiya, P. Spiller, and S. Oren, “Folk theorems on transmission
+access: Proofs and counterexamples,” J. Regulatory Econ.,
+vol. 10, no. 1, pp. 5-23, Jul. 1996.
+[25] A. Abur and A. G. Expósito, Power System State Estimation. Theory
+and Implementation. New York: Marcel Dekker, 2004.
+Dae-Hyun Choi (S'10) received the B.S. in electrical
+engineering from Korea University, Seoul, Korea in
+2002, and the M.Sc. in Electrical and Computer Engineering
+from Texas A&M University, College Station,
+in 2008. He is working toward the Ph.D degree
+in the Department of Electrical and Computer Engineering
+at Texas A&M University.
+From 2002 to 2006, he was a Researcher with
+Korea Telecom (KT), Seoul, Korea where he worked
+on designing and implementing home network
+systems. His research interest includes power system
+state estimation, electricity markets, cyber-physical security of smart grid, and
+theory and application of cyber-physical energy systems.
+Le Xie (S'05-M'10) received the B.E. degree in electrical
+engineering from Tsinghua University, Beijing,
+China, in 2004, the M.Sc. degree in engineering sciences
+from Harvard University, Cambridge, MA, in
+2005, and the Ph.D. degree from Electric Energy Systems
+Group (EESG) in the Department of Electrical
+and Computer Engineering at Carnegie Mellon University,
+Pittsburgh, PA, in 2009.
+He is an Assistant Professor in the Department of
+Electrical and Computer Engineering at Texas A&M
+University, College Station, where he is affiliated
+with the Electric Power and Power Electronics Group. His industry experience
+includes an internship in 2006 at ISO-New England and an internship at Edison
+Mission Energy Marketing and Trading in 2007. His research interest includes
+modeling, estimation and control of large-scale power systems, and electricity
+markets.

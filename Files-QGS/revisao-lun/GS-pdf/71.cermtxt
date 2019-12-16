@@ -1,0 +1,774 @@
+53rd IEEE Conference on Decision and Control
+December 15-17, 2014. Los Angeles, California, USA
+A Moving-Horizon Hybrid Stochastic Game
+for Secure Control of Cyber-Physical Systems
+Fei Miao
+Quanyan Zhu
+Abstract- Security of cyber-physical systems (CPS) is a
+challenge for increasingly integrated systems today. To analyze
+and design detection and defense mechanisms for CPSs requires
+new system frameworks. In this paper, we establish a zero-sum
+hybrid stochastic game model, that can be used for designing
+defense policies for cyber-physical systems against attackers
+of different types. The hybrid game model contains physical
+states described by the system dynamics, and a cyber state that
+represents the detection mode of the system. A system selects a
+subsystem by combining one controller, one estimator and one
+detector among a finite set of candidate components at each
+state. In order to provide scalable and real-time computation of
+the switching strategies, we propose a moving-horizon approach
+to solve the zero-sum hybrid stochastic game, and obtain
+a saddle-point equilibrium policy for balancing the system's
+security overhead and control cost. This approach leads to a
+real-time algorithm that yields a sequence of Nash equilibrium
+strategies which can be shown to converge. The paper illustrates
+these concepts using numerical examples, and we compare the
+results with previously known designs.
+I. INTRODUCTION
+Cyber Physical Systems (CPS) feature a tight integration
+of embedded computation, networks, and controlled physical
+processes [1]. The interaction among continuous physical
+dynamics, discrete communications, and computation substrates
+have made CPS vulnerable to malicious attacks beyond
+the standard cyber attacks [2]. Recoded attacks on CPS
+have brought into attention the challenges and requirements
+for secure CPS [1], [2], [3]. One famous incident, attack on
+Maroochy Water control system and the response discussed
+in [4], shows that CPS attacks can disrupt critical infrastructures
+and lead to undesirable, catastrophic consequences.
+Xu et al. compare four different jamming attack models
+and detection schemes for consistency checking [5].
+Syverson presents a taxonomy of replay attacks-independent
+of any analysis or preventing methods-on cryptographic
+protocols in [6]. In general, people use attack models as
+parameters to design defense schemes. However, a specific
+detection approach is not sufficient, when system is susceptible
+to various types of attacks and does not know which one
+This material is based on research sponsored by DARPA under agreement
+number FA8750-12-2-0247. The U.S. Government is authorized to reproduce
+and distribute reprints for Governmental purposes notwithstanding any
+copyright notation thereon. The views and conclusions contained herein are
+those of the authors and should not be interpreted as necessarily representing
+the official policies or endorsements, either expressed or implied, of DARPA
+or the U.S. Government.
+F. Miao is with the Department of Electrical and Systems Engineering,
+University of Pennsylvania, Philadelphia, PA, USA 19014.
+Q. Zhu is with Department of Electrical and Computer Engineering,
+New York University, Brooklyn, NY, USA 11201. Email: fmiaofei,
+g@seas.upenn.edu,fquanyan.zhug@nyu.edu
+978-1-4673-6090-6/14/$31.00 ©2014 IEEE
+517
+will happen. Consequently, strategic methods that balance the
+system performance and security requirements are necessary,
+considering control and defense costs with the effects of
+multiple attacks.
+The application of game theory to security problems has
+raised a lot of interest in recent years. Manshaei et al. summarize
+selected works that apply game-theoretic approaches
+in computer networks security and privacy problems [7].
+Zhu et al. present a noncooperative stochastic game scheme
+of Intrusion Detection System (IDS) in [8]. A minimax game
+formulation in the presence of faults is discussed in [9].
+Miao et al. design a zero-sum stochastic game approach for
+replay attack detection [10]. The game model parameters are
+quantified with the knowledge of system dynamics, and a
+suboptimal value iterative algorithm for finite-horizon nonstationary
+stochastic game is developed.
+Building a scalable and computationally friendly framework
+is pivotal for security analysis and design of CPS.
+To achieve this goal, our first step is to establish a zerosum
+hybrid stochastic game model to capture the hybrid
+system dynamics and interactions with attacks. The hybrid
+game model contains a dynamic system model that captures
+the evolution of the physical processes, and discrete cyber
+modes that represent different security states of the CPS.
+We propose a computation methodology, that uses a moving
+window to select a sequence of physical state information,
+and computes a stationary saddle-point equilibrium strategy
+with the state being a joint cyber and physical state. This
+novel algorithm reduces the computational complexity of
+finding equilibrium solutions for the hybrid stochastic game,
+and yields an online algorithm for real-time CPS.
+When the sequence of game strategies converges, the state
+transition probability of the game converges, and we leverage
+the stability analysis of Markov jump systems [11] to check
+system stability. The cost comparison with the suboptimal
+algorithm [10] shows that the real-time algorithm does not
+sacrifice system performance much.
+The contributions of this work are summarized as follows:
+1) We formulate a zero-sum hybrid stochastic game
+framework for designing a switching policy for a
+system under attacks.
+2) We develop a real-time algorithm to reduce the computation
+overhead of the hybrid stochastic games, and
+analyze the convergence condition of the algorithm.
+This paper is organized as follows. In Section II, we
+describe the system and attack models. In Section III, we
+formulate and quantify a zero-sum, hybrid stochastic game
+between the system and the attacker. The moving horizon
+algorithm is shown, followed by an analysis of the algorithm
+convergence and system stability characteristics in Section
+IV. On several examples, in Section V we illustrate the
+computation speed and system performance of the derived
+algorithm. Finally, Section VI provides concluding remarks.
+II. SWITCHED SYSTEM AND ATTACK MODEL
+We consider the CPS security problem when both the
+system and attacker have limited knowledge about the opponent.
+The system is equipped with multiple controllers/estimators/detectors,
+such that each combination of these
+components constitute a subsystem. A subsystem has a
+probability to detect specific types of attacks with different
+control and detection costs.To balance the security overhead
+and the control cost under various attacks, we consider
+switching among subsystems (choose a model for every
+component) according to the system dynamics and detector
+information. A switched system model is shown in Figure 1.
+We describe the model of each component in Figure 1 with a
+concrete example. The set of subsystems is not restricted to
+the models in the rest of this section, and the system model
+can be further generalized.
+LTI Plant:: Consider a class of LTI plants described by:
+xk+1 = Axk + Buk + wk; yk = Cxk + vk;
+(1)
+where xk 2 Rn; uk 2 Rp and yk 2 Rm denote the discrete
+time state, input and output vectors respectively, and wk
+N (0; Q), vk N (0; R) are independent and identically
+distributed (IID) Gaussian random noise. The initial state is
+x0 N (x0; ).
+Estimators: Kalman filter is widely applied for noisy
+systems. We assume that (A; B) is stabilizable, (A; C) is
+detectable, then a steady state Kalman filter exists:
+x^0j 1 = x0; P0j 1 =
+; Pk+1jk = APkAT + Q;
+P = lim Pkjk 1; K = PCT (CPCT + R) 1;
+k!1
+x^kjk = x^kjk 1 + K(yk Cx^kjk 1);
+x^k+1jk = Ax^kjk + Buk:
+(2)
+Controllers: A state feedback control law is described as
+uk = L(x^kjk), where L( ) is a linear function. For example,
+an optimal LQG controller is described as uk = Lx^kjk,
+where L is a time invariant matrix.
+Actuator u'k
+Attack
+CANBus
+aaam21PlantSSS...1p2
+controller 1 estimator 1
+.
+.
+uk cont.roller N1 estimator N2
+uk-1
+CAN Bus
+yk
+detector 1
+detector N3
+y'k Sensor
+Attack
+Fig. 1: Switching system diagram, where the system is
+equipped with N1 controllers, N2 estimators and N3 detectors
+and switches among N subsystems. An example
+subsystem (controller N1, estimator N2, and detector N3)
+is chosen in this figure.
+518
+Detectors: The detector design is related to the state
+estimator in general. For the steady state Kalman filter (2),
+the residues zi = yi Cx^iji 1 satisfying IID Gaussian
+N (0; P ), where P = CPCT + R. Define the following
+gk =
+k
+P
+i=k
++1
+(yi
+Cx^iji 1)T P
+1(yi
+Cx^iji 1);
+and gk satisfies 2 distribution. A 2 square detector triggers
+the alarm when gk . We assume that the detection
+window size and the threshold are provided as system
+model according to an expected false alarm trigger rate.
+Cyber state - discrete modes of the system: We denote
+the modes of a vulnerable system as three constants S =
+f 1; 2; 3g. State 1 = saf e describes that the system has
+already successfully detected an attack; 2 = no detection
+specifies that the alarm is not triggered; finally, the system
+enters the state 3 = f alse alarm trigger when the alarm
+is triggered while no attack has yet occurred. The mode
+depends on the detector, and is a probability information.
+We assume that once the alarm is triggered, the system will
+stop the execution and check whether some attack occurred
+or it is a false alarm trigger; when the system is hijacked,
+the estimator, detector and controller are fed with false data,
+until an alarm is triggered and the system reacts to the attack.
+Attack model: We assume that the controller/estimator/detector
+are secured, and attackers can not hack code
+implemented in these components. Sensors and actuators are
+vulnerable, and attacker can change values sent from sensors
+or received by actuators - yk; uk of system (1) are defined
+as yk0; u0 ; according to the types of attacks we consider.
+k
+For example, data injection attacks change the vectors as:
+yk0 = yk + yka; u0k = uk + uka; replay attacks change sensor
+values as yk0 = yk T2 , where T2 is the replay window size.
+III. A HYBRID STOCHASTIC GAME MODEL
+To obtain a switching policy that minimizes the expected
+real-time worst case payoff for the given subsystems, we
+formulate a zero-sum, hybrid stochastic game between the
+system and the attacker. System dynamics knowledge are
+combined with the game definition, and the quantitative
+process for the game parameters will be introduced in this
+section. We assume that one game stage k is also one time
+step of the physical system. The total stage number is K. The
+joint game state space (X[k T;k] S) contains information
+about both the system dynamics xk and the discrete modes
+l; l = 1; 2; 3. With this game state definition, the state transition
+between stage k and k + 1 is Markov - the joint state
+includes information we need to compute the game strategy
+at the current stage. At each stage k 2 fT ; ; K + T g,
+other game parameters include action space for the attacker
+(system) Atk (Ask), the state transition probability matrix
+Pk, and the immediate payoff matrix rk. The solution set of
+the game are mixed strategies Fk for the attacker, and Gk
+for the system. Formally, the game is defined as a sequence
+of tuples: f(X[k T;k] S); Atk; Ask; Fk; Gk; Pk; rkg.
+Game State Space: The joint state of the system at
+stage k is described by the pair skl = (x[k T;k]; l), where
+x[k T;k] = (xk T ; xk T +1; ; xk) 2 X[k T;k] is the
+discrete time dynamics of the physical process provided to
+the system-the state estimations x^k T ; ; x^k, l 2 S =
+f 1; 2; 3g denote the cyber state of the system. We assume
+that once the game reach 1, the system wins and will not
+enter other modes till next game, i.e., 1 is an absorbing
+state. The moving-horizon transition of the joint states on
+stage axis is shown as Figure 2. Here T is the window size
+of system dynamics that we need to quantify the parameters
+at game stage k. For example, if the 2 detector's detection
+window size is T1, considering sensor data injection attacks
+and replay attacks with replay windows less than T2 steps,
+then T = maxfT1; T2g.
+Attacker's Action Space: For definition simplicity,
+we consider sensor attacks yk0 2 Atk, where Atk =
+fa1k; a2k; ; aMkg is the attacker's action space at stage k,
+and a1k means no attack. The actions can be either multiple
+types, or the same type attack with different values. 1
+System's Action Space: Ask = fu1k; u2k; ; uNkg is
+the system's action space at stage k, where ujk is the index
+for the jth subsystem. We assume that the N subsystems (a
+model for each component in Figure 1) are pre-determined.
+For example, a subsystem can be the plant with a given
+optimal LQG controller, a Kalman filter and a 2 detector.
+Mixed Strategy: Let fki (skl) (gkj(skl)) be the probability
+that the attacker (system) chooses action aik 2 Atk (ujk 2
+Ask) at state skl 2 (X[k T;k] S). Define Fk and Gk as
+the strategy sets of the attacker and the system for stage k:
+Fk := ffk = [fk(sk1); fk(sk2); fk(sk3)]jfki (skl)
+X
+fki (skl) = 1; fk(skl) 2 RM ; 8skl 2 (X[k T;k]; S)g;
+0;
+aik2Atk
+Gk := fgk = [gk(sk1); gk(sk2); gk(sk3)]jgkj(skl)
+X
+gkj(skl) = 1; gk(skl) 2 RN ; 8skl 2 (X[k T;k]; S)g:
+0;
+ujk2Ask
+Note that x[k T;k] provides exogenous information for the
+strategy fk(gk), since for every l, fk(skl)(gk(skl)) is the
+strategy at mode l for the same x[k T;k] at stage k.
+1To find system's strategy based on the game formulation, it is required
+that attacker's action space is defined. If the attacker's actual behavior is
+outside of the action space we consider, then a switched system does not
+ensure performance under the attack outside the action space.
+(x[k-T+1,k+1], )
+(x[k-T,k], )
+k-T k-T+1
+k k+1
+Stage axis
+Fig. 2: Joint state transition of the hybrid stochastic game
+when moving the horizon of game state one step ahead.
+When the state transits from stage k to k+1, we slice the window
+of the sequence of physical dynamics one step ahead,
+add xk+1 and remove xk T , thus x[k T;k] ! x[k T +1;k+1].
+The piecewise constant modes l, h describe the cyber states
+provided by the detector at stage k respectively.
+519
+System Dynamic under game framework: Given the
+subsystem and attack models in Section II and the game
+definition, we show the dynamics at stage k given an action
+pair (aik; ujk) (assume initial x^1j0 = x0, x1 = x0).
+A subsystem: Each action pair (aik; ujk) defines the
+corresponding system dynamics at k. For example, when we
+focus on sensor attacks (like replay or false data injection),
+let k(aik; ujk) be the control input with (aik; ujk), a subsystem
+ujk with a Kalman filter, an optimal LQG controller,
+and a 2 detector, has the following dynamics:
+xk = Axk 1 + Buk 1 + wk 1;
+(a1k = Cxk + vk; without attack
+yk =
+aik; i = 2; ; M; with attack
+x^kjk 1 = Ax^k 1jk 1 + Buk 1;
+x^kjk(aik) = x^kjk 1 + K(aik
+Cx^kjk 1);
+x^k+1jk(aik; ujk) = Ax^kjk(aik) + B k(aik; ujk);
+k(aik; ujk) = Lx^kjk(aik);
+zk+1(aik; ujk) = aik
+Cx^k+1jk(aik; ujk):
+Consequently, the sum of residues gk+1 and the probability
+of triggering an alarm by the 2 detector at k + 1 are:
+gk+1(aik; ujk) =
++ [zk+1(aik; ujk)]T P
+P (gk+1(aik; ujk))
+:
+k
+X
+t=k
++1
+[zt]T P 1zt
+1zk+1(aik; ujk);
+Ask ! P (X[k T +1;k+1]
+State Transition Probability: Given a set of subsystem
+models, define the state transition probability as (X[k T;k]
+S) Atk S), where
+P~k(s(k+1)hjskl) = [P~kij (s(k+1)hjskl)
+s(k+1)h 2 (X[k T +1;k+1]
+X
+P~kij (s(k+1)hjskl) = 1;
+S); skl 2 (X[k T;k]
+0] 2 RM 2;
+S);
+s(k+1)h2(Xk+1 S)
+8(aik; ujk) 2 Atk
+Ask; skl 2 (X[k T;k]
+S):
+P~kij (s(k+1)hjskl) is the probability that system transit from
+state skl to state s(k+1)h at stage k + 1, given both players'
+action (aik; ujk) at stage k. The transition probability is provided
+by intrusion detectors of the subsystem. For example,
+if a 2 detector is the detector component of subsystem ujk,
+we apply (4) to decide the state transition probability.
+Immediate Payoff Function: The immediate payoff matrix
+at stage k is a RM N matrix for given game state
+and every action pair (aik; ujk). Define rk : (X[k T;k]
+S) Atk Ask ! R, where r~k(skl) = [r~kij (skl) 0]. Let
+k(aik; ujk) be the control input given action pair (aik; ujk).
+For example, considering expected linear quadratic cost
+r~kij (skl) =r~tikj(skl) =
+r~sijk(skl); and define:
+r~kij (sk1) =Ex^kT WEx^k + E kT (a1k; ujk)UE k(a1k; ujk);
+r~kij (sk2) =Ex^kT WEx^k + E kT (aik; ujk)UE k(aik; ujk);
+r~kij (sk3) =pf ;
+(3)
+(4)
+(5)
+where pf is the false alarm trigger penalty; xk is the LTI
+plant state under the game framework. At mode 1 system
+wins, so the payoff is a normal system payoff with correct
+sensor data. The penalty pf is the cost that the system needs
+to stop execution, check the reason of an alarm, and restart
+later. The larger pf is, the less probable it is for the system
+to choose a strategy to transit to state sk3.
+Expected Model Update With Strategy at Stage k: Let
+p(skl) be the probability system is at state skl at stage k (
+p(s1l) is given). With a strategy fk; gk, the attacker and the
+system randomly sample an action pair (aik; ujk) according
+to the probability distribution. Then, the control input and
+sensor value for calculating expectation cost are:
+N M 3
+uk = X X X p(skl)fki (skl)gkj(skl) k(aik; ujk);
+j=1 i=1 l=1
+M 3
+yk = X X p(skl)fki (skl)aik:
+i=1 l=1
+The probability that system is at state s(k+1)h for k + 1 is:
+p(s(k+1)h) =
+3
+X p(skl)[fk(skl)]T P~k(s(k+1)hjskl)gk(skl):
+l=1
+IV. A MOVING-HORIZON APPROACH FOR HYBRID
+STOCHASTIC GAME
+In this section, we propose a moving-horizon algorithm to
+compute the saddle-point equilibrium strategy of the hybrid
+stochastic game. Illustrated in Fig. 2, a time window of
+size T is used, and an equilibrium strategy is computed at
+each stage k by looking back T stages of the physical state
+x[k T;k] and its associated cyber state l. Detailed process
+of moving the horizon to obtain predicted future stage
+information is described in Subsection A. Algorithm 1 is
+developed based on this concept, and provides a scalable and
+real-time computation process, which allows us to analyze
+the convergence property of the strategies of the hybrid
+stochastic game in Subsection B.
+A. A Moving-Horizon Algorithm for Game Strategies
+The saddle-point equilibrium strategy and the value of
+the moving-horizon game at each stage involves solving
+finite zero-sum matrix games. In this paper, we consider an
+objective function that reflects the payoff of the game at
+the current stage k, and also the expected payoff from the
+future stage. By looking one stage ahead of the game state at
+k, predicting the physical dynamics xk+1 given any action
+pair, we move the information horizon to stage k + 1 and
+obtain future expectation for computing the strategies at stage
+k. The moving horizon process is illustrated as Figure 2.
+Detailed process to construct the payoff matrix of a zerosum
+game for stage k is described, and Algorithm 1 presents
+the complete equilibrium computation process of the hybrid
+stochastic game.
+Given any action pair (aik; ujk) at stage k, we first
+update the state space form of the system dynamics xk+1
+520
+(7)
+based on x[k T;k] as (3). We view xk+1 as a function
+of (x[k T;k]; aik; ujk), the immediate payoff function
+r~k+1(s(k+1)h) (for stage k + 1) defined as (5) is a function
+of s(k+1)h = (x[k T +1;k+1]; h), thus rk+1 is a function
+of (x[k T;k]; aik; ujk; h), as shown in the following equation
+(6). Then, we compute the value of the matrix game
+at stage k + 1, for every rk+1(x[k T;k]; aik; ujk; h), h =
+1; 2; 3; i 2 f1; ; M g; j 2 f1; ; N g as (6):
+vkij+1(x[x T;k]; h) = min max(rk+1(x[k T;k]; aik; ujk; h))
+g f
+(6)
+With the predicted value from the next stage, define the
+auxiliary matrix for stage k as:
+Qk(skl) = rk(skl) +
+X P~k(s(k+1)hjskl) vk+1(x[k T;k]; h);
+sh2S
+where the matrix vkij+1(x[x T;k]; h) is defined by (6), and it
+is the element of the ith row, jth column of the matrix
+vk+1(x[k T;k]; h) 2 RM N :
+The dot products between two matrices P~k(s(k+1)hjskl),
+vk+1(x[k T;k]; h) is an element wise product of two elements
+at the same position of the two matrices.
+The value and stationary equilibrium strategies that Algorithm
+1 calculates at each stage k is defined as following:
+Definition 1: Given skl, vk+1(x[k T;k]; h) as (6), and
+auxiliary matrix Qk(skl) as (7), the value and equilibrium
+strategies at k are defined as the following equation:
+v(skl) =
+min max fk(skl)T Qk(skl)gk(skl):
+gk(skl) fk(skl)
+(8)
+Where we treat the auxiliary matrix Qk(skl) as the payoff
+matrix of a zero-sum game of stage k.
+At each stage k, we repeat calculating Qk(skl) and the
+corresponding value and equilibrium strategies, then update
+the system dynamics by the strategies for computation of
+next stage. The complete process is summarized as Algorithm
+1. To get the total payoff till stage k by Algorithm 1,
+we plug in the strategies f ; g to the system dynamics and
+calculate the sum of payoff for all stages.
+Remark 1: It is worth noting that Algorithm 1 reduces the
+computation overhead for the hybrid stochastic game, since
+it looks one stage ahead with a moving-horizon information
+window. The complexity of Algorithm (1) is O(K). For a
+large total stage number of the hybrid stochastic game T~, it
+is necessary to examine the strategy trend of Algorithm 1,
+such as convergence property. As a contrast, the suboptimal
+algorithm in [10] takes the total expected payoff as an
+objective function. The complexity of suboptimal algorithm
+is exponential with stage number K, because the algorithm
+looks K stages ahead at once and compute a robust game
+for every iteration. The advantage of suboptimal algorithm
+in [10] is to provide an upper bound of the total finite cost.
+However, for a large T~, the suboptimal algorithm in [10]
+is computationally expensive. Numerical comparisons are
+shown in Section V.
+Algorithm 1 : Moving-Horizon Algorithm for A Hybrid
+Stochastic Game
+Input: System model parameters and game parameters.
+Initialization: x^1j0; x1.
+Iteration: For k = T; ; K + T 1, skl = (x[k T;k]; l);
+l = 1; 2; 3: get the auxiliary matrix (7) for stage k; compute
+the value and equilibrium strategies of every matrix game:
+v(skl) = min max f (skl)T Qk(skl)g(skl),
+g(skl) f (skl)
+fk (skl) = arg max fk(skl)T Qk(skl)gk(skl),
+fk(skl)
+gk(skl) = arg gmk(sinkl)[fk (skl)]T Qk(skl)gk(skl).
+Update the system dynamics with strategies fk (skl); gk(skl);
+l = 1; 2; 3 as described in 3 for the next stage.
+Return: the concatenation of strategies for both players
+f = ffk (skl)g; g = fgk(skl)g and the value sequence
+vk(skl); k = 1; ; K; l = 1; 2; 3.
+B. Convergence Analysis of the Algorithm
+Given the sets of models for each component of the
+subsystems and attacks, the system dynamics are defined by
+a sequence of action pairs (aik; ujk); k 2 fk+T; ; K +T g
+randomly chosen by the attacker and the system. Then, the
+system dynamics with the stochastic game strategies (for
+the system and the attacker) are equivalent with a switched
+system - the system model randomly switches among N
+subsystems, according to strategies fk(skl). The following
+theorem shows the existence condition of convergent strategies
+when k ! 1. When there exists such strategies, the
+switched system can be described as a Markov jump system,
+since the state transition probability also converges.
+Proposition 1: The strategy sequences fk (skl), gk(skl) of
+the stochastic game converge to fl; gl, l = 1; 2; 3, i.e.,
+fl = lim fk (skl); gl = lim gk(skl); l = 1; 2; 3;
+k!1 k!1
+if updating system dynamics at stage k + 1 by (fl; gl) results
+in:
+lim Qk(skl) = lim Qk(s(k+1)l); l = 1; 2; 3: (9)
+Prko!of1:According to Algorithm 1, the strategies fk (skl),
+k!1
+gk(skl); l = 1; 2; 3 are the saddle-point equilibrium strategies
+for the payoff matrices Qk(skl); l = 1; 2; 3. Thus, if (9)
+holds, the auxiliary matrix Qk(skl) converges, and we get
+convergent strategies for both players.
+Remark 2: When the strategy sequences of both players
+converge, the switched system dynamics converge to
+a discrete-time Markov jump linear system (with delays
+when the attacker's strategies include replay attacks), then
+we analyze the stability properties of the system based on
+conclusions of previous work [11].
+It is possible that some subsystems ujk; j 2 f1; ; N g
+are unstable under specific types of attacks. When this is the
+case, the system switches among stable and unstable subsystems.
+Stability properties of continuous time linear switched
+systems including unstable modes are analyzed in [12]. To
+guarantee exponential stability, the total activation time of
+521
+K
+20
+50
+100
+500
+real time algorithm
+1.8054s
+4.9968s
+8.3827s
+41.0342s
+suboptimal algorithm
+6.7346s
+58.6144s
+2073.2928s
+20h
+TABLE I: Elapsed time comparison of two algorithms
+unstable subsystems need to be relatively small compared
+with that of stable subsystems. Given the stochastic game
+strategy, we get the switched dynamic process of the system
+under different types of attacks, and check whether stability
+conditions are violated. More analysis of system stability
+conditions based on the moving horizon stochastic game
+framework will be an avenue of future work.
+V. COMPARISON OF ALGORITHMS
+One advantage of the moving horizon Algorithm 1 is its
+faster computation speed. Table I shows Matlab simulation
+time for different K-stage games, all with a (4 2) action
+space (i.e., the attacker has 4 actions and the system has 2 actions).
+When K increases, the difference between algorithm
+speed also increases.
+Using a linear system with control-cost optimal (but
+nonsecure) and secure (but cost-suboptimal) controllers in
+presence of replay attacks as an example, we compare the
+cost of the strategies provided by the suboptimal algorithm
+in [10] and Algorithm 1. The example studied is an unstable
+batch reactor [13], which is a four dimensional system. The
+linearized model parameters are:
+2 1:38
+A = 664 10::0568714
+0:048
+2 0
+B = 66451::617396
+1:136
+0:2077 6:715
+4:29 0
+4:273 6:654
+4:273 1:343
+0 3
+0 1 0 1
+3:14757 ; C = 0 1 0
+0
+5:6763
+05::687953 775 ;
+2:104
+01 ; D = 0
+With the system parameters, we compute two controllers:
+Controller 1 is the optimal LQG controller uK ; controller 2
+is uk + uk, a non-optimal controller with higher replay
+detection rate as designed by [14]. The system has one
+steady state Kalman filter, and the corresponding 2 detector.
+Assume that there are two subsystems: subsystem u1k is
+with controller 1, and subsystem u2k is with controller 2.
+The replay attack window sizes (attacker's action space) are
+f10s; 20s; 30s; 40sg and we design switched control policy
+for the system. We assume that the initial system mode is
+2, (i.e., p( 21) = 1), the total stage number K = 50.
+Figure 3 shows the probability of switching to Controller 2
+at every stage according to different algorithms. Three cases
+are shown in Figure 4-when the system applies the strategy
+of Algorithm 1 in this work, the suboptimal algorithm
+strategy and only the cost non-optimal controller through
+all stages. Figures 5 shows the probability that system
+being at mode 1 (successfully detected an attack), when
+applying strategies obtained from the two algorithms and
+only applying the controller providing a higher detection
+rate for replay attack. Applying a game strategy, randomly
+switching between subsystems results in a lower cost, while
+does not sacrifice the detection rate much. The suboptimal
+algorithm performs better with respect to cost saving.
+Game strategies still provide system performance improvement
+compared with a non-game approach, even only the
+attack type is included in the attacker's action space of the
+game framework but not the exact behavior of the attacker.
+For example, consider a replay attack T2 = 25s, and the
+game strategy calculated with action space f10; 20; 30; 40g.
+Since 25 is in the range of [20; 30], the payoff and state
+transition probability are approximated by the parameters
+when T2 is 20; 30.
+Strategy comparison when system being at state sk2
+Suboptimal Algorithm
+Real Time Algorithm
+2
+r0.8
+e
+ll
+ro0.7
+t
+n
+co0.6
+g
+in0.5
+y
+l
+pp0.4
+a
+f
+o0.3
+y
+t
+ili0.2
+b
+a
+ob0.1
+r
+p 00
+350
+t300
+s
+o
+c250
+l
+a
+to200
+t
+s
+'150
+m
+e
+ts100
+y
+S
+50
+00
+1
+1
+δ
+e0.8
+d
+o
+m
+fo0.6
+y
+t
+i
+il0.4
+b
+a
+b
+ro0.2
+P
+0
+0
+5 10 15 20 T2im5e 30 35 40 45 50
+Fig. 3: Strategies comparison of two algorithms for system
+under replay attack-the probability of switching to subsystem
+2 at mode 2 of every k.
+System cost comparison with initial mode δ2
+System always applies control erï 2
+System applies suboptimal strategy
+System applies real time strategy of
+algorithm 1
+10 20 Time 30 40 50
+Fig. 4: Cost comparison of system applying different strategies
+at mode 2. Applying the suboptimal strategy provides
+the smallest cost, and the strategy of the real time algorithm
+is better than the one of a non-game approach.
+Comparison of probability of mode δ1
+System always applies
+controllerï 2
+System applies
+suboptimal strategy
+System applies strategy
+of real time Algorithm 1
+10
+20 Time 30
+40
+50
+Fig. 5: Comparison of the probability of the system being
+at mode 1 for different strategies. Game strategies provide
+similar detection rate with the non-switching policy.
+522
+VI. CONCLUSION
+In this work, we have proposed a zero-sum hybrid stochastic
+game model to capture the interactions between a cyberphysical
+system and an attacker - switching policy for the
+system under different types of active attacks. To reduce
+the computational complexity, a real-time algorithm is developed
+based on the concept of moving-horizon computation
+of saddle-point equilibrium for the hybrid stochastic game
+framework. At each step, we look ahead one stage, with
+information of a window of physical dynamics and cyber
+modes, to compute an equilibrium policy. In the future, we
+plan to analyze stability conditions of the system based on
+the stochastic game framework.
+Acknowledgements
+The author would like to thank Miroslav Pajic, George
+J. Pappas, both from University of Pennsylvania for fruitful
+discussions about the problem and helpful comments.
+REFERENCES
+[1] K.-D. Kim and P. R. Kumar, “Cyber-physical systems: A
+perspective at the centennial,” Proceedings of the IEEE, vol.
+100, no. special Centennial-Issue, 2012.
+[2] A. Cardenas, S. Amin, and S. S. Sastry, “Research challenges
+for the security of control systems.” in Proceedings of the 3rd
+USENIX Workshop on Hot topics in security, 2008, Article 6.
+[3] A. Cardenas, S. Amin, B. Sionpoli, A. Perrig, and S. Sastry,
+“Challenges for securing cyber physical systems,” Workshop
+on future directions in cyber-physical systems security, 2009.
+[4] J. Slay and M. Miller, “Lessons learned from the maroochy
+water breach,” in Critical Infrast. Protection, 2007, pp. 73-82.
+[5] W. Xu, W. Trappe, Y. Zhang, and T. Wood, “The feasibility
+of launching and detecting jamming attacks in wireless
+networks,” in Proceedings of the 6th ACM international symposium
+on Mobile ad hoc networking and computing, 2005,
+pp. 46-57.
+[6] P. Syverson, “A taxonomy of replay attacks [cryptographic
+protocols],” in Computer Security Foundations Workshop VII,
+1994, pp. 187-191.
+[7] M. Manshaei, Q. Zhu, T. Alpcan, T. Basar, and J.-P. Hubaux,
+“Game theory meets network security and privacy,” ACM
+Comput. Surv., vol. 45, no. 3, pp. 25:1-25:39, 2013.
+[8] Q. Zhu and T. Basar, “Dynamic policy-based ids configuration,”
+in 48th IEEE Conference on Decision and Control
+(CDC), 2009, pp. 8600-8605.
+[9] S. Verdu and H. Poor, “On minimax robustness: A general
+approach and applications,” IEEE Transactions on Information
+Theory, vol. 30, no. 2, pp. 328-340, 1984.
+[10] F. Miao, M. Pajic, and G. J. Pappas, “Stochastic game approach
+for replay attack detection,” in 53th IEEE Conference
+on Decision and Control, 2013.
+[11] L.Zhang, E.K.Boukas, and J.Lam, “Analysis and synthesis of
+markov jump linear systems with time-varying delays and
+partially known transition probabilities,” IEEE Transactions
+on Automatic Control, vol. 53, no. 10, pp. 2458-2464, 2008.
+[12] G. Zhai, B. Hu, K. Yasuda, and A. N. Michel, “Stability analysis
+of switched systems with stable and unstable subsystems:
+An average dwell time approach,” International Journal of
+Systems Science, vol. 32, pp. 1055-1061, 2001.
+[13] G. Walsh, H. Ye, and L. Bushnell, “Stability analysis of
+networked control systems,” IEEE Transactions on Control
+Systems Technology, vol. 10, pp. 438-446, 2002.
+[14] Y. Mo and B. Sinopoli, “Secure control against replay attacks,”
+in 47th Annual Allerton Conference on Communication, Contro,
+and Computing, 2009, pp. 911-918.

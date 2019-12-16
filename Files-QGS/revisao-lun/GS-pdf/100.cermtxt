@@ -1,0 +1,859 @@
+53rd IEEE Conference on Decision and Control
+December 15-17, 2014. Los Angeles, California, USA
+Event-Triggered Projected Luenberger Observer
+for Linear Systems Under Sparse Sensor Attacks
+Yasser Shoukry and Paulo Tabuada
+Abstract- We consider the problem of designing a
+Luenberger-like observer for linear systems whose sensor measurements
+are corrupted by a malicious attacker. The attacker
+capabilities are limited in the sense that only a subset of all
+the sensors can be attacked although this subset is unknown.
+This leads to the problem of reconstructing the system state
+when the measurements are corrupted by sparse noise and
+we propose an observer that recursively updates the state
+estimate as new measurements become available. We show that
+by utilizing event-triggered techniques, the proposed observer
+is computationally more efficient than previously reported
+solutions to the secure state reconstruction problem.
+I. INTRODUCTION
+Aiming at a reduction of computation and communication
+resources, the event-triggered control paradigm arose as
+an alternative to the classical periodic control paradigm.
+Although early results [1], [2] suggested through examples
+that event-triggered control could reduce resource usage
+while maintaing adequate levels of control performance, the
+interest in these techniques grew substantially once it was
+shown in [3], [4] how to systematically construct eventtriggered
+implementations of feedback control laws. For
+a recent survey on event-triggered control, the reader is
+referred to [5].
+In this paper, we consider the use of event-triggering in
+the design of observers. Several results on event-triggered
+observers have recently appeared in the literature. Theses
+results focus on utilizing the event-triggered mechanism to
+adaptively choose the sampling point aiming to optimize
+specific system design critera [6], [7], [8], [9], [10]. Unlike
+the previously reported results, we propose to utilize eventtriggering
+to enhance the computational performance of
+periodically-triggered observers.
+We are motivated by the situation where an adversarial
+attack is able to sparsely corrupt sensor measurements. An
+increasing number of such attacks has been reported in the
+last few years. Examples of control systems which were reported
+vulnerable to these attacks are SCADA systems [11],
+smart grids [12], and automotive systems [13].
+Sparse/noise attack is a natural model to describe the
+effect of a malicious attacker that has the ability to alter the
+Y. Shoukry and P. Tabuada with Electrical Engineering Department,
+UCLA, yshoukry@ucla.edu, tabuada@ucla.edu
+This work was partially sponsored by the NSF award 1136174 and
+DARPA under agreement number FA8750-12-2-0247. The U.S. Government
+is authorized to reproduce and distribute reprints for Governmental purposes
+notwithstanding any copyright notation thereon. The views and conclusions
+contained herein are those of the authors and should not be interpreted
+as necessarily representing the official policies or endorsements, either
+expressed or implied, of DARPA or the U.S. Government.
+measurements of a subset of sensors in a feedback control
+loop. While measurements coming from un-attacked sensors
+are attack free, measurements from attacked sensors can be
+arbitrary: we make no assumption regarding its magnitude,
+statistical description, or temporal evolution.
+A solution to this state reconstruction problem under
+adversarial attacks was previously proposed in [14], [15],
+[16] by the authors and co-workers and its experimentally
+validation discussed in [17]. However, this solution
+is computationally intensive and we focus in this paper on
+efficient state reconstruction algorithms in the sense of being
+implementable on computationally limited platforms.
+The previously proposed algorithms reconstructs the state
+of the system using a batch approach based on measured
+data collected over a period of time. On computationally
+restricted platforms we may be faced with the difficulty of
+having to process new measurements before being able to
+finish all the computations in the previous batch. It would
+then be preferable to reconstruct the system state using a
+recursive algorithm that can incorporate new measurements
+as they become available.
+We propose a Luenberger-like observer that reconstructs
+both the state and the sparse attack signal. The proposed
+observer utilizes ideas from event-triggered control [3] to
+enhance the computational efficiency. That is, due to the
+adaptive nature of the event-triggered observer, the computation
+time is reduced by an order of magnitude compared
+to the previously proposed solutions based on LrnL1 algorithms
+[14], [15], [16].
+This paper is organized as follows. Section II formally
+introduces the problem under consideration. The notions of
+s-observability and restricted eigenvalues are introduced in
+Section III. The main contribution of this paper which is
+the Event-Triggered Projected Luenberger Observer, along
+with its convergence properties, is introduced in Section IV.
+Simulation results for the proposed algorithm is shown in
+Section V. Finally Section VI concludes this paper. For the
+sake of space, all proofs are omitted. We point the reader to
+[18] where detailed proofs can be found.
+II. THE SECURE STATE RECONSTRUCTION PROBLEM
+A. Notation
+The symbols N0; R; and R+ denote the set of natural, real,
+and positive real numbers, respectively. Given two vectors
+x 2 Rn1 and y 2 Rn2 , we denote by (x; y) 2 Rn1+n2
+the vector xT yT T . If S is a set, we denote by jSj
+the cardinality of S. The support of a vector x 2 Rn,
+denoted by supp(x), is the set of indices of the non-zero
+978-1-4673-6090-6/14/$31.00 ©2014 IEEE
+3548
+elements of x. We call a vector x 2 Rn s-sparse, if x
+has at most s nonzero elements, i.e., if jsupp(x)j s. A
+vector z = (x1; x2; : : : ; xp) 2 Rnp is called cyclic s-sparse,
+if each xi 2 Rn is s-sparse for all i 2 f1; 2; : : : ; pg and
+supp(x1) = supp(x2) = : : : = supp(xp). With some abuse
+of notation, we use s-sparse to denote cyclic s-sparse.
+For a vector x 2 Rn, we denote by kxk2 the 2-norm of
+x. For a matrix M , we denote by Mi 2 R1 n the ith row of
+M . For a set f1; : : : ; mg, we denote by M 2 Rj j n
+the matrix obtained from M by removing all the rows except
+those indexed by . We also denote by M 2 R(m j j) n
+the matrix obtained from M by removing the rows indexed
+by the set , for example, if m = 4, and = f1; 2g, then:
+M1
+M2
+M =
+and M
+=
+M3 :
+M4
+maxfM g.
+For any finite set S = fs1; s2; : : : ; skg N we denote
+by rS, r 2 N, the set rS = frs1; rs2; : : : ; rskg. Finally we
+denote the maximum eigenvalue of a symmetric matrix M
+by
+B. Dynamics and Attack Model
+Consider the following linear discrete-time control system
+where x(t) 2 Rn is the system state at time t 2 N0,
+u(t) 2 Rm is the system input, and y(t) 2 Rp is the observed
+measurement:
+x(t + 1) = Ax(t) + Bu(t);
+y(t) = Cx(t) + a(t):
+(II.1)
+(II.2)
+The matrices A; B, and C have appropriate dimensions and
+a(t) 2 Rp is a s-sparse vector modeling how an attacker
+changed the sensor measurements at time t. If sensor i 2
+f1; : : : ; pg is attacked then the ith element in the vector a(t)
+is non-zero otherwise the ith sensor is not attacked. Hence, s
+describes the number of attacked sensors. Note that we make
+no assumptions on the vector a(t) either than being s-sparse.
+In particular, we do not assume bounds, statistical properties,
+nor restrictions on the time evolution of the elements in a(t).
+The value of s is also not assumed to be known and the
+results in this paper relate the possibility of reconstructing the
+state to the value of s and the properties of (II.1) and (II.2).
+The set of sensors the attacker has access to is assumed
+to remain constant over time (and has cardinality at most
+s). However, the attacker has complete freedom in deciding
+which sensor or sensors in this set are attacked and when,
+including the possibility of attacking all of them at all times.
+Our objective is to simultaneously construct a delayed
+version of the state, x(t + 1), and the cyclic s-sparse
+attack vector E(t) = (a(t + 1); a(t + 2); : : : ; a(t))
+from the measurements y(t + 1); y(t + 2); : : : ; y(t).
+It is worth explaining the cyclic sparse nature
+of E(t) in more detail. Consider the attack vector
+E(t) = (a(t + 1); a(t + 2); : : : ; a(t)) and reformat
+this data as the matrix Ee(t) 2 Rp where column i is
+given by a(t i + 1). Since we assume that the set of
+sensors under attack does not change over time, the sparsity
+pattern appears in Ee(t). The rows corresponding to the
+2B
+: : :
+: : :
+. . .
+: : :
+: : :
+: : :
+: : :
+0
+0
+CB
+0
+0
+.
+.
+.
+CB
+03
+07
+. 7 ;
+.. 75
+0
+0 3
+0 7
+... 775 ;
+I
+un-attacked sensors will only have zeros, while the rows
+corresponding to the attacked sensors will have arbitrary
+(zero or non-zero) elements.
+Example 2.1: Consider a system with 4 sensors, = 4,
+and an attack on the second and third sensors. The attack
+matrix Ee(t) will be of the form:
+20
+0 0
+Ee(t) = 46624 8 0
+5 6
+0 0 0
+0 3
+1102775 :
+0
+The cyclic sparsity structure appears once the attack matrix
+Ee(t) is reshaped as the vector E(t):
+E(t) = 0
+2 4 0 0 5 8
+0 : : : T :
+Since cyclic s-sparse vectors pervade this paper, it is convenient
+to denote them by a special symbol.
+Definition 2.2 (Cyclic s-sparse set Ss): The subset of
+Rp consisting of the vectors that are cyclic r-sparse for all
+r 2 f0; 1; : : : ; sg, s p, is denoted by Ss.
+C. Problem Formulation
+By collecting 2 N observations with n, we can rewrite
+the dynamics of z(t) = (x(t +1); E(t)) 2 Rn Rp ,
+using the equality a(t) = y(t) Cx(t), as follows:
+z(t) = Az(t
+1) + Bu(t
+1)
+Y (t
+1) = Qz(t
+1);
+where:
+z(t) =
+x(t
+2a(t
+6a(t
+E(t) = 6
+6
+4
+2
+2
+2
+6
+6
+A = 6
+6
+6
+4
+6
+B = 6
+6
+4
+6
+F = 6
+6
+4
+E(t)
+.
+.
+.
+a(t)
+A
+0
+.
+.
+.
+0
+CA
+B
+0
+.
+.
+.
+CA
+0
+CB
+.
+.
+.
++ 1) ;
++ 1)3
++ 2)7
+7 ;
+7
+5
+u(t
+1) =
+2u(t
+6u(t
+U (t) = 6
+6
+4
+U (yt(t) 1) ;
++ 1)3
++ 2)7
+7 ;
+7
+5
+.
+.
+.
+u(t)
+0 : : : 0 3
+I : : : 0 7
+. . . 777 ;
+0 : : : I 57
+0 : : : 0
+0
+0
+CA
+0
+0
+3B
+3549
+CA
+2B
+CA
+3B
+Y (t) = Ye (t)
+F U (t);
+Q = O
+I ;
+2y(t
+6y(t
+Ye (t) = 6
+6
+4
+.
+.
+.
+y(t)
++ 1)3 2 C 3
++ 2)7775 ; O = 6664 C...A 7775 :
+CA
+1
+The problem addressed in this paper can now be formally
+stated by using this dynamics and the notion of cyclic
+sparsity.
+Problem 2.3: Luenberger-like Observer
+For the linear control system defined by (II.1) and (II.2)
+construct a dynamical system:
+z^(t + 1) = f (z^(t); U (t); Y (t));
+such that:
+lim (z (t) z^(t)) = 0;
+t!1
+where z (t) = (x (t + 1); E (t)) 2 Rn Ss, x (t) is
+the solution of (II.1) under the inputs U (t), and Y (t) is the
+sequence of the last observed outputs corrupted by E (t).
+Note that this problem asks for the reconstruction of a
+delayed version of the state x(t +1). However, we can always
+reconstruct of the current state x(t) from x(t + 1)
+by recursively rolling the dynamics forward in time. Alternatively,
+when A is invertible, we can directly recover x(t) by
+re-writing the measurement equation as a function of x(t).
+As a final remark we note that it follows from the CayleyHamilton
+theorem that there is no loss of generality in taking
+the number of collected measurements to be no greater than
+the number of states n.
+III. s-SPARSE OBSERVABILITY
+AND RESTRICTED EIGENVALUES
+In this section we define the notions of s-sparse observability
+and s-restricted eigenvalues. These notions plays
+important role in characterizing the performance of the
+proposed algorithm.
+A. s-Sparse Observability
+We start by introducing the following notion of observability.
+Definition 3.1: s-Sparse Observable System
+The linear control system defined by (II.1) and (II.2) is said
+to be s-sparse observable if for every set f1; : : : ; pg
+with j j = s, the pair (A; C ) is observable.
+In other words, a system is s-sparse observable if it
+remains observable after eliminating any choice of s sensors.
+B. s-Restricted Eigenvalue
+A more quantitative version termed the s-restricted eigenvalue
+property [19] is discussed next. This property is
+directly related to the possibility of solving Problem 2.3 by
+Luenberger-like observer.
+Definition 3.2: (s-Restricted Eigenvalue of a Linear
+Control System) For a given set es f1; : : : ; pg with
+jesj = p s, let s be defined by:
+s = es [ pes [ 2pes [ : : : [ (
+1)pes
+(III.1)
+and define (with some abuse of notation) the matrix
+Q s 2 Rp (n+s ) as the matrix obtained from Q = O I
+by removing from I the columns indexed by s, i.e.:
+Q s =
+O
+(I s )T :
+(III.2)
+The s-restricted eigenvalue of the control system defined
+by (II.1) and (II.2) is the the smallest eigenvalue of all the
+matrices QT Q s obtained by considering all the different
+s
+sets es.
+The s-restricted eigenvalue of a control system can be
+related to the s-observability as follows.
+Proposition 3.3: (Non-zero Restricted Eigenvalue) Let
+the linear control system, defined by (II.1) and (II.2), be 2ssparse
+observable. There exists a 2s 2 R+ such that for
+every z = (x; E) 2 Rn S2s the 2s-restricted eigenvalue is
+no smaller than 2s.
+In other words, although Q has a non-trivial kernel, QT Q
+has a non-zero minimum eigenvalue when operating on a
+vector z = (x; E) with cyclic 2s-sparse E, i.e., the following
+inequality holds if z = (x; E) 2 Rn S2s:
+0 < 2szT z
+zT QT Qz:
+(III.3)
+The calculation of 2s is combinatorial in nature. The reader
+is referred to [18] for the details on the computation of 2s.
+IV. AN EVENT-TRIGGERED
+PROJECTED LUENBERGER OBSERVER
+The problem of reconstructing a sparse signal from measurements
+is well studied in the compressive sensing literature
+[20], [21]. In this section we propose an observer for
+state reconstruction that can be seen as an extension of the
+iterative hard thresholding algorithm reported in [22] to the
+case where part of the signal to be reconstructed is sparse
+and part is governed by linear dynamics.
+A. The Algorithm
+The Event-Triggered Projected Luenberger (ETPL) Observer
+consist of the iteration of the following two steps:
+a) Event-Triggered Projected Luenberger (Measurement)
+Update: When a new measurement is available, we
+apply the following Luenberger update step multiple times:
+z^(m+1)(t) = z^(m)(t) + L Y (t)
+Qz^(m)(t) ;
+where the Luenberger gain matrix L is chosen as L = QT
+with a positive definite matrix. This Luenberger update
+forces a decrease in the Lyapunov candidate function V
+defined as:
+1
+Qz^(t)k22 = 2 kQz (t)
+Qz^(t)k22
+1
+V (z^(t)) = 2 kY (t)
+1
+= 2 kQe(t)k22 ;
+where z (t) is defined in Problem 2.3 and e(t) is the error
+vector defined as e(t) = z (t) z^(t).
+3550
+Since z^(t) will not, in general, satisfy the desired sparsity
+constraints, Luenberger updates are followed by a projection
+step which uses the projection operator:
+: Rn
+Rp
+! Rn
+Ss
+that takes z^(t) 2 Rn Rp to the closest point in Rn Ss.
+In other words, we apply the following step at the end of the
+Luenberger update loop:
+z^ (t) =
+z^(m)(t) :
+The analysis reported in [18] shows that the projection step
+may lead to an increase in the value of the Lyapunov candidate
+function V . Therefore, the use of the projection operator
+requires us to perform multiple Luenberger update steps
+in order to guarantee convergence of the observer. This
+contrasts with the standard Luenberger observer where only
+one Luenberger update step is necessary. Although we can
+compute a priori a worst-case upper bound on the number of
+measurement update steps, an implementation based on such
+bound would result in a waste of computational resources.
+Instead, we draw inspiration from the event-triggered control
+paradigm by performing the measurement update step while
+the triggering condition Vtemp < V (z^ (t)) is satisfied (see
+Algorithm 1). We will show in Section V how this leads
+to an efficient usage of resources and in Section IV-C how
+this choice of triggering condition ensures convergence of
+the observer.
+b) Time Update: In this step, we use the dynamics to
+update the previous estimate:
+z^(t) = Az^(t
+1) + Bu(t
+1):
+This time update may result also in an increase in the value
+of the Lyapunov candidate function V . It follows from from
+our analysis that alternating between multiple Luenberger updates
+and projection steps (in the projected luenberger update
+loop) forces a decrease of the Lyapunov candidate function
+V . In order to compensate for the increase introduced by
+the time update step, multiple projected luenberger update
+loops are performed for each time-update step. Again, by
+monitoring the evolution of V , the algorithm can determine
+when the decrease in V caused by the projected luenberger
+update loop compensates the increase caused by the time
+update. This is, again, akin to triggering an event in eventtriggered
+control [3].
+By driving V to zero while forcing z^(t) to be cyclic ssparse,
+z^(t) is guaranteed to converge to z (t) since, as
+shown in [18], the intersection of the cyclic s-sparse set Ss
+with the kernel of Q is only one point, z (t). This sequence
+of steps results in Algorithm 1.
+To make the connection with the standard Luenberger
+observer clearer, assume that only one Luenberger/projection
+update is required per time update. In this case, the ETPL
+observer can be written as:
+z^(t) = Az^ (t
+1) + Bu(t
+1)
++ L0 (Y (t
+1)
+Qz^ (t
+1))
+z^ (t) =
+(z^(t))
+Algorithm 1 Event Triggered Projected Luenberger Observer
+a) Time Update:
+z^(t) = Az^(t 1) + Bu(t 1);
+b) Event-Triggered Projected Luenberger (Measurement)
+Update:
+while V (z^ (t)) V (z^ (t 1)) do
+reset m := 0, z^(0)(t) = z^ (t) = (z^(t));
+Vtemp := V (z^ (t));
+while Vtemp V (z^ (t)) do
+z^(m+1)(t) := z^(m)(t) + L Y (t) Qz^(m)(t) ;
+z^(m+1)(t) );
+Vtemp := V (
+m := m + 1;
+end while
+z^(t) := z^(m)(t);
+end while
+which has the form of a standard Luenberger observer with
+gain L0 = A L along with the projection step.
+B. The Projection Operator
+Before discussing the convergence of the proposed algorithm,
+it is important to show how to compute the projection
+operator .
+Definition 4.1: Given a vector z = (x; E) 2 Rn Rp ,
+we denote by (z) the element of Rn Ss closest to z in
+the 2-norm sense, i.e.,
+k (z)
+zk2
+kz0
+zk2 ;
+(IV.1)
+for any z0 2 Rn Ss.
+We first note that (z) = (x; E) = (x; 0(E)). To
+explain how 0 is computed, recall from Example 2.1 the
+matrix Ee obtained by formatting E 2 Rp so that the ith
+column of Ee i2s given by a(t i + 1). Now, define E 2 Rp
+by Ei = E 22 and that E is
+Eei 2. By noting that kEk22 =
+cyclic s-sparse if and only if E is s-sparse, it immediately
+follows that 0(z) can be computed by setting to zero the
+elements of E corresponding to the smallest p s entries of
+E.
+Example 4.2: Let us consider the following example with
+p = 3; = 2 and s = 1:
+E = 1
+2 3 4 5 6 7 8 9 T
+2 Rp
+Hence,
+21 4 73
+Ee = 42 5 85 2 R
+3 6 9
+2 0 3
+0(E) = 4 0 5 2 Rp;
+126
+p
+;
+which leads to:
+2 66 3
+E = 4 93 5 2 Rp;
+126
+3551
+0(E) = 0
+0 3 0 0 6 0 0 9 T :
+C. Convergence of the ETPL Observer
+The main result of this work is then stated in the following
+Theorem.
+Theorem 4.3: (Convergence of the ETPL observer) Let
+the linear control system defined by (II.1) and (II.2) be 2sobservable
+with 2s-restricted eigenvalue 2s. If the following
+condition holds:
+4
+2s > 9 maxfQT Qg
+then the dynamical system defined by the ETPL observer
+is a solution to Problem 2.3 whenever L = QT
+for any positive definite weighting matrix satisfying
+maxf g < m1axfQT Qg.
+V. SIMULATION RESULTS
+A. Computational Performance
+We compare the efficiency of the proposed ETPL algorithm
+against the L1=Lr decoder introduced in [15]. To perform
+this comparison, we randomly generated 100 systems
+with n = 20 and p = 25 and simulated them against an
+increasing number of attacked sensors ranging from 0 to 12.
+For each test case we generated a random support set for
+the attack vector, random attack signal and random initial
+conditions. Averaged results for the different numbers of
+attacked sensors are shown in Fig.1.
+Although we claim no statistical significance, the results in
+Figure 1 are characteristic of the many simulations performed
+by the authors. The L1=Lr decoder is implemented using
+CVX while the ETPL algorithms are direct implementations
+of Algorithm 1 in Matlab. The tests were performed on a
+desktop equipped with an Intel Core i7 processor operating
+at 3.4 GHz and 8 GBytes of memory.
+In Fig. 1 we can appreciate how the ETPL algorithm
+outperform the L1=Lr decoder by an order of magnitude
+in execution time.
+B. Multiple Attacking Sequences
+In this example we consider an Unmanned Ground Vehicle
+(UGV) under different types of sensor attacks. We assume
+that the UGV moves along straight lines and completely
+stops before rotating. Under these assumptions, we can
+describe the dynamics of the UGV by:
+xv__ = 00
+_ 0
+!_ = 0
+1
+B
+M
+1
+Br
+J
+xv + M01 F;
+! + J01 T;
+where x; v; ; ! are the states of the UGV corresponding
+to position, linear velocity, angular position and angular
+velocity, respectively. The parameters M; J; B; Br denote
+denote the mechanical mass, inertia, translational friction
+coefficient and the rotational friction coefficient. The inputs
+to the UGV are the force F and the torque T . The UGV
+is equipped with a GPS sensor which measures the UGV
+position, two motor encoders which measure the translational
+]
+s
+[ 0:4
+e
+m
+i
+t
+n
+io 0:2
+t
+u
+c
+e
+x
+E
+0
+Lr=L2 Decoder
+ETPL Observer
+2
+4
+6
+8
+10
+12
+Number of attacked sensors s
+Fig. 1. Execution timing analysis of the L1=L2 decoder versus the ETPL
+algorithm for different number of attacked sensors.
+velocity and an IMU which measures both rotational velocity
+and rotational position. The resulting output equation is:
+21
+03 2x3
+0 0
+60 1 0 07 6 27
+y = 660 1 0 077 66v 77 + 66 377 ;
+4600 00 10 0157 4!5 46 4575
+2 13
+where i is the measurement noise of the ithe sensor
+which is assumed to be gaussian with zero norm and finite
+covariance.
+By applying Proposition 3.3 for different values of s, we
+conclude that the UGV can be resilient only to one attack
+on any of the two encoders. Attacking any other sensor
+precludes the system from being 2s-sparse observable.
+Fig. 2 shows the performance of the proposed algorithms
+under different attacks on the UGV motor encoders. The
+attacker alternates between corrupting the left and the right
+encoder measurements as shown in Fig. 2(b). Three different
+types of attacks are considered. First, the attacker corrupts
+the sensor signal with random noise. The next attack consists
+of a step function followed by a ramp. Finally a replayattack
+is mounted by replaying the previously measured
+UGV velocity.
+The UGV vehicle goal is to move 5m along a straight
+line, stop and perform a 90o rotation and repeat this pattern
+3 times until it traces a square and returns to its original
+position and orientation. In Figures 2(a) and 2(b) we show
+the result of using the ETPL observer to reconstruct the state
+under sensor attacks. The reconstructed state is used by a
+linear feedback tracking controller forcing the UGV to track
+the desired square trajectory. These figures show that both
+algorithms are able to successfully reconstruct the state and
+hence the UGV is able to reach its goal despite the attacks.
+Recall that the attack model in Section II requires the set
+of attacked sensors to remain constant over time. However,
+Figure 2 shows the proposed algorithms correctly constructing
+the state even though this assumption is violated. This is
+due to the fact that the period during which only one sensor
+is attacked is sufficiently long compared with the time it
+takes for the algorithms to converge.
+3552
+20
+15
+]
+m
+[
+itno 10
+iso
+P 5
+0
+0
+6
+0
+0
+la 4
+n
+isgk
+ttac 2
+A
+ETPL Observer
+Ground truth
+ETPL Observer
+Attack signal
+5
+5
+10
+10
+15
+20
+Time [s]
+25
+30
+35
+0
+15
+20
+Time [s]
+25
+30
+35
+(a) Reconstructed states (position and velocity) versus ground truth.
+15
+20
+Time [s]
+25
+30
+35
+15
+20
+Time [s]
+25
+30
+35
+(b) Reconstructed attack on left and right encoders versus ground truth.
+Fig. 2. Performance of the UGV controller in the cases where no attack takes place versus the case where the attack signal is applied to the UGV encoders.
+The objective is to move 5 m, stop and perform a 90o rotation and repeat this pattern to follow a square path. The controller uses ETPG algorithm and
+ETPL Observer to reconstruct the UGV states. We show the linear position, linear velocity (top), and the reconstruction of the attack signal (bottom).
+VI. CONCLUSIONS
+In this paper we considered the problem of designing a
+Luenberger-like observer to reconstruct the state of a system
+whose sensor measurements are attacked by an adversary.
+We introduced the notion of s-sparse observability and
+characterized the solvability of the observer design problem
+using this notion. By adopting an event-triggered approach
+we proposed an observer that is an order of magnitude
+computationally more efficient than the existing solutions to
+the considered problem reported in [14], [15], [16].
+REFERENCES
+[1] K. Astrom and B. Bernhardsson, “Comparison of riemann and
+lebesgue sampling for first order stochastic systems,” in Proceedings
+of the 41st IEEE Conference on Decision and Control, vol. 2, Dec
+2002, pp. 2011-2016 vol.2.
+[2] K.-E. A˚rze´n, “A simple event-based pid controller,” in Proceedings of
+the 14th World Congress of IFAC, March 1999, pp. 423-428.
+[3] P. Tabuada, “Event-triggered real-time scheduling of stabilizing control
+tasks,” IEEE Transactions on Automatic Control, vol. 52, no. 9, pp.
+1680-1685, Sept 2007.
+[4] W. P. M. H. Heemels, J. H. Sandee, and P. P. J. Van Den Bosch,
+“Analysis of event-driven controllers for linear systems,” International
+Journal of Control, vol. 81, no. 4, pp. 571-590, 2008.
+[5] W. Heemels, K. Johansson, and P. Tabuada, “An introduction to eventtriggered
+and self-triggered control,” in Proceedings of the 51st IEEE
+Conference on Decision and Control (CDC), Dec 2012, pp. 32703285.
+[6] D. Han, Y. Mo, J. Wu, S. Weerakkody, B. Sinopoli, and L. Shi,
+“Stochastic Event-triggered Sensor Schedule for Remote State Estimation,”
+ArXiv e-prints, Feb. 2014.
+[7] L. Li and M. Lemmon, “Performance and average sampling period
+of sub-optimal triggering event in event triggered state estimation,” in
+50th IEEE Conference on Decision and Control and European Control
+Conference (CDC-ECC), Dec 2011, pp. 1656-1661.
+[8] L. Li, M. Lemmon, and X. Wang, “Event-triggered state estimation
+in vector linear processes,” in American Control Conference (ACC),
+June 2010, pp. 2138-2143.
+[9] M. Rabi, G. V. Moustakides, and J. S. Baras, “Adaptive sampling for
+linear state estimation,” SIAM Journal of Control and Optimization,
+vol. 50, no. 2, pp. 672-702, Mar. 2012.
+[10] M. Rabi, K. Johansson, and M. Johansson, “Optimal stopping for
+event-triggered sensing and actuation,” in Decision and Control, 2008.
+CDC 2008. 47th IEEE Conference on, Dec 2008, pp. 3607-3612.
+[11] R. Langner, “Stuxnet: Dissecting a cyberwarfare weapon,” IEEE
+Security and Privacy Magazine, vol. 9, no. 3, pp. 49-51, 2011.
+[12] Y. Liu, P. Ning, and M. K. Reiter, “False data injection attacks against
+state estimation in electric power grids,” in Proceedings of the 16th
+ACM conference on Computer and communications security, ser. CCS
+'09. New York, NY, USA: ACM, 2009, pp. 21-32.
+[13] Y. Shoukry, P. D. Martin, P. Tabuada, and M. B. Srivastava, “Noninvasive
+spoofing attacks for anti-lock braking systems,” in Workshop
+on Cryptographic Hardware and Embedded Systems, ser. G. Bertoni
+and J.-S. Coron (Eds.): CHES 2013, LNCS 8086. International
+Association for Cryptologic Research, 2013, pp. 55-72.
+[14] H. Fawzi, P. Tabuada, and S. Diggavi, “Secure estimation and control
+for cyber-physical systems under adversarial attacks,” IEEE Transactions
+on Automatic Control, vol. 59, no. 6, pp. 1454-1467, June 2014.
+[15] --, “Secure state-estimation for dynamical systems under active
+adversaries,” in 49th Annual Allerton Conference on Communication,
+Control, and Computing (Allerton), sept. 2011, pp. 337-344.
+[16] --, “Security for control systems under sensor and actuator attacks,”
+in IEEE 5st Annual Conference on Decision and Control (CDC), Nov.
+2012, pp. 3412-3417.
+[17] M. Pajic, J. Weimer, N. Bezzo, P. Tabuada, O. Sokolsky, I. Lee,
+and G. Pappas, “Robustness of attack-resilient state estimators,” in
+ACM/IEEE International Conference on Cyber-Physical Systems (ICCPS),
+Apr 2014.
+[18] Y. Shoukry and P. Tabuada, “Event-Triggered State Observers for
+Sparse Sensor Noise/Attacks,” ArXiv e-prints, Sep. 2013. [Online].
+Available: http://arxiv.org/abs/1309.3511
+[19] G. Raskutti, M. J. Wainwright, and B. Yu, “Restricted eigenvalue
+properties for correlated gaussian designs,” J. Mach. Learn. Res.,
+vol. 99, pp. 2241-2259, August 2010.
+[20] E. Candes and M. Wakin, “An introduction to compressive sampling,”
+IEEE Signal Processing Magazine, vol. 25, no. 2, pp. 21-30, 2008.
+[21] E. Candes, J. Romberg, and T. Tao, “Robust uncertainty principles:
+exact signal reconstruction from highly incomplete frequency information,”
+IEEE Transactions on Information Theory, vol. 52, no. 2,
+pp. 489-509, 2006.
+[22] T. Blumensath, “Accelerated iterative hard thresholding,” Signal Processing,
+vol. 92, no. 3, pp. 752-756, 2012.
+3553
+/]s
+[m 1
+y
+ti
+c
+o
+l
+e
+V
+2
+0
+8
+6
+l
+a
+ign 4
+sk
+c
+ttaA 2
+0
+0
+ETPL Observer
+Ground truth
+ETPL Observer
+Attack signal
+5
+5
+10
+10

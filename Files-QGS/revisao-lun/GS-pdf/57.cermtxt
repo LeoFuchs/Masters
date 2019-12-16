@@ -1,0 +1,1410 @@
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 6, NOVEMBER 2015
+2725
+Quickest Detection of False Data Injection Attack
+in Wide-Area Smart Grids
+Shang Li, Yasin Yılmaz, and Xiaodong Wang, Fellow, IEEE
+Abstract-We consider the sequential (i.e., online) detection of
+false data injection attacks in smart grid, which aims to manipulate
+the state estimation procedure by injecting malicious data
+to the monitoring meters. The unknown parameters in the system,
+namely the state vector, injected malicious data and the
+set of attacked meters pose a significant challenge for designing
+a robust, computationally efficient, and high-performance
+detector. We propose a sequential detector based on the generalized
+likelihood ratio to address this challenge. Specifically,
+the proposed detector is designed to be robust to a variety of
+attacking strategies, and load situations in the power system,
+and its computational complexity linearly scales with the number
+of meters. Moreover, it considerably outperforms the existing
+first-order cumulative sum detector in terms of the average detection
+delay and robustness to various attacking strategies. For
+wide-area monitoring in smart grid, we further develop a distributed
+sequential detector using an adaptive sampling technique
+called level-triggered sampling. The resulting distributed detector
+features single bit per sample in terms of the communication
+overhead, while preserving the high performance of the proposed
+centralized detector.
+Index Terms-Cyber security, distributed algorithm, generalized
+CUSUM, level-triggered sampling, smart grid quickest
+detection, wide-area monitoring.
+I. INTRODUCTION
+U tightly integrated with the cyber-infrastructure, such as
+NDER THE smart grid concept, the power system is
+computer and communication networks, which makes it vulnerable
+to cyber-attacks. Cyber-security is a critical issue in
+smart grid since cyber-attacks may eventually cause catastrophic
+consequences such as blackouts in large geographic
+areas. Furthermore, it is far more difficult to detect malicious
+data attacks than to detect random errors in the power systems
+because the adversary can choose the site of attack judiciously
+and design attack data carefully. Consequently, cyber-security
+for smart grid has drawn significant interest in [1]-[4].
+Manuscript received May 9, 2014; revised September 2, 2014; accepted
+November 19, 2014. Date of publication December 11, 2014; date of
+current version October 17, 2015. This work was supported in part by
+the U.S. National Science Foundation under Grant CIF1064575, and in
+part by the U.S. Office of Naval Research under Grant N000141410667.
+Paper no. TSG-00398-2014.
+S. Li is with the Department of Electrical Engineering, Columbia University,
+New York, NY 10027 USA. (e-mail: shang@ee.columbia.edu).
+Y. Yılmaz is with the Electrical Engineering and Computer Science
+Department, University of Michigan, Ann Arbor, MI 48109 USA (e-mail:
+yasiny@umich.edu).
+X. Wang is with the Department of Electrical Engineering, Columbia
+University, New York, NY 10027 USA; and also with the King Abdulaziz
+University, Jeddah, Saudi Arabia (e-mail: wangx@ee.columbia.edu).
+Color versions of one or more of the figures in this paper are available
+online at http://ieeexplore.ieee.org.
+Digital Object Identifier 10.1109/TSG.2014.2374577
+State estimation is a fundamental task for power
+grid [5]-[7]. Meter measurements are used to estimate state
+variables such as bus voltages and phase angles. Then, various
+power grid components are controlled based on the state
+estimates. Cyber-attacks in the power system monitoring, is
+defined as the attacks that aim to cause erroneous state estimates
+by manipulating meter measurements. Thus, they are
+also known as false data injection attacks. In the conventional
+centralized setup, meter readings are transmitted to
+a control center, and stored in a supervisory control and
+data acquisition (SCADA) system. Due to the deregulation
+of modern power grids, wide-area monitoring recently draws
+extensive attention. In wide-area monitoring, there is a number
+of sub-areas, each of which only has access to its own
+meter measurements, and communicates with others and the
+control center through the wireless medium. The centralized
+setup may not be practically feasible in wide-area monitoring
+because of the power and bandwidth constraints of the
+wireless communication systems. Thus, distributed detection
+is of interest, in which a primary objective is to minimize the
+communication overhead.
+The naive approach to distributed detection samples the
+meter readings uniformly in time, and then synchronously
+transmits samples from sub-areas to the control center.
+Fortunately, for detecting the false data injection attacks, since
+only the post-attack measurements bear information, we can
+considerably decrease the communication overhead, compared
+to the naive approach, by transmitting only the informative
+measurements from sub-areas to the control center. The random
+nature of the attacking time constitutes the challenge here. An
+adaptive sampling technique called level-triggered sampling,
+that decides whether to transmit or not each time a new measurement
+is taken, can effectively handle this challenge. In [8]
+and [9], it was shown that level-triggered sampling enables
+efficient information transmission under stringent communication
+and energy constraints. Specifically, as opposed to the
+naive uniform-in-time sampling, it allows the sampling times
+to be determined by the signal to be sampled, hence censors
+uninformative measurements and enables the changes in the
+signal level to be easily tracked at a remote place using a few
+bits of message passing. Hence, it is well suited to distributed
+cyber-attack detection in wide-area smart grids.
+Most of the existing works on distributed detection consider
+fixed-sample-size (also known as one-shot) schemes, which
+aim to reach a satisfactory balance between the detection probability
+and false alarm probability. This type of schemes is
+useful when there is no strict latency constraint. On the other
+1949-3053 c 2014 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+2726
+hand, strict latency constraints apply to cyber-attack detection
+since such attacks are judiciously designed, and if not timely
+detected, can cause catastrophic consequences. The sequential
+detection framework, and in particular, sequential change
+detection (also known as quickest detection), which minimizes
+the average detection delay subject to certain performance constraint,
+enables online (i.e., real-time) monitoring for smart
+grid, hence suits well to cyber-attack detection.
+Sequential detection (or quickest detection) of false data
+injection attacks is yet to be more carefully designed. The
+well-known Cumulative Sum (CUSUM) algorithm is minimax
+optimum under the centralized setup if the probability distributions
+before and after the attack are known [10]. However,
+typically there are several unknowns in cyber-attack detection
+for smart grid, namely the state vector, the injected malicious
+data, and the subset of meters compromised by the attackers.
+In [11], an adaptive CUSUM algorithm is proposed, which
+assumes a Gaussian prior with some fixed mean and covariance
+for the state vector, and also assumes that the injected
+data is small and positive in magnitude so that the firstorder
+approximation to the decision statistic can be used. That
+scheme, as a result, becomes inefficient for large attacking
+data, which could be more detrimental to the network, and
+also for negative data, as shown in Section V.
+In this paper, we propose new CUSUM-type algorithms
+based on the generalized likelihood ratio (GLR) for centralized
+and distributed cyber-attack detection. With the proposed
+algorithms, we establish, under the centralized and distributed
+setups, an online (i.e., real-time) monitoring framework, that
+is robust to arbitrary load situations in the power system
+and malicious data, and also computationally efficient. Our
+contributions are listed as follows.
+1) The proposed algorithms are robust to arbitrary state
+variables (due to different load situations in the power
+system), arbitrary malicious data injected to the meter
+readings.
+2) The computational complexity of the proposed algorithms
+scales linearly with the number of meters in the
+system.
+3) The proposed algorithms significantly outperform the
+existing methods in the literature in terms of the average
+detection delay, as shown in Section V.
+4) The proposed distributed detector leads to a very low
+communication overhead and energy consumption by
+censoring the uninformative measurements before the
+attack and transmitting a single bit per sample to the
+control center, thanks to the adaptive level-triggered
+sampling technique.
+The remainder of this paper is organized as follows. In
+Section II, we briefly introduce the power grid monitoring
+system model and the associated false data injection
+attack detection problem. Then, we propose the centralized
+attack detector in Section III. Section IV treats the distributed
+attack detection in wide-area power grid by drawing
+on the novel level-triggered sampling scheme. In Section V,
+we provide extensive numerical experiments to demonstrate
+the advantages of the proposed detectors over the existing
+methods. Finally, Section VI concludes this paper.
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 6, NOVEMBER 2015
+II. BACKGROUND AND PROBLEM STATEMENT
+Consider M meters in an (N + 1)-bus power system. In
+this paper, we use the direct current (dc) power flow model,
+in which the N phase angles (one reference angle), denoted
+by the state vector x [θ1, . . . , θN ] , are to be estimated.
+Suppose, we collect all measurements of the power flows and
+power injections at time t in the vector yt, then we have the
+following linear system model [2], [27]:
+yt = Hxt + et
+(1)
+where yt consists of the meter readings at time t, H ∈ RM×N is
+the measurement matrix, and et ∼ N (0, σ 2IM) is the measurement
+noise vector. Typically, the number of measurements is
+greater than that of the unknown parameters in order to provide
+necessary redundancy against the noise effect, i.e., M > N.
+In addition, aiming at a general application, we consider the
+dynamic state model, where the state vector evolves over time.
+A. Problem Statement
+Suppose the malicious attack strikes at time τ and intentionally
+manipulates the meter readings by ut. Accordingly,
+we write the attack-incurred measurement change as
+yt = Hxt + et, t < τ
+yt = Hxt + ut + et = H (xt + ct) + bt + et, t ≥ τ.
+(2)
+Note that here the aggregate injected false data (i.e., ut)
+has been decomposed into two parts Hct and bt, where Hct
+represents the component that lies in the column space of H
+[i.e., Hct ∈ R(H)], while bt lies in the corresponding complementary
+space [i.e., bt ∈ R⊥(H) and H(H H)−1H bt = 0].
+As pointed out by [12], bt is the only informative part that
+is detectable while Hct would seemingly bypass the monitoring
+system since it is indistinguishable from Hxt per se.
+Hence, attackers intend to make the best use of their knowledge
+and resources to prevent detection, i.e., they try to hide
+attack vectors in the column space of H. If attackers perfectly
+knew the network information (that is the value of matrix
+H, including the topology and the line parameters, i.e., line
+admittances and transformer tap ratio), and could manipulate
+any meter they want, then they would be able to design
+stealth attacks that completely lie in R(H), i.e., bt = 0, hence
+bypass the security system [12]. Fortunately, in practice, this
+is not the case in a wide-area smart grid due to the following
+factors. First, most attackers gain network information by longterm
+off-line learning, whereas the power grid configuration
+could change over time (for example, the environment fluctuation
+can alter the line admittances); thus the attackers are
+unlikely to possess the real-time network information. Second,
+the attackers may have limited resources to access/manipulate
+sufficient set of smart meters. Notably, Liu and Li [13] put
+forth a local load redistribution [14] that constructs perfect
+attack with regional network information, efficiently lowering
+the information requirement. Nevertheless, such an attack
+could be prevented by securing sufficient meters according
+to [3], where the fundamental limit of perfect attack was investigated.
+Therefore, assuming that there is always a trace of the
+LI et al.: QUICKEST DETECTION OF FALSE DATA INJECTION ATTACK IN WIDE-AREA SMART GRIDS
+2727
+attack vector (i.e., some components of bt are nonzeros), we
+further write the change event of interest as
+btm = 0, m = 1, 2, . . . , M, t < τ
+|btm| > γ , m ∈ , t ≥ τ
+(3)
+where γ is a prescribed value, setting the lower bound for the
+measurement change that draws security attentions and the
+set contains the significant components in the informative
+vector bt, referred to as attacked meters thereafter.
+As such, our goal here is to detect the attack vector bt as
+soon as possible after its occurrence at τ . The quickest detection,
+that exploits the statistical difference before and after the
+change-point, provides a suitable framework to achieve this
+goal.
+B. Quickest Detection
+In quickest detection, we sequentially observe samples in
+time, and then stop according to a predesigned rule to declare
+a change. Unlike the fixed-sample-size schemes that focus on
+the detection power, the sequential change detector aims at
+minimizing the average detection delay after the change-point.
+The commonly used performance measure is the worst-case
+average detection delay, proposed by Lorden [15]
+J(T) = sup ess supFτ Eτ (T − τ )+|Fτ .
+τ
+(4)
+Here, T is a stopping time variable, corresponding to a
+certain detection scheme; Fτ is the filtration, which can be
+understood as all the observations up to τ , y1, . . . , yτ . Thus,
+the expectation Eτ is evaluated with respect to the post-change
+probability measure conditioned on the change-point τ and
+the past samples up to τ . The essential supremum is obtained
+over Fτ , yielding the least favorable situation for the detection
+delay.1 The supremum in (4) is obtained over τ , meaning
+that the change occurs at such a point that the detection delay
+is maximized. To summarize, J(T) characterizes the average
+detection delay for the worst possible history of observations
+before the change-point. While the small average detection
+delay under attack results in timely alarmed reaction, the running
+length under normal data, on the other hand, needs to be
+controlled to avoid frequent false alarms. Hence, the sequential
+change detection problem is formulated as follows:
+inf J(T) subject to
+T
+E∞[T] ≥ α.
+(5)
+Note that E∞ corresponds to the case where the change
+never happens, i.e., τ = ∞. To proceed with our cyber-attack
+detection problem, we denote the pre and postattack probability
+density functions (PDF) of the meter readings as p0 and p1,
+respectively. If all parameters in the PDFs can be specified,
+the quickest detection problem in (5) is optimally solved by
+the well-known CUSUM test [10]
+Tc
+⎧ k
+min ⎨ k : max
+⎩ 1≤ j≤k t=j
+log
+p1(yt|xt, ct, bt)
+p0(yt|xt)
+⎫
+≥ h⎬ . (6)
+⎭
+1Simply put, ess supFτ can be understood as the least upper bound of the
+objective function for all possible values of y1, y2, . . . , yτ .
+Note that, to fully specify the test statistic in (6), the values
+of xt, ct, and bt must be known. However, in reality, acquiring
+such information is hardly practical, rendering the CUSUM
+test infeasible. For example, xt is unknown and needs to be
+estimated, as it is the essential task of the power grid monitoring
+system. In light of this, as we mentioned before, ct will
+be completely mistaken as a part of the state vector in this
+estimation procedure and becomes indistinguishable from xt.
+In addition, considering the diverse nature of the attacking
+behaviors, bt cannot be specified beforehand when designing
+the security system. Alternatively, in [11], the first-order
+approximation is proposed by assuming that bt is elementwise
+positive and small. It deviates from the optimal solution
+as bt becomes significant, which, in fact, is the regime of most
+interest. To address these issues, this paper resorts to the GLR
+method, that provides asymptotically optimal performance by
+replacing the unknown parameters with their maximum likelihood
+estimates (MLE) [16, Sec. 5.3]. We next propose novel
+centralized and distributed sequential attack detectors based
+on the GLR statistic.
+III. CENTRALIZED SEQUENTIAL ATTACK DETECTION
+In this section, we consider the cyber-attack detection problem
+in a centralized setup. That is, all meter readings across
+the network are collected at a control center and processed
+together. We first derive a GLR-based change detector, namely
+generalized CUSUM, which is asymptotically optimal in theory,
+but its computational complexity is exponential in the
+number of meters, making it infeasible in large-scale networks.
+Then, we propose a modified detector whose computational
+complexity is linear in the number of meters.
+A. Generalized CUSUM Detector
+Based on the change event modeled by (3), upon replacing
+the unknown parameters with their MLEs in (6), the generalized
+CUSUM takes the form given by (7) (shown at the top
+of next page). Note that ct is indistinguishable from xt, thus
+we combine them together as xt under p1. Compared to the
+method in [11], this sequential detector possesses the following
+advantages.
+1) The state vector xt, which holds the bus phase angles, is
+not assumed to be a stationary Gaussian process, which
+is unrealistic for modeling a time-varying workload.
+Instead, xt is estimated over time, providing robustness
+to arbitrary load situations in the power system.
+2) The attacking vector bt is neither assumed to be small,
+nor presumed in the first orthant (i.e., element-wise
+positive). Like xt, estimating bt results in robustness
+to significant magnitude and direction changes in the
+attacking vector.
+3) The uncertainty in the subset of attacked meters is
+incorporated into the detector.
+We first compute the GLR st at time t conditioned on the
+set . Given that et is white Gaussian noise, supxt yields the
+least-squares estimators under the two probability measures,
+that is
+0
+xˆt =
+H H −1 H yt, xˆt1 = H H −1 H (yt − bt). (8)
+2728
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 6, NOVEMBER 2015
+Tg
+⎪⎪⎪⎪⎩
+⎧
+⎪⎪⎪⎪
+min ⎨ k : max sup
+1≤ j≤k
+k
+t=j
+log supxt,|btm|≥γ,m∈
+p1 (yt|xt, bt)
+supxt p0 (yt|xt)
+st
+⎫
+≥ h⎬⎪⎪⎪⎪
+⎪⎪⎪⎪⎭
+(7)
+Noting that xˆt1 = xˆt0 − (H H)−1H bt, we have
+p1 yt | xˆt1, bt − log p0 yt | xˆt
+0
+st = log
+sup
+|btm|≥γ,m∈
+=
+=
+=
+sup
+|btm|≥γ,m∈
+sup
+|btm|≥γ,m∈
+sup
+|btm|≥γ,m∈
+1
+− 2σ 2
+1
+σ 2 bt P
+bt Pyt
+σ 2
+bt bt
+− 2σ 2
+1
+yt − Hxˆt1 − bt 22 + 2σ 2
+yt − Hxˆt0
+1
+yt − Hxˆt0 − 2σ 2 bt P Pbt
+where P I − H(H H)−1H . Note that in (9), we used
+the assumption that bt bears the complete information of
+detectability [i.e., H(H H)−1H bt = 0] to give Pbt = bt.
+In the centralized setup, all measurements are collected at
+the control center, thus yt Pyt, which is the projection
+of the measurement vector on R⊥(H), is readily obtained.
+Then the GLR in (9) is explicitly expressed as
+st =
+sup
+|btm|≥γ, m∈
+=
+sup
+m∈ |btm|≥γ
+bt yt bt bt
+σ 2 − 2σ 2
+m m
+bt yt bm
+2
+t
+2
+stm
+σ 2
+where
+stm =
+⎧⎨ (2ytmσ)22 , |ytm| ≥ γ
+m
+⎩ |σyt2| γ − 2σ12 γ 2, |ytm| < γ .
+With st available in closed-form, the GLR-based detector
+Tg in (7) can be implemented by exchanging the max1≤ j≤k
+and sup
+⎧ k
+Tg = min ⎨ k : sup max
+⎩ 1≤ j≤k t=j m∈
+⎧
+= min ⎨ Tn, n = 1, 2, . . . ,
+⎩
+M
+q=1
+⎫
+⎬
+⎭
+stm ≥ h
+M
+q
+⎫
+= 2M − 1⎬
+⎭
+with Tn min{k : max1≤ j≤k tk=j m∈ n stm ≥ h}, where n
+represents a specific subset of all meters. Note that the equality
+between (13) and (14) holds true thanks to the discrete value
+of (see [17] and a special case where the sup is evaluated
+over binary values has been discussed as two-sided CUSUM
+in [16, Sec. 2.2]). Consequently, following [17], (14) suggests
+that Tg can be implemented as a multichart scheme, where one
+GLR-based test is performed for each n, and the detection
+procedure stops as soon as one of these tests raises an alarm.
+2
+2
+(9)
+(10)
+(11)
+(12)
+(13)
+(14)
+This multichart scheme has a computational complexity that
+is linear in the number of meters, i.e., O(M), only when we
+know that there is only a single attacked meter, i.e., q = 1. In
+this specific case, Tg amounts to the single-bit change detector
+proposed in [18], i.e., each meter runs its local GLR-based test
+and the global detection procedure stops whenever a meter
+raises an alarm. However, in general, when the number of
+attacked meters is unknown, then (14) has a computational
+complexity exponential in the number of meters, i.e., O(2M).
+B. Proposed Detector With Linear Complexity
+We next propose an efficient detector that is linearly scalable
+to the number of attacked meters, and robust to the changes
+in the attacking vector. Note that the operator max1≤ j≤k
+in Tg implies that all the attacked meters are stricken at
+the same time, i.e., they share the same estimated changepoint
+j = arg max1≤ j≤k tk=j m∈ stm. It is this underlying
+assumption that leads to Tm's that have to be run for all combinations,
+hindering us from further simplifying the detection
+procedure. To that end, we relax the constraint on simultaneous
+attack and modify the decision statistic of Tg in (13) by
+allowing each meter to search its own change-point, that is
+k
+k
+k
+sup max
+1≤ j≤k t=j m∈
+stm ⇒ sup
+max
+1≤ jm≤k, m∈ t=jm m∈
+stm
+(15)
+which can be further expressed as
+sup
+m∈
+max
+1≤ jm≤k t=jm
+k
+stm =
+M
+m=1
+⎧
+max⎨
+max
+⎩ 1≤ jm≤kt=jm
+⎫
+stm, 0⎬ . (16)
+⎭
+Through the above derivation, the relaxation (i.e., individual
+search for change-point at each meter) on the GLR statistic
+of Tg has transformed the combinatorial search sup into the
+operation of sum. This modification turns out to significantly
+simplify the original general CUSUM test Tg, given that the
+number of meters in the modern power system is in the order
+of hundreds or thousands. In addition, in the case where the
+attack strikes each meter asynchronously (e.g., there are time
+skews), searching the change-point at each meter is expected
+to be more effective. Consequently, following (13) and (16),
+we arrive at the resulting change detector:
+Tp
+where Wm
+k
+!
+min k :
+⎧
+max ⎨
+max
+⎩ 1≤ jm≤k t=jm
+M
+m=1
+Wm
+k ≥ h
+k
+⎫
+stm, 0⎬
+"
+⎭
+(17)
+(18)
+can be computed recursively as follows.
+LI et al.: QUICKEST DETECTION OF FALSE DATA INJECTION ATTACK IN WIDE-AREA SMART GRIDS
+Proposition 1: At meter m, the statistic Wkm is recursively
+computed as
+Wm
+k+1 = max #Wkm + skm+1, 0$
+where skm+1 is given by (12).
+Proof:
+⎧
+⎩
+Wkm+1 = max ⎨ max
+⎩ 1≤ jm≤k+1 t=jm
+⎧ ⎧
+= max ⎨ max ⎨
+k+1
+⎫
+stm, 0⎬
+⎭
+k+1
+max
+⎩ ⎩ 1≤ jm≤k t=jm
+⎧ ⎧ k
+= max ⎨ max ⎨
+max
+⎩ 1≤ jm≤k t=jm
+= max #Wkm + skm+1, 0$.
+⎫ ⎫
+stm, skm+1⎬ , 0⎬
+⎫
+stm, 0⎬
+⎭
+⎭
+⎭
++ skm+1, 0⎬
+⎫
+⎭
+(19)
+(20)
+Combining (17) and (19) implies that the global decision
+statistic is obtained by summing up the local CUSUM-type
+recursive processes. As a matter of fact, using the sum of
+multiple CUSUM processes as the test statistic was studied
+in [19]. By the virtue of the analysis therein, we know that
+the detection delay of the proposed detector Tp shares the similar
+asymptotic optimality with Tg. In particular, they deviate
+from the optimal (which is only feasible when all parameters
+are known) by O(log log α) and O(constant), respectively,
+recalling that α is the false alarm period as defined in (5).
+Therefore, for practical scenarios where α = 102 ∼ 106, Tp
+performs as effectively as Tg, yet at a much lower implementation
+complexity. In a nutshell, the proposed detector in (17)
+features the following merits.
+1) Its computational complexity scales linearly with the
+network size, i.e., O(M), even when there is no prior
+knowledge about the set of attacked meters, as opposed
+to generalized CUSUM, which is O(2M).
+2) It is robust, like the generalized CUSUM, to the changes
+in the distribution of the state vector xt, the magnitude,
+and direction changes in the attacking vector bt, and the
+uncertainty in the set of attacked meters.
+3) It also greatly facilitates the decentralization of cyberattack
+monitoring in wide-area power grids, which will
+be discussed in next section.
+We summarize the proposed sequential attack detector
+[see (17)] in Algorithm 1. Before performing this algorithm,
+the parameters γ and h need to be prescribed. To be specific,
+the lower bound γ is decided according to the designer's tolerance
+on the attacking impact. A larger γ emphasizes interest
+in the malicious data with a higher impact, whereas a smaller
+γ implies sensitivity to small distortions. The decision threshold
+h is tailored to meet a certain performance requirement,
+i.e., the average detection delay J(Tp) or the false alarm period
+α (owing to the diversity of attacks, the worst-scenario detection
+delay could be considered). Correspondingly, an off-line
+simulation suffices to fix the value of h, which only needs to
+be updated when the system setting is altered, for example,
+the noise level changes.
+2729
+=
+Algorithm 1 Centralized Sequential Cyber-Attack Detector
+1: Initialization: k ← 0, sm ← 0, Wm ← 0, m = 1, . . . , M
+2: while mM=1 Wm < h do
+3: k ← k + 1
+4: Collect meter readings yk and compute yk = Pyk
+5: Compute sm according to (12) and update Wm
+max {Wm + sm, 0} for m = 1, . . . , M
+6: end while
+7: Stop and raise the cyber-attack alarm
+IV. WIDE-AREA CYBER-ATTACK DETECTION
+In the previous section, the proposed sequential detector is
+developed under the centralized setup, where all the raw meter
+readings in the network are collected synchronously at each
+time by the control center. This induces a significant communication
+overhead in wide-area networks. As a matter of fact,
+communication across wide areas has become a critical concern
+in modern power grids, where wireless communication
+infrastructure (e.g., WiMax, Cellular, WiFi, Zigbee, Bluetooth)
+plays an important role [20]-[23]. In particular, [22] demonstrated
+the use of code division multiple access technology for
+power system SCADA, by providing cellular communication
+between sub-area remote terminal unit and SCADA server.
+Similarly, general packet radio service technology can also
+be applied to sub-area-to-SCADA communication [24]. On
+the other hand, the power industry deregulation has divided
+the large interconnected power system into increasingly many
+sub-areas [4], [5], [25]. In many cases, sub-areas are geographically
+separated, spanning over a vast area, which renders the
+communications and coordinations in the network challenging.
+All these have called for a more distributed setup in which
+sub-areas collect and manage their local meter readings, and
+then communicate with the control center for collaborative
+wide-area monitoring. In light of this practice, we proceed
+to propose a novel distributed sequential detector based on
+the proposed centralized detector Tp and a nonuniform sampling
+technique called level-triggered sampling. The resulting
+distributed detector remarkably decreases the communication
+overhead, yet preserves the high detection performance.
+A. System Model and Background
+Suppose there are L sub-areas and M meters in an
+(N + 1)-bus network. As such, the meter readings yt are
+divided into L sub-vectors, i.e., yt = [yt(1) , yt(2) , . . . , yt(L) ] ,
+where yt( ) represents the measurements in sub-area .
+Similarly, sub-areas confront the attack vector bt =
+[bt(1) , bt(2) , . . . , bt(L) ] and compute the projection yt =
+[yt(1) , yt(2) , . . . , yt(L) ] . The first issue that arises in the distributed
+setup is computing the projection yt = Pyt = yt−Hxˆt0,
+which is readily available at the control center in the centralized
+setup. However, in the distributed setup, yt needs to be
+computed in a distributed fashion. Note that, in general, subareas
+are interconnected, and thus H is not perfectly block
+diagonal [though usually nearly so, e.g., the measurement
+matrix of the IEEE-14 bus system given by (32)], meaning
+that (1) cannot be directly decoupled into L sub-systems.
+2730
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 6, NOVEMBER 2015
+Consequently, the projection matrix P = I − H(H H)−1H is
+not block diagonal, preventing a simple expression for yt( ).
+To resolve this issue, we first write the measurement model
+for each sub-area
+yt( ) = H xt( ) + bt( ) + et( ),
+= 1, . . . , L
+(21)
+where bt( ) = 0 before attack, x( ) ∈ RN , N is the number
+of local buses and H ∈ RM ×N , M is the number of
+local meter readings. Note that here the neighboring sub-areas
+may share some state parameters, i.e., xt( ) and xt(i), i ∈ N ,
+where N denotes the set of neighboring sub-areas to ,
+overlap partially owing to the meters deployed at their crosslinks
+(usually termed as tie-line). In the global estimator
+vector xˆt0 = (H H)−1H yt, denote the estimates of the state
+parameters associated to sub-area with xˆt( ). Then, we can
+write
+yt( ) = yt( ) − H xˆt( ).
+(22)
+Hence, each sub-area needs to compute the local estimator
+vector xˆt( ), which is a function of all measurements related to
+xt( ) in the network. In other words, due to interconnectedness,
+x( ) is not only a function of the measurements taken at subˆt
+area . Performing several iterations of data fusion between
+neighboring sub-areas, we can compute xˆt( ) at sub-area via
+the alternating direction method of multipliers (ADMM). The
+more iterations we have in ADMM, the closer it is to the
+global solution. Distributed state estimation using ADMM is
+well studied in [7] and we briefly summarize the procedure
+here. At each time t (we neglect the index t for notational convenience
+in (23)-(25), and the subscript i is used for the index
+of iteration, i.e., xˆi( ) is the state estimate of x( ) at time t after
+ith iteration of ADMM), the following recursive computation
+of xˆt( ) is performed.
+1) Local partial data exchange with neighbors
+fi [ j]
+1
+j
+|ω | k∈ω j
+x(k)[ j]
+ˆi
+(23)
+where a[ j] denotes the jth entry of vector a, and j is the
+index for the state parameter in sub-area that are shared
+with others and ω j is the set of the sub-areas sharing
+the variable xˆ( )[ j] with sub-area . Depending on the
+overlapping level of the network, j can take multiple
+values for each sub-area. In a word, fi [ j] is the average
+of the counterparts of xˆ( )[ j] from the neighbors that
+share it.
+2) Incorporating with local measurements and evaluating
+the local state estimate
+x( )
+ˆi+1 =
+H H
++ cD
+−1
+H y( ) + cD pi
+(24)
+with pi defined in the following recursive way:
+xˆi [ j] − fi [ j]
+pi+1[ j] = pi [ j] + fi+1[ j] − 2 , p0 = 0. (25)
+Where D ∈ NN ×N is a diagonal matrix defined for each
+sub-area with the (j, j)th entry equal to |ωj | (i.e., the number
+of elements in set w j), and c is a small constant which
+where gk Wkm denotes the local statistic of sub-area
+at time k, anmd∈WNkm is given by (12) and (18). Nonetheless,
+transmitting multibit quantized sub-area statistics to the control
+center at every sampling instant still imposes demanding communication
+requirements. Next, we propose a level-triggered
+sampling scheme in which sub-areas sporadically transmit
+single-bit information to the control center to report the
+changes in their local statistics, thus significantly decreasing
+the communication overhead.
+B. Distributed Sequential Attack Detector
+In the conventional approach, each sub-area samples its
+local statistic gk uniformly over time, and transmits quantization
+bits to the control center for each sample. Alternatively,
+level-triggered sampling, adapting the sampling (and thus
+communication) times to gk, requires significantly less number
+of bits for accurate representation of each sample. Moreover,
+adaptive sampling (communication) suits very well to the
+nonuniform nature of gk, which hovers around zero before
+the attack and steadily increases after the attack.
+Specifically, in level-triggered sampling, a sample is taken
+when the change in the signal with respect to its most recent
+approximation exceeds a certain level, say . Define kn as the
+nth sampling time at sub-area , and gk as the approximation
+n
+to gk due to the accumulation of single-bit change information
+n
+at sampling times until kn. Given g , the next sampling is
+kn−1
+triggered at time
+kn
+inf k > kn−1 : gk − gkn−1 ∈/ (%
+, ) .
+The single-bit change information
+φn
+sign g
+kn − gkn−1
+is then transmitted to the control center at time kn. Here, is a
+positive constant, selected to control the frequency of transmission
+(i.e., the transmission frequency decreases with increasing
+) and is known to the control center. The control center can
+recursively compute the approximation
+g
+kn = gkn−1 + φn .
+can be adjusted for convergence consideration. Here, f and p
+are auxilliary variables for expressing the data fusion process.
+Note that the local partial data exchange between neighboring
+sub-areas in ADMM is much more efficient in terms
+of communication resources than the global data fusion in
+the centralized setup. However, we still need to devise a
+resource-efficient method to combine the local statistics {Wkm}
+for sequential attack detection as in (17).
+As a result, with the local projection vector yt( ) available
+through ADMM, we can implement the sequential detector Tp
+[see (17)] as
+Tp
+!
+min k :
+L
+=1
+gk ≥ h
+"
+(26)
+(27)
+(28)
+(29)
+LI et al.: QUICKEST DETECTION OF FALSE DATA INJECTION ATTACK IN WIDE-AREA SMART GRIDS
+2731
+Fig. 1. Illustration for the level-triggered sampling scheme at sub-area .
+Note that at each sampling time kn, the control center misses
+only the overshoot information of how much the change at
+tmi misesinkng einxfcoeremdeadtion,isi.es.m,&&agllknc−omgpkan−re1d&&−to . I(nangdenveerrayl,ssmuaclhl
+compared to gk ), since it is caused by the last single increment
+n
+that triggers sampling, and gk, being a likelihood-ratio-based
+statistic, does not experience abrupt increments. Most importantly,
+the discrepancy does not propagate over time since each
+overshoot is compensated at the next sampling time. This is
+illustrated in Fig. 1, where εi is the overshoot at each leveltriggered
+sampling instant. It can be seen that ε2 at k3 is
+included in the next update of the increment at k4, and
+similarly, the new overshoot ε3 at k4 will be updated to the
+control center in the upcoming sampling instant. We summarize
+the implementation of level-triggered sampling at sub-area
+as Algorithm 2.
+On the other hand, to realize the detection scheme Tp
+in (26), the wide-area control center receives information bits
+from all sub-areas asynchronously and updates the global
+running statistic as follows:
+gk = gk−1 +
+=
+L
+=1 n: kn<k
+L
+=1
+{k=kn, φn=1}
+− {k=kn, φn=−1}
+{φn=1}
+− {φn=−1}
+(30)
+where {A} is the indicator function, taking the value 1 if
+A is true and 0 otherwise. The distributed sequential detector
+based on level-triggered sampling at the control center is
+summarized in Algorithm 3. Every time the global decision
+statistic is updated, the control center compares it with the
+prescribed threshold h to determine whether to raise an alarm
+or to continue receiving information from sub-areas.
+In summary, the level-triggered sampling scheme features
+an inherent data compression and adaptive communication
+between the distributed sub-areas and control center, thus
+Algorithm 2 Distributed Sequential Cyber-Attack Detector
+(at Sub-Area )
+9: λ ← λ + φ
+1: Initialization: k ← 0, g ← 0, λ ← 0, sm ← 0, Wm ← 0,
+m ∈ N
+2: while g − λ ∈ (− , ) do
+3: k ← k + 1
+4: Collect local meter readings yk and compute projection yk via
+ADMM given by (23)-(25)
+5: Compute sm using (12) and update Wm = max {Wm + sm},
+for m ∈ N
+76:: endg ←whigle+ m∈N Wm
+8: Send φ = sign(g − λ) to the control center
+and go to step 2.
+Algorithm 3 Distributed Sequential Cyber-Attack Detector (at
+Control Center)
+1: Initialization: g ← 0
+2: while g < h do
+3: Wait to receive information bits, say, r1 “+1”s and r2 “−1”s
+4: g ← g + (r1 − r2)
+5: end while
+6: Raise the attack alarm
+provides significant savings in bandwidth and energy consumption.
+V. NUMERICAL RESULTS
+In this section, we examine the proposed cyber-attack detectors
+numerically based on the IEEE 14-bus system (Fig. 2).
+Voltage magnitudes are set to be equal and normalized to 1.
+Line admittances are set to be j1. All the meters are placed in
+the same way as [5], [7], and [26]. The network is partitioned
+into four sub-areas, whose buses are grouped with dashed lines
+in Fig. 2. As such, the measurement matrix H is given by (32),
+where the columns are arranged such that the structure of
+overlapped states between neighboring sub-areas is revealed
+and the sub-area measurement matrices H , = 1, 2, 3, 4 are
+highlighted by blue dashed boxes. Throughout this section,
+γ = 0.02 and all meters readings are contaminated independently
+by AWGN with variance σ 2 = 10−4. We examine the
+proposed detectors both in centralized and distributed scenarios.
+The dynamic state parameters are generated by running
+the MATPOWER “case14” dc power-flow algorithm with
+linear load increase at some randomly selected buses [27].
+Bus 6 is presumed as the reference bus. First, using an
+example of bt, we compare the decision statistics of the
+proposed centralized detector and the “first-order CUSUM”
+in [11]. Then, we apply the proposed detector and firstorder
+CUSUM to a large group of randomly generated bt to
+examine their robustness for unknown bt. We also illustrate
+that the distributed detector based on level-triggered sampling
+yields well-approximated decision statistic at the control
+center. Finally, the average detection delay performance is
+plotted against the false alarm period to show the effectiveness
+of the distributed detector compared to its centralized
+counterpart.
+2732
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 6, NOVEMBER 2015
+Fig. 2. IEEE 14-bus power system partitioned into four sub-areas that communicate
+with the control center. The small filled circles on the branches
+refer to power-flow measurements between two buses, and the squares refer
+to power injection measurements.
+A. Centralized Detector Versus First-Order Detector
+We begin by demonstrating the decision statistics of the
+proposed centralized detector and the first-order CUSUM
+approach [11] before and after the attack occurs. Suppose the
+attack occurs at τ = 150 (marked by blue dashed lines in the
+figures). The attacking vector is generated as
+bt∗ = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, −1, 1,
+− 6, −5, −48, 43, −23, 47, 132, −21] × 10−4
+and bt ∈ R⊥(H). Fig. 3 depicts how the decision statistics
+react to the attacking behavior (the top plot is under the attack
+of bt and bottom plot is under the attack of 1.5bt). As seen
+from the top plot, the first-order CUSUM exhibits more fluctuation
+than the proposed detector, indicating a higher false
+alarm rate/smaller false alarm period E∞[T]. Both methods
+show abrupt increase after the attack occurs at τ although
+only a fraction of bt is nonzero. However, it is shown in the
+bottom plot that the proposed detector experiences a considerably
+steeper change in the decision statistic, hence is more
+sensitive to the magnitude increase of attacking vector than
+the first-order CUSUM. This is expected since the first-order
+CUSUM test builds on the small bt assumption, and is prone
+to efficiency loss for larger bt.
+Next, to demonstrate the robustness of the proposed detector
+to arbitrary attacking vector, we randomly generate a large
+group of bt and examine the successful rates of both detectors
+within a fixed time window after the occurrence of attack. For
+each group of bt, 105 instances are generated to cover more
+diverse attacking behaviors. By successful rate, we mean the
+fraction of bt out of 105 that are successfully detected within
+the selected time window. The decision thresholds are chosen
+such that both detectors meet the constraint E∞[T] ∼= 103.
+The following groups of bt and time window are used.
+1) b = Pu, ui ∼ U (0.00, 0.02), Window=10, 20.
+2) b = Pu, ui ∼ U (−0.02, 0.02), Window=20, 100.
+From the first to the second group of bt, we increase the
+number of negative components by decreasing the lower limit
+of the uniform distribution. Also, to exhibit the robustness
+Fig. 3. Decision statistics of the proposed centralized detector and the
+first-order CUSUM detector [11] under attack bt∗ (top) and 1.5bt∗ (bottom),
+respectively.
+of the proposed detector, we plot the success rate along
+with different number of attacked meters, whose corresponding
+bt entries admit |btm| ≥ γ . As seen from Figs. 4 and 5,
+the successful detection rate of the proposed detector always
+stays above that of first-order CUSUM detector, indicating its
+robustness to a wide range of bt. In particular, the following
+observations can be made.
+1) The more the attacked meters are, the higher proportion
+of the attacking vectors can be detected within the fixed
+window, implying a smaller detection delay. This is particularly
+true when the window is small, for example,
+Window = 10 in Fig. 4.
+2) In general, if we increase the window size, successful
+detection increases for both methods.
+In both groups of bt, the success rate of the proposed
+method approaches 100%, regardless of the number of
+attacked meters. However, the first-order CUSUM deteriorates
+severely in the second group, where more negative bt is generated.
+For example, in Fig. 5, even though the window size
+is set to be 100, which is impractically large, the first-order
+CUSUM detects only less than 50% of generated bt, indicating
+lack of robustness.
+B. Centralized Detector Versus Distributed Detector
+In this section, we examine the performance of the proposed
+distributed detector, both with and without level-triggered sampling.
+Instead of randomly choosing the attacking vector, we
+consider one that is deliberately designed by the attacker with
+partial/inaccurate network information. To this end, we assume
+that the attacker perceives the measurement matrix H as Ha,
+and H = Ha + δ, where δ captures the misinformation at the
+attacker's side. Nevertheless, the attacker intends to launch the
+perfect attack, that would supposedly bypass the security system
+as proposed in [12]. This is also the attacking strategy that
+maximizes the impact on state estimation and minimizes the
+detectable energy. Denote c as the state estimate error that the
+attacker aims to cause, then the injected data is ut = Hact [12],
+and b = Put. Note that
+bt = PHact = P (H − δ) ct = −Pδc
+(31)
+LI et al.: QUICKEST DETECTION OF FALSE DATA INJECTION ATTACK IN WIDE-AREA SMART GRIDS
+2733
+Fig. 4. Comparison of the proposed detector and the first-order CUSUM detector based on the first group of generated bt.
+Fig. 5. Comparison of the proposed detector and the first-order CUSUM detector based on the second group of generated bt.
+thus the attacker has made best use of their available information
+to limit the detectable b, with no knowledge of δ
+at all. In the simulation below, we assume the case where
+Ha characterizes the correct network topology, but the branch
+parameters deviate from true values by a zero-mean Gaussian
+variable with variance σ 2 = 0.1 (recalling that all branches
+are assumed to have unit reactance), which could be induced
+by real-time environment change, or measurement error. Note
+that the attacker does not know the deviation values or their
+statistical properties.
+The level-triggered sampling threshold is chosen as = 6.
+Fig. 6 depicts the decision statistics of proposed centralized
+detector and its associated distributed implementation (with
+and without level-triggered sampling) under the attack that
+occurs at τ = 250. The distributed detector without leveltriggered
+sampling refers to the detector (26) based on ADMM
+only, i.e., the local statistics are transmitted to the control center
+with infinite bits of quantization at every time, as opposed
+to the level-triggered sampling where they are transmitted
+with single-bit message every random period of time. The
+ADMM is implemented with number of iterations equal to
+10 and c = 0.4. We see that the decision statistics of the
+distributed detectors well approximate the centralized statistic.
+Notably, before the attack, the global statistic of the distributed
+detector with level-triggered sampling is rarely updated, indicating
+small sub-area to control center communication; while
+after the attack, frequent updates take place. This demonstrates
+the adaptiveness of the level-triggered sampling scheme
+to the local information, that is, only necessary information
+Fig. 6. Comparison of the decision statistics of the centralized, distributed
+(with and without level-triggered sampling scheme) detectors, and the firstorder
+detector.
+is transmitted to the control center. We also plot the statistic
+of the first-order detector, which fails to react to the attack,
+showing no abrupt change of statistic after τ .
+Next, we compare the proposed centralized and distributed
+detectors with the sequential detectors in the literature in terms
+of average detection delay as false alarm period increases.
+In Fig. 7, the conventional fixed-sample-size scheme (black
+line with diamond marks) corresponds to repeatedly applying
+one-shot false data detector, which is accomplished by
+the classical largest normalized residue (LNR) test [28]. It is
+seen that the repeated LNR test degrades remarkably as the
+false alarm period increases, compared to the other methods
+2734
+IEEE TRANSACTIONS ON SMART GRID, VOL. 6, NO. 6, NOVEMBER 2015
+sequential cyber-attack detector using an adaptive sampling
+technique called level-triggered sampling. The distributed
+detector considerably reduces the communication overhead in
+the system, compared to naive approaches, yet preserves the
+robustness and high performance of the proposed centralized
+detector. Numerical results have demonstrated the considerable
+advantages of the proposed centralized and distributed detectors
+over existing methods in terms of robustness and average
+detection delay performance.
+θ1 θ5
+P1,2 ⎛ 1 0
+1 −1
+PP21,,55 ⎜⎜⎜ 0 −1
+PP15 ⎜⎜⎜ −21 −41
+P4,5 ⎜⎜ 0 −1
+⎜⎜
+P3 ⎜⎜ 0
+P3,4 ⎜⎜ 0
+P4,7 ⎜⎜ 0
+P7,8 ⎜⎜ 0
+P4,9 ⎜⎜ 0
+P7,9 ⎜⎜ 0
+P9,10 ⎜⎜⎜⎜ 0 0
+P6,11 ⎜⎜ 0 0
+P10,11 ⎜⎜ 0 0
+P9,14 ⎜⎜ 0 0
+PP1143,14 ⎜⎜⎜⎜ 00 00
+PPPP1661,,2311,2313 ⎜⎝⎜⎜⎜⎜⎜⎜⎜ 0000 0000
+P12 0 0
+θ2
+−1
+0
+1
+−1
+−1
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0 H1− 1 −1 2
+0 0 −1 1
+0 0 1 0
+0 0 0 0
+0 0 1 0
+0 0 0 0
+0 0 0
+0 0 0
+0 −1 0
+−1 1 0
+0 0 −1
+0 1 −1
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0H2 0
+0 0
+0 0
+0 0
+0 0
+0 0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+1
+0
+0
+1
+−1
+0
+0
+0
+0
+0
+0
+Fig. 7. Comparison of the fixed-sample detector, and the proposed centralized
+detector, level-triggered-sampling-based detector, and uniform sampling
+detector.
+because it disregards the accumulative effect of the attacking
+behavior. The black line with squares corresponds to
+the centralized detector, which yields the best performance.
+The distributed detectors are implemented with the number
+of ADMM iterations equal to 10. We again have = 6.
+Note that the distributed detector based on level-triggered
+sampling performs similarly to the centralized detector, showing
+a slight degradation in the detection delay performance
+while significantly reducing the communication overhead.
+Specifically, for the four sub-areas, the average communication
+intervals are [37.5, 94.7, 68.2, 24.4] under normal condition,
+and [1.9, 22.1, 25.4, 17.9] under attack. As expected, before
+the attack, communication resources are saved by censoring
+uninformative data; and after the attack, informative data is
+transmitted more frequently. Throughout the procedure, the
+information update is realized by single-bit message transmission.
+To demonstrate the efficiency of the level-triggered
+sampling scheme, we also give the performance of the proposed
+distributed detector based on conventional uniform
+sampling (dashed line with triangle marks), in which singlebit
+quantized local statistics are transmitted with a period
+V = 2 (approximately match the minimum average transmission
+interval of level-triggered sampling, i.e., that of sub-area
+3 under attack). The following simple one-bit quantization
+scheme is used: ϕ = sign(g(k ) − g(k−)V ) Q, where we choose
+Q = 3. We see that the uniform sampling scheme deviates
+from the centralized detector considerably due to the coarse
+single-bit quantization. Moreover, the communication intervals
+are fixed at V = 2, thus lacking the adaptiveness to the nonuniform
+information characteristics before and after the attack.
+Note that frequent transmission of local statistics to the control
+center wastes the valuable communication resources.
+VI. CONCLUSION
+We have considered the sequential detection problem of
+false data injection attack in smart grid. We have proposed a
+centralized detector based on GLR, and showed that it is robust
+to various attacking data compared to the existing methods,
+and also computationally efficient. For wide-area monitoring
+in smart grid, we have further developed a distributed
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+−1
+0
+1
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+−1
+−1
+0
+0
+0
+H3
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+−1
+2
+−1
+− 1
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+−1
+1
+3
+−1
+0
+−1
+−1
+H4
+0 ⎞
+0
+0 ⎟⎟
+0 ⎟⎟
+0 ⎟⎟
+0 ⎟⎟
+⎟⎟
+0 ⎟⎟
+0 ⎟⎟
+0 ⎟⎟
+0 ⎟⎟
+00 ⎟⎟⎟
+⎟⎟ .
+000000 ⎟⎟⎟⎟⎟⎟⎟⎟⎟⎟⎟⎟
+⎟⎟⎟
+−01 ⎟⎟⎟
+⎟
+−11 ⎟⎟⎠
+2
+(32)
+θ4 θ3 θ8 θ7 θ9 θ10 θ11 θ14 θ13 θ12
+0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0
+−1 0 0 0 0 0 0 0 0
+1 0 0 0 0 0 0 0 0
+REFERENCES
+[1] A. G. Tartakovsky, B. L. Rozovskii, R. B. Blažek, and H. Kim, “A novel
+approach to detection of intrusions in computer networks via adaptive
+sequential and batch-sequential change-point detection methods,” IEEE
+Trans. Signal Process., vol. 54, no. 9, pp. 3372-3382, Sep. 2006.
+[2] S. Cui et al., “Coordinated data-injection attack and detection in the
+smart grid: A detailed look at enriching detection solutions,” IEEE Signal
+Process. Mag., vol. 29, no. 5, pp. 106-115, Sep. 2012.
+[3] O. Kosut, L. Jia, R. Thomas, and L. Tong, “Malicious data attacks on
+the smart grid,” IEEE Trans. Smart Grid, vol. 2, no. 4, pp. 645-658,
+Dec. 2011.
+[4] Y.-F. Huang, S. Werner, J. Huang, N. Kashyap, and V. Gupta, “State
+estimation in electric power grids: Meeting new challenges presented
+by the requirements of the future grid,” IEEE Signal Process. Mag.,
+vol. 29, no. 5, pp. 33-43, Aug. 2012.
+[5] G. N. Korres, “A distributed multiarea state estimation,” IEEE Trans.
+Power Syst., vol. 26, no. 1, pp. 73-84, Feb. 2011.
+[6] M. Ozay, I. Esnaola, F. T. Y. Vural, S. R. Kulkarni, and H. V. Poor,
+“Sparse attack construction and state estimation in the smart grid:
+Centralized and distributed models,” IEEE J. Sel. Areas Commun.,
+vol. 31, no. 7, pp. 1306-1318, Jul. 2013.
+[7] V. Kekatos and G. B. Giannakis, “Distributed robust power system state
+estimation,” IEEE Trans. Power Syst., vol. 28, no. 2, pp. 1617-1626,
+May 2013.
+[8] Y. Yilmaz, G. Moustakides, and X. Wang, “Cooperative sequential spectrum
+sensing based on level-triggered sampling,” IEEE Trans. Signal
+Process., vol. 60, no. 9, pp. 4509-4524, Sep. 2012.
+[9] Y. Yilmaz and X. Wang, “Sequential decentralized parameter estimation
+under randomly observed Fisher information,” IEEE Trans. Inf. Theory,
+vol. 60, no. 2, pp. 1281-1300, Feb. 2014.
+[10] G. Moustakides, “Optimal stopping times for detecting changes in
+distributions,” Ann. Statist., vol. 14, no. 4, pp. 1379-1387, 1986.
+[11] Y. Huang, H. Li, K. A. Campbell, and Z. Han, “Defending false
+data injection attack on smart grid network using adaptive CUSUM
+test,” in Proc. 45th Annu. Conf. Inf. Sci. Syst., Baltimore, MD, USA,
+Mar. 2011, pp. 1-6.
+LI et al.: QUICKEST DETECTION OF FALSE DATA INJECTION ATTACK IN WIDE-AREA SMART GRIDS
+2735
+[12] Y. Liu, P. Ning, and M. K. Reiter, “False data injection attacks against
+state estimation in electric power grids,” in Proc. 16th ACM Conf.
+Comput. Commun. Security, Chicago, IL, USA, Nov. 2009, pp. 21-32.
+[13] X. Liu and Z. Li, “Local load redistribution attacks in power systems
+with incomplete network information,” IEEE Trans. Smart Grid, vol. 5,
+no. 4, pp. 1665-1676, Jul. 2014.
+[14] Y. Yuan, Z. Li, and K. Ren, “Modeling load redistribution attacks in
+power system,” IEEE Trans. Smart Grid, vol. 2, no. 2, pp. 382-390,
+Jun. 2011.
+[15] G. Lorden, “Procedures for reacting to a change in distribution,” Ann.
+Math. Statist., vol. 42, no. 6, pp. 1897-1908, 1971.
+[16] M. Basseville and I. V. Nikiforov, Detection of Abrupt Changes: Theory
+and Application. Englewood Cliffs, NJ, USA: Prentice Hall, 1993.
+[17] A. G. Tartakovsky and A. S. Polunchenko, “Quickest changepoint detection
+in distributed multisensor systems under unknown parameters,”
+in Proc. 11th Int. Conf. Inf. Fusion, Cologne, Germany, Jun./Jul. 2008,
+pp. 1-8.
+[18] O. Hadjiliadis, H. Zhang, and H. V. Poor, “One shot schemes for decentralized
+quickest change detection,” IEEE Trans. Inf. Theory, vol. 55,
+no. 7, pp. 3346-3359, Jul. 2009.
+[19] Y. Mei, “Efficient scalable schemes for monitoring a large number of
+data streams,” Biometrika, vol. 97, no. 2, pp. 419-433, 2010.
+[20] V. Terzija et al., “Wide-area monitoring protection, and control of
+future electric power networks,” Proc. IEEE, vol. 99, no. 1, pp. 80-93,
+Jan. 2011.
+[21] Y. Yan, Y. Qian, H. Sharif, and D. Tipper, “A survey on smart grid communication
+infrastructures: Motivations, requirements and challenges,”
+IEEE Commun. Surveys Tuts., vol. 15, no. 1, pp. 5-20, Apr. 2013.
+[22] X. Zhang, Y. Gao, G. Zhang, and G. Bi, “CDMA2000 cellular network
+based SCADA system,” in Proc. Int. Conf. Power Syst. Technol.,
+Kunming, China, 2002, pp. 1301-1306.
+[23] P. P. Parikh, M. G. Kanabar, and T. S. Sidhu, “Opportunities and
+challenges of wireless communication technologies for smart grid applications,”
+in Proc. IEEE Power Energy Soc. Gen. Meeting, Minneapolis,
+MN, USA, Jul. 2010, pp. 1-7.
+[24] L. Kong, J. Jin, and J. Cheng, “Introducing GPRS technology into
+remote monitoring system for prefabricated substations in China,”
+in Proc. Int. Conf. Mobile Technol., Guangzhou, China, Nov. 2005, p. 6.
+[25] A. Gómez-Expósito, A. de la Villa Jaén, and C. Gómez-Quiles, “A taxonomy
+of multi-area state estimation methods,” IEEE Trans. Power Syst.,
+vol. 81, no. 4, pp. 1060-1069, Apr. 2011.
+[26] L. Xie, D.-H. Choi, S. Kar, and H. V. Poor, “Fully distributed state
+estimation for wide-area monitoring systems,” IEEE Trans. Power Syst.,
+vol. 3, no. 3, pp. 1154-1169, Sep. 2012.
+[27] R. D. Zimmerman and C. E. Murillo-Sánchez. (Dec. 2011).
+MATPOWER 4.1 User's Manual. [Online]. Available:
+http://www.pserc.cornell.edu/matpower/manual.pdf.
+[28] E. Handschin, F. C. Schweppe, J. Kohlas, and A. Fiechter, “Bad data
+analysis for power system state estimation,” IEEE Trans. Power App.
+Syst., vol. PAS-94, no. 2, pp. 329-337, Mar./Apr. 1975.
+Shang Li received the B.Sc. degree in electronics
+from Peking University, Beijing, China, and the
+M.Phil. degree in electronic and computer engineering
+from the Hong Kong University of Science and
+Technology, Hong Kong, in 2010 and 2012, respectively.
+He is currently pursuing the Ph.D. degree
+in electrical engineering from Columbia University,
+New York, NY, USA.
+His current research interests include random
+matrix theory with application in multi-antenna communication
+systems and statistical signal processing
+with applications in social networks and smart grids.
+Yasin Yılmaz received the B.Sc. degree from
+Middle East Technical University, Ankara, Turkey;
+the M.Sc. degree from Koc University, Istanbul,
+Turkey; and the Ph.D. degree from Columbia
+University, New York, NY, USA, in 2008, 2010, and
+2014, respectively, all in electrical engineering.
+He is currently a Post-Doctoral Research Fellow
+with the University of Michigan, Ann Arbor, MI,
+USA. His current research interests include statistical
+signal processing, sequential detection and
+estimation, event-based systems, cyber-physical systems,
+correlation mining, and anomaly detection.
+Xiaodong Wang (S'98-M'98-SM'04-F'08)
+received the Ph.D. degree in electrical engineering
+from Princeton University, Princeton, NJ, USA,
+in 1998.
+He is a Professor of Electrical Engineering at
+Columbia University, New York, NY, USA. His
+current research interests include the general areas
+of computing, signal processing, communications
+wireless communications, statistical signal processing,
+and genomic signal processing, and has
+published extensively in the above areas. He has
+authored a recent book entitled Wireless Communication Systems: Advanced
+Techniques for Signal Reception (Prentice Hall, 2003).
+Dr. Wang was the recipient of the 1999 National Science Foundation
+CAREER Award, the 2001 IEEE Communications Society and Information
+Theory Society Joint Paper Award, and the 2011 IEEE Communication
+Society Award for Outstanding Paper on New Communication Topics.
+He has served as an Associate Editor of the IEEE TRANSACTIONS
+ON COMMUNICATIONS, the IEEE TRANSACTIONS ON WIRELESS
+COMMUNICATIONS, the IEEE TRANSACTIONS ON SIGNAL PROCESSING,
+and the IEEE TRANSACTIONS ON INFORMATION THEORY.

@@ -1,0 +1,840 @@
+2015 American Control Conference
+Palmer House Hilton
+July 1-3, 2015. Chicago, IL, USA
+Secure Networked Control Systems Against Replay Attacks Without
+Injecting Authentication Noise
+Bixiang Tang, Luis D. Alvergue, and Guoxiang Gu
+Abstract- This paper studies detection of replay attacks on
+networked control systems, assuming that the actuation and
+sensing signals are transmitted over an additive white Gaussian
+noise channel. It explores the use of the spectral estimation technique
+to detect the presence of a replay attack without injecting
+authentication noise to the control signal at the plant input. Our
+proposed detection method is applicable to networked feedback
+systems equipped with stable controllers and designed with
+classical and modern control system techniques. A numerical
+example from the literature is used to illustrate the detection
+results for replay attacks on networked control systems.
+I. INTRODUCTION
+Networked control systems (NCSs) have received great
+attention in the control system community. Such a feedback
+system employs information technology (IT) to connect the
+plant and controller, and allow communication through a
+shared network. Hence, this configuration has a wide range of
+applications, including mobile sensor networks [16], multiagent
+systems [17], and automated highway systems [19],
+among others. For a more thorough overview of the state
+of the art see the special issues [1], [2], and the references
+therein. However, NCSs suffer from a greater vulnerability
+due to the presence of both cyber and physical attacks
+[15]. For this reason security issues in NCSs have attracted
+considerable interest [4], [6], [7], [22].
+This paper addresses a particular attack, termed as replay
+attack studied first in [14], one year before the Stuxnet worm
+was exposed in the news media. Allegedly Stuxnet was
+initially used to counter Iran's nuclear program [5], [11],
+but it can be used by any malicious attacker who wishes
+to disrupt any system that relies on feedback. So long as
+attackers have remote access to sensing and actuation devices
+and they are able to modify the software or reprogram the
+devices, it is possible to launch coordinated attacks against
+the system infrastructure (that is full of feedback control
+systems) without being detected by the underlying NCS until
+it is too late.
+Replay attacks assume that the sensing data are secretly
+recorded by the attacker, which are then replayed back to the
+monitor center while conducting the attack on the physical
+system. The deception created by replay is often seen in
+movies and spy fiction. A solution proposed in [14] injects
+a known independently identically distributed (i.i.d.) zeromean
+Gaussian noise into the control signal at the plant input
+The authors are with the School of Electrical Engineering and Computer
+Science, Louisiana State University, Baton Rouge, LA 70803-5901, USA
+lalver1@tigers.lsu.edu
+This research is supported in part by NASA/LEQSF(2013-15)-Phase3-06
+through grant NNX13AD29A and by the 111 project from NEU of China.
+978-1-4799-8684-2/$31.00 ©2015 AACC
+6028
+that serves as the authentication signal. Assuming an LQG
+control system, a 2 detector can then be used to detect the
+presence of the replay attack. It is shown in [14] that when
+the replay attack is present, the normalized error covariance
+of the innovation signal of the Kalman filter deviates from
+identity with a higher variance dependent on the variance of
+the injected noise. As its variance increases, the detection
+rate improves but the control performance suffers. There
+exists a trade-off between the detection rate and loss of the
+control performance in terms of the variance of the authentication
+signal. A method is proposed in [8] for designing
+the covariance of the authentication signal to minimize the
+performance loss while guaranteeing a certain probability
+of the detection rate. A different method is proposed in
+[13] by switching the feedback controller between the LQG
+(with no added noise) and the secure (with added noise)
+controllers. Results from non-cooperative stochastic games
+are used to minimize the worst-case control and detection
+cost. Another method injects i.i.d. Gaussian noise to the
+control signal on and off periodically [21], which can also
+provide similar trade-off between the control performance
+loss and the false detection rate. A natural question arises: Is
+it possible to detect the presence of the replay attack without
+injecting Gaussian noise? This problem becomes meaningful
+for NCSs due to the information distortion induced by the
+network channels, which may play a similar role to the
+injected noise at the control input. This paper considers
+a special type of NCSs involving additive white Gaussian
+noise (AWGN) channels. Such channels are well-studied
+in wireless communications [18], and in NCSs over fading
+channels [3], [9]. However, the 2-detector does not seem to
+work well due to the small bandwidth of the high loop gain.
+A spectral estimation approach is thus proposed to estimate
+the frequency response of the plant measurements at some
+specific frequency at which the plant gain is high while the
+controller gain is not small. It will be shown that the spectral
+estimator at this frequency provides a viable detector for
+replay attacks.
+II. PRELIMINARY ANALYSIS
+An NCS has the feedback controller situated in a different
+physical location from that of the plant, and it communicates
+with the plant via a (often wireless) network. The use
+of networks in feedback control systems thus creates a
+vulnerability for malicious attacks which seek to destabilize
+and damage the physical system. Specifically, consider the
+discrete-time feedback control system shown in Figure 1 in
+which d(t) represents the disturbance input, (t) consists
+of both measurement noise, 0(t), and communication error
+c(t), where t is integer-valued. Mathematically (t) =
+0(t) + c(t).
+d(t-) hu(t) - P (z)
+6
+y(t)
+v(t)
+K(z)
+w(t) ? (t)
+h
+Fig. 1. Feedback control system
+In Fig. 1, the reference or command input is assumed to
+be zero or removed together with its steady-state response in
+order to understand better the real issue in secure feedback
+control. The closed-loop transfer matrix from the exogenous
+inputs (fd(t)g; f (t)g) to the controller output and input
+(fv(t)g; fw(t)g) signals is given by
+TK (z) =
+K(z)
+I
+[I + P (z)K(z)] 1
+P (z) I
+:
+Without loss of generality the multi-input/multi-output
+(MIMO) plant model P (z) with m-input/p-output is assumed
+to admit a stabilizable and detectable state-space realization.
+Its transfer matrix is described by
+P (z) = D + C(zI
+A) 1B :=
+A
+C
+B
+D
+:
+(1)
+As a result, a stabilizing state feedback gain F and a
+stabilizing state estimation gain L exist such that (A + BF )
+and (A + LC) are both a Schur stability matrix. It is well
+known that P (z) admits left/right coprime factorizations
+(LCF/RCF) [10]
+P (z) = M~ (z) 1N~ (z) = N (z)M (z) 1
+with fM~ (z); N~ (z); M (z); N (z)g all stable transfer matrices.
+Assume that the feedback system in Fig. 1 is internally
+stable. Then the controller K(z) admits LCF/RCF given by
+K(z) = V~ (z) 1U~ (z) = U (z)V (z) 1
+(2)
+with fV~ (z); U~ (z); V (z); U (z)g all stable transfer matrices
+satisfying the Bezout identity
+V~ (z)
+N~ (z)
+U~ (z)
+M~ (z)
+M (z)
+N (z)
+U (z)
+V (z)
+(3)
+It is emphasized that the LCF/RCF for the plant model
+and for the stabilizing controller always exist and satisfy the
+Bezout identity in (3). The computation of such LCF/RCF
+for the plant and controller can be simplified for the observerbased
+controller
+Ko(z) = F (zI
+A
+BF
+LC
+LDF ) 1L:
+Recall that (A + BF ) and (A + LC) are both stability
+matrices. In this case, Ko(z) admits LCF/RCF
+Ko(z) = V~o(z) 1U~o(z) = Uo(z)Vo(z) 1
+= Im+p 8 jzj
+1:
+with realizations of its coprime factors together with those
+of coprime factors of P (z) specified as
+V~o(z)
+N~ (z)
+U~o(z)
+M~ (z)
+M (z)
+N (z)
+Uo(z)
+Vo(z)
+= 4
+2 A + LC
+F
+1C
+= 4
+2 A + BF
+F
+C + DF
+(B + LD)
+Im
+1D
+L
+0
+3
+5 ;
+B
+Im
+D
+L 3
+0
+5 ;
+1
+(4)
+for each square and nonsingular . The above is a slight
+modification from the existing literature [10]. Then any
+stabilizing controller K(z) for the feedback system in Fig.
+1 has the form
+K(z) =
+V~o + J N~
+1
+~
+Uo
+J M~
+= (Uo
+M J ) (Vo + N J ) 1
+(5)
+for some stable J (z). It follows that the coprime factors of
+K(z) in (2) given by
+V (z) = Vo(z) + N (z)J (z); U (z) = Uo(z)
+V~ (z) = V~o(z) + J (z)N~ (z); U~ (z) = U~o(z)
+M (z)J (z)
+(6)
+J (z)M~ (z);
+(7)
+satisfy the Bezout identity (3). Conversely, if the LCF/RCF
+of K(z) shown above are available, then
+J (z) = U~0(z)V (z) V~0(z)U (z) = V~ (z)U0(z) U~ (z)V0(z):
+Normally the exogenous inputs fd(t)g and f (t)g are
+wide-sense stationary (WSS) random processes, and are
+often white processes. However when attacks are present,
+fd(t)g and f (t)g are replaced by f u(t) + d(t)g and
+f y(t) + (t)g, respectively, as shown in Figure 2.
+d(t-) hu(t) - P (z)
+6
+y(-t) h (t)
+u(-t) h v(t)
+K(z)
+w(t) ? y(t)
+h
+Fig. 2. Feedback control system under attack
+It is assumed that the signals available for monitoring are
+at the controller site, and hence fv(t); w(t)g can be logged
+by the controller, while the most valuable data fu(t); y(t)g
+from the physical system are unavailable. In order to conceal
+the attack and induce damages, it is very likely that f u(t)g
+are unbounded, but f y(t)g are bounded. Even if a bounded
+u(t) is used for the malicious attack, it can be very
+irregular and disruptive in order to cause hardware damage
+to the physical system. As a result, f u(t)g and f y(t)g
+injected by the malicious attacker have different objectives:
+the former is aimed at replacing u(t) so to damage the
+physical system while the latter is aimed at concealing the
+true output y(t).
+6029
+This paper will be focused on the replay attack studied
+initially in [14], [15]. The notorious Stuxnet worm is a prime
+example of such an attack. It fits into the framework in Figure
+2 by taking u(t) = 0 and
+=)
+y(t) = (q
+w(t) = y(t
+1)[y(t) + o(t)]
+) + o(t
+) + c(t)
+for t
+t , where q 1 is the unit delay operator. Recall
+(t) = 0(t) + c(t):
+where both terms are i.i.d. random noise. From (8) it is
+clear that the replay attack has the effect of substituting
+the output (and measurement noise) at time t with the samples
+delayed output. This way the attack conceals the
+real-time output of the plant and it is probably the easiest
+way to fake the output of a normally operating plant. With
+>> 1, the catastrophic result of the true y(t) under attack
+u(t) is not observed at the controller site until a very long
+time later.
+The replay attack results in
+w(t) = P (q)[v(t
+) + d(t
+)] + o(t
+) + c(t)
+(8)
+(9)
+for t 2 [t ; t +
+absence of attacks:
+). Contrast the above to the case in
+w(t) = P (q)[v(t) + d(t)] + o(t) + c(t):
+The replay attack is very effective so long as the controller
+K(z) is stable and the feedback system is in steady-state, in
+light of the fact that w(t) in absence of attacks is statistically
+no different from that in presence of attacks. A significant
+challenge posed by the replay attack lies in proposing a
+method to detect the attack without injecting noise and that
+is also applicable to commonly used control systems other
+than LQG. This problem will be studied in the next section.
+III. DETECTION OF REPLAY ATTACKS
+Injection of authentication noise is effective to detect if
+a replay attack is present. However the noise injected at
+the plant input has to be large enough in order to achieve
+good detection performance, which deteriorates the control
+system performance. So there is a tradeoff between detection
+performance and control performance as demonstrated in [8],
+[13], [21]. In this paper the underlying NCS is assumed to
+employ network communications between the plant output
+and controller input over an AWGN channel, and thus
+(t) present at the plant output has the form of (9). It
+will be shown that the AWGN channel, while introducing
+information distortion, can help detection of the replay attack
+without injecting i.i.d. Gaussian noise at the plant input,
+provided that the noise power due to the AWGN channel
+is not too small. The following result provides two different
+LCFs of the plant model which will be useful later. The
+symbols 0 and stand for transpose and conjugate transpose,
+respectively.
+Lemma 1 Assume that the plant model P (z) in (1) admits a
+stabilizable and detectable realization, and fd(t); (t)g are
+both temporal white processes with covariance Qd and Q ,
+respectively.
+(i) Let Yn 0 be the stabilizing solution to the discrete-time
+algebraic Riccati equation (DARE):
+Yn = AYnA0
+(AYnC0 + BQdD0)Zn 1(AYnC0 + BQdD0)0
++ BQdB0
+where Zn = Q + DQdD0 + CYnC0. Then with L =
+Ln := (AYnC0 + BQdD0)Zn 1, the left coprime factors
+of P (z) in (4) are now given by P (z) = M~ n(z) 1N~n(z)
+with realization
+M~ n(z)
+N~n(z)
+=
+A + LnC
+Zn 1=2C
+Ln
+Zn 1=2
+(B + LnD)
+Zn 1=2D
+(10)
+Moreover fM~ n(z); N~n(z)g satisfy the following normalization
+condition
+N~n(z)QdN~n(z) + M~ n(z)Q M~ n(z) = I
+8 jzj = 1: (11)
+(ii) Let Y0
+Y0 = AY0A0
+0 be the stabilizing solution to DARE
+(AY0C0 + BD0)Z0 1(CY0A0 + DB0) + BB0
+where Z0 = I + DD0 + CY0C0. Then with L = L0 :=
+(AY0C0+BD0)Z0 1, the left coprime factors of P (z) in (4)
+are now given by P (z) = M~ 0(z) 1N~0(z) with realization
+M~ 0(z)
+N~0(z)
+=
+A + L0C
+Z 1=2C
+0
+L0
+Z 1=2
+0
+(B + L0D)
+Z 1=2D
+0
+Moreover fM~ 0(z); N~0(z)g satisfy the following normalization
+condition
+(12)
+(13)
+N~0(z)N~0(z) + M~ 0M~ 0(z) = I
+8 jzj = 1:
+Due to the space limit, the proof is omitted 2
+Consider first the LCF in Lemma 1 (i). It indicates that
+under (i),
+N (t) := N~n(q)d(t) + M~ n(q) (t)
+is a white process with mean zero and covariance identity.
+That is, the power spectral density (PSD) of N (t) is identity
+at all frequencies. Let K(z) = Un(z)Vn(z) 1 be an RCF for
+some stable and proper Vn(z) and Un(z) by taking V (z) =
+Vn(z) and U (z) = Un(z) in (2). Note that K(z) may not
+be an observer-based controller. In fact it can be PID or
+lead/lag compensator, provided that it stabilizes the feedback
+system in Figure 1 or 2. Now choosing L = Ln implies
+N~ (z) = N~n(z), and M~ (z) = M~ n(z) for the LCF of P (z)
+in (4). Since K(z) is stabilizing, Vn(z) and Un(z) can be
+chosen such that
+Vn(z) = Vo(z) + N (z)J (z);
+Un(z) = Uo(z)
+M (z)J (z);
+for some stable J (z) in light of (6) by simply setting V (z) =
+Vn(z) and U (z) = Un(z). In addition there holds
+M~ n(z)Vn(z) + N~n(z)Un(z) = I 8 jzj
+1:
+(14)
+The right coprime factorization of P (z) = N (z)M (z) 1 can
+be obtained by taking some stabilizing state feedback gain
+:
+:
+6030
+F , and thus Vo(z); Uo(z), and V~o(z); U~o(z) are also available
+by using L = Ln and the chosen stabilizing state feedback
+gain F .
+Consider first the case of no attack. Using the coprime
+factorization description of the plant and controller, and (14),
+it can be shown that
+TK (z) =
+Un(z)
+Vn(z)
+N~n(z)
+M~ n(z) :
+(15)
+Stability of K(z) implies that Vn(z) 1 is also a stable and
+causal transfer matrix. It follows that w(t) = Vn(q)N (t)
+by (15) and the definition of N (t) in (13). Thus Vn(z) 1
+represents a whitening filter in the sense that the filtered
+signal
+s(t) = Vn(q) 1w(t) = N (t)
+(16)
+is a white process with covariance identity, in light of
+the normalized left coprime factorization in (11) and the
+discussion after Lemma 1. Consequently the PSD of s(t)
+is given by s(!) = I for all !. Suppose that the replay
+attack takes place at t = t for the duration of >> 1.
+The PSD, w(!), for w(t) is given in the following result.
+Theorem 1 Suppose that o(t) and c(t) are independent
+white processes for all t. Let fM~ n(z); N~n(z)g in (10) be
+LCF of P (z) satisfying (11), and fVn(z); Un(z)g be RCF of
+the stabilizing controller satisfying (14). Under the replay
+attack, the PSD of w(t) is given by
+w(!) = Vn(ej!) hI
+M~ n(ej!)Q c M~ n(ej!) i Vn(ej!)
++ N (ej!)U~ (ej!)Q c U~ (ej!) N (ej!) + Q c
+where Q c is the covariance of c(t). In this case the PSD
+of s(t) in (16) is given by
+s(!) = I
+M~ n(ej!)Q c M~ n(ej!)
++ Vn(ej!) 1 hN (ej!)U~ (ej!)Q c U~ (ej!) N (ej!)
++Q c ] Vn(ej!)
+1:
+Proof: Suppose that t > t . Denote
+N (t) = N (t
+) = N~n(q)d(t
+) + M~ n(q) (t
+Over the time interval of [t ; t +
+),
+w(t) = w (t) = y(t
+= w(t
+) + o(t
+)
+c(t
+) + c(t)
+) + c(t):
+By the relation w(t) = Vn(q)N (t), there holds
+w (t) = Vn(q)N (t)
+c(t
+= Vn(q) hN~n(q)d(t
+) + c(t)
+) + M~ n(q) o(t
+hI
+Vn(q)M~ n(q)i
+c(t
+The Bezout identity in (3) can now be written as
+M (z)
+N (z)
+Un(z)
+Vn(z)
+V~ (z)
+N~n(z)
+U~ (z)
+M~ n(z)
+(17)
+):
+The above implies I
+w (t) = Vn(q) hN~n(q)d(t
+Vn(z)M~ n(z) = N (z)U~ (z), leading to
+) + M~ n(q) o(t )i
+N (q)U~ (q) c(t
+) + c(t): (19)
+The expression of w (t) is different from w(t) prior to t .
+As a result s(t) = Vn(q) 1w (t) is not a white process in
+general. Since the four terms in (19) are all uncorrelated, the
+PSD of w(t) over [t ; t + ) can be easily obtained as in
+the proposition in which the normalization property (11) is
+used in obtaining the PSD expression. The PSD of s(t) in
+(17) follows by s(t) = Vn(q) 1w(t). 2
+The above result shows that if k s(!) Ik is significantly
+greater than zero in most of the frequency range, then
+successful detection of the presence of replay attacks has a
+high probability. As a result, detection of the replay attack is
+equivalent to detecting whether or not s(t) is white. However
+the hypothesis on large deviation for k s(!) Ik in most of
+the frequency range does not hold in engineering practice.
+For this reason, it is more meaningful to consider the PSD of
+w(t) or s(t) at some specific frequency for which the LCF in
+(ii) of Lemma 1 plays an important role. It is also important
+to point out that the LCF in (ii) of Lemma 1 does not make
+use of the covariance of the input disturbance or/and output
+noise, and is thus more advantageous and admits robustness
+against the inaccuracy of the covariance matrices Qd and
+Q .
+Now consider the LCF in (ii) of Lemma 1, and RCF
+P (z) = N (z)M (z) 1 based on some stabilizing state
+feedback gain F . Let K(z) = U (z)V (z) 1 be a given
+stabilizing controller. Then in light of the parameterization
+of the stabilizing controllers in (5) and (6),
+V (z) = Vo(z) + N (z)J (z);
+U (z) = Uo(z)
+M (z)J (z)
+for some stable and proper J (z) where Ko(z) =
+Uo(z)Vo(z) 1 is an observer-based controller using the state
+feedback gain F and state estimation gain L0. It follows from
+P (z) = M~ 0(z) 1N~0(z) that TK (z) in (15) can be written
+as
+TK (z) =
+U (z)
+V (z)
+N~0(z)
+M~ 0(z) :
+The next result provides the expression of the PSD of w(t)
+at high-gain frequency !h with P (ej!) ! 1 as ! ! !h.
+Theorem 2 Suppose that the input noise d(t) is a white
+process with covariance Qd = d2Im, and the AWGN noise
+have covariance Q c = 2c Ip. Assume that p m, and
+i[P (ej!)] has infinity gain at ! = !h for 1 i p
+where i( ) is the ith singular value arranged in descending
+order. Let w(!), and s(!) be the PSD for w(t), and s(t),
+respectively. In the absence of replay attacks,
+w(!h) =
+d2V (ej!h )V (ej!h ) ;
+s(!h) =
+d2Im: (20)
+In the presence of replay attacks,
+w(!h) =
+s(!h) =
+d2V (ej!h )V (ej!h ) + 2 2c Im;
+d2Im + 2 2c V (ej!h ) 1V (ej!h )
+1:
+(21)
+)i
+) + c(t):
+= Im+p
+8 jzj
+1:
+(18)
+6031
+Proof: Under the assumption that all singular values of
+P (ej!) tend to infinity as ! ! !h,
+M~ 0(ej!)M~ 0(ej!)
+! 0; ! Ip;
+(22)
+as ! ! !h in light of (12). It follows that w(t) now has an
+expression
+N~0(ej!)N~0(ej!)
+w(t) = V (q) hN~0(q)d(t) + M~ 0(q) (t)i
+in absence of attacks. Thus there holds V (ej!)M~ 0(ej!) ! 0
+as ! ! !h. We can now conclude that the PSD of w(t) at
+! = !h is given by
+w(!h) = V (ej!h )N~0(ej!h )QdN~0(ej!h ) V (ej!h )
+=
+d2V (ej!h )V (ej!h ) ;
+(23)
+if Qd =
+d2I that verifies (20). In addition there holds
+M (z)
+N (z)
+U (z)
+V (z)
+V~ (z)
+N~0(z)
+U~ (z)
+M~ 0(z)
+= Im+p
+8 jzj
+1:
+The above is the same as (18) except that M~ n(ej!) and
+N~n(ej!) are replaced by M~ 0(ej!) and N~0(ej!), respectively,
+and Vn(z); Un(z), are replaced by V (z) and U (z), respectively.
+As a result,
+I
+V (z)M~ 0(z) = N (z)U~ (z) 8 jzj
+1
+=)
+N (ej!h )U~ (ej!h ) = I:
+If the replay attack is present, then
+Specifically (19) is modified into
+w(!h) changes its value.
+w (t) = V (q) hN~0(q)d(t
+) + M~ 0(q) o(t
+)i
+N (q)U~ (q) c(t
+) + c(t):
+The results in (22) and (23) then lead to
+w(!h) =
+d2V (ej!h )V (ej!h ) + 2Q c
+Q c =
+omitted.
+that verifies the expression of
+2c I. The derivation for
+w(!h) in (21), if in addition
+s(!h) is similar which is
+2
+Remark 1 Consider the single-input/single-output (SISO)
+case. The normalized coprime factors in (ii) of Lemma 1
+implies that jN~0(ej!h )j = 1 by M~ 0(ej!h ) = 0 due to the
+assumption of jP (ej!h )j = 1. In addition M (ej!h ) = 0.
+Thus U (ej!h )N~0(ej!h ) = 1. It follows that jU (ej!h )j = 1
+as well, and hence jV (ej!h )j has a small value, provided
+that K(z) = U (z)V (z) 1 has a reasonably large gain at
+!h, which is ensured by several different design techniques,
+including the classical Bode design method and H1 loop
+shaping [12]. Often !h = 0 and in this case if jV (ej!h )j is
+not very small, a lag type compensator can be added in by
+replacing K(z) by
+K(z) +
+z
+1 +
+with both > 0 and > 0 much smaller than 1 and >> 1.
+Hence the gain of V (z) 1 can be boosted to help increase
+the detection rate without sacrificing the false alarm rate.
+The addition of the lag type compensator z 1+ helps to
+improve the steady-state performance while compromising
+little of the transient response. See our numerical example
+in Section IV. 2
+Theorem 2 and Remark 1 show that
+s(!h) = d2 + 2 c2jVd2(;ej!h )j 2;
+if H0;
+if H1;
+where H0 represents the hypothesis for the absence, and H1
+for the presence of the replay attack. The two terms on the
+right hand sides can have large difference from each other.
+Therefore a threshold ( %), based on the given false alarm
+rate %, can be setup for the following detector:
+(24)
+H1
+s(!h) ? ( %):
+H0
+IV. AN ILLUSTRATIVE EXAMPLE
+An example from [14] is employed to illustrate our proposed
+detection technique. This example considers a room
+temperature control system. Let T (t) be the room temperature
+at time index t and T be the desired temperature.
+Denote x(t) = T (t) T as the state variable. Then the
+following describes the dynamic process of the temperature
+deviation:
+x(t + 1) = x(t) + u(t) + d(t);
+y(t) = x(t) + (t):
+It is assumed in [14] that the disturbance d(t) and measurement
+noise o(t) are i.i.d. Gaussian processes with variance
+1 and 0.1 respectively. This paper assumes that c(t), the
+AWGN of the communication channel at the plant output,
+is also i.i.d. Gaussian. Clearly the plant model satisfies the
+hypothesis of Theorem 2 by taking !h = 0 at which the plant
+has an infinity gain. In contrast to the LQG controller in [14],
+a simple deadbeat controller K(z) 1 is taken that places
+the closed-loop pole to the origin. Since this controller does
+not admit small gain for jV (ej!h )j at !h = 0, the deadbeat
+controller is replaced by
+0:09 z 0:9
+K(z) = 1 + = ;
+z 0:99 z 0:99
+that is a lag compensator, following Remark 1. Hence the
+value of jV (ej!h )j 1 is boosted 10 times. We employ
+the detector in (24) with false alarm rate = 5%. The
+detection performance is shown in Figure 3 based on an
+average of 10,000 ensembles with the window size 5 for
+spectrum estimation. The solid (blue), dotted (black), and
+dashed line (red) curves show the detection rates when
+2c = 0:1; 0:2; 0:6, respectively. The performance curves are
+much better than those of [14] in which the detection rate
+is only 0.35 when the noise injected to the control signal at
+the plant input has variance 0.6. Intuitively speaking, the
+authentication noise injected at the plant input is not as
+effective as the communication noise present at the plant
+output, considering that the noise at the plant input has to
+6032
+communication noise = 0.1
+communication noise = 0.2
+communication noise = 0.6
+102
+104
+106
+108
+110
+Time step
+112
+114
+116
+118
+120
+Fig. 3. Detection rate at each time step for different variances
+Figure 4 shows the detection performance for different
+window sizes when the communication noise has 2 = 0:1.
+c
+The solid (red), dashed (blue), and dotted (black) lines
+correspond to window size of 5, 10, and 20, respectively. It
+is seen that as window size increases, the detection performance
+improves. This observation is important, because the
+variance of the communication noise cannot be chosen by the
+designer. So if the variance is too small, the window size can
+be increased in order to improve the detection performance.
+However as the window size increases, the timely detection
+of the replay attack can be a problem. It is clear then,
+that there is a tradeoff between the window size and timely
+detection. More details on the computational aspects involved
+in computing V (z) in Theorem 2 and on spectrum estimation
+can be found in [20].
+propagate through the plant dynamics before showing up at
+the plant output.
+0.8
+0.75
+0.7
+0.65
+0.6
+0.55
+te 0.5
+ra0.45
+iton 0.4
+c
+te0.35
+e
+D0.3
+0.25
+0.2
+0.15
+0.1
+0.05
+0
+100
+0.9
+0.85
+0.8
+0.75
+0.7
+0.65
+0.6
+te 0.55
+rna 0.5
+ito 0.45
+tce 0.4
+eD 0.35
+0.3
+0.25
+0.2
+0.15
+0.1
+0.05
+0
+100
+window size=5
+window size=10
+window size=20
+115
+Time step
+105
+110
+120
+125
+130
+Fig. 4. Detection rate at each time step for different window sizes
+V. CONCLUSION
+This paper considers the problem of the replay attack on
+NCSs. While this problem has been studied in a number of
+papers, authentication noise has to be injected to the control
+signal which degrades the control system performance. In
+contrast, we propose to utilize the communication noise
+that already exists in NCSs for detecting the replay attack.
+Although the communication noise is unknown at each time
+sample, it can also serve as a time stamp, in a similar manner
+as the authentication noise. A spectral estimation method is
+developed to estimate the spectrum of the received signal
+at the controller site at a specific frequency. Its value or its
+filtered value differ between the presence and absence of the
+replay attack. A numerical example has been worked out to
+illustrate our proposed detection algorithm.
+REFERENCES
+[1] P. Antsaklis and J. Baillieul (Guest Editors), “Special Issue on Networked
+Control Systems”, IEEE Trans. Automat. Contr., vol. 49, 2004.
+[2] P. Antsaklis and J. Baillieul (Guest Editors), “Special Issue on Technology
+of Networked Control Systems”, Proc. of IEEE, vol. 95, 2007.
+[3] J.H. Braslavsky, R.H. Middleton, and J.S. Freudenberg, “Feedback
+stabilization over signal-to-noise ratio constrained channels,” IEEE
+Trans. Automat. Contr., vol. 52, pp. 1391-1403, Aug. 2007.
+[4] E. Byres and J. Lowe, “The myths and facts behind cyber security
+risks for industrial control systems,” Proceedings of the VDE Kongress,
+VDE, Berlin, Oct. 2004.
+[5] W.J. Broad, J. Markoff, and D.E. Sanger, “Israeli test on worm called
+crucial in iran nuclear delay,” The New York Times, January 2011.
+[6] A.A. Ca´rdenas, S. Amin, and S. Sastry, “Research challenges for the
+security of control systems,” Proceedings of the 3rd Conference on Hot
+Topics in Security, pp. 1-6, Berkeley, CA, USA: USENIX Association,
+2008.
+[7] A.A. Ca´rdenas, S. Amin, and S. Sastry, “Secure control: Towards survivable
+cyber-physical systems,” in Proceedings of 28th International
+Conference on Distributed Computing Systems Workshops, ICDCS'08,
+pp. 495-500, 2008.
+[8] R. Chabukswar, Y. Mo, and B. Sinopoli, “Detecting integrity attacks on
+SCADA systems,” in Proceedings of the 18th IFAC World Congress,
+pp. 11239-11244, Milano, Italy, 2011.
+[9] J. Freudenberg, R. Middleton and J. Braslavsky, “Minimum variance
+control over a Gaussian communication channel”, IEEE Trans. Automat.
+Contr., vol. 56, pp. 1751-1765, 2011.
+[10] G. Gu, Discrete-Time Linear Systems: Theory and Design with Applications,
+Springer, March 2012.
+[11] David Kushner, “The real story of stuxnet,” IEEE Spectrum, vol. 50,
+pp. 48-53, March 2013.
+[12] D. McFarlane and K. Glover, Robust Controller Design Procedure
+Using Normalized Coprime Factor Plant Descriptions, vol. 138,
+Lecture Notes in Control and Information Sceinces, Springer-Verlag,
+1990.
+[13] F. Miao, M. Pajic, and G.J. Pappas, “Stochastic game approach for
+replay attack detection,” Proceedings of the 52nd IEEE Conference
+on Decision and Control, pp. 1854?859, Firenze, Italy, Dec. 2013.
+[14] Y. Mo and B. Sinopoli, “Secure control against replay attacks,”
+Proceedings of 47th Annual Allerton Conference (UIUC, IL), pp. 911918,
+Sept 30 - Oct. 2, 2009.
+[15] Y. Mo, T. H.-J. Kim, K. Brancik, D. Dickinson, H. Lee, A. Perrig, and
+B. Sinopoli, “Cyber-physical security of a smart grid infrastructure,”
+Proceedings of the IEEE, vol. 100, no.1, pp. 195-209, Jan. 2012.
+[16] P. Ogren, E. Fiorelli, and N. E. Leonard, “Cooperative control of
+mobile sensor networks: Adaptive gradient climbing in a distributed
+environment”, IEEE Trans. Automat. Contr., vol. 49, pp. 1292-1302,
+2004.
+[17] R. Olfati-Saber, and R. Murray , “Consensus problems in networks
+of agents with switching topology and time-delays,” IEEE Trans.
+Automat. Contr., vol. 49, no. 9, pp. 1520-1533, 2004.
+[18] T.S. Rappaport, Wireless Communications: Principles and Practice,
+second edition, Prentice Hall, 2002.
+[19] P. Seiler and R. Sengupta, “Analysis of communication losses in
+vehicle control problems”, Proc. 2001 Amer. Contr. Conf., vol. 2, pp.
+1491-1496, 2001.
+[20] B. Tang, New approaches to smart grid security with SCADA systems,
+Ph.D. Dissertation, ECE, Louisiana State University, July 2014.
+[21] T.-T. Tran, O.-S. Shin, and J.-H. Lee, “Detection of replay attacks
+in smart grid systems,” Proc. Int. Conf. Comput. Mangement and
+Telecommun., Ho Chi Minh City, Vietnam, pp. 298-302, 2013.
+[22] L. Xie, Y. Mo, and B. Sinopoli, “False data injection attacks in
+electricity markets,” Proc. IEEE Int. Conf. Smart Grid Commun, pp.
+226-231, Oct. 2010.
+6033

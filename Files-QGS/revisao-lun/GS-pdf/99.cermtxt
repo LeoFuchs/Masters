@@ -1,0 +1,789 @@
+2015 IEEE 54th Annual Conference on Decision and Control (CDC)
+December 15-18, 2015. Osaka, Japan
+Secure State Reconstruction in Differentially Flat Systems Under
+Sensor Attacks Using Satisfiability Modulo Theory Solving
+Yasser Shoukry, Pierluigi Nuzzo, Nicola Bezzo,
+Alberto L. Sangiovanni-Vincentelli, Sanjit A. Seshia, and Paulo Tabuada
+Abstract- We address the problem of reconstructing the state
+of a differentially flat system from measurements that may be
+corrupted by an adversarial attack. In cyber-physical systems,
+malicious attacks can directly compromise the system's sensors
+or manipulate the communication between sensors and controllers.
+We consider attacks that only corrupt a subset of sensor
+measurements. We show that the possibility of reconstructing
+the state under such attacks is characterized by a suitable
+generalization of the notion of s-sparse observability, previously
+introduced by some of the authors in the linear case. We also
+extend our previous work on the use of Satisfiability Modulo
+Theory solvers to reconstruct the state under sensor attacks
+to the context of differentially flat systems. The effectiveness
+of our approach is illustrated on the problem of controlling a
+quadrotor under sensor attacks.
+I. INTRODUCTION
+A broad range of today's critical infrastructures is increasingly
+relying on sensors and cyber components (e.g.,
+digital processors and networks) to closely monitor and
+control physical processes. While helping improve the overall
+system efficiency and performance, such a tight interaction
+is often at the outset of unprecedented vulnerabilities and
+malicious attacks. A striking example of such attacks is the
+Stuxnet virus targeting SCADA systems [1]. In this attack,
+sensor measurements are replaced by previously recorded
+data, which, once they are fed to the controller, can lead to
+catastrophic situations. Other examples include the injection
+of false data in “smart” systems [2], and the non-invasive
+sensor spoofing attacks in the automotive domain [3].
+To secure these cyber-physical systems, a possible strategy
+is to exploit an accurate mathematical model of the dynamics
+of the physical system under control, and analyze any
+discrepancy between the actual sensor measurements and the
+ones predicted by the model, to decide about the existence
+of an adversarial attack [4], [5]. Once the malicious sensors,
+Y. Shoukry and P. Tabuada are with the Electrical Engineering Department,
+U.C. Los Angeles, fyshoukry, tabuadag@ucla.edu
+P. Nuzzo, A. L. Sangiovanni-Vincentelli, and S. A. Seshia are with
+the Department of Electrical Engineering and Computer Sciences, U.C.
+Berkeley, fnuzzo,alberto,sseshiag@eecs.berkeley.edu
+N. Bezzo is with the PRECISE Center, University of Pennsylvania,
+nicbezzo@seas.upenn.edu
+This work was partially sponsored by the NSF award 1136174, by
+DARPA under agreement number FA8750-12-2-0247, by TerraSwarm, one
+of six centers of STARnet, a Semiconductor Research Corporation program
+sponsored by MARCO and DARPA, and by the NSF project ExCAPE:
+Expeditions in Computer Augmented Program Engineering (award 1138996
+and 1139138). The U.S. Government is authorized to reproduce and distribute
+reprints for Governmental purposes notwithstanding any copyright
+notation thereon. The views and conclusions contained herein are those
+of the authors and should not be interpreted as necessarily representing
+the official policies or endorsements, either expressed or implied, of NSF,
+DARPA or the U.S. Government.
+978-1-4799-7886-1/15/$31.00 ©2015 IEEE
+3804
+if any, are detected and identified, it is then possible to
+reconstruct the actual system state by using the data collected
+from the attack-free sensors. In the following, we refer to this
+approach as secure state reconstruction.
+The problem of state reconstruction in the presence of
+disturbances, in its general form, has attracted considerable
+attention from the control community over the years. Previous
+work addresses the problem in terms of robust filter
+(estimator) design against outliers [6], [7], [8]. However, the
+lack of a priori knowledge about the attack signals tends
+to limit the applicability of robust estimation techniques to
+security problems. In secure state reconstruction, no assumptions
+are usually made about the attacks, e.g., their stochastic
+properties, time evolution, or energy bounds.
+A game theoretic formulation for the secure state reconstruction
+problem has been proposed in the literature, when
+the physical system is scalar [9]. An alternative reconstruction
+technique, still in the context of a scalar system equipped
+with one sensor, has also been derived based on the analysis
+of the performance degradation of a Kalman filter when
+the sensor is under attack [10]. Finally, the general case of
+a multidimensional system equipped with multiple sensors
+has been tackled [11], [5], [12], [13], [14], [15], [16], [17],
+[18] when the attackers are restricted to corrupt an unknown
+subset of the system sensors. However, all of the above
+contributions focus on problems for which the underlying
+dynamics can be described by a linear system.
+Unlike previous work, we focus in this paper on the
+problem of secure state reconstruction for a class of nonlinear
+systems. Specifically, we consider physical systems whose
+dynamics can be described by a differentially flat system
+[19]. Differentially flat systems represent an important
+class of nonlinear systems, in that they encompass a wide
+range of mechanical systems, including several examples of
+ground and aerial vehicles.
+While differentially flat systems can be converted into
+linear systems using dynamic feedback linearization and
+a change of coordinates, this technique would, however,
+require the knowledge of the system state. Since this is
+clearly our ultimate goal, it is not possible to directly
+apply the results from linear secure state reconstruction to
+differentially flat systems. We follow instead a different
+approach, by building on our previous work on sound and
+complete secure state reconstruction for linear systems [15],
+[16] to develop an algorithm that can efficiently identify
+the corrupted sensors by leveraging Satisfiability Modulo
+Theory (SMT) solving [20] to tackle the combinatorial
+aspects of the problem. For the sake of brevity, we omit
+all the proofs in this paper. For further details, we refer
+the reader to our extended report [21], where we discuss a
+more general notion of s-sparse observability for nonlinear
+systems and its connections with the solution of the secure
+state reconstruction problem.
+II. THE SECURE STATE RECONSTRUCTION PROBLEM
+A. Notation
+The symbols N; R and B denote the sets of natural, real,
+and Boolean numbers, respectively. If S is a set, we denote
+by jSj its cardinality. The support of a vector x 2 Rn,
+denoted by supp(x), is the set of indices of the non-zero
+components of x. Similarly, the complement of the support of
+a vector x is denoted by supp(x) = f1; : : : ; ngnsupp(x). We
+call a vector x 2 Rn s-sparse, if x has s nonzero elements,
+i.e., if jsupp(x)j = s.
+Let f : Rn ! Rm be a function given by f (x) =
+(f1(x); : : : ; fm(x)), where fi : Rn ! R is the ith component
+of f . Then, for the set f1; : : : ; mg, we denote
+by f the vector function obtained from f by removing all
+the components except those indexed by . Similarly, f is
+obtained from f by removing the components indexed by
+. Finally, we use the notation rxf to denote the Jacobian
+matrix of f evaluated at x.
+B. Dynamics and Attack Model
+We consider a system of the form:
+a
+(x(t+1)
+y(t)
+= f x(t); u(t) ;
+= h x(t) + a(t)
+(II.1)
+where x(t) 2 X Rn is the system state, u(t) 2 U Rm
+is the system input, and y(t) 2 Rp is the observed output,
+all at time t 2 N. The map f : X U ! X represents the
+system dynamics. We will use the notation fu(x) = f (x; u)
+in the remainder of this paper. We also use the notation
+fu(k):::u(1) (x) to denote the k-fold composition of f , i.e.,
+fu(k)u(k 1):::u(1) (x) =
+f f f f u(1); x ; : : : ; u(k 1) ; u(k) :
+An attacker corrupts the sensor measurements y by either
+spoofing the sensor outputs, or by manipulating the data
+transmitted from the sensors to the controller. Independently
+of how the attack is implemented, its effect can be described
+by the s-sparse vector a(t) 2 Rp. If sensor i 2 f1; : : : ; pg
+is attacked then the ith component of a(t) is non-zero;
+otherwise the ith sensor is not attacked. Hence, s describes
+the number of attacked sensors. We make no assumptions on
+the vector a(t) other than being s-sparse. In particular, we do
+not assume bounds, statistical properties, or restrictions on
+the time evolution of the elements in a(t). While the value
+of s is not known, we assume the knowledge of an upper
+bound s on it.
+C. Problem Formulation
+Solving the secure state reconstruction problem implies
+estimating the state x from a set of measurements collected
+over a window of length 2 N. Hence, we start by grouping
+the measurements from the ith sensor as:
+Yi(t) = Hu;i x(t
++1)
++ E(t)
+i
+(II.2)
+where:
+Hu;i x(t
++1)
+Y (t) = 666yi(t
+i
+6
+4
+2
+6
+= 6
+6
+4
+2yi(t
++1)3
+.
+.
+.
+y(t)
+i
++2)7
+77 ; Ei(t) = 666ai(t
+7 6
+5 4
+hi x(t
++1)
+hi fu(t +1) x(t
+.
+.
+.
+2ai(t
+.
+.
+.
+a(t)
+i
++1)
++1)3
++2)7
+77 ;
+7
+5
+3
+7
+7 :
+7
+5
+hi fu(t):::u(t +1) x(t
++1)
+We then define:
+2Y (t)3
+1
+.
+Y (t) = 64 .. 75 ;
+Yp(t)
+2E(t)3
+1
+.
+E(t) = 64 .. 75 ;
+Ep(t)
+2Hu;13
+.
+Hu = 64 .. 75
+Hu;p
+where, with some abuse of notation, Yi; Ei and Hu;i are used
+to denote the ith block of Y (t); E(t) and Hu, respectively.
+Using the same notation, we denote by Y ; E , and Hu;
+the blocks indexed by the elements in the set . Moreover,
+for simplicity, we drop the time t argument in the following,
+since we assume that the secure state reconstruction problem
+is to be solved at every time instance.
+Let (x ; E ) denote the actual state of the system and the
+actual attack vector. Let also b 2 Bp be a vector of binary
+indicator variables such that bi = 0 when the ith sensor is
+attack-free and bi = 1 otherwise. It follows from (II.2) that:
+Yi =
+(
+Hu;i(x )
+Hu;i(x ) + Ei
+if bi = 0
+if bi = 1:
+Therefore, we are interested in a state estimate x and a vector
+of binary indicator variables b = (b1; : : : ; bp) such that the
+discrepancy between the collected measurements Yi and the
+expected outputs Hu;i(x) is zero for all the sensors that are
+labeled as attack-free sensors (bi = 0). Furthermore, the
+estimated state x should be equal to x . These requests can
+be formalized as follows.
+Problem 2.1: (Secure State Reconstruction) For the control
+system under attack a (defined in (II.1)), construct
+the estimate = (x; b) 2 Rn Bp such that j= (i.e.,
+satisfies the formula ), where:
+p
+::= ^
+i=1
+:bi ) kYi
+Hu;i(x)k22 = 0
+!
+^
+p
+X bi
+i
+!
+s ;
+(II.3)
+subject to (x = x) ^ (supp(b ) supp(b)):
+The second clause in the formula rules out the trivial
+solution in which all sensors are labelled as attacked, by
+3805
+enforcing a cardinality constraint on the number of attacked
+sensors, which is required to be bounded by s.
+As in the case of linear systems [16], the secure state
+reconstruction problem formulation in Problem 2.1 does not
+ask for a solution with the minimal number of attacked
+sensors. However, it is possible to obtain the minimal set
+of sensors under attack by invoking a solver for Problem 2.1
+multiple times [16].
+D. Differential Flatness and s-Sparse Flatness
+For linear systems, the notion of s-sparse observability
+plays a key role in determining the existence of a solution
+for Problem 2.1 [12], [13]. In this subsection, we generalize
+this notion for a special class of nonlinear systems known
+as differentially flat1 systems. A system is differentially flat
+if the state and the input can be reconstructed from current
+and previous outputs. More formally,
+Definition 2.2 (Differential Flatness): System is differentially
+flat if there exist an integer k 2 N, and functions
+and , such that the state and the input can be reconstructed
+from the outputs y(t) as follows:
+x(t) =
+u(t) =
+y(t); y(t 1); : : : ; y(t k+1)
+y(t); y(t 1); : : : ; y(t k+1) :
+In such case, the output y(t) is called a flat output.
+In the remainder of this paper, we assume that the window
+length in (II.2) is chosen such that = k.
+Definition 2.3 (s-Sparse Flat System): The nonlinear
+control system a, defined by (II.1), is said to be s-sparse
+flat if for every set f1; : : : ; pg with j j = s, the system
+:
+(x(t+1)
+y(t)
+= f x(t); u(t) ;
+= h
+x(t)
+is differentially flat.
+In other words, the system is s-sparse flat if any choice of
+p s sensors is a flat output. Using the notion of s-sparse
+flatness, we can then establish the following result on the
+correctness of the solutions of Problem 2.1.
+Theorem 2.4: If the dynamical system a defined by
+(II.1) is 2s-sparse flat, then for any pair = (x; b) that
+satisfy in (II.3) the following holds:
+x = x
+^
+supp(b )
+supp(b):
+III. SECURE STATE RECONSTRUCTION USING SMT
+SOLVING
+The secure state reconstruction problem is combinatorial,
+since a direct solution would require constructing the state
+from all different combinations of p s sensors to determine
+which sensors are under attack. In this section, we show how
+using SMT solving can dramatically reduce the complexity
+of the reconstruction algorithm.
+1Although the term difference flatness is sometimes used in the literature
+for systems governed by difference equations, we choose to employ the
+widely accepted term differential flatness.
+To decide whether the combination of Boolean and
+nonlinear constraints in (II.3) is satisfiable, we develop
+the detection algorithm IMHOTEP-SMT using the lazy
+SMT paradigm [20]. By building upon the IMHOTEP-SMT
+solver [16], [22], our decision procedure combines a SAT
+solver (SAT-SOLVE) and a theory solver (T -SOLVE). However,
+differently than [16], [22], the theory solver in this
+paper can also reason about the nonlinear constraints in (II.3),
+as generated from a differentially flat system. The SAT
+solver efficiently reasons about combinations of Boolean
+and pseudo-Boolean constraints2, using a modern instantiation
+of the David-Putnam-Logemann-Loveland (DPLL) algorithm
+[23] to suggest possible assignments for the nonlinear
+constraints. The theory solver checks the consistency of the
+given assignments, and provides the reason for the conflict,
+a certificate, or a counterexample, whenever inconsistencies
+are found. Each certificate results in learning new constraints
+which will be used by the SAT solver to prune the search
+space. The complex decision task is thus broken into two
+simpler tasks, respectively, over the Boolean and nonlinear
+domains.
+A. Overall Architecture
+As illustrated in Algorithm 1, we start by mapping each
+nonlinear constraint to an auxiliary Boolean variable ci to
+obtain the following (pseudo-)Boolean satisfiability problem:
+p
+B := ^
+i=1
+:bi ) ci
+!
+^
+p
+X bi
+i=1
+!
+s
+where ci = 1 if kYi Hu;i(x)k2 = 0 is satisfied, and
+zero otherwise. By only relying on the Boolean structure
+of the problem, SAT-SOLVE( B) returns an assignment for
+the variables bi and ci (for i = 1; : : : ; p), thus hypothesizing
+which sensors are attack-free, hence which nonlinear constraints
+should be jointly satisfied. This Boolean assignment
+is then used by T -SOLVE to determine whether there exists
+a state x 2 Rn which satisfies all the nonlinear constraints
+related to the unattacked sensors, i.e. fkYi Hu;i(x)k2 =
+0ji 2 supp(b)g is the set of constraints sent to T -SOLVE. If x
+is found, IMHOTEP-SMT terminates with SAT and provides
+the solution (x; b). Otherwise, the UNSAT certificate cert
+is generated in terms of new Boolean constraints, explaining
+which sensor measurements are conflicting and may be under
+attack. A na¨ıve certificate can always be generated in the
+form of:
+triv-cert =
+bi
+1;
+(III.1)
+X
+i2supp(b)
+which encodes the fact that at least one of the sensors in the
+set supp(b) (i.e. for which bi = 0 in the current iteration)
+is actually under attack, and must be set to one in the
+next assignment of the SAT solver. The augmented Boolean
+problem is then fed back to SAT-SOLVE to produce a new
+assignment, and the sequence of new SAT queries repeats
+until T -SOLVE terminates with SAT.
+2A pseudo-Boolean constraint is a linear constraint over Boolean variables
+with integer coefficients.
+(II.4)
+(II.5)
+(II.6)
+3806
+Algorithm 1 IMHOTEP-SMT
+1: status := UNSAT;
+2: B := Vip=1 (:bi ) ci) V (Pip=1 bi s);
+3: while status == UNSAT do
+4: (b; c) := SAT-SOLVE( B);
+5: (status, x) := T -SOLVE.CHECK(supp(b));
+6: if status == UNSAT then
+7: cert := T -SOLVE.CERTIFICATE(b; x);
+8: B := B ^ cert;
+9: end if
+10: end while
+11: return = (x; b);
+By assuming that the system is 2s-sparse flat, it follows
+from Theorem 2.4 that there always exists a solution to
+Problem 2.1, hence Algorithm 1 will always terminate. However,
+to help the SAT solver quickly converge towards the
+correct assignment, a central problem in lazy SMT solving
+is to generate succinct explanations whenever conjunctions
+of nonlinear constraints are infeasible.
+The rest of this section will then focus on the implementation
+of the two main tasks of T -SOLVE, namely,
+(i) checking the satisfiability of a given assignment (T SOLVE.CHECK),
+and (ii) generating succinct UNSAT certificates
+(T -SOLVE.CERTIFICATE).
+B. Satisfiability Checking
+It follows from the 2s-sparse flatness property discussed
+in Section II, that for a given assignment of the Boolean
+variables b, with jsupp(b)j s, the remaining p s sensors
+define a flat output as:
+y(t); : : : ;
+I
+yI(t
++1)
+where I = supp(b). The next step is to use the flat output in
+order to calculate the estimate x = y(t); : : : ; y(t +1) .
+I I
+Finally, we evaluate if the condition:
+Ysupp(b)
+Hu;supp(b)(x) 2
+= 0
+2
+(III.2)
+is satisfied. This procedure is summarized in Algorithm 2.
+Algorithm 2 T -SOLVE.CHECK(I)
+1: Construct the state estimate:
+x := yI(t); : : : ; yI(t +1)
+2: if YI Hu;I(x) 2 == 0 then
+3: status := SAT;
+4: else
+5: status := UNSAT;
+6: end if
+7: return (status, x)
+C. Generating Succinct UNSAT Certificates
+Whenever T -SOLVE.CHECK provides UNSAT, the na¨ıve
+certificate can always be generated as in (III.1). However,
+such trivial certificate does not provide much information,
+since it only excludes the current assignment from the
+search space, and can lead to exponential execution time,
+as reflected by the following proposition.
+Proposition 3.1: Let the linear dynamical system a defined
+in (II.1) be 2s-sparse observable. Then, Algorithm 1
+which uses the trivial UNSAT certificate triv-cert in (III.1)
+returns = (x; b) such that:
+x = x
+^
+supp(b )
+supp(b);
+where x and b are the actual system state and attack
+indicator vector, as defined in Section II-C. Moreover, the
+upper bound on the number of iterations of Algorithm 1 is
+Ps
+s=0 ps :
+The generated UNSAT certificate heavily affects the overall
+execution time of Algorithm 1: the smaller the certificate,
+the more information is learnt and the faster is the
+convergence of the SAT solver to the correct assignment.
+For example, a certificate with bi = 1 would identify exactly
+one attacked sensor at each step. Therefore, our objective
+is to design an algorithm that can lead to more compact
+certificates to enhance the execution time of IMHOTEP-SMT.
+To do so, we exploit the specific structure of the secure
+state reconstruction problem and generate customized, yet
+stronger, UNSAT certificates. The existence of a compact
+Boolean constraint that explains a conflict is guaranteed by
+the following Lemma.
+Lemma 3.2: Let the nonlinear dynamical system a defined
+in (II.1) be 2s-sparse flat. If T -SOLVE.CHECK(I) is
+UNSAT for a set I, with jIj > p 2s, then there exists
+a subset Itemp I with jItempj p 2s + 1 such that
+T -SOLVE.CHECK(Itemp) is also UNSAT.
+Based on Lemma 3.2 and the intuition provided by its
+proof [21], our algorithm works as follows. First, we construct
+the set of indices I0 by picking any random set of
+p 2s sensors. We then search for one additional sensor
+i0 which can lead to a conflict with the sensors indexed by
+I0. To do this, we call T -SOLVE.CHECK by passing the
+set Itemp := I0 [ i0 as an argument. If the check returned
+SAT, then we label these sensors as “non-conflicting” and
+we repeat the same process by replacing the sensor indexed
+by i0 with another sensor until we reach a conflicting set.
+It then follows from Lemma 3.2 that this process terminates
+revealing a collection of p 2s + 1 conflicting sets. Once this
+collection is discovered, we stop by generating the following,
+more compact, certificate:
+cert :=
+X bi
+i2Itemp
+1:
+Although the prescribed process will always terminate
+regardless of the selection of the initial set I0 or the order
+followed to select i0, the execution time may change. In
+Algorithm 3, we implement a heuristic for the selection
+of the initial set I0 and the succeeding indices, inspired
+by the strategy we have adopted in the context of linear
+systems [16]. We are now ready to state the main result of
+this section.
+Theorem 3.3: Let the nonlinear dynamical system a
+defined in (II.1) be 2s-sparse flat. Then, Algorithm 1 using
+3807
+Algorithm 3 T -SOLVE.CERTIFICATE(I; x)
+1: Compute normalized residuals
+2: r :r=i :S=i2kIYfirigH,u;i(x)k22 = krxHu;ik22 ; i 2 I;
+3: Sort the residual variables
+4: r sorted := sortAscendingly(r);
+5: Pick the index corresponding to the maximum residual
+6: I max r := Index(r sortedfjIj;jIj 1;:::;p 2s+1g);
+7: I min r := Index(r sortedf1;:::;p 2sg);
+8: Search linearly for the UNSAT certificate
+9: status = SAT; counter = 1;
+10: I temp := I min r [ I max rcounter;
+11: while status == SAT do
+12: (status, x) := T -SOLVE.CHECK(I temp);
+13: if status == UNSAT then
+14: cert := Pi2I temp bi 1;
+15: else
+16: counter := counter + 1;
+17: I temp := I min r [ I max rcounter;
+18: end if
+19: end while
+20: return cert
+the conflicting UNSAT certificate cert in Algorithm 3 returns
+= (x; b) such that:
+x = x
+^
+supp(b )
+supp(b):
+IV. CASE STUDY: SECURING A QUADROTOR MISSION
+We implemented a new version of the IMHOTEP-SMT
+solver, which extends our previous work [22] by replacing
+the theory solver originally designed for linear systems with
+Algorithms 2 and 3. We then demonstrate the effectiveness
+of our detection algorithm by applying it to a waypoint
+navigation mission for a quadrotor unmanned aerial vehicle
+(UAV), in which the UAV needs to cross a workspace from a
+starting point to a desired goal. The dynamical models of the
+quadrotor and its controller are based on the models in [24],
+[25].
+The quadrotor is equipped with a GPS measuring the
+position vector and two inertial measurement units (IMUs),
+whose outputs are fused to generate an estimate for the body
+angular and linear velocities. We numerically simulate the
+model of the quadrotor and the controller. In our scenario, the
+quadrotor goal is to takeoff vertically and then move along
+a square trajectory. However, one of the IMU's output, the
+vertical velocity sensor, is attacked by injecting a sinusoidal
+signal on top of the actual sensor readings. As shown in
+Fig. 1 (bottom), the attack is injected after the quadrotor has
+completed the takeoff maneuver, and only along two parallel
+sides of the whole square trajectory.
+To implement the secure state reconstruction algorithm,
+IMHOTEP-SMT uses an approximate discretized model of
+the plant along with the sensor measurements. To discretize
+the model we use the same sampling time (Ts = 20 ms)
+of the controller. Moreover, we adopt a first-order forward
+Euler approximation scheme which preserves the differential
+flatness of the original system. To accommodate the model
+mismatch due to the discrete approximation, as well as
+round-off errors, we replace the condition in line 2 of
+Algorithm 2 with kYI Hu;I (x)k2 ; where we set
+to 0:1 in our experiments.
+Fig. 1(a) (top) shows the effect of the attack when the
+quadrotor operates without secure state reconstruction algorithm.
+As evident from the two corners of the square trajectory
+corresponding to coordinates (2:5; 0; 1) and (0; 2:5; 1),
+the injected attack harmfully impairs the stability of the
+quadrotor, due to incorrect state reconstruction, as shown in
+Fig. 1(a) (middle). Fig. 1(b) (top) shows instead the trajectory
+of the quadrotor when operated using IMHOTEP-SMT to
+perform secure state reconstruction. The estimation error on
+vz produced by IMHOTEP-SMT is in the order of 10 2 m/s,
+and always bounded, where the bound depends on the error
+due to mismatch between the model used for estimation and
+the actual quadrotor dynamics (the controller is designed
+to be robust against bounded perturbations). The state and
+the support of the attack are correctly estimated also in
+the presence of model mismatch: the quadrotor is able to
+follow the required trajectory and achieve its goal. Finally,
+the average execution time of 16:1 ms (smaller than the 20ms
+sampling time of the position controller) on an Intel Core
+i7 3.4-GHz processor with 8 GB of memory, is compatible
+with several real-time applications.
+V. CONCLUSIONS
+We have investigated, for the first time, the state reconstruction
+problem from a set of adversarially attacked sensors
+for a class of nonlinear systems, namely differentially flat
+systems. Given an upper bound s on the number of attacked
+sensors, we showed that 2s-sparse flatness is a sufficient
+condition for reconstructing the state in spite of the attack.
+We have then proposed a Satisfiability Modulo Theory
+based detection algorithm for differentially flat systems, by
+extending our previous results, reported in [15], [16], to
+differentially flat systems. Numerical results show that secure
+state estimation in complex nonlinear systems, such as in
+waypoint navigation of a quadrotor under sensor attacks, can
+indeed be performed with our algorithm in an accurate and
+efficient way.
+REFERENCES
+[1] R. Langner, “Stuxnet: Dissecting a cyberwarfare weapon,” IEEE
+Security and Privacy Magazine, vol. 9, no. 3, pp. 49-51, 2011.
+[2] Y. Liu, P. Ning, and M. K. Reiter, “False data injection attacks against
+state estimation in electric power grids,” in Proc. ACM Conf. Computer
+and Communications Security, ser. CCS '09. New York, NY, USA:
+ACM, 2009, pp. 21-32.
+[3] Y. Shoukry, P. D. Martin, P. Tabuada, and M. B. Srivastava, “Noninvasive
+spoofing attacks for anti-lock braking systems,” in Workshop
+on Cryptographic Hardware and Embedded Systems, ser. G. Bertoni
+and J.-S. Coron (Eds.): CHES 2013, LNCS 8086. International
+Association for Cryptologic Research, 2013, pp. 55-72.
+[4] F. Pasqualetti, F. Dorfler, and F. Bullo, “Control-theoretic methods for
+cyberphysical security: Geometric principles for optimal cross-layer
+resilient control systems,” Control Systems, IEEE, vol. 35, no. 1, pp.
+110-127, Feb 2015.
+3808
+1
+]
+s
+/
+r[m 0
+o
+r
+r
+e −1
+0
+]
+s
+/
+m
+[
+z
+v
+1
+0
+−1
+0
+5
+5
+·10−2
+1
+/]s 0.5
+[rm 0
+o
+rre −0.5
+−1
+0
+]
+s
+/
+m
+[
+z
+v
+1
+0
+−1
+0
+5
+5
+10
+15
+time [s]
+20
+25
+Estimation error = actual state - estimated state
+10
+15
+time [s]
+20
+25
+Estimation error = actual state - estimated state
+10
+15
+20
+25
+time [s]
+Attack Signal
+10
+15
+20
+25
+time [s]
+Attack Signal
+(a) Quadrotor under attack
+(b) Quadrotor under attack - IMHOTEP-SMT
+Fig. 1. Performance of the quadrotor under sensor attack: (a) without secure state reconstruction algorithm, and (b) with IMHOTEP-SMT. For each
+scenario, we show the quadrotor trajectory (top), the estimation error on the quadrotor vertical velocity (middle), and the attack signal (bottom).
+[5] H. Fawzi, P. Tabuada, and S. Diggavi, “Secure estimation and control
+for cyber-physical systems under adversarial attacks,” IEEE Transactions
+on Automatic Control, vol. 59, no. 6, pp. 1454-1467, June 2014.
+[6] J. Mattingley and S. Boyd, “Real-time convex optimization in signal
+processing,” IEEE Signal Processing Magazine, vol. 27, no. 3, pp.
+50-61, May 2010.
+[7] I. C. Schick and S. K. Mitter, “Robust recursive estimation in the
+presence of heavy-tailed observation noise,” Ann. Statist., vol. 22,
+no. 2, pp. 1045-1080, 06 1994.
+[8] S. Farahmand, G. B. Giannakis, and D. Angelosante, “Doubly robust
+smoothing of dynamical processes via outlier sparsity constraints,”
+Trans. Sig. Proc., vol. 59, no. 10, pp. 4529-4543, Oct. 2011.
+[9] Y. Mo and B. Sinopoli, “Secure estimation in the presence of integrity
+attacks,” IEEE Transactions on Automatic Control, vol. 60, no. 99, pp.
+1145-1151, 2014.
+[10] C.-Z. Bai and V. Gupta, “On Kalman filtering in the presence of
+a compromised sensor: Fundamental performance bounds,” in Proc.
+IEEE American Control Conference, June 2014, pp. 3029-3034.
+[11] F. Pasqualetti, F. Dorfler, and F. Bullo, “Attack detection and identification
+in cyber-physical systems,” IEEE Transactions on Automatic
+Control, vol. 58, no. 11, pp. 2715-2729, Nov 2013.
+[12] Y. Shoukry and P. Tabuada, “Event-Triggered State Observers for
+Sparse Sensor Noise/Attacks,” ArXiv e-prints, Sept. 2013. [Online].
+Available: http://arxiv.org/abs/1309.3511
+[13] Y. Shoukry and P. Tabuada, “Event-triggered projected Luenberger
+observer for linear systems under sensor attacks,” in IEEE Conference
+on Decision and Control, Dec. 2014, pp. 3548-3553.
+[14] M. Pajic, J. Weimer, N. Bezzo, P. Tabuada, O. Sokolsky, I. Lee,
+and G. Pappas, “Robustness of attack-resilient state estimators,” in
+Proc. ACM/IEEE International Conference on Cyber-Physical Systems,
+April 2014, pp. 163-174.
+[15] Y. Shoukry, A. Puggelli, P. Nuzzo, A. L. Sangiovanni-Vincentelli,
+S. A. Seshia, and P. Tabuada, “Sound and complete state estimation
+for linear dynamical systems under sensor attack using satisfiability
+modulo theory solving,” in Proc. IEEE American Control Conference,
+2015, pp. 3818-3823.
+[16] Y. Shoukry, P. Nuzzo, A. Puggelli, A. L. SangiovanniVincentelli,
+S. A. Seshia, and P. Tabuada, “Secure State
+Estimation Under Sensor Attacks: A Satisfiability Modulo
+Theory Approach,” ArXiv e-prints, Dec. 2014, [online]
+http://adsabs.harvard.edu/abs/2014arXiv1412.4324S.
+[17] M. S. Chong, M. Wakaiki, and J. P. Hespanha, “Observability of linear
+systems under adversarial attacks,” in Proc. IEEE American Control
+Conference, 2015, pp. 2439-2444.
+[18] J. Hendrickx, K. Johansson, R. Jungers, H. Sandberg, and K. C. Sou,
+“Efficient computations of a security index for false data attacks in
+power networks,” IEEE Transactions on Automatic Control, vol. 59,
+no. 12, pp. 3194-3208, Dec 2014.
+[19] M. Fliess, J. Lvine, and P. Rouchon, “Flatness and defect of nonlinear
+systems: Introductory theory and examples,” International Journal of
+Control, vol. 61, pp. 1327-1361, 1995.
+[20] C. Barrett, R. Sebastiani, S. A. Seshia, and C. Tinelli, Satisfiability
+Modulo Theories, Chapter in Handbook of Satisfiability. IOS Press,
+2009.
+[21] Y. Shoukry, P. Nuzzo, N. Bezzo, A. L. Sangiovanni-Vincentelli,
+S. A. Seshia, and P. Tabuada, “A Satisfiability Modulo Theory
+Approach to Secure State Reconstruction in Differentially Flat Systems
+Under Sensor Attacks,” ArXiv e-prints, Dec. 2014, [online]
+http://arxiv.org/abs/1509.03262.
+[22] Y. Shoukry, P. Nuzzo, A. Puggelli, A. L. Sangiovanni-Vincentelli,
+S. A. Seshia, M. Srivastava, and P. Tabuada, “IMHOTEP-SMT: A
+Satisfiability Modulo Theory Solver for Secure State Estimation,” in
+Proc. Int. Workshop on Satisfiability Modulo Theories, July 2015.
+[23] S. Malik and L. Zhang, “Boolean satisfiability from
+theoretical hardness to practical success,” Commun. ACM,
+vol. 52, no. 8, pp. 76-82, Aug. 2009. [Online]. Available:
+http://doi.acm.org/10.1145/1536616.1536637
+[24] N. Michael, D. Mellinger, Q. Lindsey, and V. Kumar, “The GRASP
+multiple micro-UAV testbed,” IEEE Robotics & Automation Magazine,
+vol. 17, no. 3, pp. 56-65, 2010.
+[25] S. Lupashin, A. Schollig, M. Sherback, and R. D'Andrea, “A simple
+learning strategy for high-speed quadrocopter multi-flips,” in IEEE
+International Conference on Robotics and Automation. IEEE, 2010,
+pp. 1642-1648.
+3809

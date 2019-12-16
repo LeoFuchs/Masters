@@ -1,0 +1,771 @@
+53rd IEEE Conference on Decision and Control
+December 15-17, 2014. Los Angeles, California, USA
+Secure state estimation and control using multiple (insecure) observers
+Shaunak Mishra, Nikhil Karamchandani, Paulo Tabuada and Suhas Diggavi
+Abstract- Motivated by the need to protect Cyber-Physical
+Systems against attacks, we consider in this paper the problem
+of estimating the state in a private and secure manner despite
+active adversary attacks; adversaries that can attack the software/hardware
+where state estimation is performed. To combat
+such threats, we propose an architecture where state estimation
+is performed across multiple computing nodes (observers). We
+then show that even when r out of a total 3r + 1 observers are
+actively attacked: 1) using a combination of outputs from the
+observers, the state is still correctly estimated; 2) the physical
+plant is still correctly controlled; 3) the adversary can only
+obtain limited knowledge about the state. Our approach is
+inspired by techniques in cryptography for secure message
+transmission and information-theoretic secrecy. In addition, our
+guarantees on the secrecy of the plant's state against corrupting
+observers are based on the Cramer-Rao lower bound from
+estimation theory.
+I. INTRODUCTION
+The security of Cyber-Physical Systems (CPSs) is a problem
+of increasing importance as we discover that much of
+the critical infrastructure we depend on is vulnerable to cyber
+attacks [1], [2], [3]. While it can be argued that many CPSs
+are physically secure in the sense that maliciously intended
+people cannot gain physical proximity, they can still be
+remotely attacked [4]. CPSs that are remotely operated, such
+as Unmanned Aerial Vehicles (UAVs) and parts of the power
+grid, can be vulnerable to several attack methodologies, since
+most of these systems rely on complex control algorithms
+running on networked digital platforms. For example, this
+could be enabled by hardware malware in the chips used in
+these platforms that becomes active at the discretion of an
+attacker [5].
+In this paper, we are concerned with attackers that want
+to control a CPS in order to alter its normal operation.
+We have two objectives: (i) control the plant correctly, and
+(ii) prevent the adversary from learning the plant's state.
+When state estimates are computed in a single location,
+an adversary which has access to that location (through
+hardware or software malware) could use the state estimate
+for initiating attacks. Therefore, we propose an architecture
+where state estimation is distributed across several computing
+nodes (observers), as shown in Figure 1 (discussed later
+in Section II). The challenge is to perform accurate state
+estimation for controlling the CPS, despite an attacker which
+has access to a fraction of these observers. In this paper, we
+present a solution to this problem and prove that even when
+r out of 3r + 1 observers are arbitrarily corrupted, we can
+still operate the CPS correctly, i.e., we can still control the
+The authors are with the Electrical Engineering Department, University of
+California, Los Angeles. The work was supported by NSF award 1136174.
+978-1-4673-6090-6/14/$31.00 ©2014 IEEE
+1620
+system as desired and prevent the adversary from learning
+the state to any desired accuracy.
+Our solution is inspired by secure message transmission
+(SMT) [6], a problem studied in cryptography for finite
+fields. In this problem, a message is securely transmitted
+between two agents, despite an active adversary who partially
+controls the communication channels. The main differences
+in our setup are two-fold: (i) we operate over reals rather
+than finite fields. This means that it is not possible to
+give perfect secrecy guarantees and therefore we formulate
+secrecy as an estimation error guarantee for any adversary.
+We also give guarantees against a strong active adversary
+who has complete knowledge of the system parameters and
+has unbounded power (both transmit and computational).
+(ii) The SMT problem is posed in a static context, where
+a given message is to be transmitted. On the other hand, the
+control and state estimates dynamically change over time in
+our setup due to the dynamics of a physical plant, and we
+need to perform these dynamic computations securely. Our
+techniques are informed by making a connection between our
+problem and algebraic real error correction (through ReedSolomon
+codes [7]) and estimation theory. For simplicity,
+in this paper we focus on the case where there is no
+measurement and actuator noise. However, the ideas can be
+easily extended for this case, since we ensure that the original
+state estimate based on the plant output is reconstructed in
+a distributed and secure manner.
+The problem of adversarial attacks in multi-agent networks
+has been studied in several contexts, for example distributed
+consensus [8], [9] and function computation [10], [11]. Our
+goal is not consensus or distributed function computation,
+but reliable control of a physical plant despite adversarial
+attacks. Although consensus problems and distributed function
+computation through linear iterative strategies also involve
+dynamics, we consider arbitrary linear plants and thus
+cannot design the dynamics as is possible in these problems.
+Differential private filtering, studied in [12], consists of a
+methodology to protect the identity of the nodes contributing
+information. In our case we seek to protect, not the identity,
+but the state. In [13] the problem of securing the state of
+the plant from a passive adversary is studied; in contrast, we
+allow an active adversary who can also disrupt the legitimate
+state estimation and control, and our security requirement
+also differs from their setup.
+The remainder of this paper is organized as follows.
+Section II describes the problem setup, system architecture,
+and notation. Next, we illustrate our key ideas for the case
+where the adversary attacks a single observer, with Sections
+III and IV focusing on a passive and active adversary
+respectively. In Section V, we extend our results to an active
+adversary controlling r observers and demonstrate how we
+can operate correctly despite adversarial corruptions when
+we use at least 3r + 1 observers.
+II. NOTATION AND SETUP
+We first describe the model for plant dynamics and then
+introduce the proposed multiple observer setup. This is
+followed by the adversary model in the multiple observer
+setup and the constraints for the plant's operation in the
+presence of such an adversary.
+A. Plant dynamics
+The plant is modeled as a linear time invariant system as
+shown below:
+x(t + 1) = Ax(t) + Bu(t);
+y(t) = Cx(t)
+(1)
+where x(t) 2 Rn is the plant's state at time t, u(t) 2 Rm is
+input to the plant at time t, and y(t) 2 Rp is the plant's
+output at time t. For simplicity, in the usual setting (without
+security constraints), we consider a Luenberger observer [14]
+for estimating the state of the plant. The Luenberger observer
+receives the plant's input and output (i.e., u(t) and y(t)) and
+uses the following update rule for the state estimate:
+xˆ(t + 1) = Axˆ(t) + Bu(t) + L (y(t)
+Cxˆ(t))
+(2)
+where xˆ(t) 2 Rn is the observer's state estimate at time t
+and L is the observer gain. The state estimate xˆ(t) from
+the observer is used with the external reference command
+r(t) 2 Rm (discussed in Section II-E) and a local stabilizing
+controller with gain matrix K, resulting in the control law:
+u(t) = r(t) + Kxˆ(t):
+(3)
+In the remainder of this paper, we will refer to the setup
+defined by (1), (2), and (3) as the single observer setup.
+Throughout the paper we make the simplifying assumption
+that the observer estimate xˆ at time t = 0 equals the state x
+at time t = 0. Although counterintuitive, this results in no
+loss of generality since the secrecy and security guarantees
+we provide under this assumption extend to the case where
+xˆ(0) 6= x(0) (see [15] for details). Under this assumption, the
+plant dynamics can be simplified as follows:
+x(t + 1) = Ax(t) + B (Kx(t) + r(t)) = Acl x(t) + Br(t) (4)
+where Acl = A + BK. Without loss of generality, we assume
+that x(0) = 0 (initial state of the plant). Hence, given a
+sequence of inputs r(0); r(1); : : : r(l 1), the sequence of
+plant states can be written as follows:
+2x(1)3 2 B
+6x(2)7 6 Acl B
+646 x(...l) 757 = 646Alcl... 1B
+0
+B
+.
+.
+.
+l 2
+Acl B
+: : : 03 2 r(0) 3
+: : : 07 6 r(1) 7
+. . . 0757 646 ... 757 = Jl r0:l 1:
+: : : B r(l 1)
+As shown above, we use the
+rT (t1) rT (t1 + 1) : : : rT (t2) T
+matrix transposition.
+notation
+where
+T
+rt1:t2 for
+denotes
+B. Multiple observer setup
+In the multiple observer setup, the state observer, as shown
+in (2), is distributed among multiple computing nodes. Figure
+1 shows the multiple observer setup (with d observers).
+The external reference input r(t) and plant output y(t) are
+ENCI
+r(t)
+r1(t)
+r2(t)
+rd(t)
+y1(t)
+Observer 1
+y2(t)
+Observer 2
+yd(t)
+Observer d
+xˆ1(t) K
+Kxˆ1(t)
+xˆ2(t) K
+Kxˆ2(t)
+r1(t)
+r2(t)
+rd(t)
+xˆd(t) K
+Kxˆd(t)
+y2(t)
+yd(t)
+ENCO
+y(t)
+Plant
+x(t + 1)
+= Ax(t) + Bu(t)
+DEC
+u(t)
+Fig. 1. A d-observer setup for state estimation.
+sent to encoders ENCI and ENCO, respectively, as opposed to
+being directly sent to the observers. Observer i 2 f1; 2; : : : ; dg
+receives at time t an encoded version of r(t), denoted by
+ri(t), from ENCI and an encoded version of y(t), denoted
+by yi(t) from ENCO. In the absence of any adversarial
+corruptions, the state estimate update rule for observer i is
+as shown below:
+xˆi(t + 1) = Axˆi(t) + B (Kxˆi(t) + ri(t)) + L (yi(t)
+Cxˆi(t))
+(6)
+where xˆi(t) is the state estimate of observer i at time t.
+Clearly, the above update rule is similar to (2) in the single
+observer setup; the main difference lies in using ri(t) and
+yi(t) instead of r(t) and y(t).
+In the absence of any adversarial corruptions, the decoder
+DEC receives ri(t) and Kxˆi(t) for i 2 f1; 2; : : : ; dg as shown
+in Figure 1. The number d of observers and the design
+of ENCI , ENCO, and DEC is based on the specifications
+(described in Section II-C) of the adversary who can corrupt
+a fraction of the observers. We assume that the encoders have
+access to random number generators and there is no shared
+randomness between the encoders and the decoder.
+C. Adversary model
+We now describe the adversary model in the context of
+the multiple observer setup described in Section II-B. In
+this paper, we consider two types of adversaries: passive
+and active. The difference between these two types is in the
+nature of adversarial behavior.
+Passive adversary: A r-passive adversary can tap into
+any subset of r observers in a d-observer setup and access
+all the inputs to the particular subset of observers. Such
+adversaries are also referred to as honest-but-curious in
+the cryptography literature since they do not affect the
+normal operation of a protocol but just try to infer useful
+(5)
+1621
+information. In the multiple observer setup, the objective of
+a r-passive adversary is to estimate useful information such
+as the plant's state sequence or the reference input sequence
+based on inputs to the set of tapped observers.
+Active adversary: A r-active adversary is more powerful
+than a r-passive adversary. It not only has access to all
+the inputs to the set of affected observers (any r observers
+in a d-observer setup), but can also inject errors (of arbitrary
+magnitude) in the outputs of attacked observers. Furthermore,
+the adversary can also alter the internal operations
+(e.g., state estimate update rule) of the attacked observers.
+Since the outputs from the observers influence the input to
+the plant, an active adversary can potentially alter the normal
+operation of the plant.
+In both the cases (passive and active), the adversary has
+unbounded computational power. It also has knowledge of
+the plant parameters, and the operations done by ENCI ,
+ENCO, and DEC. The adversary does not have access to
+the random number generators in the input encoder (ENCI )
+and output encoder (ENCO); this is essentially the source of
+secrecy in the multiple observer setup.
+D. Constraints: correctness and secrecy
+In a d-observer setup, with initial plant state x(0) =
+0 (known to the adversary) and external reference input
+sequence r0:l 1 (unknown to the adversary) we consider the
+following constraints:
+a) Correctness: The evolution of the plant in the dobserver
+setup is exactly the same as in the single observer
+setup; even in the presence of an active adversary which
+can arbitrarily change the outputs from the set of attacked
+observers. Formally, for any given input sequence r0:l 1,
+the plant's state sequence is x1:l = Jl r0:l 1 (as shown in (5)
+for the single observer setup with no adversary) despite the
+attack of an active adversary.
+b) Secrecy: An adversary (r-active or r-passive) having
+access to the inputs of any r observers should have
+limited knowledge of the external reference input sequence
+r0:l 1 and plant's state sequence x1:l . Formally, if Er;0:l 1
+and Ex;1:l are the error covariance matrices corresponding to
+the adversary's estimate of r0:l 1 and x1:l , then the following
+should be satisfied:
+tr(Er;0:l 1) > fr > 0; tr(Ex;1:l ) > fx > 0
+(7)
+where tr( ) denotes the matrix trace operation, and fr and
+fx are constant design parameters which can be adjusted for
+any desired level of secrecy. It should be noted that since we
+assume xˆ(0) = x(0), x(0) is known to each observer; but the
+encoded inputs and encoded outputs are responsible for the
+observer's uncertainty about r0:l 1 and x1:l .
+An important aspect of the d-observer setup is the minimum
+number dmin of observers required to ensure the
+constraints mentioned above against an adversary (r-active
+or r-passive). Clearly, dmin depends on r, and whether the
+adversary is active or passive. Using arguments similar to
+[6], it can be easily shown that dmin r + 1 for a r-passive
+adversary, and dmin 3r + 1 for a r-active adversary.
+1622
+E. Discussion
+The described setup is appropriate for Cyber-Physical
+Systems that are remotely operated. A case in point are Unmanned
+Air Vehicles (UAV) where state estimation and the
+computation of local controllers is performed onboard while
+the reference input r is remotely sent by a pilot. Another
+typical example are SCADA systems where local observers
+and controllers regulate different physical quantities based on
+set points that are remotely sent from a central supervisor. In
+all of these scenarios, we envision attacks on the communication
+between the operator and the local observers/controllers
+and between the local observers/controllers and the actuators.
+We also envision either software or hardware attacks on
+the observers/local controllers. We exclude from our model
+attacks on the actuators since an attacker that can command
+an actuator can immediately cause damage to the plant.
+Hence, actuators need to be physically hardened to withstand
+attacks. We also exclude attacks to the operator since in many
+situations, e.g., UAVs, it is located in a secure facility.
+III. 1-PASSIVE ADVERSARY
+As mentioned in Section II-D, dmin 2 for a 1-passive adversary.
+In this section, we show that dmin = 2 for a 1-passive
+adversary by designing a 2-observer setup (in Section III-A)
+and showing that the correctness and secrecy constraints are
+satisfied (in Sections III-B and III-C respectively).
+A. 2-observer setup
+The operations of the encoders, observers (indexed by i),
+and decoder in the 2-observer setup are described below.
+Encoder: The following operations are done at the input
+encoder ENCI which receives r(t) as input:
+y1(t) =
++ d (t);
+y2(t) =
+d (t)
+(9)
+where d (t) is intentionally generated random vector
+N 0; s 2Ip and is i.i.d. over time. We justify the use of the
+Gaussian distribution for q (t) and d (t) while analyzing the
+secrecy constraint in Section III-C. Moreover, the random
+vectors generated by ENCO and ENCI are assumed to be
+independent.
+r1(t) =
++ q (t); r2(t) =
+q (t)
+(8)
+where q (t) 2 Rm is a random vector drawn from a multivariate
+Gaussian distribution with zero mean and covariance
+matrix s 2Im (Im is the identity matrix of dimension m and
+s is a positive real number). In the remainder of this paper,
+we use the notation N (m ;S) to denote the multivariate
+Gaussian distribution with mean m and covariance matrix
+S. It should be noted that q (t) is intentionally generated
+by the input encoder ENCI and is i.i.d. (independent and
+identically distributed) over time. Similarly to ENCI , the
+output encoder ENCO receives y(t) as input and performs
+the following operations:
+r(t)
+2
+y(t)
+2
+r(t)
+2
+y(t)
+2
+Observer: For i 2 f1; 2g, observer i receives ri(t) and
+yi(t) at time t, and uses update rule (6) for its state estimate
+xˆi(t). Recall that we assume that observer i has knowledge
+of x(0) and thus sets its initial state estimate as xˆi(0) = x(20) .
+Decoder: For i 2 f1; 2g, the decoder receives Kxˆi(t)
+and ri(t) at time t, and simply adds all its inputs to obtain
+u(t) (fed to the plant) as shown below:
+u(t) = (Kxˆ1(t) + r1(t)) + (Kxˆ2(t) + r2(t)) :
+(10)
+B. Correctness
+For correctness, given any external reference input sequence
+r0:l 1, we need the plant's state sequence x1:l to be
+exactly as shown in (5). We prove the following claim, which
+is sufficient to show correctness.
+Claim 1: Assuming the operations of ENCI , ENCO, DEC,
+and observers are as described in Section III-A, the following
+is true for all t 0:
+xˆ1(t + 1) + xˆ2(t + 1) = Acl x(t) + Br(t) = x(t + 1): (11)
+Proof: The proof follows by induction (see [15] for
+details).
+Since x(t + 1) = Acl x(t) + Br(t), the plant's state sequence
+x1:l given input sequence r0:l 1 is exactly as shown in (5).
+C. Secrecy
+In order to perform the secrecy analysis we start by
+listing the observations of a 1-passive adversary (we consider
+the case when the 1-passive adversary taps observer 1; the
+analysis for observer 2 follows by symmetry). The adversary
+knows the initial state estimate xˆ1(0) = x(20) = 0 and observes,
+up to time l, the sequence of encoded reference inputs
+r1(0); r1(1); : : : r1(l 1) and the sequence of encoded sensor
+measurements y1(1); y1(2); : : : y1(l) fed to observer 1. Hence,
+the information available to the adversary can be summarized
+as the vector vl :
+(a) (Il
+vl =
+C) Jl r0:l 1 + 2
+Iml
+d 1:l
+q 0:l 1
+= Hl r0:l 1 + zl (12)
+where (a) follows from correctness, proved in Section IIIB
+(Jl is defined in (5)), and denotes Kronecker product.
+Equation (12) shows that the adversary's observations are
+affine on the reference input r. The the adversary's objective
+is then to estimate r0:l 1. Note that zl is unknown to the
+adversary although it knows the distribution from which the
+elements of zl are drawn. In this context, there can be several
+choices for the estimation criterion (e.g., biased or unbiased)
+[16], [17]. For concreteness, in this paper we give guarantees
+on the accuracy of a minimum variance unbiased (MVU)
+estimate [16] made by the adversary; the guarantees can be
+easily extended for biased estimators using results in [17].
+Given (12), the accuracy of the adversary's MVU estimate
+of r0:l 1 is fundamentally limited by the Cramer-Rao lower
+bound (CRLB) [16]. The CRLB for the affine model (12) can
+be easily evaluated (see [16] for details) as shown below:
+Er;0:l 1
+HlT Sz 1Hl
+1 = 4s 2 HlT Hl
+1
+(13)
+where Er;0:l 1 is the error covariance matrix for the adversary's
+MVU estimate of r0:l 1, and Sz is the covariance
+matrix of zl (in (12)). The above result also implies that
+the trace of Er;0:l 1 is not less than 4s 2tr HlT Hl 1 .
+The plant's state sequence x1:l is the linear function x1:l =
+Jl r0:l 1 of the input sequence. Hence, the CRLB for x1:l can
+be derived from the CRLB for r0:l 1 [16] as shown below:
+Ex;1:l
+4s 2Jl HlT Hl
+1 T
+Jl :
+(14)
+Equations (13) and (14) show that by suitably adjusting s we
+can impose any desired lower bound on the accuracy of the
+reference input and state estimates made by the adversary.
+Therefore, the secrecy constraint defined in (7) is satisfied.
+As a final remark we note that the Gaussian distribution is the
+best choice to generate the vector zl since it is shown in [18]
+that it leads to the worst CRLB for an MVU estimator.
+IV. 1-ACTIVE ADVERSARY
+As mentioned in Section II-D, dmin 4 is necessary for a
+1-active adversary. In this section, we show that dmin = 4 is
+sufficient for a 1-active adversary by designing a 4-observer
+setup (in Section IV-A) and showing that the correctness and
+secrecy constraints are satisfied (in Sections IV-B and IV-C
+respectively).
+A. 4-observer setup
+The operations of the encoders, observers (indexed by i)
+and decoder in the 4-observer setup are described below.
+Encoders: For i 2 f1; 2; 3; 4g, the following operation
+is done at the input encoder ENCI which receives r(t) as
+input:
+ri(t) = r(t) + liq (t)
+where q (t) 2 Rm is a random vector N 0; s 2Im generated
+by ENCI and is distributed i.i.d. over time. The scaling
+factor li 2 R f0g is the same for all time t for observer
+i. Similarly, the following operation is done at the output
+encoder ENCO:
+yi(t) = y(t) + lid (t)
+where d (t) 2 Rp is a random vector N 0; s 2Ip generated
+by ENCO and is distributed i.i.d. over time. The scaling
+factor li is same as the one used by ENCI for observer i. The
+adversary is assumed to have knowledge of the scaling factor
+li for each observer. Also, l1; l2; l3 and l4 are assumed to
+be distinct (needed for proving correctness in Section IVB).
+The random vectors generated by ENCI and ENCO are
+assumed to be independent.
+Observers: The operations done at an observer which
+is not under the influence of an adversary are described
+below. For i 2 f1; 2; 3; 4g, observer i receives ri(t) and yi(t)
+at time t and uses update rule (6) for its state estimate xˆi(t).
+Since we assume that xˆ(0) = x(0) observer i sets its initial
+state estimate as xˆi(0) = x(0). However, a 1-active adversary
+can attack any of the observers and arbitrarily change its
+operation.
+(15)
+(16)
+1623
+Decoder: For i 2 f1; 2; 3; 4g, the decoder DEC receives
+r˜i(t) and k˜ i(t) at time t. Under normal operation (with no
+adversarial errors) r˜i(t) = ri(t) and k˜i(t) = Kxˆi(t). When
+an adversary injects errors in the outputs of observer i, the
+decoder receives r˜i(t) = ri(t) + ei;r(t) and k˜ i(t) = Kxˆi(t) +
+ei;k(t), where ei;r(t) and ei;k(t) are errors (of arbitrary magnitude)
+introduced by the adversary. In this 1-active adversary
+setting, the decoder does not know a priori which observer
+is under the adversary's influence. Having received r˜i(t) and
+k˜ i(t), the decoder computes the following for all pairs (i; i0)
+such that i; i0 2 f1; 2; 3; 4g and i < i0:
+sii0;r(t) =
+sii0;k(t) =
+li0
+li0
+li0
+li0
+li
+l r˜i(t)
+i
+k˜ i(t)
+li
+li0
+li
+li0
+l r˜i0 (t)
+i
+k˜ i0 (t):
+li
+(17)
+(18)
+(19)
+1624
+There are 24 = 6 possible sii0;r(t) and the majority value
+(most frequently occurring) among these is denoted by sr (t).
+Similarly, the majority value for sii0;k(t) is denoted by sk (t).
+We show in Section IV-B that the majority value for both
+sii0;r(t) and sii0;k(t) is always unique (i.e., a tie never occurs).
+The decoder adds sr (t) and sk (t) to obtain u(t) (fed to the
+plant) as shown below:
+(a) u(t) = Kx(t) + r(t).
+(b) If observer i is not under the adversary's influence,
+xˆi(t) = x(t) + liD(t). In addition, D(t) 2 Rn
+satisfies the following: D(0) = 0 and D(t + 1) =
+(A + BK LC)D(t) + Bq (t) + Ld (t).
+Proof: The proof is by induction and utilizes Claim 2
+(see [15] for details).
+Since u(t) = Kx(t) + r(t) leads to the plant's state sequence
+shown in (5), the correctness constraint is satisfied.
+C. Secrecy
+The observations of a 1-active adversary in the 4-observer
+setup are similar to that of a 1-passive adversary in Section
+III-C, i.e., observations are in the form of an affine model
+in the parameter r0:l 1, similar to (12)). For an adversary
+attacking observer i, the CRLB leads to the following bound:
+Er;0:l 1
+li2s 2 HlT Hl
+1
+(20)
+where Er;0:l 1 is the error covariance matrix for adversary's
+MVU estimate of r0:l 1, and Hl is as defined in (12).
+V. r -ACTIVE ADVERSARY
+In this section, we generalize the results in Section IV from
+a 1-active adversary to a r-active adversary. This generalization
+is based on a class of error correcting codes called ReedSolomon
+codes [19], [20], [7]; we briefly describe the idea
+behind this generalization in Section V-A. We then describe
+the proposed 3r + 1-observer setup (in Section V-B) and
+prove that it satisfies the correctness and secrecy constraints
+(in Section V-C) against a r-active adversary. As a result,
+dmin = 3r + 1 for a r-active adversary1.
+A. Reed-Solomon codes
+r
+Consider a polynomial f (l ) = å j=0 c jl j with coefficients
+c j 2 R and degree at most r. For i 2 f1; 2; : : : wg let di be the
+evaluation of f at distinct and non-zero points li 2 R, i.e.,
+di = f (li). Now, consider the problem of finding c0 from
+evaluations d1; d2; : : : dw when any q of the evaluations are
+arbitrarily erroneous. It can be shown that if q < w r
+2 , c0
+can be recovered by finding the polynomial which fits the
+maximum number of evaluations [19]. The above problem
+is also the same as decoding a Reed-Solomon code where
+c0 is a message symbol and d1; d2; : : : dw are codeword
+symbols [19], [20]. This observation provides an alternative
+interpretation of the decoder's operation in the 4-observer
+setup in Section IV-A. In the absence of adversarial corruptions,
+the decoder receives ri(t) = r(t) + liq (t) which is
+essentially a system of polynomials (of degree at most 1)
+evaluated at l = li. Hence, the task of finding r(t) using
+evaluations r˜1(t); r˜2(t); : : : r˜4(t) (with at most one erroneous
+evaluation) is equivalent to a decoding a Reed-Solomon code.
+For decoding a Reed-Solomon code, the approach of finding
+the best fitting polynomial still works but there exist faster
+methods (e.g., Berlekamp-Welch algorithm [21]) whose time
+1It can be shown that without secrecy constraints, dmin = 2r + 1 against
+a r-active adversary; if 2r + 1 < d < 3r + 1, secrecy against d (2r + 1)
+compromised observers can still be guaranteed (details in [15]).
+u(t) = sr (t) + sk (t):
+B. Correctness
+We first prove the following claim which we use in the
+proof of correctness.
+Claim 2: Assuming l1; l2; l3 and l4 are distinct and nonzero,
+and the operations of ENCI , ENCO, DEC and observers
+are as described in Section IV-A, the following are true (even
+in the presence of a 1-active adversary):
+(a) For time t 0, sr (t) = r(t).
+(b) If observer i is not under the adversary's influence and
+Kxˆi(t) = Kx(t) + liKD(t) holds at time t, then sk (t) =
+Kx(t).
+where D(t) 2 Rn in (b) is arbitrary.
+Proof: We first describe the proof of (a) as follows.
+When the adversary does not inject errors in r˜i(t) (i.e., r˜i(t) =
+ri(t) = r(t) + liq (t)), it is easy to verify that all the 6 possible
+sii0;r(t) are equal to r(t); hence sr (t) = r(t). When there is a
+1-active adversary, the majority value sr (t) is still unique and
+equal to r(t). To check this, consider the case when a nonzero
+error e1;r(t) is introduced by the adversary in r˜1(t) (i.e.,
+r˜1(t) = r1(t) + e1;r(t)). In this case, it is easy to verify that
+due to distinct l1; l2; l3 and l4, s12;r(t) 6= s13;r(t) 6= s14;r(t)
+while s23;r(t) = s34;r(t) = s24;r(t) leads to the majority value
+r(t). Similarly, it can be easily verified for the case when
+the adversary attacks observer i 2 f2; 3; 4g that the majority
+value sr (t) is unique and equal to r(t). The proof of (b) is
+similar to the proof of (a), and we skip it for brevity.
+The following claim is sufficient to show correctness.
+Claim 3: Assuming l1; l2; l3 and l4 are distinct and nonzero,
+and the operations of ENCI , ENCO, DEC and observers
+are as described in Section IV-A, the following are true for
+time t 0:
+r
+j=1
+r
+j=1
+complexity is polynomial in number of evaluations. We
+generalize the ideas discussed above for ensuring correctness
+and secrecy in a 3r + 1-observer setup against a r -active
+adversary (by using polynomials of degree at most r ).
+B. 3r + 1-observer setup
+The operations of the encoders, observers (indexed by i)
+and decoder are described below.
+ation is done at ENCI which receives r(t) as input:
+Encoders: For i 2 f1; 2; : : : 3r + 1g, the following operj
+ri(t) = r(t) + å li q j(t)
+where q j(t) is a random vector N generated
+by ENCI and is distributed i.i.d. over time. Also, for j 6= j0,
+q j(t) and q j0 (t) are independent. The scaling factor li 2
+f0g is the same for all time t for observer i (and is
+R
+assumed to be distinct across the observers i.e., li 6= li0 where
+i 6=r i0). Clearly, ri(t) corresponds to the evaluation of r(t) +
+å j=1 l jq j(t) at l = li. Similarly, the following operation is
+done by the output encoder ENCO:
+0; s 2Im
+j
+yi(t) = y(t) + å li d j(t)
+where d j(t) is a random vector N generated by
+ENCO and is distributed i.i.d. over time. Also, for j 6= j0,
+d j(t) and d j0 (t) are independent. The adversary is assumed
+0; s 2Ip
+to have knowledge of the scaling factor li for each observer.
+The random vectors generated by ENCI and ENCO are
+assumed to be independent.
+Observers: The operations done at an observer which is
+not under the influence of an adversary are described below.
+For i 2 f1; 2; : : : 3r + 1g, observer i receives ri(t) and yi(t)
+at time t and uses update rule (6) for its state estimate xˆ i(t).
+Observer i has knowledge of x(0) and sets its initial state
+estimate as xˆ i(0) = x(0). A r -active adversary can attack
+any r observers and arbitrarily change their operations.
+Decoder: For i 2 f1; 2; : : : 3r + 1g, decoder DEC receives
+r˜i(t) and k˜ i(t) at time t which correspond to polynomial
+evaluations (of degree at most r ) at li; evaluations
+corresponding to attacked observers can be erroneous. DEC
+computes r(t) and Kx(t) using a Reed-Solomon decoder
+(details in [15]) and realizes plant input u(t) = r(t) + Kx(t).
+C. Correctness and secrecy
+The proof of correctness follows along the same lines as
+that for a 1-active adversary in Section IV-B. We skip the
+details here for brevity. For the secrecy analysis, consider
+the case when the adversary attacks observers a1; a2; : : : ar 2
+f1; 2; : : : 3r + 1g. The CRLB for the MVU estimator for
+r0:l 1 in this case is as shown below:
+Er;0:l 1
+s 2
+HlT Hl
+h (LLT ) 1 h T
+1
+(21)
+(22)
+(23)
+1625
+where Er;0:l 1 is the error covariance matrix for the MVU
+estimate of r0:l 1, h = [1 1 : : : 1], Hl is as defined in (12)
+and matrix L is as shown below:
+2la1
+6la2
+L = 6 .
+64 ..
+lar
+l 2
+a1
+l 2
+a2
+.
+.
+.
+l 2
+ar
+: : :
+: : :
+.
+.
+.
+: : :
+lar1 3
+r
+la2 7
+. 7 :
+..r 75
+lar
+REFERENCES
+(24)
+[1] A. Cardenas, S. Amin, B. Sinopoli, A. Giani, A. Perrig, and S. Sastry,
+“Challenges for securing cyber physical systems,” in Workshop on
+Future Directions in Cyber-Physical Systems Security, July 2009.
+[2] Y. Mo, T.-H. Kim, K. Brancik, D. Dickinson, H. Lee, A. Perrig, and
+B. Sinopoli, “Cyber-physical security of a smart grid infrastructure,”
+Proceedings of the IEEE, vol. 100, no. 1, pp. 195-209, Jan. 2012.
+[3] NIST, “Foundations for Innovations in Cyber-Physical Systems
+Workshop report,” Jan 2013. [Online]. Available: http://www.nist.
+gov/el/upload/CPS-WorkshopReport-1-30-13-Final.pdf
+[4] A. Teixeira, D. Pe´rez, H. Sandberg, and K. H. Johansson, “Attack models
+and scenarios for networked control systems,” in Proceedings of
+the 1st ACM International Conference on High Confidence Networked
+Systems (HiCoNS), 2012, pp. 55-64.
+[5] J. Villasenor, “Compromised by design? securing the defense
+electronics supply chain,” Brookings Institution Report, Nov
+2013. [Online]. Available: http://iis-db.stanford.edu/pubs/24484/
+Villasenor-Securing the Defense Electronics Supply Chain.pdf
+[6] D. Dolev, C. Dwork, O. Waarts, and M. Yung, “Perfectly secure
+message transmission,” Journal of the ACM, vol. 40, no. 1, pp. 17-47,
+Jan. 1993.
+[7] R. Blahut, Algebraic Codes for Data Transmission. Cambridge
+University Press, 2003.
+[8] F. Pasqualetti, A. Bicchi, and F. Bullo, “Consensus computation in
+unreliable networks: A system theoretic approach,” IEEE Transactions
+on Automatic Control, vol. 57, no. 1, pp. 90-104, Jan. 2012.
+[9] S. S. Kia, J. Cortes, and S. Martinez, “Dynamic average consensus
+under limited control authority and privacy requirements,” preprint,
+2014. [Online]. Available: http://arxiv.org/pdf/1401.6463v1.pdf
+[10] D. Chaum, C. Cre´peau, and I. Damgard, “Multiparty unconditionally
+secure protocols,” in Proceedings of the 20th Annual ACM Symposium
+on Theory of Computing (STOC), 1988, pp. 11-19.
+[11] S. Sundaram and C. N. Hadjicostis, “Distributed function calculation
+via linear iterative strategies in the presence of malicious agents,” IEEE
+Transactions on Automatic Control, vol. 56, no. 7, pp. 1495-1508, July
+2011.
+[12] J. Le Ny and G. J. Pappas, “Differentially private Kalman filtering,”
+in Proceedings of the 50th Annual Allerton Conference on Communication,
+Control, and Computing, 2012, pp. 1618-1625.
+[13] W. A. Malik, N. C. Martins, and A. Swami, “LQ control under security
+constraints,” in Control of Cyber-Physical Systems. Springer, 2013,
+pp. 101-120.
+[14] P. Antsaklis and A. Michel, Linear Systems. Birkha¨user Boston, 2005.
+[15] S. Mishra, N. Karamchandani, P. Tabuada, and S. Diggavi, “Secure
+state estimation and control using multiple (insecure) observers,”
+Extended version. [Online]. Available: https://sites.google.com/site/
+shaunakmishracomm/home/publications/cdc14
+[16] S. Kay, Fundamentals of Statistical Signal Processing: Estimation
+Theory. Prentice-Hall PTR, 1998.
+[17] Y. C. Eldar, “Minimum variance in biased estimation: Bounds and
+asymptotically optimal estimators,” IEEE Transactions on Signal Processing,
+vol. 52, no. 7, pp. 1915-1930, July 2004.
+[18] S. Park, E. Serpedin, and K. Qaraqe, “Gaussian assumption: The least
+favorable but the most useful [lecture notes],” IEEE Signal Processing
+Magazine, vol. 30, no. 3, pp. 183-186, Mar. 2013.
+[19] J. Wolf, “An introduction to Reed-Solomon codes,” Course notes.
+[Online]. Available: http://pfister.ee.duke.edu/courses/ecen604/rspoly.
+pdf
+[20] R. J. McEliece and D. V. Sarwate, “On sharing secrets and ReedSolomon
+codes,” Communications of the ACM, vol. 24, no. 9, pp.
+583-584, Sept. 1981.
+[21] E. Berlekamp, “Bounded distance+1 soft-decision Reed-Solomon decoding,”
+IEEE Transactions on Information Theory, vol. 42, no. 3, pp.
+704-720, May 1996.

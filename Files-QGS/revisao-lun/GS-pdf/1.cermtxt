@@ -1,0 +1,850 @@
+Safe and Secure Networked Control Systems
+Under Denial-of-Service Attacks
+Saurabh Amin1, Alvaro A. Ca´rdenas2, and S. Shankar Sastry2
+1 Systems engineering, University of California, at Berkeley - Berkeley, CA, USA
+{amins}@berkeley.edu
+2 EECS Department, University of California, at Berkeley - Berkeley, CA, USA
+{cardenas,sastry}@eecs.berkeley.edu
+Abstract. We consider the problem of security constrained optimal control
+for discrete-time, linear dynamical systems in which control and measurement
+packets are transmitted over a communication network. The
+packets may be jammed or compromised by a malicious adversary. For a
+class of denial-of-service (DoS) attack models, the goal is to find an (optimal)
+causal feedback controller that minimizes a given objective function
+subject to safety and power constraints. We present a semi-definite
+programming based solution for solving this problem. Our analysis also
+presents insights on the effect of attack models on solution of the optimal
+control problem.
+1
+Introduction
+Attacks to computer networks have become prevalent over the last decade. While
+most control networks have been safe in the past, they are currently more vulnerable
+to malicious attacks [7, 18]. The consequences of a successful attack on
+control networks can be more damaging than attacks on other networks because
+control systems are at the core of many critical infrastructures. Therefore, analyzing
+the security of control systems is a growing concern [4, 7, 12, 13, 15, 18].
+In the control and verification community there is a significant body of work
+on networked control [16], stochastic system verification [6, 1], robust control [2,
+11, 3, 10], and fault-tolerant control [21]. We argue that several major security
+concerns for control systems are not addressed by the current literature. For
+example, fault analysis of control systems usually assumes independent modes
+of failure, while during an attack, the modes of failure will be highly correlated.
+On the other hand, most networked control work assumes that the failure
+modes follow a given class of probability distributions; however, a real attacker
+has no incentives to follow this assumed distribution, and may attack in a nondeterministic
+manner. Finally, the work in stochastic system verification has
+addressed safety and reachability problems for fairly general systems; however,
+the potential applicability of these results for securing control systems has not
+been studied.
+In this article, we formulate and analyze the problem of secure control for
+discrete-time linear dynamical systems. Our work is based on two ideas: (1)
+the introduction of safety-constraints as one of the top security requirements of
+a control system, and (2) the introduction of new adversary models-we generalize
+traditional uncertainty classes for control systems to incorporate more
+realistic attacks. The goal in our model is to minimize a performance function
+such that a safety specification is satisfied with high probability and power limitations
+are obeyed in expectation when the sensor and control packets can be
+dropped by a random or a resource-constrained attacker. Our analysis uses tools
+from optimal control theory such as dynamic and convex programming.
+1.1
+Attacks on control systems
+Malicious cyber attacks to control systems can be classified as either deception
+attacks or denial-of-service DoS attacks.
+In the context of control systems, integrity refers to the trustworthiness of sensor
+and control data packets. A lack of integrity results in deception: when a
+component receives false data and believes it to be true. In Figure 1, A1 and A3
+represent deception attacks, where the adversary sends false information y˜ 6= y
+or u˜ 6= u from (one or more) sensors or controllers. The false information can
+include: an incorrect measurement, the incorrect time stamp, or the incorrect
+sender identity. The adversary can launch these attacks by compromising some
+sensors (A1) or controllers (A3).
+On the other hand, availability of a control system refers to the ability of all components
+of being accessible. Lack of availability results in a DoS of sensor and
+control data. A2 and A4 represent DoS attacks in Figure 1, where the adversary
+prevents two entities from communicating. To launch a DoS the adversary can
+jam the communication channels, compromise devices and prevent them from
+sending data, attack the routing protocols, flood with network traffic some devices,
+etc.
+Lastly, A5 represents a direct attack against the actuators or the plant. Solutions
+to these attacks, fall in the realm of detecting such attacks and improving the
+physical security of the system.
+As shown by the analysis of a database that tracked cyber-incidents affecting
+industrial control systems from 1982 to 2003 [4], DoS is the most likely threat
+to control systems; therefore in this article we focus on DoS attacks, leaving
+deception attacks for future work.
+2
+2.1
+Problem Setting
+System Model
+We consider a linear time invariant stochastic system over a time horizon k =
+0, . . . , N −1 with measurement and control packets subject to DoS attacks (γk, νk):
+xk+1 = Axk + Buka + wk
+uka = νkuk
+xka = γkxk
+k = 0, . . . , N − 1,
+νk ∈ {0, 1},
+γk ∈ {0, 1},
+(1)
+(2)
+(3)
+A4
+˜
+u
+A5
+A3
+Physical
+System
+Controller
+A1
+˜
+y
+A2
+Fig. 1. Attacks on a control system: A1 and A3 indicate integrity attacks, A2
+and A4 indicate DoS attacks, and A5 indicate direct physical attacks to the
+process.
+where xk ∈ Rn and uk ∈ Rm denote the state and the control input respectively,
+wk ∈ Rn is independent, Gaussian distributed noise with mean 0 and covariance
+W (denoted as wk ∼ N (0, W )), x0 ∼ N (x¯, P0) is the initial state, and {γk}
+(resp. {νk}) is the sensor (resp. actuator) attack sequence. Also, x0 and wk are
+uncorrelated. The available state (resp. available control input) is denoted by
+xka (resp. uka) after a DoS attack on the measurement (resp. control) packet.
+Following [16], for an acknowledgment based communication protocol such as
+TCP, the information set available at time k is Ik = {x0a, . . . , xka, γ0k, ν0k−1} where
+γij = (γi, . . . , γj ) and νij = (νi, . . . , νj ). Define u0N−1 = (u0, . . . , uN−1).
+We note that due to (3), the controller receives perfect state information xk
+when γk = 1 and 0 when γk = 0. However, our analysis presented can also be
+extended for the case of measurement equation yka = γkCsxk + vk.
+2.2
+Goals and Requirements
+At this stage, we have not specified any restrictions on the DoS attack actions
+except that (γk, νk) ∈ {0, 1}2 for k = 0, . . . , N − 1. We will impose constraints
+on the attacker actions in Section 3.1. Given such constraints, our goal is to
+synthesize a causal feedback control law uk = μk(Ik) such that for the system (1),
+(2), and (3), the following finite-horizon objective function is minimized
+" N−1 „xk«> „In
+JN (x¯, P0, u0N−1) = E x>N QxxxN + X
+0 «
+0 νkIm
+Q „uxkk« ˛˛˛u0N−1, x¯, P0
+k=0
+uk
+#
+(4)
+where Qxx
+0, and Q
+0 is partitioned as
+Q =
+Qxx
+0
+0
+Quu
+∈ R(n+m)×(n+m),
+and constraints on both the state and the input in an expected sense
+E
+"„xk«> „In
+0 «
+uk
+0 νkIm
+„xk«#
+Hi uk
+≤ βi
+for i = 1, . . . , L, and k = 0, . . . , N − 1 (5)
+0 and scalar constraints on the state and the input in a probabilistic
+with Hi
+sense
+3
+3.1
+»
+P ti>
+„In 0 « „xk«
+0 νkIm uk
+≤
+αi ≥ (1 − ε) for i = 1, . . . , T, and k = 0, . . . , N − 1 (6)
+with ti ∈ Rn+m are satisfied. The constraints (5) can be viewed as power constraints
+that limit the energy of state and control inputs at each time step. The
+constraint (6) can be interpreted as a safety specification stipulating that the
+state and the input remain within the hyperplanes specified by ti and αi with a
+sufficiently high probability, (1 − ε), for k = 0, . . . , N − 1. Equations (5) and (6)
+are to be interpreted as conditioned on the initial state, i.e., E[·] := E[·|x0] and
+P[·] := P[·|x0].
+Optimal control with constraints and random attacks
+A random DoS attack model
+Networked control formulations have previously considered the loss of sensor or
+control packets and their impact on the system. While previous results model
+packet drops caused by random events (and not by an attacker) we believe these
+packet drop models can be used as a first-step towards understanding the impact
+of DoS attacks to our objective and constraints.
+One of these models is the Bernoulli packet drop model, in which at each time,
+the attacker randomly jams a measurement (resp. control) packet according to
+independent Bernoulli trials with success probability γ¯ (resp. ν¯). This attack
+model, referred as the Ber(γ¯, ν¯) adversary, has the following admissible attack
+actions
+ABer(γ¯,ν¯) = {(γ0N−1, ν0N−1)|P(γk = 1) = γ¯, P(νk = 1) = ν¯, k = 0, . . . , N − 1}. (7)
+For the ABer(γ¯,ν¯) model, we can write the Kalman filter equations for the state
+estimate xˆk|k := E[xk|Ik] and the state estimation error ek|k := (xk − xˆk|k). For
+the update step we have
+xˆk+1|k = Axˆk|k + νkBuk and, ek+1|k = Aek|k + wk
+and for the correction step
+xˆk+1|k+1 = γk+1xk+1 + (1 − γk+1)xˆk+1|k and, ek+1|k+1 = (1 − γk+1)ek+1|k,
+starting with xˆ0|−1 = x¯ and e0|−1 ∼ N (0, P0). It follows that the error covariance
+matrices Σk+1|k := E[ek+1|kek>+1|k|Ik] and Σk|k := E[ek|kek>|k|Ik] do not
+depend on the control input uk. Thus, the separation principle holds for TCP-like
+communication [16]. Furthermore, it is easy to see that
+E[ek|kxk>k] = 0.
+|
+Taking expectations w.r.t. {γk}, the expected error covariances follow
+Eγ [Σk+1|k] = AEγ [Σk|k]A> + W and, Eγ [Σk+1|k+1] = (1 − γ¯)Eγ [Σk+1|k],
+for k = 0, . . . , N − 1 starting with the initial condition Σ0|−1 = P0. For the ease
+of notation, we denote xˆk+1 := xˆk+1|k, ek+1 := ek+1|k, and Σk+1 := Σk+1|k.
+Using the Kalman filter equations we obtain for k = 0, . . . , N − 1
+xˆk+1 = Axˆk + νkBuk + γkAek
+ek+1 = (1 − γk)Aek + wk
+Eγ [Σk+1] = (1 − γ¯)AEγ [Σk]A> + W.
+(8)
+(9)
+(10)
+(11)
+Definition 1. For Bernoulli attacks, (γ0N−1, ν0N−1) ∈ ABer(γ¯,ν¯) over systems
+controlled over TCP-like communication protocols, the safety-constrained robust
+optimal control problem is equivalent to minimizing (4) subject to (9), (11), (5)
+and (6).
+3.2
+Controller parameterization
+In this section, we deal with the safety-constrained optimal control problem as
+defined in Definition 1. Naive implementation of the control law u∗k = −Lkxˆk|k
+may not guarantee constraint satisfaction for any initial state. Recent research
+has shown that for the optimal control problems involving state and input constraints,
+more general causal feedback controllers can guarantee a larger set of
+initial states for which the constrained optimal control problem admits a feasible
+solution [3, 10, 17, 14, 19]. Specifically, these approaches consider the problem of
+designing causal controllers that are affine in all previous measurements such
+that a convex objective function is minimized subject to constraints imposed by
+the system dynamics, and the state and inputs constraints are satisfied.
+When considering a system under DoS attacks, (1), (2), and (3), the class of
+causal feedback controllers can be defined as an affine function of the available
+measurements, i.e.,
+k
+uk = u¯k + X γjMk,jxj,
+j=0
+k = 0, . . . , N − 1
+(12)
+where u¯k ∈ Rm is the open-loop part of the control, and Mk,j ∈ Rm×n is
+the feedback gain or the recourse at time k from sensor measurement xj . For
+a lost measurement packet, say xj0 for γj0 = 0, the corresponding feedback
+gain Mk,j0 has no contribution toward the control policy. We note that the
+above parameterization can be re-expressed as an affine function of innovations
+vk|k−1 := γk(xk − xˆk|k−1) = γkek as
+uk = u◦k + X γjMk,jej,
+k
+j=0
+k = 0, . . . , N − 1
+(13)
+where u◦k := u¯k + Pk
+j=0 γj Mi,j xˆj|j−1.
+Remark 1. When only the current available measurement is used for computing
+the feedback policy, the mapping μk can be expressed as
+uk = u¯k + γkMk,kxk = u◦k + γkMkek,
+k = 0, . . . , N − 1,
+where Mk := Mk,k for ease of notation and u◦k := u¯k + γkMkxˆk|k−1.
+3.3
+Convex characterization
+In this section, we will show that unlike (12), the use of control parameterization
+(13) yields an affine representation of state and control trajectories in
+terms of the control parameters u¯k (or u◦) and Mk,j . We use x, xˆ, u, e and
+k
+w to denote the respective trajectories over the time horizon 0, . . . , N . That is,
+x = (x0>, . . . , x>N )> ∈ Rn(N+1) and similarly for xˆ ∈ Rn(N+1) and e ∈ Rn(N+1);
+u = (u0>, . . . , u>N−1)> ∈ RmN and similarly for w
+∈ RnN . Using this representation,
+the system (1) and the control parameterization (12) can be written
+as
+x = Aw + BNu + x0,
+u = u¯ + MΓx,
+where x0, A, B, Γ, N are given in the Appendix and
+M = BBB
+@
+0 M0,0
+M1,0
+.
+.
+.
+0
+M1,1
+.
+.
+.
+. . .
+. . .
+.
+.
+.
+01
+0
+C
+. A
+MN−1,0 . . . MN−1,N−1 0
+.. CC ∈ RmN×n(N+1), u¯ = B@ . CA ∈ RmN
+.
+0 u¯0 1
+.
+u¯N−1
+Using (15) and (16), we can show that the closed-loop system response can be
+written as
+where
+x
+u
+=
+˜
+Gxw
+˜
+Guw
+w +
+x˜
+u˜
+G˜ xw = “A + BNMΓ(I − BNMΓ)−1A”
+G˜ uw = “MΓ(I − BNMΓ)−1A”
+x˜ = x0 + BNu¯ + BNMΓ(I − BNMΓ)−1(x0 + BNu¯)
+u˜ = MΓ(I − BNMΓ)−1(x0 + BNu¯) + u¯
+(14)
+tu
+(15)
+(16)
+(17)
+(18)
+Equation (18) is nonlinear in the control parameters (u¯, M) and hence, parameterization
+(12) cannot be directly used for solving constrained stochastic
+optimal control problems. On the other hand, using (10), the error trajectory
+can be written as
+where e0 and H are also given in the Appendix. Using (19), (15) and the control
+parameterization (13) we can re-express the closed-loop system response as
+e = e0 + Hw
+x
+u
+=
+ˆ
+Gxw
+ˆ
+Guw
+w +
+xˆ
+uˆ
+where
+Gˆ xw = (A + BNMΓH),
+xˆ = BNMΓe0 + x0 + BNu◦,
+Gˆ uw = MΓH
+uˆ = MΓe0 + u◦
+Thus, we arrive at the following result
+Theorem 1. Under the error feedback parameterization (13), the closed loop
+system response (20) is affine in the control parameters (u◦, M).
+We will now use the error feedback parameterization (13) for our analysis. Al(19)
+(20)
+tu
+tu
+3.4
+Safety-constrained optimal control for Bernoulli attacks
+For the control parameterization (12), and for the Bernoulli attack model, ABer(γ¯,ν¯)
+we will now solve the safety-constrained optimal control problem as stated in
+Lemma 1, i.e., minimize (4) subject to (9), (11), (5), and (6). We state the
+following useful lemma
+following statements are equivalent:
+Lemma 1 (Schur Complements). For all X ∈ Sn, Y ∈ Rm×n, Z ∈ Sm, the
+a)Z
+b)Z
+0, X − Y >Z−1Y
+0,
+0,
+X Y >
+Y
+Z
+0
+ternatively, we also note the following result:
+Remark 2. Using the transformation
+Q := MΓ(I − BNMΓ)−1,
+where Q ∈ RmN×n(N+1) and r ∈ Rmn, the terms in equation (18) can be written
+as: Gxw = (I + BNQ) A, Guw = QA, x˜ = (I + BNQ) x¯+BNr, and u˜ = Qx¯+
+r. Using simple matrix operations, the relations in (21) can be inverted as MΓ =
+(I + QBN)−1Q and u¯ = (I − MΓHN)r. Thus, under parameterization (21), the
+closed-loop system response also becomes affine in the control parameters (r, Q).
+r := (I + QBN)u¯
+(21)
+For the sake of simplicity we will consider the parameterization (14). However,
+our results can be re-derived for the parameterization (12). First, we will
+derive the expression for
+Vk = E
+"
+xˆk
+u◦
+k
+xˆk
+u◦
+k
+>#
+Using (14), the update equation for the state estimate (9) becomes
+xˆk+1 = Axˆk + νkBu◦k + γk(A + νkBMk)ek,
+(22)
+and further defining F = [In, 0] ∈ Rn×(n+m) we have,
+F Vk+1F > = Vkxˆ+xˆ1 = E hxˆk+1xˆk>+1i
+= E h(Axˆk + νkBu◦k + γk(A + νkBMk)ek)(Axˆk + νkBu◦k + γk(A + νkBMk)ek)>i
+= ˆA ˛˛√ν¯B˜ E
+"„xˆk« „xˆk«>#
+u◦k u◦k
+ˆA ˛˛√ν¯B˜>
++ √γ¯(A + √ν¯BMk)Eγ[Σk](A + √ν¯BMk)>√γ¯
+= ˆAVk ˛˛√ν¯BVk˜ (Vk)−1 ˆAVk ˛˛√ν¯BVk˜>
++ √γ¯(AEγ[Σk] + √ν¯BUk)(Eγ[Σk])−1(AEγ[Σk] + √ν¯BUk)>√γ¯
+where we have used Uk = MkEγ[Σk]. An upper bound on V can be obtained in
+the form of the following LMI by replacing the equality by and using Schur
+complements for k = 0, . . . , N − 1:
+
+
+(F Vk+1F >) ∗ ∗ ∗ 
+AVk √ν¯BVk > 0 Vk ∗  0
+√γ¯(AEγ[Σk] + √ν¯BUk)> 0 0 Eγ[Σk]
+(23)
+The objective function (4) can be expressed as
+N−1 "
+E hTr nQxxxN x>N oi + X E Tr
+k=0
+N−1
+= Tr nQxxE hxN x>N io + X Tr
+k=0
+N−1
+= Tr nQxxE hxˆN xˆ>N io + X Tr
+k=0
+„Qxx 0
+0 νkQuu
+«ff „xk« „xk«>#
+uk
+uk
+(„Qxx 0 «
+0 E[νk]Quu E
+"„xk« „xk«>#)
+uk
+uk
+(„Qxx 0 «
+0 ν¯Quu E
+"„xˆk« „xˆk«>#)
+uk
+uk
+N
++ X Tr {QxxEγ[Σk]}
+k=0
+Since Σk does not depend on the control input (refer to eq. (11)), PN
+k=0 Tr {QxxEγ[Σk]}
+is a constant and minimizing JN (x¯, P0, u0N−1) is the same as minimizing
+N−1
+Tr QxxVNxˆxˆ + X Tr
+k=0
+Qxx 0
+0 ν¯Quu Pk
+(24)
+= E
+= E
+"
+"
+
+
+
+
+Pk
+Vk
+0
+√γ¯Uk
+The power constraints (5) can be written as
+Tr
+(
+Hi
+(
+= Tr
+Hi
+In
+0
+0 E[νk]Im
+In
+0
+0 ν¯Im
+"
+E
+"
+E
+xk
+uk
+xˆk
+uk
+u◦k + γkMkek
+xˆk
+u◦
+k
+>
+∗
+Vk
+xˆk
+xˆk
+u◦
+k
+∗
+∗
+xk
+uk
+xˆk
+uk
+0 Eγ [Σk]
+where VNxˆxˆ is equal to E xˆN xˆ>N and the upper bound Pk is defined as
+Pk
+E
+"
+xˆk
+uk
+xˆk
+uk
+>#
+Again using Schur complement, we obtain for k = 0, . . . , N − 1
+xˆk
+u◦k + γkMkek
+>#
+>#
++
+0
+0
+0 γ¯Uk(Eγ [Σk])−1U >
+k
+
+
+
+
+>#)
+>#)
+0
++ Tr {HixxEγ [Σk]}
+Therefore the power constraints (5) become for i = 1, . . . , L, k = 0, . . . , N − 1
+Tr
+Hi
+In
+0
+0 ν¯Im
+Pk
+≤ βi − Tr {HixxEγ [Σk]} .
+Thus, we can now state the following theorem
+Theorem 2. For the (γ0N−1, ν0N−1) ∈ ABer(γ¯,ν¯) attack model the optimal causal
+controller of the form (14) for the system (1), (2), (3) that minimizes the objective
+function (4) subject to power constraints (5) is equivalent to solving the
+following semidefinite program (SDP):
+P(x¯, P0, N ) :
+(minVi,Pi,Ui (24)
+subject to (23), (25), (26).
+In order to handle the safety specification (6), we refer to Theorem 3.1 in [5]
+which says that for any
+∈ (0, 1), the chance constraint of the form
+is equivalent to the second order cone constraint (SOCP)
+d∼D
+inf P d>x˜ ≤ 0 ≥ 1 r
+1 x˜>Γ
+x˜ + dˆ>x˜ ≤ 0
+(25)
+(26)
+(27)
+tu
+where D is the set of all probability distributions with mean dˆ and covariance
+Γ , d is the uncertain data with distributions in the set of distributions D
+, and
+x˜ is the decision variable. We claim without proof that safety specifications of
+type (6) can be converted to SOCP constraints following [5],[19].
+4
+Modeling general DoS attacks
+theorem.
+From the security viewpoint, it might be difficult to justify the incentive for the
+attacker to follow a ABer(γ¯,ν¯) model. Therefore, in this section we introduce more
+general attack models that impose constraints on the DoS attack actions (γk, νk).
+First, note that if we know in advance the strategy of the attacker-for
+any arbitrary sequence (γ0N−1, ν0N−1)-we can use the results from the previous
+Corollary 1. The results of Theorem 2 be specialized to any given attack signature
+(γ0N−1, ν0N−1) ∈ {0, 1}2N .
+tu
+However, in practice we do not know the strategy of the attacker, thus we
+need to prepare for all possible attacks. Our model constrains the attacker action
+in time by restricting the DoS attacks on the measurement (resp. control) packet
+for at most p < N (resp. q < N ) time steps anywhere in the time interval i =
+0, . . . , N
+the adversary-such as its battery power, or the response time of the defenders−
+1. This attack model is motivated by limitations on the resources of
+which in turn limits the number of times it can block a transmission. We refer
+this attack model as the (p, q) adversary and it has the following admissible
+attack actions
+Apq = {(γ0N−1, ν0N−1) ∈ {0, 1}2N ˛˛ k γ0N−1 k1≥ N − p, k ν0N−1 k1≥ N − q},
+(28)
+strategies
+where k · k1 denotes the 1−norm. The size of Apq is Pp
+An interesting sub-class of Apq attack actions is the clNas−si o·f block aNt−tajck
+i=0 j=0
+Pq
+N
+N
+.
+Aτpxqτu = {(γ0N−1, ν0N−1) ∈ {0, 1}2N |γττxx+p−1 = 0, νττuu+q−1 = 0
+}
+(29)
+where τx ∈ {0, . . . , N − p
+} and τu ∈ {0, . . . , N − q
+} are the times at which the
+attacker starts jamming the measurement and control packets respectively. The
+size of Apq
+τxτu is (N − p + 1) · (N − q + 1). The intuition behind this attack subclass
+is that an attacker will consume all of its resources continuously in order
+to maximize the damage done to the system. In this attack sub-class, p and q
+can represent the response time of defensive mechanisms. For example, a packetflooding
+attack may be useful until network administrators implement filters or
+replicate the node under attack; similarly a jamming attack may be useful only
+until the control operators find the jamming source and neutralize it.
+We note that Apq and Apq
+τxτu are non-deterministic attack models in that the
+attacker can choose its action non-deterministically as long as the constraints
+defined by the attack model are satisfied.
+4.1
+DoS attacks against the safety constraint
+One possible objective of the attacker can be to violate safety constraints:
+Definition 2. [Most unsafe attack] For a given attack model A and control
+strategy μk(Ik), the best attack plan to violate safety specification that a output
+vector zk := (Cxk + νkDuk) remains within safe set S is
+max P[(Cxk + νkDμ(Ik)) ∈ Sc] for k = 0, . . . , N − 1
+A
+where Sc denotes the unsafe set.
+We will now show that for control parameterization (12), the block pq atτxτu
+can be viewed as the best attack plan for violating the safety contacks,
+Apq
+straint (refer to Definition 2). We can write the system equation (1) as
+xk+1 = Axk + νkBu¯k + νk
+k
+X γj Mk,j xj + wk
+j=0
+(30)
+(31)
+(32)
+and for the attack strategy Aτpxqτu :
+8Axk + wk for k = τu, . . . , τu + q − 1
+>
+xk+1 = <>>Axk + Bu¯k + B Pmin(τx−1,k) Mk,jxj
+j=0
+>>>+1(k ≥ τx + p)B Pjk=0 Mk,jxj + wk for k =
+:
+(0, . . . , τu − 1
+τu + q, . . . , N − 1.
+Now, if we ignore u¯k and substitute τx = 0, τu = p in (31) we obtain
+xk+1 =
+(Axk + wk for k = 0, . . . , p + q − 1
+Axk + B Pk
+j=p Mk,j xj for k = p + q, . . . , N − 1
+Thus, using the attack strategy A0ppq, the first p + q − 1 time steps evolve as openloop
+and beyond time step p + q, the system evolves as closed using available
+measurements since time p. With this strategy output vector zk is expected to
+violate the safety constraint in the shortest time.
+5
+Formulation of new challenges
+From the controller's viewpoint, it is of interest to design control laws that are
+robust against all attacker actions, i.e.:
+Definition 3. [Minimax (robust) control] For a given attack model A, the security
+constrained robust optimal control problem is to synthesize a control law that
+minimizes the maximum cost over all (γ0N−1, ν0N−1) ∈ A, subject to the power
+and safety constraints. This can be written as the minimax problem
+min max [(4) subject to (1), (2), (3), (5) and, (6)] .
+μk(Ik) A
+(33)
+In general, we note that the problem (33) may not always be feasible. When A is
+probabilistic, Definition 3 can be treated in sense of expectation or almost-surely.
+On the other hand, from the attacker's viewpoint, it is of interest to determine
+the optimal attack plan that degrades performance, i.e.,
+Definition 4. [Maximin (worst-case) attack] For a given attack model A
+optimal attack plan is the attacker action that maximizes the minimum operating
+, the
+costs. This can be written as the maximin problem
+A μk(Ik)
+max min [(4) subject to (1), (2), (3)] .
+As a first effort to analyze these goals we first consider the classical linear
+quadratic control problem, and analyze the cost function for the case of (1) no
+attacks, (2) ABer(γ¯,ν¯)attacks, and (3) Apq attacks.
+The problem is to find the optimal control policy uk = μk(Ik) that minimizes
+the objective (4) for the system (1), (2), and (3). The solution of this problem
+can be obtained in closed form using dynamic programming (DP) recursions [9,
+16].
+We recall that for the case of no-attack, i.e., (γk, νk) = (1, 1) for all k, the optimal
+control law is given by u∗k = −Lkxk where Lk := (B>Sk+1B + Quu)−1B>Sk+1A
+and the matrices Sk are chosen such that SN = Qxx and for k = N − 1, . . . , 0,
+Sk = A>Sk+1 + Qxx
+− Rk
+Sk = A>Sk+1A + Qxx
+− ν¯Rk.
+The optimal cost in this case is given by
+(34)
+(35)
+tu
+with Rk = Lk>(B>Sk+1B + Quu)Lk. The optimal cost is given by
+J N∗ = x¯>S0x¯ + Tr{S0P0} +
+N−1
+X Tr{Sk+1W }.
+k=0
+Following [16], the optimal control law for the case of ABer(γ¯,ν¯) attack model is
+given by u∗k = −Lkxˆk|k where xˆk|k is given by the Kalman filter equations; the
+expressions for Lk, Rk, SN are same as those for the no-attack case, and for
+k = N − 1, . . . , 0,
+J N∗,ABer(γ¯,ν¯) = x¯>S0x¯ + Tr{S0P0} +
+X Tr{Sk+1W } +
+X Tr{ν¯RkEγ [Σk|k]} (36)
+N−1
+k=0
+N−1
+k=0
+Lemma 2. J N∗,ABer(γ¯,ν¯) ≥ J N∗ for all (γ¯, ν¯) ∈ [0, 1].
+attack plan for the Apq attack class (refer to Definition 4):
+We now consider the case of Apq attacks. We can solve the problem of optimal
+For any given attack signature, (γ0N−1, ν0N−1) ∈ {0, 1}2N , the update equations
+and the optimal cost is given by
+of error covariance are Σk+1|k = AΣk|kA> +W and Σk+1|k+1 = (1−γk+1)Σk+1|k
+JN,Apq =x¯>S0x¯ + Tr{S0P0}
++
+N−1
+X Tr{Sk+1Q} +
+k=0
+N−1
+k=0
+X Tr{(A>Sk+1A + Qxx
+− Sk)Σk|k}
+where SN = Qxx and for k = N − 1, . . . , 0,
+and for k = 1, . . . , N − 1,
+Sk = A>Sk+1A + Qxx
+− νkA>Sk+1B(B>Sk+1B + Quu)−1B>Sk+1A.
+k
+j=1
+Σk|k = Y(1 − γj)AkP0Ak> + X
+(1 − γj)AiW Ai>.
+k−1
+k
+Y
+i=0 j=(k−i)
+following optimization problem:
+Proposition 1 An optimal attack plan for Apq attack model is a solution of the
+max (37) subject to (38), (39),
+Apq
+k γ0N−1
+k1≥ (N − p), and k ν0N−1
+k1≥ (N − q).
+Sk is affected by the future control attack sequence {νkN−1}.
+We note that while Σk|k is affected by the past measurement attack sequence {γ0k},
+Remark 3. We can use dynamic programming or convex duality theory to solve
+the problem without the `1 constraints on γ0N−1 and ν0N−1, see [9]. In this case,
+it is well-known that the optimal control policy is given by the linear feedback
+law that depends only on the current state. To solve the constrained problem as
+posed in Proposition 1, we propose to use suitable convex relaxations for the `1
+constraints and solve the relaxed problem using semidefinite programming.
+tu
+In future work we intend to address these problems and extend our results to
+deception attacks.
+Acknowledgments. We thank Laurent El Ghaoui for his help in the initial
+part of the project. We also thank Manfred Morari and Bruno Sinopoli for helpful
+(37)
+(38)
+(39)
+discussions.
+References
+1. Amin, S., Abate, A., Prandini, M., Lygeros, J., Sastry, S.: Reachability Analysis
+for Controlled Discrete Time Stochastic Hybrid Systems. Hybrid Systems: Computation
+and Control, pp. 49-63(2006).
+2. Amin, S., Bayen, A. M., El Ghaoui, L., Sastry, S. S.: Robust feasibility for control of
+water flow in a reservoir canal system. Proceedings of the 46th IEEE Conference
+on Decision and Control, pp. 1571-1577 (2007).
+3. Ben-Tal, A., Boyd, S., Nemirovski, A.: Control of uncertainty-affected discrete time
+linear systems via convex programming. Technical Report, Minerva Optimization
+Center, Technion, Haifa, Israel (2005).
+4. Byres, E., Lowe, J.: The myths and facts behind cyber security risks for industrial
+control systems. In Proceedings of the VDE Congress, VDE Association for
+Electrical Electronic & Information Technologies (2004).
+5. Calafiore, G.C., El Ghaoui, L.: Linear programming with probability constraints.
+In Proceedings of the 2007 American Control Conference, New York, USA (2007).
+6. Chatterjee, K., de Alfaro, L., Henzinger, T. A.: Termination criteria for solving
+concurrent Safety and reachability games. CORR: http://arxiv.org/abs/0809.4017
+(2008).
+7. C´ardenas, A. A., Amin, S., Sastry, S.: Research Challenges for the Security of
+Control Systems. 3rd USENIX workshop on Hot Topics in Security (HotSec '08).
+Associated with the 17th USENIX Security Symposium, San Jose, CA, (2008).
+8. Downs, J. J., Vogel, E. F.: A plant-wide industrial process control problem. Computers
+& Chemical Engineering, vol. 17, no.3, pp. 245-255 (1993).
+9. Gattami, A.: Optimal decision with limited information. PhD thesis, Department
+of Automatic Control, Lund University (2007).
+10. Goulart, P. J., Kerrigan, E. C., Maciejowski, J. M.: Optimization over state feedback
+policies for robust control with constraints. Automatica, vol. 42, no. 4, pp. 523-533
+(2006).
+11. Mayne, D. Q., Rawlings, J. B., Rao, C. V., Scokaert, P. O. M.: Constrained model
+predictive control: stability and optimality. Automatica, vol. 36, no. 6, pp. 789-814
+(2000).
+12. Nguyen, K. C., Alpcan, T., Basar, T.: A decentralized Bayesian attack detection
+algorithm for network security. Proc. of 23rd Intl. Information Security Conf,
+Milan, pp. 413-428 (2008).
+13. Pinar, A., Meza, J., Donde, V., Lesieutre, B.: Optimization strategies for the vulnerability
+analysis of the power grid. Submitted to SIAM Journal on Optimization
+(2008).
+14. Primbs, J., Sung, C.: Stochastic receding horizon control of constrained linear systems
+with state and control multiplicative noise. Submitted to IEEE Transactions
+on Automatic Control (2007).
+15. Salmeron, J., Wood, K., Baldick, B.: Analysis of electric grid security under terrorist
+threat. IEEE Transactions on power systems, vol. 19, pp. 905-912 (2004).
+16. Schenato, L., Sinopoli, B., Franceschetti, M., Poolla, K., Sastry, S.: Foundations
+of control and estimation over lossy networks. Proceedings of the IEEE, Special
+issue on networked control systems, vol. 95, no. 1, pp. 163-187 (2007).
+17. Skaf, J., Boyd, S.: Design of affine controllers via convex optimization. Submitted
+to the IEEE Transactions on Automatic Control, (2008).
+18. Turk, R. J.: Cyber Incidents Involving Control Systems. Technical Report, Idaho
+National Laboratory, (2005).
+19. van Hessem, D., Bosgra, O.: A full solution to the constrained stochastic closedloop
+MPC problem via state and innovations feedback and its receding horizon
+implementation. In Proceedings of the 2003 Conference on Decision and Control,
+Maui, Hawaii, USA (2003).
+20. Wang, Y., Boyd, S.: Fast model predictive control using online optimization. Submitted
+to IEEE Transactions on Control Systems Technology, (2008).
+21. Yu, Z. H., Li, W., Lee, J. H., Morari, M.: State estimation based model predictive
+control applied to shell control problem: a case study. Chemical engineering science,
+vol. 49, no. 3, pp. 285-301 (1994).
+6 Appendix
+0 In 1 0 0 0 0 . . . 0 1
+B A2 CC B In 0 0 . . . 0 C
+x0 := BBB A. CC x0 ∈ Rn(N+1), A := BBB A In 0 . . . 0 CCC ∈ Rn(N+1)×nN ,
+B@ .. CA B@ ... ... ... . . . 0 AC
+AN AN−1 AN−2 AN−3 . . . In
+0 0 0 0 . . . 0 1
+B B 0 0 . . . 0 C
+B := A(IN ⊗ B) = BBB AB B 0 . . . 0 CCC ∈ Rn(N+1)×mN ,
+B@ ... ... ... . . . 0 AC
+AN−1B AN−2B AN−3B . . . B
+and
+Γ = diag(γ0N−1) ⊗ In = B
+@
+N = diag(ν0N−1) ⊗ Im = B
+@
+0γ0In
+0ν0Im
+. . .
+. . .
+γN−1In
+νN−1Im
+1
+1
+CA ∈ RnN×nN ,
+CA ∈ RmN×mN ,
+B
+@
+0 In 1
+B (1 − γ0)A
+e0 = BBB(1 − γ0)(1 − γ1)A2CCCC e0 ∈ Rn(N+1)
+.
+.
+.
+C
+A
+QjN=−01(1 − γj)AN
+0
+B
+H = BBB
+B
+@
+0 0 . . . 0 1
+In 0 . . . 0 C
+(1 − γ1)A In . . . 0 C
+... ... ... . . . ...CCAC ∈ Rn(N+1)×nN
+QjN=−11(1 − γj)AN−1 QjN=−21(1 − γj)AN−2 . . . In

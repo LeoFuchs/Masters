@@ -1,0 +1,1514 @@
+Automatica 51 (2015) 135-148
+Contents lists available at ScienceDirect
+Automatica
+journal homepage: www.elsevier.com/locate/automatica
+A secure control framework for resource-limited adversaries✩
+André Teixeira a,1, Iman Shames b, Henrik Sandberg a, Karl Henrik Johansson a
+a ACCESS Linnaeus Centre, KTH Royal Institute of Technology, School of Electrical Engineering, Stockholm, Sweden
+b Department of Electrical and Electronic Engineering, University of Melbourne, Australia
+a r t i c l e
+i n f o
+Article history:
+Received 14 November 2012
+Received in revised form
+18 August 2014
+Accepted 27 August 2014
+Available online 19 November 2014
+Keywords:
+Cyber-physical systems
+System security
+Attack space
+Secure control systems
+a b s t r a c t
+Cyber-secure networked control is modeled, analyzed, and experimentally illustrated in this paper.
+An attack space defined by the adversary's model knowledge, disclosure, and disruption resources is
+introduced. Adversaries constrained by these resources are modeled for a networked control system
+architecture. It is shown that attack scenarios corresponding to denial-of-service, replay, zero-dynamics,
+and bias injection attacks on linear time-invariant systems can be analyzed using this framework.
+Furthermore, the attack policy for each scenario is described and the attack's impact is characterized
+using the concept of safe sets. An experimental setup based on a quadruple-tank process controlled over
+a wireless network is used to illustrate the attack scenarios, their consequences, and potential countermeasures.
+© 2014 Elsevier Ltd. All rights reserved.
+1. Introduction
+Safe and reliable operation of infrastructures is of major societal
+importance. These systems need to be engineered in such a
+way so that they can be continuously monitored, coordinated, and
+controlled despite a variety of potential system disturbances. Given
+the strict operating requirements and system complexity, such systems
+are operated through IT infrastructures enabling the timely
+data flow between digital controllers, sensors, and actuators. However,
+the use of communication networks and heterogeneous IT
+components has made these cyber-physical systems vulnerable to
+cyber threats. One such example is the industrial systems and critical
+infrastructures operated through Supervisory Control and Data
+Acquisition (SCADA) systems. The measurement and control data
+in these systems are commonly transmitted through unprotected
+communication channels, leaving the system vulnerable to several
+✩ The research leading to these results has received funding from the European
+Union Seventh Framework Programme (FP7/2007-2013) under grant agreement
+no. 608224, the EIT-ICT Labs through the project SESSec-EU, the Swedish
+Research Council under Grants 2009-4565 and 2013-5523, and the Knut and Alice
+Wallenberg Foundation. The material in this paper was partially presented at the 1st
+International Conference on High Confidence Networked Systems (HiCoNS), April
+17-18, 2012, Beijing, China. This paper was recommended for publication in revised
+form by Associate Editor Giancarlo Ferrari-Trecate under the direction of Editor Ian
+R. Petersen.
+E-mail addresses: andretei@kth.se (A. Teixeira), iman.shames@unimelb.edu.au
+(I. Shames), hsan@kth.se (H. Sandberg), kallej@kth.se (K.H. Johansson).
+1 Tel.: +46 73 429 78 31; fax: +46 8 790 73 29.
+http://dx.doi.org/10.1016/j.automatica.2014.10.067
+0005-1098/© 2014 Elsevier Ltd. All rights reserved.
+threats (Giani, Sastry, Johansson, & Sandberg, 2009). As illustrative
+examples, we mention the cyber attacks on power transmission
+networks operated by SCADA systems reported in the public media
+(Gorman, 2009), and the Stuxnet malware that supposedly infected
+an industrial control system and disrupted its operation (Falliere,
+Murchu, & Chien, 2011; Rid, 2011).
+There exists a vast literature on computer security focusing on
+three main properties of data and IT services, namely confidentiality,
+integrity, and availability (Bishop, 2002). Confidentiality relates
+to the non-disclosure of data by unauthorized parties. Integrity
+on the other hand concerns the trustworthiness of data, meaning
+there is no unauthorized change of the data contents or properties,
+while availability means that timely access to the data or
+system functionalities is ensured. Unlike other IT systems where
+cyber-security mainly involves the protection of data, cyber attacks
+on networked control systems may influence physical processes
+through feedback actuation. Therefore networked control system
+security needs to consider threats at both the cyber and physical
+layers. Furthermore, it is of the utmost importance in the study
+of cyber attacks on control systems to capture the adversary's resources
+and knowledge. Cyber threats can be captured and qualitatively
+categorized in the attack space illustrated in Fig. 1, which
+depicts several attack scenarios as points. Note that each example
+corresponds to a given instance of an attack scenario. As examples,
+eavesdropping and denial-of-service (DoS) attacks that do not have
+any model knowledge are indicated in the figure. However, some
+instances of DoS attacks may use additional resources and model
+knowledge, see Gupta, Langbort, and Başar (2010).
+136
+A. Teixeira et al. / Automatica 51 (2015) 135-148
+Fig. 1. The cyber-physical attack space. Each point depicts the qualitative
+classification of a given attack scenario.
+We propose three dimensions for the attack space: the adversary's
+a priori system model knowledge, disclosure, and disruption
+resources. Although adversaries possess several other
+features, the proposed three dimensions are quite relevant from
+a control system's perspective and allow a straightforward categorization
+of many attack scenarios studied in the literature. The a
+priori model knowledge can be used by the adversary to construct
+more complex attacks, possibly harder to detect and with more severe
+consequences. Similarly, the disclosure resources enable the
+adversary to obtain sensitive information about the system during
+the attack by violating data confidentiality. Note that disclosure resources
+alone cannot disrupt the system operation. An example of
+an attack using only disclosure resources is the eavesdropping attack
+illustrated in Fig. 1. On the other hand, disruption resources
+can be used to affect the system operation, which happens for instance
+when data integrity or availability properties are violated.
+In particular this characterization fits the Stuxnet malware, which
+had resources to record and manipulate data in the SCADA network
+(Falliere et al., 2011). Moreover, the complexity and operation of
+Stuxnet also indicate that its developers had access to a reasonable
+amount of knowledge of both physical and cyber components of
+the target control system.
+1.1. Security versus fault-tolerance
+Control theory has contributed with frameworks to handle
+model uncertainties and disturbances as well as fault diagnosis
+and mitigation, see, for example, Chen and Patton (1999) and
+Hwang, Kim, Kim, and Seah (2010), Zhou, Doyle, and Glover (1996),
+respectively. In particular, on-line fault diagnosis uses real-time
+data of the system to monitor its behavior and detect faults in
+physical components, e.g. actuators and sensors. Once faults are
+detected, fault-tolerant techniques can be used to ensure graceful
+degradation of the system until the fault is repaired. Since cyber
+attacks on networked control systems also affect the physical
+behavior of the system, these tools can be used to detect and
+attenuate the consequences of cyber attacks, as has recently been
+done in the literature. However, there are substantial conceptual
+and technical differences between the fault-tolerant and secure
+control frameworks that motivate the need for specific theories
+and methodologies to address security issues in control systems.
+Cyber attacks and faults have inherently distinct characteristics,
+which pose different challenges on the secure control and
+fault-tolerant approaches. Faults are considered as physical events
+that affect the system behavior, where simultaneous events are assumed
+to be non-colluding, i.e., the events do not act in a coordinated
+way. On the other hand, cyber attacks may be performed
+over a significant number of attack points in a coordinated fashion
+(Smith, 2011; Teixeira, Dán, Sandberg, & Johansson, 2011). Moreover,
+faults do not have an intent or objective to fulfill, as opposed
+to cyber attacks that do have a malicious intent. Later one attack
+scenario exploiting several of the previous issues is discussed in
+detail, namely the zero-dynamics attack.
+The distinct characteristics of faults and attacks lead to quite
+different approaches for increasing the system resiliency. Increased
+resiliency may be achieved through mainly three actions:
+prevention, detection, and mitigation (Bishop, 2002; Isermann,
+2006). These actions need to be tailored to the specific properties
+of faults and attacks to efficiently and effectively ensure resiliency.
+For instance, prevention, detection, and mitigation of faults may be
+achieved by maintenance, on-line monitoring, and timely repair of
+the physical components of the system, respectively. On the other
+hand, preventing, detecting, and mitigating cyber attacks on control
+systems must use mechanisms that consider both the cyber
+and physical realms, such as encryption and improved algorithms
+(Pang & Liu, 2012). Furthermore, ensuring security may involve addressing
+a large number of threats, thus requiring attack impact
+analysis and the use of risk assessment methods (Sridhar, Hahn, &
+Govindarasu, 2012). Several of these issues are present in this paper
+and have also been addressed in recent work on secure control
+systems.
+1.2. Related work
+Cyber attacks on control systems compromising measurement
+and actuator data integrity and availability have been considered in
+Cárdenas, Amin, and Sastry (2008), where the authors modeled the
+attack effects on the physical dynamics. Several attack scenarios
+have been simulated and evaluated on the Tennessee-Eastman
+process control system (Cárdenas et al., 2011) to study the attack
+impact and detectability. The attack scenarios in Cárdenas et al.
+(2011) are related to the ones considered in this paper, but we
+quantify the attack resources and policies in a systematic way.
+Availability attacks have been analyzed in Amin, Cárdenas, and
+Sastry (2009) and Gupta et al. (2010) for resource-constrained
+adversaries with full-state information. Particularly, the authors
+considered DoS attacks in which the adversary could tamper
+with the communication channels and prevent measurement and
+actuator data from reaching their destination, rendering the data
+unavailable. A particular instance of the DoS attack in which the
+adversary does not have any a priori model knowledge, as the
+attack in Amin et al. (2009), is represented in the attack space in
+Fig. 1.
+Deception attacks compromising integrity have recently received
+attention. In Pang and Liu (2012) the authors proposed an
+encryption and predictive control scheme to prevent and mitigate
+deception attacks on control systems. Replay attacks on the sensor
+measurements, which is a particular kind of deception attack,
+have been analyzed in Mo and Sinopoli (2009). The authors considered
+the case where all the existing sensors were attacked and
+suitable counter-measures to detect the attack were proposed. In
+this attack scenario the adversary does not have any model knowledge
+but is able to access and corrupt the sensor data, thus having
+disclosure and disruptive resources, as depicted in Fig. 1.
+Another class of deception attacks, false-data injection attacks,
+has been studied in recent work. For instance, in the case of
+power networks, an adversary with perfect model knowledge has
+been considered in Liu, Reiter, and Ning (2009). The work in
+Kosut, Jia, Thomas, and Tong (2010) considered stealthy attacks
+with limited resources and proposed improved detection methods,
+while Sandberg, Teixeira, and Johansson (2010) analyzed the
+minimum number of sensors required for stealthy attacks. A
+corresponding measurement security metric for studying sets of
+vulnerable sensors was proposed in Sandberg et al. (2010). The
+A. Teixeira et al. / Automatica 51 (2015) 135-148
+137
+consequences of these attacks have also been analyzed in Teixeira
+et al. (2011), Teixeira, Sandberg, Dán, and Johansson (2012) and
+Xie, Mo, and Sinopoli (2010). In particular, in Teixeira et al.
+(2011) the authors analyzed attack policies with limited model
+knowledge and performed experiments on a power system control
+software, showing that such attacks are stealthy and can induce the
+erroneous belief that the system is at an unsafe state. The models
+used in the previous work are static, hence these attack scenarios
+are closest to the bias injection attack shown in Fig. 1.
+Data injection attacks on dynamic control systems were also
+considered. In Smith (2011) the author characterizes the set of
+attack policies for covert (undetectable) false-data injection attacks
+with detailed model knowledge and full access to all sensor
+and actuator channels, while Pasqualetti, Dorfler, and Bullo (2011)
+described the set of undetectable false-data injection attacks for
+omniscient adversaries with full-state information, but possibly
+compromising only a subset of the existing sensors and actuators.
+In the context of multi-agent systems, optimal adversary policies
+for data injection using full model knowledge and state information
+were derived in Khanafer, Touri, and Başar (2012). The work
+in Sundaram, Revzen, and Pappas (2012) considers the detection
+and mitigation of false-data injection attacks on linear information
+dissemination algorithms over communication networks. In these
+attack scenarios confidentiality was violated, as the adversary had
+access to either measurement and actuator data or full-state information.
+These attacks are therefore placed close to the covert
+attack in Fig. 1.
+Impact of false-data injection attacks has also been considered
+in the literature. Using dynamic nonlinear models of power networks,
+in Esfahani, Vrakopoulou, Margellos, Lygeros, and Andersson
+(2010) the authors use reachability methods to analyze the
+impact of a false-data injection attack on a two-area power
+network. For linear networked control systems under false-data
+injection attacks, Mo and Sinopoli (2012) propose methods to approximate
+the reachable set of states for stealthy adversaries.
+Most of the recent work on cyber-security of control systems
+has considered scenarios where the adversary has access to a large
+set of resources and knowledge, thus being placed far from the
+origin of the attack space in Fig. 1. A large part of the attack space
+has not been explored yet. In particular, the class of detectable
+attacks that do not trigger conventional alarms has yet to be
+covered in depth.
+1.3. Contributions and outline
+In this paper we consider a typical networked control architecture
+under both cyber and physical attacks. A generic adversary
+model applicable to several attack scenarios is discussed and
+the attack resources are mapped to the corresponding dimensions
+of the attack space depicted in Fig. 1. Although the framework is
+presented for linear time-invariant (LTI) systems, the conceptual
+components and methodology may be applied to other classes of
+systems.
+To illustrate the proposed framework, we consider a LTI system
+under several attack scenarios where the adversary's goal is to
+drive the system to an unsafe state while remaining stealthy.
+Exploiting the properties of LTI systems, for each scenario we
+formulate the corresponding stealthy attack policy and comment
+on the attack's performance. Furthermore, we describe the
+adversary's capabilities along each dimension of the attack space in
+Fig. 1, namely the disclosure resources, disruption resources, and
+model knowledge. Some of the attack scenarios analyzed in the
+paper have been staged on a wireless quadruple-tank testbed for
+security of control systems. The testbed architecture and results
+from the staged attacks are presented and discussed.
+One of the attack scenarios analyzed corresponds to a novel
+type of detectable attack, the bias injection attack. Although this
+attack may be detected, it can drive the system to an unsafe region
+and it only requires limited model knowledge and no information
+about the system state. Stealthiness conditions for this attack are
+provided, as well as a methodology to assess the attack impact on
+the physical state of the system.
+The material in this paper is an extension of the authors'
+preliminary work, see Teixeira, Pérez, Sandberg, and Johansson
+(2012). Particularly, in the current work the attack goals are
+formalized using the notion of safe regions of the state space
+and two additional attack scenarios are described and analyzed.
+Furthermore, the attack performance of each scenario is analyzed
+in more detail and additional results for the zero-dynamics and
+bias injection attacks are presented.
+The outline of the paper is as follows. The system architecture
+and model are described in Section 2, while Section 3 contains the
+adversary model and a detailed description of the attack resources
+on each dimension of the attack space. The framework introduced
+in the previous sections is then illustrated for five particular
+attack scenarios in Section 4, supposing that the adversary aims at
+driving the system to an unsafe state while remaining stealthy. The
+attack policy, attack performance, and required model knowledge,
+disclosure, and disruption resources are described in detail for each
+attack scenario. The results of the experiments for four of the attack
+scenarios in a secure control systems testbed are presented and
+discussed in Section 5, followed by conclusions and future work
+directions in Section 6.
+2. Networked control system
+In this section we describe the networked control system
+structure, where we consider three main components: the physical
+plant and communication network, the feedback controller, and
+the anomaly detector. Although the networked control system
+architecture is presented for LTI systems, the same components
+can be used when considering other classes of systems.
+2.1. Physical plant and communication network
+The physical plant is modeled in a discrete-time state-space
+form
+ xk+1 = Axk + Bu˜k + Gwk + Ffk
+P : yk = Cxk + vk,
+where xk ∈ Rnx is the state variable, u˜k ∈ Rnu the control actions
+applied to the process, yk ∈ Rny the measurements from the sensors
+at the sampling instant k ∈ Z, and fk ∈ Rnf is the unknown signal
+representing the effects of anomalies, usually denoted as fault
+signal in the fault diagnosis literature (Ding, 2008). The process and
+measurement noise, wk ∈ Rnx and vk ∈ Rny , represent the discrepancies
+between the model and the real process, due to unmodeled
+dynamics or disturbances, for instance, and we assume their means
+are respectively bounded by δ w and δ v, i.e. w¯ = ∥E{wk}∥ ≤ δ w and
+v¯ = ∥E{vk}∥ ≤ δ v.
+The physical plant operation is supported by a communication
+network through which the sensor measurements and actuator
+data are transmitted, which at the plant side correspond to yk
+and u˜k, respectively. At the controller side we denote the sensor
+and actuator data by y˜k ∈ Rny and uk ∈ Rnu , respectively.
+Since the communication network may be unreliable, the data
+exchanged between the plant and the controller may be altered,
+resulting in discrepancies in the data at the plant and controller
+ends. In this paper we do not consider the usual communication
+network effects such as packet losses and delays. Instead we focus
+on data corruption due to malicious cyber attacks, as described
+(1)
+138
+A. Teixeira et al. / Automatica 51 (2015) 135-148
+(2)
+(3)
+in Section 3. Therefore, it is assumed that, first, any possible
+mismatches between the transmitted and received data are due to
+malicious adversaries alone. Second, the communication network
+is assumed to be reliable and not affecting the data flowing through
+it.
+Given the physical plant model (1) and assuming an ideal
+communication network, the networked control system is said to
+have a nominal behavior if fk = 0, u˜k = uk, and y˜k = yk. The absence
+of either one of these condition results in an abnormal behavior of
+the system.
+2.2. Feedback controller
+In order to comply with performance requirements in the
+presence of the unknown process and measurement noises, we
+consider that the physical plant is controlled by a linear timeinvariant
+feedback controller (Zhou et al., 1996). The outputfeedback
+controller can be written as
+ zk+1 = Ac zk + Bc y˜k
+F : uk = Cc zk + Dc y˜k
+where the states of the controller, zk ∈ Rnz , may include the
+process state and tracking-error estimates. Given the plant and
+communication network models, the controller is supposed to
+be designed so that acceptable performance is achieved under
+nominal behavior.
+2.3. Anomaly detector
+In this section we consider the anomaly detector that monitors
+the system to detect possible anomalies, i.e. deviations from
+the nominal behavior. The anomaly detector is supposed to be
+collocated with the controller, therefore it only has access to y˜k and
+uk to evaluate the behavior of the plant.
+Several approaches to detecting malfunctions in control
+systems are available in the fault diagnosis literature (Ding, 2008;
+Hwang et al., 2010). Here we consider a general form of an
+observer-based Fault Detection Filter
+ sk = Aesk + Beuk + Ke y˜k
+D : rk = Cesk + Deuk + Ee y˜k,
+where sk ∈ Rns is the state of the anomaly detector and rk ∈ Rnr is
+the residue evaluated to detect and locate existing anomalies.
+The anomaly detector is designed by choosing Ae, Be, Ke, Ce, De,
+and Ee such that
+(1) under nominal behavior of the system (i.e., fk = 0, uk = u˜k,
+yk = y˜k), the expected value of rk converges asymptotically to
+a neighborhood of zero, i.e., limk→∞ E{rk} ∈ Bδ r , with δ r ∈ R+
+and Bδ r , {r ∈ Rnr : ∥r∥q ≤ δ r } for q ≥ 1;
+(2) the residue is sensitive to the anomalies (i.e., fk ≢ 0 and fk ≡ 0
+for all k result in different residues).
+The characterization of Bδ r depends on the noise terms and can be
+found in Ding (2008) for particular values of q. Given the residue
+signal over the time-interval [d0, df ], r[d0, df ] = [rd⊤0 · · ·
+an alarm is triggered if
+r[d0, df ] ̸∈ U[d0, df ],
+where the set U[d0, df ] is chosen so that the false-alarm rate does
+not exceed a given threshold α ∈ [0, 1]. This necessarily requires
+no alarm to be triggered in the noiseless nominal behavior i.e.,
+r[d0, df ] ∈ U[d0, df ] if for all k ∈ [d0, df ] it holds that rk ∈ Bδ r . Such
+set-based detection fits several residual evaluation techniques
+presented in Frank and Ding (1997). For instance, one can take
+U[d0, df ] to be a bound on the energy of the residue signal over
+the time-interval [d0, df ], resulting in U[d0, df ] = {r[d0, df ] :
+∥r[d0, df ]∥2 ≤ δ } for some δ ∈ (0, ∞).
+rd⊤f ]⊤,
+(4)
+Fig. 2. Adversary model for a point in the attack space in Fig. 1.
+3. Adversary models
+The adversary model considered in this paper is illustrated
+in Fig. 2 and is composed of an attack policy and the adversary
+resources i.e., the system model knowledge, the disclosure
+resources, and the disruption resources. Each of the adversary
+resources can be mapped to a specific axis of the attack space in
+Fig. 1: K = {Pˆ , Fˆ , Dˆ } is the a priori model knowledge possessed
+by the adversary; Ik corresponds to the set of sensor and actuator
+data available to the adversary at time k as illustrated in (8), thus
+being mapped to the disclosure resources; ak is the attack vector
+at time k that may affect the system behavior using the disruption
+resources captured by B, as defined in the current section. The
+attack policy mapping K and Ik to ak at time k is denoted as
+ak = g(K, Ik).
+Examples of attacks policies for different attack scenarios are given
+in Section 4.
+In this section we describe the networked control system under
+attack with respect to the attack vector ak. Then we detail the
+adversary's model knowledge, the disclosure resources, and the
+disruption resources. Models of the attack vector ak for particular
+disruption resources are also given.
+3.1. Networked control system under attack
+The system components under attack are now characterized for
+the attack vector ak, which also includes the fault vector fk. Stacking
+the states of the plant and controller as η k = [xk⊤ zk⊤]⊤, the
+dynamics of the closed-loop system composed by P and F under
+the effect of ak can be written as
+ wk
+η k+1 = Aη k + Bak + G vk
+ wk ,
+y˜k = Cη k + Dak + H vk
+ wk ,
+uk = Cuη k + Dc Dak + Dc H vk
+where the system matrices are
+A =
+C =  C
+ A + BDc C
+Bc C
+0 ,
+BCc  ,
+Ac
+ G
+G = 0
+BDc  ,
+Bc
+H =  0 I ,
+Cu =  Dc C
+Cc  ,
+and B and D capture the way in which the attack vector ak affects
+the plant and controller. These matrices are characterized for some
+attack scenarios in Section 3.4. Similarly, using P , F , and D as
+in (1), (2), and (3), respectively, and stacking the states of the plant,
+controller, and anomaly detector as ξ k = [η k⊤ sk⊤]⊤ the residue
+dynamics under attack are described by
+ wk
+ξ k+1 = Aeξ k + Beak + Ge v
+k
+ wk ,
+rk = Ceξ k + Deak + He v
+k
+(5)
+(6)
+(7)
+where
+
+Ae =
+A
+BeCu + KeC
+Ce =  DeCu + EeC
+0  ,
+Ae
+Ce ,
+De = (DeDc + Ee)D,
+He = (DeDc + Ee)H.
+3.2. Model knowledge
+
+
+Be = (BeDc B+ Ke)D ,
+Ge = (BeDc G+ Ke)H ,
+
+
+The amount of a priori knowledge regarding the control system
+is a core component of the adversary model, as it may be used,
+for instance, to render the attack undetectable. In general, we may
+consider that the adversary approximately knows the model of the
+plant (Pˆ ) and the algorithms used in the feedback controller (Fˆ )
+and the anomaly detector (Dˆ ), thus denoting the adversary knowledge
+by K = {Pˆ , Fˆ , Dˆ }. Fig. 1 illustrates several types of attack
+scenarios with different levels of model knowledge. In particular,
+note that the replay attacks do not need any knowledge of the system
+components, therefore having K = ∅, while the covert attack
+requires full knowledge about the system, hence K = {P ,
+F , D}.
+3.3. Disclosure resources
+The disclosure resources enable the adversary to gather sequences
+of data from the calculated control actions uk and the
+real measurements yk through disclosure attacks. Denote Ru ⊆
+{1, . . . , nu} and Ry ⊆ { 1, . . . , ny} as the disclosure resources,
+i.e. the set of actuator and sensor channels that can be accessed
+during disclosure attacks, and let Ik be the control and measurement
+data sequence gathered by the adversary from time k0 to k.
+The disclosure attacks can then be modeled as
+Ik := Ik− 1 ∪
+ Υ u
+0
+0   uk
+Υ y yk
+,
+where Ik0 = ∅ and Υ u ∈ B|Ru|× nu and Υ y ∈ B|Ry|× ny are the
+binary incidence matrices mapping the data channels to the corresponding
+data gathered by the adversary. As seen in the above
+description of disclosure attacks, the physical dynamics of the system
+are not affected by these type of attacks. Instead, these attacks
+gather intelligence that may enable more complex attacks, such as
+the replay attacks depicted in Fig. 1.
+3.4. Disruption resources
+In the system dynamics under attack, (6) and (7), disruption resources
+are related to the attack vector ak and may be used to affect
+the several components of the system. The way a particular attack
+disturbs the system operation depends not only on the respective
+resources, but also on the nature of the attack. For instance, a physical
+attack directly perturbs the system dynamics, whereas a cyber
+attack disturbs the system through the cyber-physical couplings.
+To better illustrate this discussion we now consider physical and
+data deception attacks.
+3.4.1. Physical resources
+Physical attacks may occur in control systems, often in
+conjunction with cyber attacks. For instance, in the experiments
+reported in Amin, Litrico, Sastry, and Bayen (2010), water was
+pumped out of an irrigation system while the water level
+measurements were corrupted so that the attack remained
+stealthy. Since physical attacks are similar to the fault signals in (1),
+A. Teixeira et al. / Automatica 51 (2015) 135-148
+139
+(8)
+Note that deception attacks do not possess any disclosure
+capabilities, as depicted in Fig. 1 for examples of deception attacks
+such as the bias injection attack.
+in the following sections we consider fk to be the physical attack
+modifying the plant dynamics as
+xk+1 = Axk + Bu˜k + Gwk + Ffk
+yk = Cxk.
+ F 
+B = 0 ,
+D = 0.
+Considering ak = fk, the resulting system dynamics are described
+by (6) and (7) with
+Note that the disruption resources in this attack are captured in the
+matrix F .
+3.4.2. Data deception resources
+The deception attacks modify the control actions uk and
+sensor measurements yk from their calculated or real values to
+the corrupted signals u˜k and y˜k, respectively. Denoting RIu ⊆
+{1, . . . , nu} and RIy ⊆ { 1, . . . , ny} as the deception resources,
+i.e. set of actuator and sensor channels that can be affected, the
+deception attacks are modeled as
+u˜k := uk + Γ ubu,
+k
+y˜k := yk + Γ yby,
+k
+y
+where the signals bku ∈ R|RIu| and bky ∈ R|RI | represent the data
+corruption and Γ u ∈ Bnu×| RIu| and Γ y ∈ Bny×| RIy| (B := {0, 1}) are
+the binary incidence matrices mapping the data corruption to the
+respective data channels. The matrices Γ u and Γ y indicate which
+data channels can be accessed by the adversary and are therefore
+directly related to the adversary resources in deception attacks.
+Defining ak = [bku⊤ bky⊤]⊤, the system dynamics are given by
+(6) and (7) with
+(9)
+B =
+ BΓ u
+0
+BDc Γ y
+Bc Γ y ,
+D =  0 Γ y .
+4. Attack scenarios
+In this section we discuss the general goal of an adversary
+and likely choices of the attack policy g(· , · ). In particular, using
+the framework introduced in the previous sections, we consider
+several attack scenarios where the adversary's goal is to drive
+the system to an unsafe state while remaining stealthy. For
+each scenario we formulate the corresponding stealthy attack
+policy, comment on the attack's performance, and describe the
+adversary's capabilities along each dimension of the attack space
+in Fig. 1, namely the disclosure resources, disruption resources,
+and model knowledge. A subset of these scenarios is illustrated by
+experiments on a process control testbed in Section 5.
+4.1. Attack goals and constraints
+In addition to the attack resources, the attack scenarios need to
+also include the intent of the adversary, namely the attack goals
+and constraints shaping the attack policy. The attack goals can be
+stated in terms of the attack impact on the system operation, while
+the constraints may be related to the attack detectability.
+Several physical systems have tight operating constraints which
+if not satisfied might result in physical damage to the system. In
+this work we use the concept of safe regions to characterize safety
+constraints.
+140
+A. Teixeira et al. / Automatica 51 (2015) 135-148
+η ka+1 = Aη ka + Bak
+ya
+˜k = Cη ka + Dak
+and
+ξ ka+1 = Aeξ ka + Beak
+rk = Ceξ ka + Deak,
+a
+(10)
+(11)
+Definition 1. At a given time instant k, the system is said to be safe
+if xk ∈ Sx, where Sx is a closed and compact set with non-empty
+interior.
+The physical impact of an attack can be evaluated by assessing
+whether or not the state of the system remained in the safe set
+during and after the attack. Assuming that the system is in a safe
+state at the beginning of the attack, i.e. xk0 ∈ Sx, the attack is
+considered successful if the state is driven out of the safe set.
+Regarding the attack constraints, we consider that attacks
+are constrained to remain stealthy. Furthermore, we consider
+the disruptive attack component consists of only physical and
+data deception attacks and, therefore, we have the attack vector
+ak = [fk⊤ bku⊤ bky⊤]⊤. Given the anomaly detector described in
+Section 2 and denoting a[k0, kf ] = [ak⊤0 · · · ak⊤f ]⊤ as the attack
+signal, the set of stealthy attacks are defined as follows.
+interval [k0, df ] with df ≥ kf if r[k0, df ] ∈ U[k0, df ].
+Definition 2. The attack signal a[k0, kf ] is stealthy over the timeNote
+that the above definition is dependent on the initial state of
+the system at k0, as well as the noise terms wk and vk.
+Since the closed-loop system (6) and the anomaly detector (7)
+under linear attack policies are LTI systems, each of these systems
+can be separated into two components: the nominal component
+with ak = 0 ∀k and the following systems
+with η 0a = ξ a
+0 = 0.
+Assuming the system is behaving nominally before the attack
+and that, given the linearity of (7), there exists a set U[ak0, df ] ,
+{r[k0, df ] : ∥r[k0, df ]∥q ≤
+r[k0, df ] ∈ U[k0, df ], we have the following definition:
+δ α } such that r[ak0, df ] ∈ U[ak0, df ] ⇒
+interval [k0, df ] if r[ak0, df ] ∈ U[ak0, df ].
+Definition 3. The attack signal a[k0, kf ] is stealthy over the timeAlbeit
+more conservative than Definition 2, this definition only
+depends on the attack signals a[k0, kf ]. Therefore, the stealthiness
+of linear attacks on LTI systems may be analyzed independently
+of the noise inputs. Similarly, the impact of attacks on the closedloop
+system can be analyzed through the linear system (10), as
+illustrated in Section 4.6 for the bias injection attack. For other
+classes of systems, e.g., nonlinear or switched systems, the analysis
+and characterization of attacks may have to consider the noise
+terms directly.
+4.2. Denial-of-service attack
+The DoS attacks prevent the actuator and sensor data from
+reaching their respective destinations and results in the absence
+of data. To model absent data, we consider one of the typical
+mechanisms used by digital controllers to deal with unavailable
+data (Schenato, 2009), in which the absent data is replaced with
+the last received data, uτ u and yτ y .
+Attack policy: Denote RAu ⊆ { 1, . . . , nu} and RAy ⊆ { 1, . . . , ny}
+as the set of actuator and sensor channels that can ybe my ade
+unavailable and define Sku ∈ B|RAu|×| RAu| and Sky ∈ B|RA|×| RA| as
+Boolean diagonal matrices where the ith diagonal entry indicates
+( ) ( )
+whether a DoS attack is performed ([Sk· ]ii = 1) or not ([Sk· ]ii =
+0) on the corresponding channel. Using the latter variables, DoS
+attacks can be modeled as deception attacks in (9) with
+bk := − SkuΓ u⊤(uk − uτ u )
+u
+bk := − SkyΓ y⊤(yk − yτ y )
+y
+(12)
+bu⊤ bky⊤]⊤. Therefore DoS attacks on the data are a type
+and ak = [ k
+of disruptive attacks, as depicted in Fig. 1.
+The attack scenario analyzed in this paper considers a Bernoulli
+adversary (Amin et al., 2009) on the sensor channels following the
+random policy
+P([Sky]ii = 1) = 0,
+P([Sky]ii = 1) = p,
+∀i = 1, . . . , |RAu|, k < k0
+∀i = 1, . . . , |RAu|, k ≥ k0
+where p is the probability of blocking the data packet at any given
+time.
+Attack performance: Although the absence of data packets is
+not stealthy, since it is trivially detectable, DoS attacks may be
+misdiagnosed as a poor network condition. As for the impact on
+the closed-loop system, the results available for Bernoulli packet
+losses readily apply to the current attack scenario (Schenato, 2009;
+Schenato, Sinopoli, Franceschetti, Poolla, & Sastry, 2007; Zhang,
+Branicky, & Phillips, 2001). In particular, we recall the following
+result applied to (12).
+Proposition 4 (Theorem 8 in Zhang et al., 2001). Assume that the
+closed-loop system with no DoS attack is stable. Then the closed-loop
+system with Bernoulli DoS attacks is exponentially stable for p ∈
+[0, 1) if the open-loop system
+η k+1 =
+ A BCc  η k
+0 Ac
+is marginally stable.
+Disclosure resources: Although the proposed model of DoS
+attacks in (12) contains the control and output signals, note that
+no disclosure resources are needed in the actual implementation
+of the attack. Hence we have Ru = Ry = ∅.
+Disruption resources: The disruption capabilities correspond to
+the data channels that the adversary is able to make unavailable,
+y
+RAu and R .
+A
+Model knowledge: For the Bernoulli attack policy, no a priori
+knowledge of the system model is needed.
+4.3. Replay attack
+In replay attacks the adversary first performs a disclosure attack
+from k = k0 until kr , gathering sequences of data Ikr , and then
+begins replaying the recorded data at time k = kr + 1 until the
+end of the attack at k = kf > kr , as illustrated in Fig. 3. In the
+scenario considered here the adversary is also able to perform a
+physical attack while replaying the recorded data, which covers
+the experiment on a water management SCADA system reported
+in Amin et al. (2010) and one of Stuxnet's operation mode (Falliere
+et al., 2011).
+Attack policy: Similar to the work in Mo and Sinopoli (2009),
+assuming R(· ) = RI(· ) i.e., the adversary can corrupt the digital
+channels from which the data sequences are gathered, the replay
+attack policy can be described as
+Phase I :
+ak = 0
+Ik = Ik− 1 ∪
+ Υ u
+0
+0   uk
+Υ y yk
+,
+(13)
+A. Teixeira et al. / Automatica 51 (2015) 135-148
+141
+(a) Phase I of the replay attack (13).
+(b) Phase II of the replay attack (14).
+Fig. 3. Schematic of the replay attack.
+(14)
+with k0 ≤ k ≤ kr and Ik0 = ∅ and
+Phase II :
+
+Ik = Ik− 1,
+  gf (K, Ikr ) 
+
+ak = Υ u(uk− T − uk)
+Υ y(yk− T − yk)
+where T = kr − 1 + k0 and kr + 1 ≤ k ≤ kf . An interesting instance
+of this attack scenario consists of applying a pre-defined physical
+attack to the plant, while using replay attacks to render the attack
+stealthy. In this case the physical attack signal fk corresponds to
+an open-loop signal, fk = gf (k). Note that, while (14) resembles a
+time-delay of length T , replay attacks differ from delayed data in a
+subtle but important way: all measurement data during the attack
+interval [kr + 1, kf ] is never available to the anomaly detector. As
+in Amin et al. (2010), this allows the adversary to design the attack
+so that no alarm is triggered by the anomaly detector.
+Attack performance: The work in Mo and Sinopoli (2009)
+provided conditions under which replay attacks with access to all
+measurement data channels are stealthy. However, these attacks
+are not guaranteed to be stealthy when only a subset of the data
+channels is attacked. In this case, the stealthiness constraint may
+require additional knowledge of the system model. For instance,
+the experiment presented in Section 5 requires knowledge of the
+physical system structure, so that fk only excites the attacked
+measurements. Hence fk can be seen as a zero-dynamics attack
+with respect to the uncompromised measurements, which is
+characterized in the section below. Since the impact of the replay
+attack is dependent only on fk, we refer the reader to Section 4.4
+for a characterization of the replay attack's impact.
+Disclosure resources: The required disclosure capabilities correspond
+to the data channels that can be eavesdropped by the adversary,
+namely Ru and Ry.
+Disruption resources: In this case the deception capabilities
+correspond to the data channels that the adversary can tamper
+with, RIu and RIy. In particular, for replay attacks the adversary
+can only tamper with the data channels from which data has been
+previously recorded, i.e. RIu ⊆ Ru and RIy ⊆ Ry.
+Direct disruption of the physical system through the signal fk
+depends on having direct access to the physical system, modeled
+by the matrix F in (1).
+Model knowledge: Note that no a priori knowledge K on the
+system model is needed for the cyber component of the attack,
+namely the data disclosure and deception attack, as seen in
+the attack policy (13) and (14). As for the physical attack, fk,
+the required knowledge is scenario dependent. In the scenario
+considered in the experiments described in Section 5, this
+component was modeled as an open-loop signal, fk = gf (k).
+4.4. Zero-dynamics attack
+Recalling that for linear attack policies the plant and the
+anomaly detector are LTI systems, (10) and (11) respectively, Definition
+3 states that this type of attacks are 0-stealthy if rka = 0, k =
+k0, . . . , df . The idea of 0-stealthy attacks consists of designing an
+attack policy and attack signal a[k0, kf ] so that the residue rk does not
+change due to the attack. In other words, these attacks are decoupled
+from the output of the closed-loop linear system (7), namely
+rk, and their design in general depends on the plant, controller, and
+anomaly detector dynamics. A particular subset of 0-stealthy attacks
+that only depend on the plant dynamics are characterized in
+the following lemma.
+Lemma 5. The attack signal a[k0, kf ] is 0-stealthy with respect to an
+a
+arbitrary anomaly detector D if y˜k = 0, ∀k ≥ k0.
+Proof. Consider arbitrary controller and anomaly detector and
+their corresponding attacked components in (10) and (11) with
+sa0 = 0. From the controller dynamics it directly follows that y˜ka =
+0, ∀k ≥ k0 results in uka = 0, ∀k ≥ k0, as the input to the controller
+(y˜ka) is zero. Since sa0 = 0 and y˜ka = uka = 0, ∀k ≥ k0, meaning that
+a
+the detector's inputs are zero, we then conclude rk = 0, ∀k ≥ k0.
+Lemma 5 indicates that these attacks are decoupled from the
+plant output yk, thus being stealthy with respect to arbitrary
+anomaly detectors. Hence finding 0-stealthy attack signals relates
+to the output-zeroing problem or zero-dynamics studied in the
+control theory literature (Zhou et al., 1996). Note that such an
+attack requires the perfect knowledge of the plant dynamics P and
+the attack signal is based on the open-loop prediction of the output
+changes due to the attack. This is illustrated in Fig. 4 where Kz
+denote the zero-dynamics and there is no disclosure of sensor or
+actuator data.
+Attack policy: The attack policy corresponds to the input sequence
+(ak) that makes the outputs of the process (y˜ka) identically zero for
+all k and is illustrated in Fig. 4. It can be shown (Zhou et al., 1996)
+that the solution to this problem is given by the sequence
+ak = ν kg,
+parameterized by the system zero ν and the corresponding inputzero
+direction g.
+For sake of simplicity we consider a particular instance of this
+attack, where only the actuator data is corrupted. In this case the
+zero attack policy corresponds to the transmission zero-dynamics
+of the plant. The plant dynamics due to an attack on the actuator
+data are described by
+xk+1 = Axka + Bak
+a
+ya
+˜k = Cxka
+(15)
+(16)
+142
+A. Teixeira et al. / Automatica 51 (2015) 135-148
+Fig. 4. Schematic of the zero-dynamics attack.
+with ak = bku. Given the discrete-time system (16) with B having
+full column rank, the transmission zeros can be calculated as the
+values ν ∈ C that cause the matrix P(ν) to lose rank, where
+P(ν) =  ν I C− A − 0B .
+Those values are called minimum phase or non-minimum phase
+zeros depending on whether they are stable or unstable zeros,
+respectively. In discrete-time systems a zero is stable if |ν | < 1
+and unstable otherwise.
+The input-zero direction can be obtained by solving the
+following equation:
+ ν I C− A − 0B  xg0 =  00 ,
+(17)
+where x0 is the initial state of the system for which the input
+sequence (15) results in an identically zero output.
+Lemma 6. Let x0 be the initial state of the system, where x0
+satisfies (17). The state trajectories generated by the zero-dynamics
+attack are contained in span(x0) i.e., xka ∈ span(x0) ∀k ≥ 0.
+Proof. The proof follows an induction argument. Consider the
+zero-dynamics attack parameterized by x0 and g and the state
+evolution under attack, xka+a1 = Axka + ν kBg with xa0 = x0. For k = 0
+it follows from (17) that x1 = Ax0 + Bg = ν x0. Supposing that
+xka = ν kx0 yields xka+1 = Axka + ν kBg = ν k(Axa0 + Bg) = ν k+1x0 for
+all k ≥ 0, which concludes the proof.
+Attack performance: Note that the zero-dynamics attack is 0stealthy
+only if xa0 = x0. However the initial state of the system
+under attack xa0 is defined to be zero at the beginning of the
+attack. Therefore stealthiness of the attack may be violated for
+large differences between xa0 = 0 and x0. We refer the reader to
+Teixeira, Shames, Sandberg, and Johansson (2012) for a detailed
+analysis of the effects of zero initial conditions on zero-dynamics
+attacks.
+If the zero is stable, that is |ν | < 1, the attack will asymptotically
+decay to zero, thus having little effect on the plant. However, in the
+case of unstable zeros the attack grows geometrically, which could
+cause a great damage to the process. This statement is captured in
+the following result.
+Theorem 7. A zero-dynamics attack with |ν | > 1 leads the system
+to an unsafe state if and only if span(x0) is not contained in Sx.
+Proof. Follows directly from Lemma 6 and from the fact that the
+zero-attack with |ν | > 1 generates an unstable state trajectory
+moving away from the origin along span(x0).
+Disclosure resources: This attack scenario considers an openloop
+attack policy and so no disclosure capabilities are required,
+resulting in Ru = Ry = ∅ and Iku = Iky = ∅.
+Disruption resources: The disruption capabilities in this attack
+scenario correspond to the ability of performing deception attacks
+on the actuator data channels. Therefore the required resources are
+RIu = {1, . . . , nu}, RIy = ∅, and F = 0.
+Model knowledge: The ability to compute the open-loop attack
+policy requires perfect knowledge of the zero-dynamics, which
+we denote as Kz . Moreover, the zero-dynamics can be computed
+from the plant dynamics, namely A, B, and C. No knowledge of
+the feedback controller or anomaly detector is assumed in this
+scenario.
+Although the former analysis considers LTI systems, the concept
+of zero-dynamics has been extended to other classes of system,
+e.g., nonlinear systems (Isidori, 1995). Hence zero-dynamics
+attacks could be directly extended to other classes of system in
+the noiseless case. In the presence of noise however, the interplay
+between the zero-dynamics and the noise inputs is not trivial and
+requires further analysis.
+4.5. Local zero-dynamics attack
+In the previous scenario the zero-dynamics attack was characterized
+in terms of the entire system. Here we further restrict the
+adversary resources by considering that the adversary has disruption
+resources and knows the model of only a subset of the system.
+In particular, we rewrite the plant dynamics (16) as
+(18)
+xk1+1
+2
+xk+1
+y˜k =  C1
+a
+=
+ A11
+A21
+C2
+x1
+k
+xk2
+ylk =
+ C1  xk1,
+A21
+1 1 2
+xk+1 = A11xk + B1ak + A12xk
+A12 x1
+k
+A22 xk2 +
+ B1 ak
+0
+and assume the adversary has access to only A11, A21, B1, and C1.
+From the adversary's view, this local system is characterized by
+where ylk encodes the measurements depending on the local state,
+C1xk1, and the interaction between the local subsystem and the
+1
+remaining subsystems, A21xk.
+Attack policy: Similar to the zero-dynamics attack, the attack
+policy is given by the sequence ak = ν kg1, where g1 is the input
+zero direction for the chosen zero ν . The input zero direction can
+be obtained by solving
+ν I − A11 − B1 x1  0
+AC211 00 g01 = 00 .
+Note that the zero-dynamics parameterized by g1 and ν
+correspond to local zero-dynamics of the global system.
+Attack performance: A similar discussion as for the global zerodynamics
+attack applies to this scenario. In particular, the stealthiness
+of the local zero-dynamics attack may be violated for large
+differences between x10 and 0. Additionally, as stated in Theorem 7,
+attacks associated with unstable zeros yielding |ν | > 1 are more
+dangerous and may lead the system to an unsafe state.
+Disclosure resources: This attack scenario considers an openloop
+attack policy and so no disclosure capabilities are required,
+resulting in Ru = Ry = ∅ and Iku = Iky = ∅ ∀k.
+A. Teixeira et al. / Automatica 51 (2015) 135-148
+143
+(21)
+Fig. 5. Schematic of the bias injection attack.
+Disruption resources: The disruption capabilities in this attack
+scenario correspond to the ability of performing deception attacks
+on the actuator data channels of the local subsystem. Therefore the
+required resources are RIu = {1, . . . , nu1}, RIy = ∅, and F = 0.
+Model knowledge: The open-loop attack policy requires the
+perfect knowledge of the local zero-dynamics, denoted as K˜z and
+obtained from A11, B1, C1, and A21.
+4.6. Bias injection attack
+Consider a false-data injection scenario where the adversary's
+goal is to inject a constant bias in the system without being
+detected. Furthermore, the bias is computed so that the impact at
+steady-state is maximized.
+Attack policy: The bias injection attack is illustrated in Fig. 5. The
+attack policy is composed of a steady-state component, the desired
+bias denoted as a∞, and a transient component. For the transient,
+we consider that the adversary uses a low-pass filter so that the
+data corruptions are slowly converging to the steady-state values.
+As an example, for a set of identical first-order filters the open-loop
+attack sequence is described by
+ak+1 = β ak + (1 − β) a∗∞, (19)
+where a0 = 0 and 0 < β < 1 is chosen to ensure that the
+attack is α -stealthy during the transient regime. The steady-state
+attack policy yielding the maximum impact on the physical system
+is described below, where the computation of a∞ is summarized in
+Theorems 11 and 13.
+Attack performance: First the steady-state policy is considered.
+Denote a∞ as the bias to be injected and recall the anomaly
+detector dynamics under attack (7). The steady-state detectability
+of the attack is then dependent on the steady-state value of the
+residual
+r∞a =  Ce(I − Ae)− 1Be + De a∞ =: Graa∞.
+Consider the set U[a0, ∞] =  r[a0, ∞] : ∥rka∥2 ≤ δ α , ∀k ≥ 0 and
+recall Definition 3 for α -stealthy attacks. A necessary condition for
+the bias injection attack to be α -stealthy is
+∥Graa∞∥2 ≤ δ α .
+Although attacks satisfying (20) could be detected during the
+transient, incipient attack signals slowly converging to a∞ may go
+undetected. In fact, sufficient conditions for the bias attack to be
+α -stealthy are given in Theorem 14 and the results are illustrated
+through experiments in Section 5.
+The impact of such attacks can be evaluated using the closedloop
+dynamics under attack given by (6). Recalling that η ka =
+xa⊤ zka⊤ ]⊤, the steady-state impact on the state is given by
+[ k
+xa∞ = [I 0] (I − A)− 1 Ba∞ =: Gxaa∞.
+(20)
+a∗∞ = ±
+δ α
+∥Grav∗ ∥2
+v∗ ,
+(22)
+2
+and the corresponding optimal value is ∥Gxaa∞∥2 = λ ∗ δ α2. Moreover,
+at steady-state the system is in a safe state if and only if λ ∗ δ α2 ≤ 1.
+Consider the following safe set defined in terms of xka.
+Definition 8. The safe set Sx2a is defined as
+Sxa =  x ∈ Rnx : ∥x∥22 ≤ 1 ,
+2
+and the system is said to be in a safe state if xka ∈ Sx2a .
+For the 2-norm safe set S2a , the most dangerous bias injection
+x
+attack corresponds to the α -stealthy attack yielding the largest bias
+in the 2-norm sense, which can be computed by solving
+max
+a∞
+s.t.
+2
+∥Gxaa∞∥2
+∥Graa∞∥2 ≤ δ α2.
+2
+Lemma 9. The optimization problem (21) is bounded if and only if
+ker(Gra) ⊆ ker(Gxa).
+Proof. Suppose that ker(Gra) ̸= ∅ and consider the subset of
+tshoeluotipotni msiwzahteioren par∞oble∈m tkheern(Gbrae)c.oFmoerstmhiasxas∞ub∈skeert(Groaf) ∥sGoxluaat∞ion∥22s.,
+Since the objective function does not have an upper-bound and the
+feasible set is unbounded, the optimal value is unbounded unless
+Gxaa∞ = 0 for all a∞ ∈ ker(Gra) i.e., ker(Gra) ⊆ ker(Gxa). Noting
+that the feasible set and the objective function are bounded for all
+solutions a∞ ̸∈ ker(Gra) concludes the proof.
+Given Lemma 9, below we consider the non-trivial case for
+which it holds that ker(Gra) ⊆ ker(Gxa). The above optimization
+problem can be transformed into a generalized eigenvalue problem
+and the corresponding optimal solution characterized in terms of
+generalized eigenvalues and eigenvectors. Before formalizing this
+statement, we introduce the following result.
+Lemma 10. Let Q ∈ Rn× n and P ∈ Rn× n be positive semi-definite
+matrices satisfying ker(Q ) ⊆ ker(P). Denote λ ∗ as the largest generalized
+eigenvalue of the matrix pencil (P, Q ) and v∗ as the corresponding
+eigenvector. The matrix P − λ Q is negative semi-definite for
+a generalized eigenvalue λ if and only if λ = λ ∗ ≥ 0. Moreover, we
+have x⊤(P − λ ∗ Q )x = 0 with Qx ̸= 0 if and only if x ∈ span(v∗ ).
+Proof. Recall that λ ∈ C is a finite generalized eigenvalue of (P, Q )
+associated with the generalized eigenvector v if (P − λ Q )v = 0 and
+v ̸∈ ker(Q ). Using the assumption ker(Q ) ⊆ ker(P) and the matrix
+congruence property, we have that P − λ Q ≼ 0 is equivalent to
+P˜ − λ I ≼ 0, where the matrix P˜ ∈ Rr× r , with r = rank(Q ), is
+positive semi-definite. Moreover, the eigenvalues of P˜ correspond
+to the generalized eigenvalues of (P, Q ), which implies that λ ⋆ is
+non-negative. Therefore, we conclude P − λ Q ≼ 0 holds if and
+only if P˜ ≼ λ I, which can be rewritten as λ ≥ λ ⋆. Constraining
+λ to be a generalized eigenvalue of (P, Q ), we have λ = λ ⋆ ≥ 0.
+The remaining of the proof follows directly from the definition of
+generalized eigenvectors.
+The optimal bias injection attack in the sense of (21) is
+characterized by the following result.
+Theorem 11. Consider the 2-norm safe set Sx2a and the corresponding
+optimal α -stealthy bias injection attack parameterized by the optimization
+problem (21), which is assumed to be bounded. Denote λ ∗
+and v∗ as the largest generalized eigenvalue and corresponding unitnorm
+eigenvector of the matrix pencil (Gx⊤aGxa, Gr⊤aGra). The optimal
+bias injection attack is given by
+144
+A. Teixeira et al. / Automatica 51 (2015) 135-148
+Proof. The necessary and sufficient conditions for the optimization
+problem (21) are given by Hiriart-Urruty (2001)
+Proof. The proof follows from considering the optimization
+problems (24) and applying Theorem 11.
+(26)
+(27)
+Recall that the steady-state value of the data corruption a∗∞ is
+not sufficient for the attack to be α -stealthy, since the transients
+are disregarded. In practice, however, it has been observed in
+the fault diagnosis literature that faults with slow dynamics, also
+known as incipient faults, are difficult to distinguish from model
+uncertainty and noise (Chen & Patton, 1999; Zhang, Polycarpou, &
+Parisini, 2002). Therefore the low-pass filter dynamics in the attack
+policy (19) could be designed sufficiently slow as to make detection
+more difficult. Below we provide sufficient conditions under which
+a given filter parameter β renders the bias attack α -stealthy with
+respect to U[a0, ∞] =  r[0, ∞] : ∥rk ∥2 ≤ δ α , ∀k ≥ 0 .
+a a
+Theorem 14. Consider the attack policy ak+1 = β ak + (1 − β) a∗∞
+with β ∈ (0, 1). The residual rka is characterized as the output of the
+autonomous system
+min γ
+γ , P
+s.t.
+γ ≤ δ α2, P ≻ 0, ψ 0a⊤ Pψ 0a ≤ 1,
+ P C¯ ⊤
+0 ≼ C¯ γ I ,
+0 ≻ A¯ ⊤PA¯ − P.
+ψ ka+1 = A¯ ψ ka
+rk = C¯ ψ ka
+a
+with C¯ = [Ce De 0] and
+Ae Be 0   0 
+A¯ = 0 β I (1 − β) I , ψ 0a = 0 .
+0 0 I a∗∞
+Moreover, the attack policy is α -stealthy for a given β if the following
+optimization problem admits a solution
+0 = (Gx⊤aGxa − λ ∗ Gr⊤aGra)a∗∞,
+0 = a∗⊤ Gr⊤aGraa∗∞ − δ α2,
+∞
+0 ≥ y⊤(Gx⊤aGxa − λ ∗ Gr⊤aGra)y, for y ̸= 0.
+Suppose λ ∗ is the largest generalized eigenvalue of (Gx⊤aGxa, Gr⊤aGra)
+and let v∗ be the corresponding eigenvector. Scaling v∗ by κ so
+that a∗∞ = κv ∗ satisfies ∥Graa∗∞∥22 = δ α2 leads to κ = ± ∥Graδvα∗ ∥2 ,
+and the first and second conditions are satisfied. As for the third
+condition, note that Gx⊤aGxa − λ ∗ Gr⊤aGra is negative semi-definite
+by Lemma 10, given that λ ∗ is the largest generalized eigenvalue,
+Gx⊤aGxa and Gr⊤aGra are positive semi-definite, and the assumption
+that ker(Gra) ⊆ ker(Gxa). To conclude the proof, observe that
+λt h∗ eδ α2op=tim∥axla∞v∥al22uaenids gthivuesn, bbyy dae∗⊤∞fiGnix⊤taiGoxna,ax∗∞a∞ =∈ λ S∗xa2a∗⊤∞ifGar⊤anGdraoan∗∞ly =if
+λ ∗ δ α2 ≤ 1.
+More generally, the optimal bias injection attacks for ellipsoidal
+safe sets Sxa = xa ∈ Rnx : xa⊤ Pxa ≤ 1, with P positive definite,
+can be found by replacing the objective function in (21) by
+∥P1/2Gxaa∞∥22. Similarly, the steady-state attack policy is derived
+below for the following safe set.
+Definition 12. The safe set Sx∞a is defined as
+Sx∞a =  x ∈ Rnx : ∥x∥∞ ≤ 1 ,
+and the system is said to be in a safe state if xka ∈ Sx∞a .
+Given the infinity-norm safe set Sx∞a , the bias injection attack
+with the largest impact corresponds to the α -stealthy attack
+yielding the largest bias in the infinity-norm sense. This attack can
+be obtained by solving the following optimization problem
+Theorem 13. Consider the infinity-norm safe set S∞a and the correx
+sponding optimal α -stealthy bias injection attack parameterized by
+the optimization problem (23), which is assumed to be bounded. Let
+ei be the ith column of the identity matrix and denote λ ∗i and v∗
+i
+as the largest generalized eigenvalue and corresponding unit-norm
+eigenvector of the matrix pencil Gx⊤aeiei⊤Gxa − λ Gr⊤aGra. Letting λ ∗ =
+maxi λ ∗i , with v∗ as the corresponding generalized eigenvector, the optimal
+bias attack is given by
+δ α
+a∗∞ = ± ∥Grav∗ ∥2
+v∗ ,
+and the corresponding optimal value is ∥Gxaa∞∥∞ = √λ ∗ δ α . Moreover,
+at steady-state the system is in a safe state if and only if λ ∗ δ α2
+≤ 1.
+max
+a∞
+s.t.
+∥Gxaa∞∥∞
+∥Graa∞∥2 ≤ δ α .
+To solve this problem, observe that
+∥Gxaa∞∥∞ = max ∥ei⊤Gxaa∞∥2,
+i
+max max  ei⊤Gxaai∞ 2
+i ai∞
+s.t.
+ Graai∞ 2 ≤ δ α .
+where the vector ei is ith column of the identity matrix. Therefore,
+one can transform the optimization problem (23) into a set of
+problems with the same structure as (21), obtaining
+(23)
+(24)
+(25)
+5. Experiments
+Proof. The autonomous system is directly obtained by considering
+the augmented state ψ a = [ξ ka|⊤k lk⊤ υ k⊤]⊤, where lk is the state
+of the low-pass filter bank and υ k the integral state initialized at
+υ 0 = a∞. Given this autonomous system, one observes that the
+attack is α -stealthy if and only if the corresponding output-peak
+∥rka∥22 is bounded by δ α2 for all k ≥ 0, given the initial condition
+parameterized by α ∞∗. The remainder of the proof follows directly
+from the results in Boyd, El Ghaoui, Feron, and Balakrishnan (1994)
+regarding output-peak bounds for autonomous systems.
+Disclosure resources: Similarly to the zero attack, no disclosure
+capabilities are required for this attack, since the attack policy is
+open-loop. Therefore we have Ru = Ry = ∅ and Iku = Iku = ∅ for
+all k.
+Disruption resources: The biases may be added to both the
+actuator and sensor data, hence the required resources are Ru
+{1, . . . , nu}, RIy ⊆ { 1, . . . , ny}. Since no physical attac kI ⊆ is
+performed, we have F = 0.
+Model knowledge: As seen in (21), the open-loop attack policy
+(19) requires the knowledge of the closed-loop system and
+anomaly detector steady-state gains Gra and Gxa, which we denoted
+as K0 as shown in Fig. 5.
+In this section we present our testbed and report experiments
+on staged cyber attacks following the different scenarios described
+in the previous section.
+A. Teixeira et al. / Automatica 51 (2015) 135-148
+145
+Fig. 6. Schematic diagram of the testbed with the Quadruple-Tank Process and a
+multi-hop communication network.
+5.1. Quadruple-Tank Process
+Our testbed consists of a Quadruple-Tank Process (QTP) (Johansson,
+2000) controlled through a wireless communication network,
+as shown in Fig. 6.
+The plant model can be found in Johansson (2000)
+a1 2gh1 + A1
+a3 2gh3 +
+h˙1 = − A1
+a2 2gh2 + A2
+a4 2gh4 +
+h˙2 = − A2
+γ 1k1
+A1
+γ 2k2
+A2
+u1,
+u2,
+a3 2gh3 +
+h˙3 = − A3
+a4 2gh4 +
+h˙4 = − A4
+(1 − γ 2)k2
+A3
+(1 − γ 1)k1
+u2,
+u1,
+A4
+where hi ∈ [0, 30] are the heights of water in each tank, Ai the
+cross-section area of the tanks, ai the cross-section area of the outlet
+hole, ki the pump constants, γ i the flow ratios and g the gravity
+acceleration. The nonlinear plant model is linearized for a given
+operating point. Moreover, given the range of the water levels, the
+following safe set is considered Sx = {x ∈ Rnx : ∥x − σ 1∥∞ ≤
+15, σ = 15}, where 1 ∈ Rnx is a vector with all entries set to 1.
+The QTP is controlled using a centralized LQG controller with
+integral action running in a remote computer and a wireless
+network is used for the communications. A Kalman-filter-based
+anomaly detector is also running in the remote computer and
+alarms are triggered according to (4), for which we have considered
+U[k0, ∞] =  r[k0, ∞] : ∥rk∥2 ≤ δ α + δ r , ∀k ≥ k0 and U[ak0, ∞] =
+ a a 
+r[k0, ∞] : ∥rk ∥2 ≤ δ α , ∀k ≥ k0 with δ r = 0.15 and δ α = 0.25 for
+illustration purposes. The communication network is multi-hop,
+having one additional wireless device relaying the data.
+5.2. Denial-of-service attack
+Here we consider the case where the QTP suffers a DoS attack on
+both sensors, while operating at a constant set-point. The state and
+residual trajectories from this experiment are presented in Fig. 7.
+The DoS attack follows a Bernoulli model (Amin et al., 2009) with
+p = 0.9 as the probability of packet loss and the last received data
+is used in the absence of data. From Proposition 4, we have that the
+closed-loop system under such DoS attack is exponentially stable.
+The DoS attack initiates at t ≈ 100 s, leading to an increase in
+the residual due to packet losses. However the residual remained
+below the threshold during the attack and there were no significant
+changes in the system's state.
+(28)
+Fig. 7. Results for the DoS attack performed against both sensors since t ≈ 100 s.
+5.3. Replay attack
+In this scenario, the QTP is operating at a constant set-point
+while a hacker desires to steal water from tank 4, the upper tank
+on the right. An example of this attack is presented in Fig. 8, where
+the replay attack policy is the one described in Section 4.3. The
+adversary starts by replaying past data from y2 at t ≈ 90 s and
+then begins stealing water from tank 4 at t ≈ 100 s. Tank 4 is
+successfully emptied and the adversary stops removing water at
+t ≈ 180 s. To ensure stealthiness, the replay attack continues until
+the system recovered its original setpoint at t ≈ 280 s. Note that
+the attack is not detected, since the residue stays below the alarm
+threshold.
+5.4. Zero-dynamics attack
+The QTP has a non-minimum phase configuration in which
+the plant possesses an unstable zero. In this case, as discussed in
+Section 4.4, an adversary able to corrupt all the actuator channels
+may launch a false-data injection attack where the false-data
+follows the zero-dynamics. Moreover, since the safe region is
+described by the set Sx = {x ∈ Rnx : ∥x − σ 1∥∞ ≤ 15, σ =
+15}, from Theorem 7 we expect that the zero-dynamics attack
+associated with the unstable zero can drive the system to an unsafe
+region. This scenario is illustrated in Fig. 9.
+The adversary's goal is to either empty or overflow at least one
+of the tanks, considered as an unsafe state. The attack on both
+actuators begins at t ≈ 30 s, causing a slight increase in the
+residual. Tank 3 becomes empty at t ≈ 55 s and shortly after
+actuator 2 saturates, producing a steep increase in the residual
+which then crosses the threshold. However, note that the residual
+was below the threshold when the unsafe state was reached.
+Note that the system dynamics change after saturation of the
+water levels and actuators and, consequently, the attack signal
+146
+A. Teixeira et al. / Automatica 51 (2015) 135-148
+Fig. 8. Results for the replay attack performed against sensor 2 from t ≈ 90 s to
+t ≈ 280 s. The adversary opens the tap of tank 4 at t ≈ 100 s and closes it at
+t ≈ 180 s.
+Fig. 9. Results for the zero-dynamics attack starting at t ≈ 30 s. Tank 3 is emptied
+at t ≈ 55 s, resulting in a steep increase in the residual since the linearized model
+is no longer valid.
+no longer corresponds to the zero-dynamics and is detected.
+However, the attack has already damaged the system before
+being detected. Therefore, these attacks are particularly dangerous
+in processes that have unstable zero-dynamics and in which
+the actuators are over-dimensioned, allowing the adversary to
+perform longer attacks before saturating.
+Fig. 10. Results for the bias attack against the actuator 1 and sensor 1 in the
+minimum phase QTP. The attack is launched using a low-pass filter in the instant
+t ≈ 70 s and stopped at t ≈ 230 s.
+5.5. Bias injection attack
+The results for the case where u1 and y1 are respectively
+corrupted with bu∞ and by∞ are presented in Fig. 10. In this scenario,
+the adversary aimed at driving the system out of the safe set Sx
+while remaining stealthy for δ α = 0.25. The bias was slowly
+injected using a first-order low-pass filter with β = 0.95 and the
+f[oblu∞lowibny∞g]s⊤te=ad[y2-.s1ta5te v−a9lu.4e2,c]⊤om.puted using Theorem 13, a∞ =
+The bias injection began at t ≈ 70 s and led to an overflow
+in tank 4 at t ≈ 225 s. At that point, the adversary started
+removing the bias and the system recovered the original setpoint
+at t ≈ 350 s. The residual remained within the allowable bounds
+throughout the attack, thus the attack was not detected.
+6. Conclusions and future work
+In this paper we have analyzed the security of networked
+control systems. A novel attack space based on the adversary's
+model knowledge, disclosure, and disruption resources was
+proposed and the corresponding adversary model described.
+Attack scenarios corresponding to DoS, replay, zero-dynamics, and
+bias injection attacks were analyzed using this framework. In
+particular the maximum impact of stealthy bias injection attacks
+was derived and it was shown that the corresponding policy does
+not require perfect model knowledge. These attack scenarios were
+illustrated using an experimental setup based on a quadruple-tank
+process controlled over a wireless network.
+Future research directions include the extension of the framework
+to other classes of systems, e.g., nonlinear systems. Analyzing
+A. Teixeira et al. / Automatica 51 (2015) 135-148
+147
+attack scenarios under non-ideal communication network models
+and considering closed-loop attack policies are also relevant research
+directions.
+References
+Amin, S., Cárdenas, A. A., & Sastry, S. S. (2009). Safe and secure networked
+control systems under denial-of-service attacks. In Lecture notes in computer
+science, Hybrid systems: computation and control (pp. 31-45). Berlin, Heidelberg:
+Springer.
+Amin, S., Litrico, X., Sastry, S. S., & Bayen, A. M. (2010). Stealthy deception attacks
+on water SCADA systems. In Proc. of the 13th ACM int. conf. on hybrid systems:
+computation and control, HSCC'10. New York, NY, USA: ACM.
+Bishop, M. (2002). Computer security: art and science. Addison-Wesley Professional.
+Boyd, S., El Ghaoui, L., Feron, E., & Balakrishnan, V. (1994). Studies in applied
+mathematics: Vol. 15. Linear matrix inequalities in system and control theory.
+Philadelphia, PA: SIAM.
+Cárdenas, A., Amin, S., Lin, Z., Huang, Y., Huang, C., & Sastry, S. (2011). Attacks
+against process control systems: risk assessment, detection, and response.
+In Proceedings of the 6th ACM symposium on information, computer and
+communications security, ASIACCS'11. (pp. 355-366). New York, NY, USA: ACM.
+Cárdenas, A.A., Amin, S., & Sastry, S.S. (2008). Research challenges for the security of
+control systems. In Proc. 3rd USENIX workshop on hot topics in security, San Jose,
+CA, USA, July.
+Chen, J., & Patton, R. J. (1999). Robust model-based fault diagnosis for dynamic systems.
+Kluwer Academic Publishers.
+Ding, S. X. (2008). Model-based fault diagnosis techniques: design schemes. Springer
+Verlag.
+Esfahani, P., Vrakopoulou, M., Margellos, K., Lygeros, J., & Andersson, G. (2010).
+Cyber attack in a two-area power system: Impact identification using
+reachability. In American control conference, 2010, July (pp. 962-967).
+Falliere, N., Murchu, L., & Chien, E. (2011). W32.Stuxnet dossier, February.
+Frank, P. M., & Ding, X. (1997). Survey of robust residual generation and evaluation
+methods in observer-based fault detection systems. Journal of Process Control,
+7(6), 403-424.
+Giani, A., Sastry, S., Johansson, K.H., & Sandberg, H. (2009). The VIKING project:
+an initiative on resilient control of power networks. In Proc. 2nd int. symp. on
+resilient control systems, Idaho Falls, ID, USA, August.
+Gorman, S. (2009). Electricity grid in US penetrated by spies. The Wall Street Journal,
+A1.
+Gupta, A., Langbort, C., & Başar, T. (2010). Optimal control in the presence of an
+intelligent jammer with limited actions. In Proc. of the 49th IEEE conf. on decision
+and control, Atlanta, GA, USA, December.
+Hiriart-Urruty, J. B. (2001). Global optimality conditions in maximizing a convex
+quadratic function under convex quadratic constraints. Journal of Global
+Optimization, 21(4), 443-453.
+Hwang, I., Kim, S., Kim, Y., & Seah, C. E. (2010). A survey of fault detection, isolation,
+and reconfiguration methods. IEEE Transactions on Control Systems Technology,
+18(3), 636-653.
+Isermann, R. (2006). Fault-diagnosis systems: an introduction from fault detection to
+fault tolerance. Springer.
+Isidori, A. (1995). Nonlinear control systems (3rd ed.). Springer-Verlag.
+Johansson, K. H. (2000). The quadruple-tank process: a multivariable laboratory
+process with an adjustable zero. IEEE Transactions on Control Systems
+Technology, 8(3), 456-465.
+Khanafer, A., Touri, B., & Başar, T. (2012). Consensus in the presence of an adversary.
+In Proc. 3rd IFAC workshop on estimation and control of networked systems,
+NecSys'12, Santa Barbara, CA, USA, September.
+Kosut, O., Jia, L., Thomas, R., & Tong, L. (2010). Malicious data attacks on smart grid
+state estimation: attack strategies and countermeasures. In Proceedings of the
+first IEEE international conference on smart grid communications, Gaithersburg,
+MD, USA, October.
+Liu, Y., Reiter, M. K., & Ning, P. (2009). False data injection attacks against state
+estimation in electric power grids. In Proc. 16th ACM conf. on computer and
+communications security, Chicago, IL, USA, November.
+Mo, Y., & Sinopoli, B. (2009). Secure control against replay attack. In Proceedings of
+the 47th annual Allerton conference on communication, control, and computing,
+Allerton, IL, USA, October.
+Mo, Y., & Sinopoli, B. (2012). Integrity attacks on cyber-physical systems. In Proc. 1st
+international conference on high confidence networked systems, CPSWeek 2012,
+Beijing, China (pp. 47-54).
+Pang, Z.-H., & Liu, G.-P. (2012). Design and implementation of secure networked
+predictive control systems under deception attacks. IEEE Transactions on Control
+Systems Technology, 20(5), 1334-1342.
+Pasqualetti, F., Dorfler, F., & Bullo, F. (2011). Cyber-physical attacks in power
+networks: models, fundamental limitations and monitor design. In Proc. of the
+50th IEEE conf. on decision and control and European control conference, Orlando,
+FL, USA, December.
+Rid, T. (2011). Cyber war will not take place. Journal of Strategic Studies, 35(1), 5-32.
+Sandberg, H., Teixeira, A., & Johansson, K.H. (2010). On security indices for state
+estimators in power networks. In Preprints of the first workshop on secure control
+systems, CPSWEEK 2010, Stockholm, Sweden, April.
+Schenato, L. (2009). To zero or to hold control inputs with lossy links? IEEE
+Transactions on Automatic Control, 54(5), 1093-1099.
+Schenato, L., Sinopoli, B., Franceschetti, M., Poolla, K., & Sastry, S. (2007).
+Foundations of control and estimation over lossy networks. Proceedings of the
+IEEE, 95(1), 163-187.
+Smith, R. (2011). A decoupled feedback structure for covertly appropriating
+networked control systems. In Proc. of the 18th IFAC world congress, Milano, Italy,
+August-September.
+Sridhar, S., Hahn, A., & Govindarasu, M. (2012). Cyber-physical system security for
+the electric power grid. Proceedings of the IEEE, 100(1), 210-224.
+Sundaram, S., Revzen, S., & Pappas, G. (2012). A control-theoretic approach to
+disseminating values and overcoming malicious links in wireless networks.
+Automatica, 48(11), 2894-2901.
+Teixeira, A., Dán, G., Sandberg, H., & Johansson, K.H. (2011). Cyber security
+study of a SCADA energy management system: stealthy deception attacks
+on the state estimator. In Proc. of the 18th IFAC world congress, Milano, Italy,
+August-September.
+Teixeira, A., Pérez, D., Sandberg, H., & Johansson, K. H. (2012). Attack models and
+scenarios for networked control systems. In Proc. 1st international conference on
+high confidence networked systems, CPSWeek 2012, Beijing, China.
+Teixeira, A., Sandberg, H., Dán, G., & Johansson, K. H. (2012). Optimal power flow:
+closing the loop over corrupted data. In Proc. American control conference,
+Montreal, Canada, June.
+Teixeira, A., Shames, I., Sandberg, H., & Johansson, K. H. (2012). Revealing stealthy
+attacks in control systems. In Proceedings of the 50th annual Allerton conference
+on communication, control, and computing, Allerton, IL, USA, October.
+Xie, L., Mo, Y., & Sinopoli, B. (2010). False data injection attacks in electricity
+markets. In Proceedings of the first IEEE international conference on smart grid
+communications, Gaithersburg, MD, USA, October.
+Zhang, W., Branicky, M. S., & Phillips, S. M. (2001). Stability of networked control
+systems. IEEE Control Systems Magazine, 21, 84-99.
+Zhang, X., Polycarpou, M., & Parisini, T. (2002). A robust detection and isolation
+scheme for abrupt and incipient faults in nonlinear systems. IEEE Transactions
+on Automatic Control, 47(4), 576-593.
+Zhou, K., Doyle, J. C., & Glover, K. (1996). Robust and optimal control. Upper Saddle
+River, NJ, USA: Prentice-Hall, Inc..
+André Teixeira is a Ph.D. candidate in Automatic Control
+at KTH Royal Institute of Technology, Stockholm, Sweden.
+He received the M.Sc. degree in Electrical and Computers
+Engineering in 2009 from the Faculdade de Engenharia da
+Universidade do Porto, Porto, Portugal. He was a finalist
+for the NecSys 2012 Best Student Paper Award and one
+of his publications is listed in ACM Computing Review's
+Notable Computing Books and Articles of 2012. His main
+research interests include secure control, distributed fault
+detection and isolation, distributed optimization, power
+systems, and multi-agent systems.
+Iman Shames is a McKenzie fellow at the department
+of Electrical and Electronic Engineering, the University of
+Melbourne. Previously, he was an ACCESS Postdoctoral
+Researcher at the ACCESS Linnaeus Centre, the KTH
+Royal Institute of Technology, Stockholm, Sweden. He
+received his B.S. degree in Electrical Engineering from
+Shiraz University, Iran in 2006, and the Ph.D. degree in
+Engineering and Computer Science from the Australian
+National University, Canberra, Australia in 2011. His
+current research interests include optimization, sensor
+networks, distributed fault detection and isolation, and
+security in networked systems.
+Henrik Sandberg received the M.Sc. degree in Engineering
+Physics and the Ph.D. degree in Automatic Control
+from Lund University, Lund, Sweden, in 1999 and 2004,
+respectively. He is an Associate Professor with the
+Department of Automatic Control, KTH Royal Institute of
+Technology, Stockholm, Sweden. From 2005 to 2007, he
+was a Post-Doctoral Scholar with the California Institute
+of Technology, Pasadena, USA. In 2013, he was a visiting
+scholar at the Laboratory for Information and Decision
+Systems (LIDS) at MIT, Cambridge, USA. He has also
+held visiting appointments with the Australian National
+University and the University of Melbourne, Australia. His current research
+interests include secure networked control, power systems, model reduction, and
+fundamental limitations in control. He was a recipient of the Best Student Paper
+Award from the IEEE Conference on Decision and Control in 2004 and an Ingvar
+Carlsson Award from the Swedish Foundation for Strategic Research in 2007. He is
+currently an Associate Editor of the IFAC Journal Automatica.
+148
+A. Teixeira et al. / Automatica 51 (2015) 135-148
+Karl Henrik Johansson is Director of the KTH ACCESS
+Linnaeus Centre and Professor at the School of Electrical
+Engineering, Royal Institute of Technology, Sweden. He
+is a Wallenberg Scholar and has held a six-year Senior
+Researcher Position with the Swedish Research Council.
+He is Director of the Stockholm Strategic Research Area
+ICT The Next Generation. He received M.Sc. and Ph.D.
+degrees in Electrical Engineering from Lund University. He
+has held visiting positions at UC Berkeley (1998-2000)
+and California Institute of Technology (2006-2007). His
+research interests are in networked control systems,
+hybrid and embedded system, and applications in transportation, energy, and
+automation systems. He has been a member of the IEEE Control Systems Society
+Board of Governors and the Chair of the IFAC Technical Committee on Networked
+Systems. He has been on the Editorial Boards of several journals, including
+Automatica, IEEE Transactions on Automatic Control, and IET Control Theory and
+Applications. He is currently on the Editorial Board of IEEE Transactions on Control
+of Network Systems and the European Journal of Control. He has been Guest Editor
+for special issues, including the one on ''Wireless Sensor and Actuator Networks''
+of IEEE Transactions on Automatic Control 2011. He was the General Chair of
+the ACM/IEEE Cyber-Physical Systems Week 2010 in Stockholm and IPC Chair of
+many conferences. He has served on the Executive Committees of several European
+research projects in the area of networked embedded systems. In 2009, he received
+the Best Paper Award of the IEEE International Conference on Mobile Ad-hoc and
+Sensor Systems. In 2009, he was also awarded Wallenberg Scholar, as one of the
+first ten scholars from all sciences, by the Knut and Alice Wallenberg Foundation.
+He was awarded an Individual Grant for the Advancement of Research Leaders from
+the Swedish Foundation for Strategic Research in 2005. He received the triennial
+Young Author Prize from IFAC in 1996 and the Peccei Award from the International
+Institute of System Analysis, Austria, in 1993. He received Young Researcher Awards
+from Scania in 1996 and from Ericsson in 1998 and 1999. He is a Fellow of the
+IEEE.

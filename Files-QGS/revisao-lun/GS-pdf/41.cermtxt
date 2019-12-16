@@ -1,0 +1,616 @@
+Defending False Data Inj ection Attack On Smart
+Grid Network Using Adaptive CUSUM Test
+Yi Huang
+ECE Department
+University of Houston
+Houston, TX 77004, USA
+Husheng Li
+EECS Department
+University of Tennessee
+Knoxville, TN 37996, USA
+Kristy A. Campbell
+ECE Department
+Boise State University
+Boise, ID 83725, USA
+Zhu Han
+ECE Department
+University of Houston
+Houston, TX 77004, USA
+Abstract-In modern smart grid networks, the traditional Thus, the smart grid network must try to prevent the hackers'
+power grid is enabled by the technological advances in sensing, attackssuch as false datainjection, disrupt network operations,
+measurement, and control devices with two-way communications or denial-of-service attack. The energy management system in
+hbeeltpwseethnetphoewsuerppglriiedrsnaentwdocruksstotombeerss_mTahretesrm, barutt gitriadlsiontinegcrraeatisoens the control center has to eficiently execute real-time analysis
+the risk of adversaries because of the currently obsoleted cyber­ to detect a change (the intruder) in statistical behavior of
+infrastructure. Adversaries can easily paralyzes the power facility state estimation as little delay as possible in order to prevent
+by misleading the energy management system with injecting further damage to the entire network. Similar issues arise
+false data. In this paper, we proposes a defense strategy to the in the monitoring of cardiac patients [4], image analysis, or
+mthaeliccoionutrsodlacteantienrj.ecTthioenpartotpacoksefdor"asdmaaprttivgeriCdUsStaUteMesatligmoartitiohnma"t, econometrics [5], [6] that require to perform on-line (e.g. in
+is recursive in nature, and each recursion comprises two inter­ real time) detection of such changes in a way that minimizes
+leaved stages: Stage 1 introduces the linear unknown parameter the delay between the time a change occurs and the time it
+solver technique , and Stage 2 applies the multi-thread CUSUM is detected. This type of problem is known as the quickest
+algorithm for quickest change detection. The proposed scheme detection (QD) problem [7].
+icsonatbrloel tcoendteerteramsiqnueictkhley pasospsiobslseibelexiswteitnhcoeutofviaodlavteinrsgarthyeagtivthene The idea of QD attempts to determine a change as quickly
+constraints such as a certain level of detection accuracy and false as possible based on real-time observations such that the
+alarm. The performance of the proposed algorithm is evaluated user-denfied condition is satisefid while maintaining a certain
+by both mathematic analysis and numerical simulation. level of detection accuracy. The strict term of the user-denfied
+condition is known as the decision rules, which optimize the
+I. INTRODUC TION tradeof between the stopping time and decision accuracy (i.e.
+The smart grid has been improved the robustness and pre-denfied error probability, initial prior probability of each
+ecfiiency of traditional power grid networks via the aid hypothesis occurring, etc. [7]). The classification of QD inof
+the modern communication technologies. It is enabled cludes: (1) Bayesian afrmework, which detects the distribution
+by the technological advances in sensing, measurement, and changes between two known distribution at random times. It
+control devices with two-way communications to electricity requires the full knowledge about the prior distributions of
+production, transmission, distribution and consumption parts changing time. (2) non-Bayesian afrmework (e.g. CUSUM
+[1] of power grids by exchanging information about the grid test), which detects a change of unknown distribution to
+states to system users, operators, and automated devices. Such known/unknown distributions at random times. It is executable
+important integration helps the power grid networks to be with unknown distributions of changing time. Page's CUSUM
+smarter, but it also endangers this newly constructed network test [8] is one of most powerful tool for such QD in realby
+increasing the risk of adversaries around the world because time process. It rises a great variety of applications [7] such
+of its cyber-inafrstructure. It has been warned in [2] [3] as the intrusion detection in network, seismology, quality
+that the utility companies recklessly scramble to install such control in speech and image processing, and biomedical signal
+integration (smarter meters, sub control stations, etc.) into processing.
+current power grid without heeding security risks. Furthermore, QD technique becomes a powerful tool with
+In the smart grid networks, the objective of adversaries are combining "statistical hypotheses test (SHT)" [9]. The mechnot
+only obtaining the unauthorized information but also par­ anism of SHT is that the receiver classifies a sequence of
+alyzing the power facility by misleading the energy manage­ observations into one hypothesis among multiple hypotheses
+ment system with injectingfalse data. The energy management based on some knowledge of the statistical distributions. By
+system in the control center mainly work on estimation of doing that, one true hypothesis, which is actually transmitted,
+system states (power-oflw, reactance, voltage, phase angle, etc) can be determined in real time. If only two possible hypotheses
+by collecting the data from remote meters at every period of exist, it is known as "binary hypotheses test (BHT)" [9].
+time. If the adversariesare able to penetrate into the power grid There are a lot of recent literature to apply QD and SHT
+network and injectthe malicious data, the energy management to a variety of networks. The authors in [10] applied the
+system may produce the false state estimation, which poten­ modified CUSUM test to detect an abrupt distribution change
+tially results wrong decisions on billing, power dispatch and with an unknown time varying parameter. In [11], the authors
+erroneous analysis, and even causes a generator self-destruct. modiefid the sequential probability ratio test (SPRT) to detect
+978-1-4244-9848-2/11$26.0002011IEEE
+the occupancy of the unknown primary user (PU) in a licensed
+spectrum band for a cognitive radio application. The cognitive
+radio spectrum sensing with unknown parameters of PU was
+described in [12]. The authors in [13] used the CUSUM tests
+as a collaborative QD for detecting a distribution change in
+ad hoc networks. However, little existing work has considered
+the unique environment of smart grid networks.
+In this paper, we consider a counter-measurement strategy
+of the data injection attack at the control center in the form
+of adversary detection. The problem formulation of detecting
+the false data injection is based on the bad data detection
+(BDD) on smart grid state estimation. The proposed algorithm,
+"adaptive CUSUM Test", is recursive in nature, and each
+recursion comprises two interleaved stages: Stage 1 introduces
+the linear unknown parameter solver technique, and Stage
+2 applies the multi-thread CUSUM algorithm for quickest
+change detection. The proposed scheme is able to determine
+the possible existence of adversary at the control center as
+quickly as possible without violating the given constraints such
+as a certain level of detection accuracy and false alarm. The
+performance of the proposed algorithm is evaluated by both
+mathematic analysis and numerical simulation.
+The remainder of this paper is organized as follows. The
+system model is given in Section II. The proposed scheme
+- adaptive CUSUM algorithm is given and analyzed mathematically
+in Section III. The numerical results are provided in
+Section IV, and the conclusion is given in Section V.
+II. PROBLEM FORMULATION
+A. Active PowerFlow Models
+A power system is composed by a collection of power
+lfow meters, transmission lines, and buses. Assuming the
+power system has n+1 buses, we consider model of active
+power-oflw Pij , active power injections Pi , and bus phase
+angles ()i, where i = 1,··· ,n+ 1 . Assuming the power
+network has reached a steady state, and the resistance in the
+transmission line connecting buses i and j is small compared
+to its reactance, the active power-oflw model [14] from bus i
+to bus j can be described as:
+Pij= V; V.;.
+<J
+sin(()i - ()j),
+where Vi is the voltage level at bus i, and Xij is the reactance
+between bus i and bus j. At bus i, active power Pi can also
+be injected through a generator. A negative Pi represents the
+power load. Without lost of generality, no energy is loss or
+dissipated, and the conservation of energy yields that for all
+buses it holds that:
+Pi=
+L Pik, Vi
+kEvi
+where iI is the set of all buses connected to bus i.
+B. State Estimation
+We consider the state-estimation problem as estimating n
+phase angles ()i, by observing the real-time measurements
+(1)
+(2)
+of active power-flow. The initial phase angle ()l is known
+as reference angle, and therefore only n angles have to be
+estimated. The voltage level of each bus and reactance of each
+transmission line are assumed to be known.
+At time t, the control center observes a vector Zt of actual
+power-oflw measurements for m active power-oflw branches.
+Each active branch is composed by two meters and one
+transmission-line. The observation can be described as follows:
+Zt= Pt+e=
+h(x)+ e,
+(3)
+where Zt = [Zt,l,···, Zt,mV is the vector power-oflw
+measurement, h(x) is the actual power-oflw model derived
+using (1) and (2), the system state xis the vector of n bus
+phase angles ()i, and e = (e l,···, emf is the Gaussian
+measurement noise with zero mean and covariance matrix e:E.
+If we temperately neglect the time index t, to estimate the
+unknown bus phase angles from the power oflw measurements
+Z, the Gauss-Newton method is applied [15]:
+xk+l= xk+ H( f:E;l
+Hk) -lHf:E; l[Z - h( Xk)],
+(4)
+where the estimated system state xk E IRn, k is iteration
+number, and Hk E IR m is Jacobian evaluated at xk,
+If the phase diefrences (()i - () j) in (1) is small, then the linear
+approximation model of (3) can be described as:
+Z=Hx+e
+where H E IR m is the constant Jacobian matrix, and the
+estimated system state x is:
+(5)
+(6)
+(7)
+For the bad-datedetection (BDD) system (e.g. sensor faulty,
+topological error), we compare the power-oflw measurements
+Z with the estimated active power-oflw Z by the phase angle
+estimate x. Z can be written as:
+where <;S is known as "hat matrix" [15]. However, if the
+adversary performs an unobservable attack by injecting the
+malicious data like described in [16], BDD system is unable
+to detect the unobservable attack due to the insignificance in
+comparison with arbitrarily large estimation error. According
+to [16], if the nonzero k-sparse a is existed in the system,
+where vector a = He is the malicious data injected by an
+adversary, no detector can distinguish xfrom x+c as shown
+in (9).
+Z=Hx+a+e=H·(x+c)+e,
+(9)
+where a = [al,l = 1, 2,···, mJT. When the adversary's
+malicious data is injectedat the true state xin the system, the
+xleads the control center to believe that true state is x+ c,
+and c can be in any form such as scaled or vectored arbitrarily.
+Therefore, it is so-called stealth (unobservable) attack.
+978-1-4244-9848-2/11$26.00©2011IEEE
+III. ADAPTIVE CUSUM ALGORITHM
+In this paper, we propose an adaptive CUSUM algorithm for
+quickest change detection with a linear unknown parameter
+solver. The unknown parameter exists in the post-change
+distribution and may changes over the detection process. The
+proposed scheme does not require the Maximum Likelihood
+(ML) estimate of the unknown parameter thereby making the
+computation process much simpler. To formulate the detection
+problem at the control center, the non-Bayesian approach
+is applied because of the unknown prior probability of the
+adversary and unknown statistical model for the adversary
+vector.
+we consider the control center monitors a subdivision of
+a smart grid network with n active buses. Zt,m represents
+th
+the observation at the m measurement at time t. When the
+system is at the normal state (no adversary), we assume a
+Bayesian model of the random state variables with multivariate
+Gaussian distribution N(P,z ,Ez) and p'z = Om without loss
+of generality. The adversary is assumed inactive initially; At
+randomly unknown time T, it becomes active to inject the
+malicious data. Under observation of (9), the binary hypothesis
+can be formulated:
+{ HHIo:: ZZtt rvrv NN((Oat,,EEzz),), (10)
+where at = [at,I,at,2,'" ,at ,m]T,E IR m is the unknown
+attacker vector to inject malicious data at time t , and Ez
+is HExHT + Ee. In other words, a change of the distribution
+from N(O ,Ez) to N(at, Ez) at the unknown time T.
+Let Th donate the stopping time, which the change is
+detected. If Th < T, then it is the false alarm, and the average
+run length (ARL) is Tf = Eo[Th] , where Eo is the average
+before the change. If Th > T, then Th -T is the detection delay
+and Td donate the ARL of detection delay. Based on Lorden's
+formulation [7], we minimize the worst case of detection delay,
+which can be described as:
+in-control
+h
+2 3 4 5 6 7 B
+Index (t)
+Fig. I. Anillustration of the CUSUM test with the decision interval.
+described as follows:
+Th = inf{t
+liSt> h},
+in which the detection threshold h is a function of FAR, MDR,
+and the process variance, with cumulative statistic at time t:
+and
+Lt(Z t) = L.
+1=1
+h (Zt)
+log JfO(Z t)'
+where Lt is the sum of likelihood ratio function for all
+measurements (Zt,l,l E 1, 2" . . , m) of the vector Zt at time
+t, h (Zt) is the HI multi-variate normaldistribution while the
+adversary actively injects malicious data, and fo(Z t) is the
+Ho multi-variate normal distribution at the normal state. At
+time t, the cumulative statistic St can be solved recursively
+and described as:
+(12)
+(13)
+(14)
+(15)
+(11)
+where So = O. Hence, the test based on Th accumulates
+To solve the minimum Td, Page's CUSUM algorithm is the the likelihood ratio term, resetting the accumulation to zero
+best-known technique to tackle this type of problem [8]. whenever the alarm rises. The control center declares the
+However, most of CUSUM-based models assume the perfect alarm when the accumulation crosses a certain threshold h.
+knowledge of the likelihood functions. In the scenario of Figure 1 illustrates the decision interval (time) is displayed as
+intrusion detection, the parameters of HI distribution can a horizontal line on the CUSUM chart. As shown in Figure 1,
+not be completely defined because of the unknown attacker a shift or out-of-control condition is signaled, the cumulative
+parameters and statical model. Thus, we need employ the process is terminated, and ARL is equivalent to Th, which is
+technique to solve the unknown parameter issue in Page's from So to STh• The optimality of the stopping time based on
+CUSUM detection scheme. the first exist of St from the interval [O,h).
+The proposed quickest detection algorithm, adaptive Due to the unknown adversary statistic model, the author
+CUSUM Test, is recursive in nature, and each recursion in [17] proposed to implement the generalized likelihood
+comprises two interleaved steps: i) linear unknown parameter ratio test (GLRT) in Page's CUSUM algorithm with the
+solver and ii) multi-thread CUSUM. The proposed multi­ unknown parameters. The idea is to apply LRT by replacing
+thread CUSUM test is modiefid and based on Page's CUSUM the unknown parameter with the ML estimation. The GLRT
+algorithm. The multi-thread CUSUM test considers and co­ approach is asymptotically minimax in the sense of minimizoperates
+the likelihood ratio term of m measurements at time ing maxaEiR fe(Z tla), which a is the uncertain parameter as
+t in order to determine the stopping time Th, which can be shown in (16). In the other words, we minimize the efect of
+978-1-4244-9848-2/11$26.00©2011IEEE
+the unknown while considering the worst case of the unknown
+parameter, which is potentially maximized. Thus, by applying
+GLRT in CUSUM algorithm, we can ensure a certain level
+of detection accuracy for QD, while minimizing the potential
+efect rfom the unknown in the system. We test-drive and
+formulate this idea into our detection problem. At time t, the
+cumulative statistic in (13) can be re-written for our problem
+as :
+where at,! represents lth unknown element in unknown adversary
+vector a under the current time t. However, the recursive
+expression of (16) for CUSUM Test is no longer available as
+shown in (15). It is because GLRT needs to compute every
+unknown element of a for each measurement at time t by
+estimating from the observations up to the current time t.
+In other words, GLRT approach on CUSUM requires storing
+the observation and ML-estimating the unknown parameter
+at every point. Thus, in reality, GLRT is too dificult to be
+applied into quickest detection model from the view points of
+hardware and software implementation.
+For multi-thread CUSUM algorithm with unknown parameters,
+the better approach is to solve recursively, avoiding
+complex ML estimation, and implemented in practice. Thus,
+we consider the Rao test [18], which is the asymptotically
+equivalent test model of GLRT. The derivation of Rao test
+is similar to the locally most powerful (LMP) test but only
+much simpler; Rao test has the straight-forward calculation
+by taking derivative with respect to the unknown parameter
+evaluated at the unknown parameter equal to zero. Thus, for at
+near a w, e can achieve approximate maximum outcome with
+a certain level of FAR by maximizing Bfe tlat) as shown in
+(17). In addition, the Rao test also doesn't inv lve the complex
+computation like the ML estimation does. The statistic [18] of
+the Rao test for the observations can be modified and rewritten
+as follows at time t:
+(16)
+(17)
+where ao is set to zero for our problem, and J( ) is the
+Fisher information matrix [19] evaluated at at = a B.y
+inspecting (17), We know that the Rao test is two-side test,
+therefore it is in quadratic form. The computation of the
+inverse fisher information matrix is usually demanded in multiparameter
+environment. In our problem, the unknown a is
+always positive. Thus, the necessity of the quadratic form can
+be omitted. At time t, the linear model of (17) can be described
+as:
+and
+Zt =
+at =
+[Zt,l: Zt,l,Zt,2,... ,Zt,m]T
+[at,l: at,l,at,2,... ,at,m]T,
+(19)
+that is not in a quadratic form, and no need to store the
+observation and re-calculate the unknown parameter at every
+time internal. By setting at to Om, the unknown matrix can be
+minimized in the system. The linear unknown parametersolver
+in (18) is also allowed the multi-thread CUSUM algorithm
+with unknown parameters to compute recursively for test
+statistic. Now, we can apply the linear unknown parameter
+solver (18) into the multi-thread CUSUM algorithm.
+Based on (10), we can write the binary hypothesis { Ho,H1}
+by expanding the multivariate normal distributions:
+exp [-0.5 (Zt)TEl;- (Zt)]
+(271")0.5", det(Ez)O.5 ,
+exp [-0.5(Zt -at)TE;-1 (Zt-at)]
+(271")0.5", det(Ez)0.5
+(20)
+So, the multi-thread CUSUM statistic with unknown parameter
+can be derived as:
+St = max12k2Th 'Li!k
+log [exp (Z[:E;l
+L' 1;:
+at + a[;:ElZt
+- a[:E;l at)],
+(21)
+Next, we apply the linear unknown parameter solver from the
+result of (18) to each mth log likelihood ratio term in (21)
+by taking its derivative with respect to al evaluated at al = 0
+in the unknown vector at at time t. We can rewrite (15) and
+then formulate the linear-based multi-thread CUSUM statistic
+by recursion as follows:
+.
+:[;:ElZt
+t
+- a[:E;lat)] I
+St = max(St_1, 0)+
+f mog [exp (Z[:E;lat
+1=1
+at=0",
+(22)
+From the visional inspection of (22), we know Blog xap(ab) =
+aBab = b, and we can rewrite (22) as follows:
+m
+St = max(S t-1,0) + L [(Z;:E;lf (23)
+1=1
+Notes that the control center observes a vector Zt of actual
+power-oflw measurements for m active power-oflw branches
+at time t, Zt E {Zt,l},and at E {at,l} where l = 1, 2,···,m.
+With these two interleaved steps: the linear unknown parameter
+solver and multi-thread CUSUM test, we construct the
+proposed scheme, which is named the "adaptive CUSUM
+algorithm". The control center is able to tackle with the
+unobservable attack (malicious data injection) by examining
+adaptive CUSUM statistic in (22) against the threshold h in
+(13) at time t; h is the detection threshold to be set according
+to the desired value of the false alarm rate (FAR) and miss
+detection rate (MDR); the alarm rise as little delay as possible
+when the CUSUM statistic St excess the threshold h while
+maintaining a certain level of detection accuracy.
+A decision is made at each time t for whether continue
+sampling, or terminate the test and declare the true hypothesis.
++ :E;lZt ].
+978-1-4244-9848-2/11$26.0002011IEEE
+Fig. 2. An experimental setup of IEEE 4-bus power network with four
+available active power-How measurements.
+If either St excesses the threshold h, the hypothesis decision
+is made and the process is terminated. The framework of the
+adaptive CUSUM algorithm of the proposed scheme is shown
+in Table 1.
+Algorithm 1 Adaptive CUSUM algorithm
+t +- (1 ,2,3"')
+a +- The unknown adversary vector (zf-L E Rm for Jil)
+repeat
+compute the the covariance matrix z, e
+Linear Unknown Parameter Solver:
+solve a by taking its derivative with respect at evaluated
+to at = Om based on the Rao test
+Multi-thread CUSUM test:
+compute recursively St with the sum of Lt for all m
+measurements at current time t
+Update of: t +- t + 1
+continues the observation
+until Th = inf{t 2: 11St > h} is determined
+Terminate the adaptive CUSUM process
+Report the true hypothesis and Th as the ARL
+IV. NUMERICALRES ULTS
+In this section, we present the numerical simulations to
+demonstrate the performance of the proposed scheme with the
+following setup. The simulation performs under IEEE 4-bus
+test system for the power network as shown in Figure 2. Each
+bus has its corresponded voltage (Vi) and phase angle (8i);
+the dots represents availableactive power-oflw measurements.
+The total number of the measurements from this IEEE 4-bus
+test system is four, which are P = [Pl, H2, P24, PdT. The
+bus phase angle 81 is set to zero as the reference angle. The
+normal state in the power system is assumed to be initially
+drawn from the multivariate normal distribution N(O , z). z
+is in term of e, which sets equivalently to the identify matrix.
+After passing the unknown period of time, the adversary start
+to inject the malicious data at time T that are drawn ofrm
+N( a, z). The detector has none information about the matrix
+a's statistical model, distribution, or prior probabilities. The
+adversary manipulatesand injectsthe false datainto the system
+at the random time.
+The simulation of the adaptive CUSUM algorithm is shown
+in Figure 3 with the constant probability of detection eror. We
+consider that Case 1 with FAR of 1% and Case 2 with FAR of
+2
+3
+4
+5
+6
+7
+8
+9
+Fig. 3. The simulation of the adaptive CUSUM algorithm. The x-axis is the
+time (t), and y-axis is the recursive CUSUM statistic (Sd. Case 1 with FAR
+of 1% corresponds to hI , and Case 2 with FARof 0.1 % corresponds to h2.
+The proposed algorithm signals the alarm and then terminates the process at
+Th = 7 and 8, respectively.
+0.01 % .The adversary becomes active and injectsthe malicious
+data at time t = 6 .In other words, a change distribution is at
+T = 6 from N(O , z) to N( a, z), where a is unknown. For
+both cases, the curve of adaptive CUSUM statistic (St) shows
+the sudden increase right aeftr a change of distributions. The
+proposed algorithm quickly responses the abnormal event by
+signaling an alarm of out-of-control. At time 7, the threshold
+parameters hl and h2 are corresponded to Case 1 and Case
+2, respectively. As a result in Figure 3, hl is less than h2,
+because of the different FARs. For the higher successful
+rate of detection, the stricter constraint (smaller FAR) causes
+increasing the threshold, which sets the higher requirement for
+system to declare the decision from the observation. The above
+statement is corresponded to the simulation results in Figure
+4 and Figure 5, which are explained in the next paragraph.
+ARL (Th) of adaptive CUSUM algorithm is 7 and 8 at St
+of 6.23 (Case 1) and 11.49 (Case 2), respectively. ARL (Td)
+of detection delay is 1 for cases 1 and 2 for the Case 2 in
+this simulation. The proposed algorithm is able to signal the
+alarm and terminates the process aeftr the active malicious
+date attack; the detection delay occurs because of the missing
+detection at time 6 as shown in Figure 3. The system continues
+the detection process until the CUSUM statistic St. which
+excesses the threshold. However, the detection accuracy of
+the proposed scheme is comparable high while maintaining
+a certain level of detection error rate.
+Both Figure 4 and Figure 5 shows the characteristics of
+the proposed algorithm by varying FAR for the detection
+probability PD and the expectional ARL (E(Td))of detection
+delay. To compute PD and E(Td)w,e run 5000 realizations for
+the simulation. MDR is set to the constant 1%, and FAR is vary
+from 10 -10 to 10 -2.The change T of distribution is randomly
+selected. E(Tdo)f detection delay is computed by subtracting
+T from E(Th)' The simulation result shows that the algorithm
+maintains the fairly good detection accuracy of 67% and 1
+978-1-4244-9848-2/11$26.00©2011IEEE
+1Adaptive
+CUSUM algorithmI
+1Adaptive
+CUSUM algorithmI
+Fig. 4. The performance analysis for the adaptive CUSUM algorithm. The
+Fig. 5. The performance analysis for the adaptive CUSUM algorithm. The
+y-axis is PD, the probability of detection, and x-axis is the probability of the
+y-axis is E(Td), and x-axis is the probability of the false alarm.
+=<
+o
+0 .8
+3; 0.75
+0 .7
+0 .65 L,-�':
+10
+-10
+false alarm.
+10 -6
+10 -6
+log(FAR)
+10 -4
+10 -2
+unit of E(Td)at the worst case of FAR 1 % From both Figure
+4-5, we know the tradeoff between the detection accuracy and
+ARL; the higher detection accuracy (the smaller FAR) causes
+higher ARL (the higher E(Td))i,.e., the system needs to spend
+more time for making a decision. E(Td)decreases as FAR
+increases, of course, the PD decreases because of the loss of
+constraints; in this case, the constraint is FAR. The loss of
+constraints also benefits
+the quicker detection (less detection
+delay) but may degrading the accuracy of detection. Therefore,
+the tradeof between the constraints and the detection accuracy
+needs to be addressed carefully since it may have the great
+impact on the output parameters.
+V. CO NCLUSION
+In this paper, we have studied malicious node quickest
+detection in smart grid networks. We propose the adaptive
+CUSUM algorithm for defending false data injection attack
+in smart grid networks. Our proposed scheme for smart grid
+state estimation composes two interleaved stages: Stage 1
+introduces the linear unknown parameter solver technique,
+and Stage 2 applies the multi-thread CUSUM algorithm for
+determining the possible existence of adversary at the control
+center as quickly as possible without violating the given
+constraints while maintaining a certain low level of detection
+error rate. The analysis and numerical simulation results have
+shown that the proposed scheme achieved good performance
+while maintaining a certain level of detection accuracy and
+detection delay. The proposed adaptive CUSUM algorithm is
+not only simple but also eficient
+in term of detection accuracy
+and minimum ARL. The numerical simulation of FAR verses
+E(Td)and PD also helps us to understand the characteristics
+of the proposed scheme. Finally, the proposed scheme in this
+paper is able to achieve the important objectives of smart
+grid security in term of the real-time operation and security
+requirement.
+REFERENCES
+4
+3 .
+2 .
+o
+1 0 -10
+10 -8
+10 -6
+log(FAR)
+-------
+---- -L
+--- -'
+10 -4
+10 -2
+Accessed:December 2010.
+cember 2010.
+[2] McClatchy
+Newspapers, "Smart
+grid
+technology
+vulnerable
+to
+attack,"
+Internet:
+http:/www.statesman.comlnewsllocalJ
+smart-grid-technology-vulnerable-to-attack-expert-says-826545.html,
+[3] Homeland Security Newswiregroup, "Smart grid attack," Internet:
+http:/
+homelandsecuritynewswire.comlsmartgrid-
+attack-likely, Accessed:DePress,
+2008.
+100-115, 1954.
+[4] M. Petzold, C. Sonesson, E. Bergman, and H. Kieler, "Surveillance
+in longitudinal models: Detection of intrauterine growth restriction,"
+Biometrics, Vol. 60, No. 4, pp. 1025-1033,2004.
+[5] E.
+Andersson, D. Bock, and M. Frisen, "Some
+statistical aspects of
+methods for detection of turning points in business cycles," Journal of
+Applied Statistics, Vol. 33, No. 3, pp. 257-278, 2006.
+[6] E. Andreou and E. Ghysels, "The impact of sampling frequency and
+volatility estimators on change-point tests," Journal
+of Financial Econometrics,
+Vol. 2, No. 2, pp. 290-318, 2004.
+[7] H. Y.
+Poor and Q. Hadjiliadis, Quickest Detection, Cambridge University
+[8] E. S. Page, "Continuous inspection schemes," Biometrika, vol. 41, pp.
+[9] M. Basseville and I. Nikiforov, Detection of Abrupt Changes: Theory
+and Applications, Englewood Cliffs: Prentice-Hall, NJ, 1993.
+[10] C. Li, H. Dai, and H. Li, "Adaptive quickest detection with unknown
+parameters," in Proceedings of IEEE International
+Conference on Acoustics,
+Speech, and Signal Processing 2009, pp. 3241 - 3244, Taipei,
+Taiwan, April2009.
+[II] Y.
+Xin, H. Zhang, and S. Rangarajan, "SSCT:
+A simple sequential
+spectrum sensing scheme for cognitive radio," in Proceedings of IEEE
+Global Communications Conference 2009, Honolulu, HI, Nov. 2009.
+[12] H. Li, C. Li, and H. Dai, "Quickest spectrum sensing in cognitive radio,"
+Sciences and Systems 2008, pp. 203 - 208, Princeton,
+IEEE Iriformation
+NJ, March 2008.
+[13] H. Li, C. Li, and H. Dai, "Collaborative quickest detection in ad
+hoc networks with delay constraint
+Part I: Two-node network," IEEE
+Information Sciences and Systems 2008, pp. 594 - 599, Princeton, NJ,
+March 2008.
+[14] J. Casazza and F.
+Delea, Understanding Electric Power Systems, IEEE
+Press Understanding Science and Technology Series, AJohn Wiley and
+Sons, Inc., 2010.
+[15] A. Abur and A. G. Exposito, Power System State Estimation: Theory
+and Implementation, Marcel Dekker, Inc., 2004.
+[16] Y.
+Liu, P. Ning, and M. K. Reiter, "False data injection attacks against
+state estimation in electric power grids," in Proceedings of ACM
+Coriference
+on Computer and Communications Security, Chicago, IL,
+November 2009.
+[17] G. Lorden, "Procedures for reacting to a change in distribution," Annals
+of Mathematical Statistics, vol. 42, no. 6, pp. 1897-1908, 1971
+[18] A. D. Maio, "Rao test for adaptive detection in Haussian interference
+with unknown covariance matrix," IEEE transactions
+on signal process[I]
+P. Marken, 1. Marczewski, and R. D' Aquila, "A smart transmiSSIOn
+ing, vol. 55, no. 7, pp. , July 2007
+technology that is compatible with the existing and future Grid," in
+[19] S.
+M. Kay, Fundamentals of Statistical Signal Processing:
+Detection
+Proceedings
+of IEEE Power Systems Conference and Exposition, Seattle,
+Theo,ry
+Englewood Clifs,
+NJ: Prentice-Hall, 1998
+WA,March 2009.
+978-1-4244-9848-2/11$26.00©2011IEEE

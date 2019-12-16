@@ -1,0 +1,803 @@
+2015 IEEE 54th Annual Conference on Decision and Control (CDC)
+December 15-18, 2015. Osaka, Japan
+Attack-Resilient State Estimation in the Presence of Noise
+Miroslav Pajic
+Paulo Tabuada
+Insup Lee
+George J. Pappas
+Abstract- We consider the problem of attack-resilient state
+estimation in the presence of noise. We focus on the most general
+model for sensor attacks where any signal can be injected via
+the compromised sensors. An l0-based state estimator that can
+be formulated as a mixed-integer linear program and its convex
+relaxation based on the l1 norm are presented. For both l0 and
+l1-based state estimators, we derive rigorous analytic bounds
+on the state-estimation errors. We show that the worst-case
+error is linear with the size of the noise, meaning that the
+attacker cannot exploit noise and modeling errors to introduce
+unbounded state-estimation errors. Finally, we show how the
+presented attack-resilient state estimators can be used for sound
+attack detection and identification, and provide conditions on
+the size of attack vectors that will ensure correct identification
+of compromised sensors.
+I. INTRODUCTION
+In recent years, several incidents have raised attention to
+security challenges in existing control systems and illustrated
+their susceptibility to attacks. Examples of these incidents
+include the Maroochy Water breach [1], the StuxNet virus
+attack on an industrial SCADA system [2], and attacks on
+modern automotive systems [3]. Some of the documented
+control system vulnerabilities were exposed by non-invasive
+attacks on system sensors, where an adversarial signal is
+injected into the measured data by modifying a sensor's
+physical environment. For instance, several attacks on GPS
+based navigation systems (e.g., [4]) and Anti-lock Braking
+Systems [5] have been reported, illustrating that the use of
+standard authentication based network security techniques
+does not guarantee security of control systems.
+Consequently, significant efforts have been invested into
+development of control techniques that exploit some knowledge
+of system dynamics for attack detection and attackresilient
+control (e.g., [6], [7], [8], [9], [10], [11]). One line
+of work has focused on attack-detection [12], [13]. Furthermore,
+state estimation in presence of sensor and actuator
+attacks has attracted significant attention due to the fact that
+This material is based on research sponsored by DARPA under agreement
+number FA8750-12-2-0247. The U.S. Government is authorized to reproduce
+and distribute reprints for Governmental purposes notwithstanding any
+copyright notation thereon. The views and conclusions contained herein are
+those of the authors and should not be interpreted as necessarily representing
+the official policies or endorsements, either expressed or implied, of DARPA
+or the U.S. Government. This work was also supported in part by NSF CNS1505701
+grant and a grant from Intel.
+M. Pajic is with the Department of Electrical and Computer Engineering,
+Durham, NC, USA 27708. Email: miroslav.pajic@duke.edu.
+P. Tabuada is with the Department of Electrical Engineering, UCLA,
+Los Angeles, CA, USA 90095. Email: tabuada@ee.ucla.edu.
+G. J. Pappas and I. Lee are with the Departments of Electrical and
+Systems Engineering and Computer and Information Science, respectively,
+University of Pennsylvania, Philadelphia, PA, USA 19104. Email:
+fpappasg,leeg@seas.upenn.edu.
+systems capable of correctly estimating the plant's state from
+corrupted measurements would be able to continue operating
+even under attack. For noiseless linear time-invariant (LTI)
+systems for which the exact plant model is known, the attackresilient
+state estimation problem has been formulated as an
+l0 optimization problem [8], [9]. In addition, in [14], the
+authors present an SMT-based state estimation technique.
+However, for systems with noise, it is unclear what kind of
+guarantees can be given regarding the performance of attackresilient
+state estimators. To the best of our knowledge,
+the first work on this topic was [15] where we introduced
+an l0-based attack-resilient state estimator for systems with
+bounded noise, which can be formulated as a Mixed-Integer
+Linear Program (MILP). We also showed its robustness to
+noise and modeling errors, and provided a complex designtime
+procedure to bound the worst-case state estimation error
+in the presence of sensor attacks.
+In this paper, we focus on the problem of attack-resilient
+state estimation for linear dynamical systems with noise. We
+consider the most general model for sensor attacks where any
+signals can be injected via the compromised sensors [7]. We
+start from the l0-based state estimation procedure introduced
+in [9] and show how it can be adapted for systems with
+noise. The main limitation of the l0-based state estimators
+is that solving the corresponding optimization problem is
+NP-hard in general. Thus, by exploiting properties of the
+l1 norm we provide a computationally efficient, convex
+optimization based state estimation procedure for systems
+with noise. We also derive rigorous analytic bounds on
+the state-estimation errors for both l0 and l1-based state
+estimation procedures. We show that the worst-case error
+is linear with the size of the noise, and when the number
+of attacked sensors is not higher than a predefined number,
+which depends on the properties of the system's observability
+matrix, the attacker cannot exploit noise and modeling errors
+to introduce unbounded state-estimation errors. Finally, we
+present how these attack-resilient state estimators can be
+exploited for sound attack detection and identification.
+Note that our work exploits some of the ideas initially
+introduced in the domain of compressed sensing [16]. In
+particular, the problem of extraction of block-sparse signals
+have been recently addressed in the community (e.g., [17]),
+while [18] provides guarantees for extraction of (non-block)
+sparse signals in presence of structured interference.
+A. Notation and Terminology
+For a set S, jSj denotes the cardinality (i.e., size) of the
+set. In addition, for a set K S, with K{ we denote the
+complement set of K with respect to S - i.e., K{ = S n K.
+978-1-4799-7886-1/15/$31.00 ©2015 IEEE
+5827
+We use AT to indicate the transpose of matrix A, while
+ith element of a vector xk is denoted by xk;i. For vector x
+and matrix A, we denote by jxj and jAj the vector and matrix
+whose elements are absolute values of the initial vector and
+matrix, respectively. For matrices P and Q, by P Q we
+specify that the matrix P is element-wise smaller than the
+matrix Q. In addition, for a symmetric matrix Q, Q 0
+denotes that the matrix is positive semidefinite.
+We use R to denote the set of reals. Also, Ip denotes the
+identity matrix of size p, while I( ) denotes the indicator
+function. Finally, for a vector e 2 Rp, the support of the
+vector is the set supp(e) = fi j ei 6= 0g f1; 2; :::; pg;
+while l0 norm of vector e is the cardinality of supp(e) i.e.,
+kekl0 = jsupp(e)j.
+II. PROBLEM DESCRIPTION
+We consider LTI systems of the form
+xk+1 = Axk
+yk = Cxk + wk + ek:
+The plant's output vector y 2 Rp contains measurements of
+the plant's state x 2 Rn provided by p sensors from the
+set S = fs1; s2; :::; spg. We assume the measurement noise
+vector w 2 Rp to be bounded; specifically, we assume that
+jwkj wk , for all k 0. Finally, the sparse vector e 2 Rp
+with support in set K S denotes the attack vector injected
+by a malicious attacker using sensors from K.1
+The attack-resilient state estimation problem focuses on
+reconstruction of the initial system state x0 from a set of
+N output observations2 y0; y1; : : : ; yN 1 corrupted by an
+attacker with access to the sensors from the set K - i.e.,
+yk = CAkx0 + ek + wk:
+Since set K is not known before the estimation, additional
+goal is to identify compromised sensors (i.e., identify set K).
+1) Model Motivation: The aforementioned attack-resilient
+state estimation problem can be also used for the general
+form of LTI systems
+xk+1 = Axk + Buk + vpk
+yk = Cxk + vmk + ek;
+with A 2 Rn n; B 2 Rn m, and C 2 Rp n, while process
+and measurement noise, vp 2 Rn and vm 2 Rp respectively,
+are bounded in size. Here, to obtain the plant's state at any
+time-step t (i.e., xt), the goal is to utilize the previous N
+sensor measurement vectors (yt N+1; :::; yt) and actuator
+inputs (ut N+1; :::; ut 1) to evaluate the state xt N+1.
+For noiseless systems, the state can be obtained as the
+minimization argument of the following optimization problem
+[9], [15]
+min
+Et;N 2Rp N ; x2Rn
+s: t:
+kEt;N kl0
+Et;N = Yt;N
+N (x)
+1In this work, we sometimes abuse notation with K denoting both the set
+of compromised sensors and the set of indices of the compromised sensors.
+2Note that the measurement history size N is an input parameter to the
+state-estimation procedure.
+Here, the matrix Et;N = [et N+1jet N+2j : : : jet] captures
+the last N attacks vectors. In addition, Yt;N =
+[y~t N+1jy~t N+2j : : : jy~t] maintains the last N sensor measurements
+compensated for the impact of the inputs applied
+during that interval - i.e.,
+y~k = yk;
+y~k = yk
+k t+N 2
+X
+i=0
+k = t
+N + 1
+CAiBuk 1 i; k = t
+N + 2; :::; N:
+Finally, the linear mapping N : Rn ! Rp N defined as
+N (x) = hCxjCAxj : : : jCAN 1xi specifies the observed
+system evolution, due to its dynamics, from initial state x.
+Therefore, for the general form of LTI systems (2), the
+state-estimation problem can be mapped into the state estimation
+for systems from (1), where control inputs are discarded.
+In addition, as shown in [15], the bounds on the size of
+measurement noise in (2) can be related to the bounds on the
+size of process and measurement noise vectors, vp and vm.
+III. ATTACK-RESILIENT STATE ESTIMATORS
+We start by introducing the following notation. We use
+PK to denote the projection from the set S to set K by
+keeping only rows of C with indices that correspond to
+sKen=sorsfsfkr1o; m:::; Ksk.jKFjgormalSly, aPndK k=1 <[ ik:1:: ::<:ikjkKjjK]jT, , anwdheirjTe
+denotes the row vector (of appropriate size) with a 1 in its
+jth position being the only non-zero element of the vector.
+Also, for any sensor si we define the matrices Osi and OK
+2
+6
+Osi = 6
+6
+4
+PfsigC 3
+PfsigCA 7
+... 77
+PfsigCAN 1 5
+OK = 666
+4
+2
+Osi1
+3
+Osi2 7
+... 775 ; (4)
+OsijKj
+We will also slightly abuse the notation by using Oi to denote
+Osi for each sensor si.
+In addition, we use e~i = [ e0;i e1;i ::: eN 1;i ]T 2 RN , for
+all i 2 f1; :::; pg, to denote the values injected via sensor si
+(i.e., attack signals on sensor si) at time-steps 0; :::; N 1.3
+From the definition, if si 2= K then e~i = 0 2 RN . Similarly,
+for all i 2 f1; :::; pg, we use y~i = [ y0;i ::: yN 1;i ]T and w~ i =
+[ w0;i ::: wN 1;i ]T to denote all measurements obtained by the
+sensor si and measurement noise at the sensor respectively, at
+time-steps 0; :::; N 1. Hence, we have that for all 1 i p
+y~i = Oix0 + e~i + w~ i
+(5)
+Finally, we define block vectors y~; e~; w~ 2 RpN as y~ =
+y~1T ::: y~pT T , e~ = e~1T ::: e~pT T , and w~ = w~ 1T ::: w~ pT T ,
+and matrix O = O1T ::: OpT T .4 Since each element of
+the measurement noise vectors w0; :::; wN 1 is bounded
+(i.e., jwk;ij wk;i ; 0 k N 1; 1 i p), we
+denote by RpN the feasible set of noise vectors w~ .
+3Note that vector e~i corresponds to the ith row of the matrix E from (3).
+4Since matrix O is obtained by reordering rows of the standard observability
+matrix OS for the system (A; C), rank(O) = rank(OS ).
+(1)
+(2)
+(3)
+5828
+y~ = Ox0 + e~ + w~ :
+For block vectors obtained by concatenating p vectors,
+such as e~ and y~, we also use the notation from [17]
+ke~kl2;l0 =
+ke~kl2;l1 =
+p
+X I(ke~ikl2 > 0)
+i=1
+p
+X
+ke~ikl2
+i=1
+This allows us to define block q-sparse vector e~ as a vector
+that satisfies ke~kl2;l0 = q, meaning that it has q nonzero subvectors.
+Hence, if the set of compromised sensors K has q
+elements (i.e., jKj = q) then vector e~ is q-block sparse.
+Using the above notation, the optimization problem (3)
+can be represented as:
+P0 :
+me~;ixn ke~kl2;l0
+s: t: y~
+Ox0
+e~ = 0
+Now, consider the measurement vector y~ for a noiseless
+system's (i.e., when = 0 2 RpN ) evolution due to the
+initial state x0 and attack vector e~ . If the number of attacked
+sensors q = jKj is not higher than a certain number qmax,5
+the minimization arguments of the problem P0 are exactly
+the initial state x0 and the attack vector e~ [9]. Thus, in
+this case the estimator P0 also correctly identifies the set of
+attacked sensors K. Furthermore, for noiseless systems P0 is
+optimal in the sense that if another estimator can recover the
+initial state (which would also result in identification of the
+attacked sensors), the attack-resilient state estimator based
+on P0 can as well [9].
+On the other hand, P0 cannot be used when noisy sensor
+measurements are available (i.e., when 6= 0 2 RpN ).
+For instance, in this case the point (x0; e~ ) might not even
+be feasible. Thus, as we showed in [15], attack-resilient
+state estimation can be performed by solving the following
+problem that allows for the noise allowance
+(6)
+(7)
+(8)
+(9)
+In addition, for any set R S, we define w~ R to be
+the block vector obtained by concatenating w~ si for all
+si 2 R starting from the smallest i to the largest, while
+the corresponding R RjRjN denotes the feasible set
+of vectors w~ R. We similarly define the matrix OR to be
+obtained by concatenating matrices Oi for all si 2 R.
+Now, from (5), it follows that
+norm, which effectively convexifies the problem and reduces
+its computational requirements. Consequently, to perform
+the attack-resilient state estimation we also consider the
+following optimization problem
+s: t: y~
+Ox0
+e~ = w~
+(10)
+s: t: y~
+Ox0
+e~ = w~
+me~;ixn ke~kl2;l0
+w~ 2
+P0;! :
+The problem P0;! involves combinatorial optimization and
+as we presented in [15] it can be solved using MILP solvers.
+However, solving P0;! is NP-hard in the general case, which
+limits its use on smaller size systems. A common approach
+used in compressed sensing is to replace l0 norm by l1
+5The number qmax depends on the properties of the observability matrix
+of the system. We will cover this in more detail in Section IV.
+However, it is unclear what guarantees can be provided
+regarding the performance of the attack-resilient state estimators
+P0;! and P1;!. Specifically, we are interested in
+obtaining worst-case bounds on the state estimation errors
+caused by noise and attacks on sensors, and answering
+the question whether the attacker can exploit the noise to
+introduce an unbounded state estimation error. Furthermore,
+we will investigate conditions that ensure that the presented
+state estimators can be used to correctly identify the set of
+attacked sensors.
+IV. PERFORMANCE GUARANTEES FOR P0;! ESTIMATOR
+In this section, we focus on the performance degradation
+of the P0;! state estimator due to the existence of noise.
+Specifically, we are interested in providing bounds on xl0
+that is defined as
+(xl0;!; e~l0 ) = arg min P0;!; q0;! = ke~l0 kl2;l0
+xl0 = xl0;!
+x0;
+e~l0 = e~l0
+~
+e
+(11)
+(12)
+We will also denote ith blocks of xl0 ; e~l0 , and e~l0 as
+xli0 ; e~li0 , and e~li0 , respectively.
+We consider systems where the number of compromised
+sensors q = jKj is not higher than qmax - the maximal
+number of attacked sensors for which the system's state can
+be recovered in the noiseless case. Thus, before we proceed
+with our analysis, we first characterize conditions under
+which it is possible to perform the state estimation even for
+noiseless systems. We start with the following definition.
+Definition 1 ([19]): An LTI system from (1) is said to be
+s-sparse observable if for every set K S of size s (i.e.,
+jKj = s), the pair (A; PK{ C) is observable.
+From the analysis in [9] the following holds.
+Lemma 1: qmax is equal to the maximal s for which the
+system is 2s-sparse observable.
+For considered systems, the following theorem provides a
+bound on the maximal state estimation error caused by the
+existence of noise.
+Theorem 1: If q sensors have been attacked, where q
+qmax, then the error xl0 of the state estimate obtained from
+optimization problem P0;! satisfies
+kOyRkl2 w~ R2 R
+max kw~ Rkl2
+k
+xl0 kl2
+2
+max
+R S;
+jRj=p 2qmax
+P1;! :
+me~;ixn ke~kl2;l1
+w~ 2
+(13)
+where Oy denotes the pseudoinverse of OR (i.e., Oy =
+(OTROR)R 1OTR). R
+Proof: From (12) and the definition of P0;! it follows
+that k e~l0 + e~ kl2;l0 ke~ kl2;l0 . Since for all vectors a; b,
+5829
+k
+e~l0 kl2;l0
+2ke~ kl2;l0
+2qmax;
+where r1 holds because ke~ kl2;l0 = q and the number of
+attacked sensors q is bounded by qmax.
+From (6), we have that e~ = y~ Ox0 w~ : Similarly,
+from the constraint (9) it follows that e~l0 = y~ Oxl0;! w~ l0 ,
+which implies
+e~l0 =
+O
+xl0
+w~ :
+Here, w~ = w~ l0 w~ , with w~ l0 ; w~ 2 .
+Therefore, from (14) and (15), there exists an at most
+2qmax-sparse block vector z~ 2 RpN - defined as z~ = e~l0 ,
+with at most 2qmax nonzero N -size blocks - such that
+O
+xl0 =
+w~ + z~:
+This implies that at least f = p 2qmax blocks of z~ are zero
+subvectors. Let's denote their indexes as i1; :::if , such that
+i1 < ::: < if and the set of sensors corresponding to these
+indexes as R (i.e., R = si1 ; :::; sif ). Hence, we have that
+OR
+xl0 =
+~
+wR
+whSeeret R wh~aRs f==w~ Rlp0 2w~qmRa,xweiltehmw~e nRl0ts;,w~aRnd2sincRe. the system
+is 2qmax-sparse observable (from Lemma 1), it follows that
+the pair (A; PRC) is observable (and f 1). Thus, the
+matrix OR is full (column) rank and we can define the
+pseudoinverse matrix OyR = (OTROR) 1OTR, from which
+it follows that
+(14)
+(15)
+(16)
+I(ka + bkl2 > 0)
+that k e~l0 + e~ kl2;l0
+I(kakl2 > 0)
+k e~l0 kl2;l0
+I(kbkl2 > 0),6 we have
+ke~ kl2;l0 . Therefore,
+r1
+k
+xl0 =
+xl0 kl2
+Since
+Oy
+R
+~
+wR ) k
+max
+R S;jRj=p 2qmax
+w~ l0 ;w~ R2 R
+R
+xl0 kl2
+kOyRkl2 k
+~
+wRkl2 )
+kOyRkl2 kw~ R
+w~ Rl0 kl2
+max
+R S;
+jRj=p 2qmax
+kOyRkl2
+max
+w~ l0 ;w~ R2 R
+R
+kw~ R
+w~ Rl0 kl2
+w~ Rl0 kl2
+w~ Rl0 ;mw~ aRx2 R kw~ R 2 w~ mR2axR kw~ Rkl2 ;
+we have that (13) is satisfied, which concludes the proof.
+It is important to highlight that the bound on the right
+hand side of (13) is linear in the size of noise. In addition,
+Theorem 1 states that if at most qmax sensors have been
+compromised, the attacker cannot exploit the noise to introduce
+an unbounded state estimation error. Another thing to
+consider is the complexity of computing the term in (13).
+To determine the state estimation bound we need to check
+p 2pqmax different subsets R of the set S , and for each R
+compute
+kOyRkl2
+max kw~ kl2 =
+w~ 2 R
+Oy
+mRax
+max
+w~ R2 R
+kw~ Rkl2 ;
+6Note that although l0 is not convex, it satisfies the triangular inequality.
+where
+Oy
+mRax denotes the largest singular value of Oy , and
+R
+max
+w~ R2 R
+uvu X NX1
+kw~ Rkl2 = t
+si2R k=0
+( wk;i )2
+for R defined as in Section III.7 This is significantly
+lower than the required computational cost for the robustness
+analysis from [15].
+Finally, for almost all systems (i.e., for almost all pairs of
+matrices A; C) we have that qmax = dp=2 1e [9], meaning
+that 1 p 2qmax 2. Thus, for almost all systems, to
+obtain the bound we would need to evaluate the above term
+for either p or p(p 1)=2 sets R only.
+V. ROBUSTNESS OF P1;! ESTIMATOR TO NOISE
+In this section, we provide a bound on the error of the
+P1;! estimator due to noise. We start by introducing notation
+similar to the one used in the previous section:
+(17)
+(18)
+(19)
+(xl1;! ; e~l1 ) = arg min P1;!
+xl1 = xl1;!
+x0;
+e~l1 = e~l1
+~
+e
+si2K{
+kOi
+xl1 kl2
+Specifically, we are interested in obtaining a bound on xl1 .
+Theorem 2: When sensors from set K S are attacked,
+state estimation error xl1 satisfies the following constraint
+X
+xl1 kl2 + 2
+;
+X kOi
+si2K
+kOixkl2 >
+where = maxw~ 2 kw~ kl2;l1 .
+Proof: The proof, which has been omitted due to space
+limitations, can be found in [20].
+Remark 1: Proposition 6 from [9] states that P1;! can
+correctly estimate the state for noiseless systems ( = 0)
+if and only if for all K such that jKj = q, it holds that:
+X X
+kOixkl2 ;
+8x 2 Rn n f0g:
+(20)
+si2K{ si2K
+! This implies that (19) is tight for noiseless systems, since
+for = 0, (19) takes the form Psi2K{ kOi xl1 kl2
+Psi2K kOi xl1 kl2 ; this constraint when combined
+with (20) implies that for noiseless systems xl1 = 0
+meaning that the state is correctly reconstructed.
+Finally, if we consider systems that can deal with up to q
+attacks when there is no noise, from (19) and (20) it follows
+that the feasible set for the state estimation vector xl1 can
+be described as the set where xl1 = 0 or it satisfies
+X kOi xl1 kl2 < X kOi xl1 kl2 X kOi xl1 kl2
+si2K
+si2K{
+si2K
++ 2
+for all K S , such that jKj = q.
+From the relationship between l2 and l1 norms where
+k kl1 k kl2 p1n k kl1 ; 8 2 Rn;
+(21)
+7On the other hand, if the noise bounds in are defined as bounds on
+the l2 norm of noise for each sensor at each time-step, this term would be
+equal to the sum of the squared norms.
+5830
+it
+p1N kOi
+follows that kOi xl1 kl1
+xl1 kl1 . Therefore,
+kOi
+xl1 kl2
+X
+kOi
+si2K{
+X kOi
+xl1 kl2
+xl1 kl2
+1
+pN
+X kOi
+X
+si2K{
+kOi
+xl1 kl1 = kO {
+Kp
+xl1 kl1 = kOK
+xl1 kl1 :
+kOK{
+xl1 kl1
+si2K si2K
+The above inequalities along with Theorem 2 prove the
+following corollary.
+Corollary 1: When sensors from set K S are attacked,
+the state estimation error xl1 satisfies
+p
+N kOK
+xl1 kl1 + 2
+pN
+:
+k
+xl1 kl2
+where = maxw~ 2 kw~ kl2;l1 .
+Both conditions from Theorem 2 and Corollary 1 define
+sets that contain all feasible xl1 when less than or equal
+to q sensors are attacked.8 However, maximization problems
+over these sets may be hard to solve in the general case.
+Thus, we introduce the following theorem that for a special
+class of systems provides an analytic formula for k xl1 kl2 .
+Theorem 3: Suppose that for all K S with jKj = q it
+holds
+OTK{ OK{ qN 2OTKOK In (23)
+for some > 0. Then if at most q nodes are compromised
+the following condition holds
+2pN
+K mS;ajKxj=q(kOK{ kl2 + pqN kOKkl2 )
+Proof: The proof, which has been omitted due to space
+limitations, can be found in [20].
+Although Theorem 3 provides an analytic bound for the
+worst-case state estimation error obtained by P1;! for a
+certain class of systems, it could heavily overapproximate the
+error due to the gains caused by the conversions between the
+norms (i.e., factor pqN ). Still, along with Theorem 2 and
+Corollary 1, it provides the first analytic relation showing
+that the worst-case error is linear with the size of the noise,
+as in the case for the P0;! estimator.
+VI. ATTACK IDENTIFICATION IN PRESENCE OF NOISE
+In addition to computing a state estimate, the presented
+attack-resilient state estimation procedures also estimate attack
+vectors injected at time steps k = 0; 1; :::; N 1
+(i.e., vectors e~lt ; t = 0; 19). Therefore, in this section we
+consider conditions for which the attack vectors estimates
+can be used for sound identification of compromised sensors
+- i.e., that no valid sensor will be identified as under attack.
+An obvious candidate for identification procedure would
+be to use the policy that classifies sensor si as attacked if and
+only if I(e~lit 6= 0). Note that, unless we can guarantee that
+8Note that the case where q1 < q sensors are attacked is also covered
+by the scenario where jKj sensors are compromised, but q q1 sensors are
+inserting zero signals. Thus, it is enough to check the sets for jKj = q only.
+9In this section, we will use lt notation (instead of l0 or l1) whenever
+we describe results that hold for both P0;! and P1;! obtained estimates.
+(22)
+the set of identified attacked sensors is a subset of the actual
+set of attacked sensors K, we cannot guarantee soundness of
+this identification procedure.10 On the other hand, we can use
+xl1 kl1 the state estimation guarantees presented in the previous two
+N sections to provide a sound attack identification procedure.
+Consider the vector e~lt , denoting the errors of the obtained
+attack vector estimations for all sensors. If e~i = 0 (i.e. sensor
+sbiouinsdnootn atthtaeckveadlu),esthfeonr e~e~liltit ,=wee~litc.anHegnucaer,aniftetehetrheatisalal
+attack vector estimates e~lit that violate the bound effectively
+correspond to scenarios where sensor si is attacked.
+To determine this bound, referred to as De~lt , we use that
+i
+from (15) it follows that e~lit = Oi xlt w~ i. Thus,
+k
+e~lit kl2
+kOikl2 k
+kOikl2 k
+xlt kl2 + k
+xlt kl2 + 2
+w~ ikl2
+max
+w~ i2 fsig
+kw~ ikl2 :
+(24)
+Thus, the bounds for k xlt kl2 , which we will refer to as
+Dxlt , can be used to compute a bound for k e~lit kl2 as
+Die~lt = kOikl2 Dxlt + 2
+max
+w~ i2 fsig
+kw~ ikl2 :
+For example, when P0;! is used, the bound Die~l0 on k e~lit kl2
+is derived using Dxl0 from Theorem 1 (i.e., Eq. (13)).
+Now we can define a Pt;! -based (t = 0; 1) attack identification
+scheme as:
+Attackedlt (si) = I(ke~lit kl2 > Die~lt ); i = 1; :::; p:
+(25)
+The following theorem shows soundness of the proposed
+attack identification scheme.
+Theorem 4: If Attackedlt (si) = 1 then sensor si 2 K.
+Furthermore, for all attack vectors e~ for which ke~i kl2 >
+2Die~lt , the attack on sensor si will be correctly detected
+(i.e., Attackedlt (si) = 1).
+Proof: Suppose Attackedlt (si) = 1, implying that
+ke~lit kl2 > De~lt . Then,
+i
+Die~lt < k
+e~lit +e~i kl2
+k
+e~lit kl2 +ke~i kl2
+Die~lt +ke~i kl2 :
+Thus ke~i kl2 > 0, meaning that the actual attack vector on
+si is non-zero and sensor s1 2 K.
+On the other hand, let's assume that ke~i kl2 > 2De~lt . This
+i
+implies the following:
+2Die~lt < k i
+e~lt
+e~lit kl2
+ke~lit kl2 +k
+e~lit kl2
+ke~lit kl2 +Die~lt :
+Hence, ke~lit kl2 > De~lt , and Attackedlt (si) = 1.
+i
+VII. EVALUATION
+Due to space limit, in this section we only discuss conservativeness
+of the derived l0-based state estimation bound by
+considering 100 randomly generated dynamical systems with
+n = 10 states and p = 5 sensors, as it was done in [15]. More
+thorough evaluation of the attack-resilient state estimation
+10To the best of our knowledge, even for a simpler problem of estimation
+of sparse signals 0 from noisy measurements z obtained using an overcomplete
+dictionary (i.e., z = 0 + v), the l0-based solution [16], [21]
+does not guarantee correct support recovery for 0.
+5831
+Fig. 1. Histogram of the maximal relative state-estimation error obtained
+from 1000 runs of 100 randomly selected systems with n = 10 states and
+p = 5 sensors.
+bounds can be found in [20]. For each of the 100 systems, we
+evaluated the state-estimation error xl0 in 1000 simulations
+for various attack and noise realizations, where the number
+of attacked sensors was less than or equal to 2. Finally,
+we considered the case where the window size N = n.
+Our main focus during the evaluation was the ratio between
+the worst-case observed state estimation error for all 1000
+simulations of each system S - i.e., maxi=1:1000 k xlS0 k2,
+and the system's error bounds DSxl0 from Theorem 1.
+A histogram of the relative errors for these systems is
+shown in Fig. 1, and as can be seen, the maximal observed
+state estimation error reaches 16% of the computed bound.
+Conservativeness of the presented results is partially caused
+by the fact that we only simulated random initial points and
+random attack vectors, which does not result in the worstcase
+estimation errors. However, for small systems (e.g., n =
+1; 2 states) we were able to generate initial states and attack
+vectors for which the obtained bounds were tight.
+VIII. CONCLUSION
+In this paper, we have considered the problem of state
+estimation when some of system sensors are compromised
+by a malicious attacker. Unlike existing work on this topic,
+we have investigated the case when there is noise in the
+system's dynamics. We have shown how to use two estimators
+that incorporate noise allowance in its constraints
+(i.e., P0;! and P1;! ) and proved that the worst-case state
+estimation error is linear with the size of the noise present
+in the system. The provided bounds illustrate that l0-based
+state estimation results in significantly more accurate state
+estimation. However, the penalty is paid in the complexity
+of the procedure; P0;! can be solved as a mixed integer linear
+program, which are NP hard in general, while P1;! can be
+efficiently solved using standard convex optimization solvers
+and is more suited for embedded control applications.
+Finally, we have derived attack identification procedures,
+based on these estimators. We have shown that the proposed
+attack identification schemes are sound, and derived
+conditions on signals injected via an attacked sensor that
+would guarantee identification of the compromised sensor.
+An avenue for future work would be to determine conditions
+when the support of estimated attack vectors is a subset of
+the set of attacked vectors.
+REFERENCES
+[1] J. Slay and M. Miller, “Lessons learned from the maroochy
+water breach,” in Critical Infrast. Protection, 2007, pp. 73-82.
+[2] R. Langner, “Stuxnet: Dissecting a cyberwarfare weapon,”
+Security & Privacy, IEEE, vol. 9, no. 3, pp. 49-51, 2011.
+[3] S. Checkoway, D. McCoy, B. Kantor, D. Anderson,
+H. Shacham, S. Savage, K. Koscher, A. Czeskis, F. Roesner,
+and T. Kohno, “Comprehensive experimental analyses of
+automotive attack surfaces,” in USENIX Security, 2011.
+[4] D. Shepard, J. Bhatti, and T. Humphreys, “Drone hack:
+Spoofing attack demonstration on a civilian unmanned aerial
+vehicle,” GPS World, 2012.
+[5] Y. Shoukry, P. Martin, P. Tabuada, and M. Srivastava, “Noninvasive
+spoofing attacks for anti-lock braking systems,” in
+CHES: Crypt. Hard. and Emb. Syst., 2013, pp. 55-72.
+[6] R. Smith, “A decoupled feedback structure for covertly appropriating
+networked control systems,” Proc. IFAC World
+Congress, pp. 90-95, 2011.
+[7] A. Teixeira, D. Pe´rez, H. Sandberg, and K. H. Johansson,
+“Attack models and scenarios for networked control systems,”
+in Proc. the 1st international conference on High Confidence
+Networked Systems, ser. HiCoNS '12, 2012, pp. 55-64.
+[8] F. Pasqualetti, F. Dorfler, and F. Bullo, “Attack detection and
+identification in cyber-physical systems,” IEEE Trans. Autom.
+Control, vol. 58, no. 11, pp. 2715-2729, 2013.
+[9] H. Fawzi, P. Tabuada, and S. Diggavi, “Secure estimation and
+control for cyber-physical systems under adversarial attacks,”
+IEEE Trans. Autom. Control, vol. 59, pp. 1454-1467, 2014.
+[10] S. Sundaram, M. Pajic, C. Hadjicostis, R. Mangharam, and
+G. Pappas, “The Wireless Control Network: Monitoring for
+malicious behavior,” in 49th IEEE Conference on Decision
+and Control (CDC), 2010, pp. 5979-5984.
+[11] F. Miao, M. Pajic, and G. Pappas, “Stochastic game approach
+for replay attack detection,” in 52nd IEEE Annual Conference
+on Decision and Control (CDC), 2013, pp. 1854-1859.
+[12] Y. Mo, T.-H. Kim, K. Brancik, D. Dickinson, H. Lee, A. Perrig,
+and B. Sinopoli, “Cyber-physical security of a smart grid
+infrastructure,” Proc. IEEE, vol. 100, pp. 195-209, 2012.
+[13] C. Kwon, W. Liu, and I. Hwang, “Security analysis for
+cyber-physical systems against stealthy deception attacks,” in
+American Control Conference (ACC), 2013, pp. 3344-3349.
+[14] Y. Shoukry, A. Puggelli, P. Nuzzo, A. Sangiovanni-Vincentelli,
+S. A. Seshia, and P. Tabuada, “Sound and complete state
+estimation for linear dynamical systems under sensor attacks
+using satisfiability modulo theory solving,” to appear.
+[15] M. Pajic, J. Weimer, N. Bezzo, P. Tabuada, O. Sokolsky,
+I. Lee, and G. Pappas, “Robustness of attack-resilient state
+estimators,” in ACM/IEEE International Conference on CyberPhysical
+Systems (ICCPS), 2014, pp. 163-174.
+[16] D. L. Donoho, M. Elad, and V. N. Temlyakov, “Stable recovery
+of sparse overcomplete representations in the presence of
+noise,” IEEE Trans. Inf. Theory, vol. 52, pp. 6-18, 2006.
+[17] Y. C. Eldar, P. Kuppinger, and H. Bolcskei, “Block-sparse
+signals: Uncertainty relations and efficient recovery,” IEEE
+Trans. Signal Process., vol. 58, no. 6, pp. 3042-3054, 2010.
+[18] R. Foygel and L. Mackey, “Corrupted sensing: Novel guarantees
+for separating structured signals,” IEEE Trans. Inf.
+Theory, vol. 60, no. 2, pp. 1223-1247, 2014.
+[19] Y. Shoukry and P. Tabuada, “Event-triggered state observers
+for sparse sensor noise/attacks,” arXiv:1309.3511, 2013.
+[20] M. Pajic, P. Tabuada, I. Lee, and G. Pappas, “Attack-resilient
+state estimation for noisy dynamical systems,” Tech. Rep., '15.
+[21] J. A. Tropp, “Just relax: Convex programming methods for
+identifying sparse signals in noise,” IEEE Trans. Inf. Theory,
+vol. 52, no. 3, pp. 1030-1051, 2006.
+5832
